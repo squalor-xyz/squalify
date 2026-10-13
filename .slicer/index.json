@@ -1,0 +1,396 @@
+{
+  "version": 8,
+  "id_prefix": "sq-",
+  "id_width": 2,
+  "next_id": 13,
+  "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
+  "passes": [],
+  "items": [
+    {
+      "id": "sq-01",
+      "title": "Solution skeleton",
+      "short_title": "Solution skeleton",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "build"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-02",
+      "title": "Descriptor model and canonical JSON writer",
+      "short_title": "Descriptor model and canonical JSON writer",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-01"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-03",
+      "title": "Byte sniff",
+      "short_title": "Byte sniff",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-02"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-04",
+      "title": "Delimited text profiler",
+      "short_title": "Delimited text profiler",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-03"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-05",
+      "title": "Field profiling",
+      "short_title": "Field profiling",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-04"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-06",
+      "title": "Structural fingerprint and detect-rule hints",
+      "short_title": "Structural fingerprint and detect-rule hints",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-07",
+      "title": "Include-values policy",
+      "short_title": "Include-values policy",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core",
+          "cli"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-08",
+      "title": "Parquet profiler",
+      "short_title": "Parquet profiler",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-09",
+      "title": "Lab text formats",
+      "short_title": "Lab text formats",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-10",
+      "title": "Binary and STDF profiler",
+      "short_title": "Binary and STDF profiler",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-03"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "L",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 3,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-11",
+      "title": "Large-file streaming and sketches",
+      "short_title": "Large-file streaming and sketches",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-12",
+      "title": "Descriptor schema v1 freeze",
+      "short_title": "Descriptor schema v1 freeze",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-06",
+        "sq-07",
+        "sq-08",
+        "sq-09",
+        "sq-10",
+        "sq-11"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs",
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    }
+  ],
+  "epilogue": "",
+  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic approximations that the descriptor marks as approximate.\n- **v1 formats:** delimited text (with lab preambles), Parquet (through DuckDB.NET), lab text formats (Touchstone, key=value header blocks), binary (STDF record walk, generic byte profile).\n- **Useful for classification:** a structural fingerprint, layout regions, detect-rule hints and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`. Header names and preamble keys are always included.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).",
+  "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a library of known types.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.",
+  "catalog": {
+    "next_id": 1,
+    "id_prefix": "C",
+    "id_width": 2,
+    "records": []
+  }
+}

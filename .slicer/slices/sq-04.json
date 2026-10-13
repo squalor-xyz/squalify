@@ -1,0 +1,41 @@
+{
+  "id": "sq-04",
+  "title": "Delimited text profiler",
+  "lead": [
+    "Full-scan delimiter and quote detection with candidate evidence. Preamble detection with line kinds and keys, header row detection, and data/footer regions. Ragged rows go into `issues`."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

@@ -1,0 +1,15 @@
+{"when": "2026-10-13T15:07:36Z", "item": "preamble", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-13T15:07:36Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-13T15:07:36Z", "item": "non_goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-01", "action": "add", "from": "", "to": "open", "note": "Solution skeleton"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-02", "action": "add", "from": "", "to": "open", "note": "Descriptor model and canonical JSON writer"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-03", "action": "add", "from": "", "to": "open", "note": "Byte sniff"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-04", "action": "add", "from": "", "to": "open", "note": "Delimited text profiler"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-05", "action": "add", "from": "", "to": "open", "note": "Field profiling"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-06", "action": "add", "from": "", "to": "open", "note": "Structural fingerprint and detect-rule hints"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-07", "action": "add", "from": "", "to": "open", "note": "Include-values policy"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-08", "action": "add", "from": "", "to": "open", "note": "Parquet profiler"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-09", "action": "add", "from": "", "to": "open", "note": "Lab text formats"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-10", "action": "add", "from": "", "to": "open", "note": "Binary and STDF profiler"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-11", "action": "add", "from": "", "to": "open", "note": "Large-file streaming and sketches"}
+{"when": "2026-10-13T15:07:56Z", "item": "sq-12", "action": "add", "from": "", "to": "open", "note": "Descriptor schema v1 freeze"}

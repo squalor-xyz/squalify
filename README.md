@@ -1,0 +1,48 @@
+# squalify
+
+squalify profiles a data file and writes a **descriptor**. The descriptor is a versioned JSON document that summarizes the file's encoding, format, layout, fields, statistics and structural fingerprint, along with the evidence behind each of those inferences.
+
+Other tools read the descriptor to decide what to do with the file. Examples: classifying it as a known file type, picking the right transform or import route, or drafting a [DataBall](../../DataBall/) file type. squalify itself only describes the file.
+
+> Status: design phase. Nothing is implemented yet. The roadmap lives in slicer (`slicer goals`, `slicer list`).
+
+## Principles
+
+- **Deterministic.** The same input bytes and the same squalify version always give the same descriptor, byte for byte. squalify uses no machine learning, no LLM and no network.
+- **Describe, don't decide.** squalify does not classify files, propose configs or convert data. Consumers do that from the descriptor.
+- **Full scan, bounded memory.** squalify streams the whole file. The statistics are exact where that is affordable and come from deterministic, documented approximations beyond fixed caps. The descriptor marks every approximate value as approximate.
+- **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text) appear only with `--include-values`. Column header names are always included, because matching needs them.
+- **Explainable.** Every inference (encoding, delimiter, header row, field type, format) has an evidence entry that lists the candidates considered and why the winner won.
+
+## Planned usage
+
+```bash
+squalify profile data.csv                     # descriptor to stdout
+squalify profile data.csv -o data.squalify.json
+squalify profile data.csv --include-values     # include literal values
+squalify --version
+```
+
+## Formats in v1
+
+| Family | Examples | What is described |
+|---|---|---|
+| Delimited text | CSV, TSV, `;` and `\|` separated, with or without a lab preamble | encoding, delimiter/quoting, preamble and metadata block, header row, data region, per-field profiles |
+| Parquet | `.parquet` | schema, row groups, per-column statistics (through DuckDB) |
+| Lab text formats | Touchstone `.sNp`, key=value header blocks | option lines, header blocks, numeric data blocks, regions |
+| Binary | STDF, unknown binaries | magic bytes, record structure (STDF record walk), byte histograms |
+
+## Relationship to DataBall
+
+DataBall picks a handler from a bounded 64 KiB `FileProbe`, and its file types declare match rules plus a config. squalify is a separate tool with no DataBall dependency: **the descriptor schema is the contract between them**. Using descriptors from DataBall (matching, or proposing file types) is DataBall's work and is tracked in DataBall's roadmap.
+
+## Docs
+
+- [`docs/design.md`](docs/design.md): architecture, pipeline, determinism rules and memory bounds.
+- [`docs/descriptor.md`](docs/descriptor.md): descriptor schema v1 (draft).
+- [`profiler-idea.md`](profiler-idea.md): the original idea prompt.
+- [`AGENTS.md`](AGENTS.md): how to work on this repo.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).

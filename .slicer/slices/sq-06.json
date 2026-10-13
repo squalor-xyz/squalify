@@ -1,0 +1,41 @@
+{
+  "id": "sq-06",
+  "title": "Structural fingerprint and detect-rule hints",
+  "lead": [
+    "`fingerprint.structure`/`fields` over the value-free projection in docs/design.md, and `hints` (extension, stable lines, header/required fields, field-count range, magic)."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

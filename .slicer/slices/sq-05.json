@@ -1,0 +1,41 @@
+{
+  "id": "sq-05",
+  "title": "Field profiling",
+  "lead": [
+    "Per-field accumulators: type votes over the proposed vocabulary, null tokens, numeric stats, lengths, shape masks, monotonicity, and exact distinct counts and quantiles up to the caps. The type vocabulary and caps are confirmed with the owner first."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

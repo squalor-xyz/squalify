@@ -1,0 +1,41 @@
+{
+  "id": "sq-07",
+  "title": "Include-values policy",
+  "lead": [
+    "`--include-values` adds top-k values, lexical min/max, preamble values and value-bearing stable-line regexes. Tests prove that no literal values leak without the flag. Settles whether numeric min/max are gated too."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core, cli",
+  "trees_plural": true,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

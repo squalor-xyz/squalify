@@ -1,0 +1,41 @@
+{
+  "id": "sq-01",
+  "title": "Solution skeleton",
+  "lead": [
+    "Create squalify.sln with src/squalify, src/squalify.Cli and tests/squalify.Tests, plus global.json (10.0.400), Directory.Build.props, nullable, SPDX headers and `squalify --version`. Build, test and format pass."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "build",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

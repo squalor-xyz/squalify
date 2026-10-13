@@ -1,0 +1,41 @@
+{
+  "id": "sq-02",
+  "title": "Descriptor model and canonical JSON writer",
+  "lead": [
+    "The descriptor types from docs/descriptor.md, and a writer that produces canonical JSON: fixed key order, invariant culture, round-trip numbers, LF and a trailing newline. Includes a golden-file test harness and a test that profiles twice and under another culture and compares the bytes."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

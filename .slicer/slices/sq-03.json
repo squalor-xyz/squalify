@@ -1,0 +1,41 @@
+{
+  "id": "sq-03",
+  "title": "Byte sniff",
+  "lead": [
+    "Encoding and BOM, text/binary verdict, line endings, magic-byte table and whole-file SHA-256. Fills `file` and `encoding`, plus evidence entries. Adds `squalify profile <file>` end to end with the generic text/binary profile."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
