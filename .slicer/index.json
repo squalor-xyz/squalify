@@ -2,18 +2,41 @@
   "version": 8,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 13,
+  "next_id": 16,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
     {
       "id": "sq-01",
-      "title": "Solution skeleton",
+      "title": "squalify must build, test and run as a .NET 10 solution",
       "short_title": "Solution skeleton",
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "57de58fa-5392-4fe2-81b6-c238eaf2cfaf",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "a2299568-b106-4b0b-a5c3-62bfef88caa5",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): System.CommandLine 2.0.11 and the xUnit stack (Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3, xunit.runner.visualstudio 3.1.5) are approved. Exit codes are 0 for success and 1 for any error, as in DataBall.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -37,14 +60,37 @@
     },
     {
       "id": "sq-02",
-      "title": "Descriptor model and canonical JSON writer",
-      "short_title": "Descriptor model and canonical JSON writer",
+      "title": "squalify must write descriptors as canonical, byte-stable JSON",
+      "short_title": "Canonical descriptor writer",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-01"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "e7af2253-7ecf-4e4a-bb51-2152d1b688cc",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "760289a1-72c3-448f-8ee1-20676dc65c22",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): output is byte-identical across OS and CPU. Output-affecting math uses only IEEE + - * / and sqrt; logarithms go through the in-repo DetMath. The sketch hash is an in-repo xxHash64, not the System.IO.Hashing package.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -68,45 +114,37 @@
     },
     {
       "id": "sq-03",
-      "title": "Byte sniff",
-      "short_title": "Byte sniff",
+      "title": "squalify must sniff any file and write a generic descriptor end to end",
+      "short_title": "Byte sniff and generic profile",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-02"
       ],
-      "note_records": [],
-      "claim": null,
-      "fields": {
-        "size": "S",
-        "flags": [],
-        "trees": [
-          "core"
-        ],
-        "trees_literal": false,
-        "findings": "",
-        "discovered_from": "",
-        "cites": [],
-        "key": "",
-        "pass": "",
-        "group": "",
-        "reason": "",
-        "importance": 3,
-        "urgency": 3,
-        "effort": 1,
-        "attempts": 0
-      }
-    },
-    {
-      "id": "sq-04",
-      "title": "Delimited text profiler",
-      "short_title": "Delimited text profiler",
-      "status": "open",
-      "has_slice": true,
-      "depends_on": [
-        "sq-03"
+      "note_records": [
+        {
+          "id": "8a4e85fa-d5fb-4af1-ba99-22cb5ee458e2",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "4f2ac0b5-1884-43a0-a8f4-34f365ca4100",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): compressed and archive files are described as binary with a named magic; no decompression in v1. Directory input is an error in v1.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
       ],
-      "note_records": [],
       "claim": null,
       "fields": {
         "size": "M",
@@ -129,15 +167,92 @@
       }
     },
     {
+      "id": "sq-04",
+      "title": "squalify must detect the dialect, header and regions of delimited text, with evidence",
+      "short_title": "Delimited dialect and regions",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-03"
+      ],
+      "note_records": [
+        {
+          "id": "e7759a2b-195b-4c1c-b5f0-e25912933aee",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "313dd731-08ff-4e76-b8f2-bbf138bd51c9",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): units-row text is opt-in (--include-values), but the units region is always detected. Preamble keys are always included; preamble values are opt-in. Key=value blocks above a table belong to this profiler's preamble. Repeated blocks moved to sq-13. Delimiter and header detection scan the whole file, not a head.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "L",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 3,
+        "attempts": 0
+      }
+    },
+    {
       "id": "sq-05",
-      "title": "Field profiling",
+      "title": "squalify must profile every field with types, statistics and shapes in bounded memory",
       "short_title": "Field profiling",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-04"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "a1d7b310-43b8-4b28-8af9-bd04f671adcf",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "510a565d-c026-46c6-9208-a8b29ae92192",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): numeric and temporal min/max/mean/stddev/quantiles are on by default. Strict type rule plus votes over the vocabulary empty, bool, int, float, date, datetime, time, string. Caps: 10,000 exact distinct, 100,000 exact quantile values, 64 shapes. The spec pass added a global memory budget so wide files stay bounded.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -161,14 +276,37 @@
     },
     {
       "id": "sq-06",
-      "title": "Structural fingerprint and detect-rule hints",
-      "short_title": "Structural fingerprint and detect-rule hints",
+      "title": "squalify must emit structural fingerprints and neutral detect-rule hints",
+      "short_title": "Fingerprints and hints",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-05"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "a9a711f0-f7b8-492f-8e1c-b551909cab00",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "60cd5d6e-7a32-4de2-b1b4-a4c646724fda",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview): three fingerprints. layout (no types), typed (layout + types), names (sorted case-folded names).",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -192,14 +330,37 @@
     },
     {
       "id": "sq-07",
-      "title": "Include-values policy",
-      "short_title": "Include-values policy",
+      "title": "squalify must include literal values only with --include-values, and never leak them otherwise",
+      "short_title": "Values tier",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-05"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "cbb9fcd3-be5d-46f5-8f03-c2fa537dcbf4",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "1b6c36e1-580e-4b62-ba92-057d90ba578c",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): lexical min/max, top-k values, preamble values and units-row text are values tier. Numeric and temporal stats are not.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -224,14 +385,37 @@
     },
     {
       "id": "sq-08",
-      "title": "Parquet profiler",
+      "title": "squalify must profile Parquet files through DuckDB",
       "short_title": "Parquet profiler",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-05"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "ddd70e12-6650-4f0c-b66f-cec65779dde0",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "b7778cdd-fa64-4155-acb2-6cc4d7b391fb",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision: DuckDB.NET.Data.Full 1.5.5, the same pin as DataBall. The parquet_* function column lists come from the unversioned duckdb.org docs and must be checked against 1.5.5 at slice start.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -255,14 +439,37 @@
     },
     {
       "id": "sq-09",
-      "title": "Lab text formats",
-      "short_title": "Lab text formats",
+      "title": "squalify must profile Touchstone files and key=value/INI documents",
+      "short_title": "Touchstone and key=value docs",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-05"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "ea17415a-4a89-4b61-8a87-cafc0b6aeeae",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "db37ebc5-5f3d-44e2-bab7-99b0393df4dc",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): sq-09 covers Touchstone plus whole-file key=value/INI documents. Fixtures are synthetic builders, plus an owner-supplied real sample before close. The owner will link the Obfuscator tool for generating synthetic files; the link is pending. The Touchstone rules come from scikit-rf and must be checked against the IBIS 2.0/2.1 text.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -286,14 +493,37 @@
     },
     {
       "id": "sq-10",
-      "title": "Binary and STDF profiler",
-      "short_title": "Binary and STDF profiler",
+      "title": "squalify must profile binary files, and walk STDF V4 with a test catalog",
+      "short_title": "Binary and STDF",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-03"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "80b52b83-c996-4cc8-83e5-647c579890b1",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "d07bf52b-6d44-4d5e-9013-6512d50afa02",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): walk the records and build the test catalog (PTR/MPR/FTR/TSR test numbers and names, always included, capped at 10,000). Result values are never decoded. Fixtures are synthetic builders, plus an owner-supplied real sample (or Obfuscator output; link pending) before close. The layouts come from pystdf, because the Teradyne PDF was unreachable; check the primary STDF V4-2007 spec before close.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "L",
@@ -317,14 +547,204 @@
     },
     {
       "id": "sq-11",
-      "title": "Large-file streaming and sketches",
-      "short_title": "Large-file streaming and sketches",
+      "title": "squalify must stay exact up to its caps and approximate deterministically beyond them, in bounded memory",
+      "short_title": "Sketches and memory bounds",
       "status": "open",
       "has_slice": true,
       "depends_on": [
         "sq-05"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "3a2a2591-6634-4d2c-af44-7048b2eb62f5",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "88c79b23-49a5-404a-8a02-281c95ca6222",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): HLL p=14 above 10,000 distinct values; Greenwald-Khanna eps=0.001 above 100,000 values; an in-repo xxHash64; DetMath for logarithms.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-13",
+      "title": "squalify must describe files with repeated header and data blocks",
+      "short_title": "Repeated blocks",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [
+        {
+          "id": "6d0115d7-bac8-44a9-aa13-745c99c1659d",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "dffa9d1f-76f0-4112-b037-5353355b5a36",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview): repeated blocks split out of sq-04 into their own item.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-14",
+      "title": "squalify must report each file's header-unit convention",
+      "short_title": "Header-unit conventions",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-04"
+      ],
+      "note_records": [
+        {
+          "id": "0407af6d-3692-49b1-96f5-8b69356d147b",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "3016064c-10c1-4b93-a568-c6cb6742f0d0",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview): units show up in many custom forms (I_Total(A), VCC(V), VCC_V, ICC_A), and the descriptor reports which convention the file uses. Units-row text is opt-in; units parsed from header names are always included.",
+          "created_at": "2026-10-13T15:42:14Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-15",
+      "title": "squalify must suggest a generic kind label from a fixed rule set, with evidence",
+      "short_title": "Kind label",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-06",
+        "sq-08",
+        "sq-09",
+        "sq-10",
+        "sq-13",
+        "sq-14"
+      ],
+      "note_records": [
+        {
+          "id": "71cfa7d2-9985-481f-a201-75f117670c08",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "bb412f22-f333-4474-80dd-dfdfd1e36090",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview, 'Both'): report the header-unit convention (sq-14), and add a generic kind label from a fixed built-in rule set. Matching against a user library of known types stays a non-goal. The owner confirms labels and rules at slice start.",
+          "created_at": "2026-10-13T15:42:14Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -348,8 +768,8 @@
     },
     {
       "id": "sq-12",
-      "title": "Descriptor schema v1 freeze",
-      "short_title": "Descriptor schema v1 freeze",
+      "title": "squalify must publish and enforce descriptor schema v1",
+      "short_title": "Schema v1 freeze",
       "status": "open",
       "has_slice": true,
       "depends_on": [
@@ -358,9 +778,35 @@
         "sq-08",
         "sq-09",
         "sq-10",
-        "sq-11"
+        "sq-11",
+        "sq-13",
+        "sq-14",
+        "sq-15"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "0860917c-d66a-49c9-9256-7073dc142600",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T15:42:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "b22db18e-3516-459b-8bc6-1ff35c460540",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview): an in-repo JSON Schema subset validator in the test project only; no package.",
+          "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -385,8 +831,8 @@
     }
   ],
   "epilogue": "",
-  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic approximations that the descriptor marks as approximate.\n- **v1 formats:** delimited text (with lab preambles), Parquet (through DuckDB.NET), lab text formats (Touchstone, key=value header blocks), binary (STDF record walk, generic byte profile).\n- **Useful for classification:** a structural fingerprint, layout regions, detect-rule hints and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`. Header names and preamble keys are always included.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).",
-  "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a library of known types.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.",
+  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, units rows, repeated blocks), Parquet (through DuckDB.NET), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).\n- **Useful for classification:** structural fingerprints (layout, typed, names), layout regions, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`. Header names, preamble keys, test names, and numeric and temporal statistics are always included.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
+  "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a user library of known types. The built-in `kind` label is in scope.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.\n- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.",
   "catalog": {
     "next_id": 1,
     "id_prefix": "C",

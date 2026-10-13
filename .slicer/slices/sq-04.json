@@ -1,40 +1,40 @@
 {
   "id": "sq-04",
-  "title": "Delimited text profiler",
+  "title": "squalify must detect the dialect, header and regions of delimited text, with evidence",
   "lead": [
-    "Full-scan delimiter and quote detection with candidate evidence. Preamble detection with line kinds and keys, header row detection, and data/footer regions. Ragged rows go into `issues`."
+    "Adds the `delimited` profiler.\n- **Pass 1** runs a quote-aware tokenizer for every candidate delimiter at once. It keeps run-length-encoded field counts and line kinds, then picks the dialect and the regions: `preamble`, `header`, `units`, `data` and `footer`.\n- **Pass 2** reads a bounded sample at the start of the data run and decides the header and units rows with the new `ValueClassifier`. Fields get their names and type votes. Full statistics come in sq-05."
   ],
   "depends_note": null,
   "findings_note": "",
-  "size": "M",
+  "size": "L",
   "flags": [],
   "trees_note": "core",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** field statistics (sq-05); repeated blocks (sq-13); header-unit conventions (sq-14); single-quote quoting; fixed-width columns.",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goals: the v1 formats, and output that is useful for classification (regions, evidence). DataBall's `FileProbe.SniffDelimiter` looks only at the first 20 lines, and treats line 0 as the header (`DataBall/src/DataBall/FileProbe.cs:126-164`). Lab files often begin with preambles and units rows, so squalify scans the whole file.\n\nOwner decisions (2026-10-13):\n- The units row is detected, but its text appears only with `--include-values`.\n- Preamble keys are always included; preamble values are opt-in.\n- Key=value lines above a table are this profiler's preamble, not the keyValue family (sq-09)."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/Delimited/CandidateTokenizer.cs`: one tokenizer per candidate: `,`, `\\t`, `;`, `|`, and whitespace runs (leading and trailing whitespace is trimmed).\n  - Quoting is RFC 4180 with `\"`: a quote is recognized only at the start of a field, `\"\"` is an escape, and newlines are allowed inside quotes.\n  - A runaway quote (an open quoted field longer than 65,536 characters) disqualifies that candidate, and the evidence records the line.\n- `src/squalify/Delimited/FieldCountRle.cs`: runs of `(fieldCount, records, firstLine, firstByte)`. A candidate with more than 100,000 runs is disqualified as too irregular. If every candidate is disqualified, the generic text profile is used, with the issue `tooIrregular`.\n- `src/squalify/Delimited/LineClassifier.cs`: classifies each line as one of:\n  - `blank`;\n  - `comment`: the trimmed line starts with `#`, `!` or `//`;\n  - `keyValue`: `^\\s*([^=:]{1,64}?)\\s*[=:]\\s*(.*)$` with a non-numeric key;\n  - `keyDelimValue`: 2 fields whose first field is non-numeric;\n  - `text`.\n- `src/squalify/Delimited/DialectSelector.cs`:\n  - k is the modal field count among records with at least 2 fields. A tie goes to the larger k.\n  - The data run starts at the first record that, together with the next min(5, remaining) records, has k fields. It ends at the last record with k fields.\n  - Score = records in the run with k fields ÷ non-blank records. The profiler score is 0.3 + 0.4 × that score. Ties break by larger k, then candidate order.\n  - The evidence reason is the template `k={k}; {inRun}/{total} records; run lines {a}-{b}`.\n- `src/squalify/Values/ValueClassifier.cs`: a pure `Classify(ReadOnlySpan<char>)` → `(vote, pattern, flags)`, using the invariant culture.\n  - Null tokens: `\"\"`, `NA`, `N/A`, `null`, `NaN`, `-`, case-insensitive after trimming.\n  - `bool`: `true`, `false`, `yes`, `no`.\n  - `int`: `^[+-]?\\d+$` that fits Int64.\n  - `float`: `double.TryParse` with `NumberStyles.Float` and a finite result.\n  - `date`: `yyyy-MM-dd`, `yyyy/MM/dd`, `MM/dd/yyyy`, `dd/MM/yyyy`, `dd.MM.yyyy`, tried in that order.\n  - `datetime`: ISO 8601 (with `T` or a space, an optional fraction, and an optional `Z` or offset), or `MM/dd/yyyy HH:mm[:ss]`.\n  - `time`: `HH:mm[:ss[.f+]]`.\n  - `string`: anything else.\n  - Flags: `leadingZero` and `commaDecimalLike` (`^[+-]?\\d+,\\d+$`).\n- `src/squalify/Delimited/HeaderDetector.cs`: reads the first records of the data run, up to 1,000 (`limits.headerSample`).\n  - Record 0 is the header if both hold:\n    - its fields are all non-empty and pairwise distinct (case-insensitive);\n    - in some column, the narrowest type over the sample (excluding record 0, and record 1 if it is a units row) is not `string`, while record 0's value fails that type.\n  - If every column is `string`, record 0 is the header when it is non-empty and distinct. The evidence then says `assumed: all-string table`.\n  - Record 1 is a units row if all of these hold: a header exists; every field of record 1 fails its column's type; each of its fields is at most 16 characters; and those columns are non-string.\n- `src/squalify/Delimited/DelimitedProfiler.cs`:\n  - `format.dialect {delimiter, quote, hasHeader, unitsRow}`.\n  - `encoding.lineEndings`.\n  - `layout.regions`: line ranges and byte ranges; for the preamble, `lineKinds` and `keys` (always), and `values` (only with `--include-values`); a footer made of the non-blank records after the run.\n  - `table {rows, fieldCount {min, max}, fields[] {index, name, typeVotes}}`. A field name is the trimmed header text. When there is no header the name is null, and later slices refer to the field as `#<index>`.\n  - Issues: `raggedRows` (a count and the first 10 line numbers), `commentInData`, `duplicateHeader`, `emptyHeaderName`.\n- Fixtures:\n  - `tests/squalify.Tests/fixtures/delimited/semiconductor-sweep.csv`, copied from DataBall's fixture (Apache-2.0, same owner);\n  - `lab/sweep-preamble.csv` (a key=value preamble, a header and a units row);\n  - `delimited/semicolon-preamble.csv`;\n  - `delimited/no-header.tsv`.\n- `docs/design.md` \"Delimited text\"; `docs/descriptor.md` `format.dialect` and the `units` region; `docs/how-it-works.md` section 4."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Dialect_PicksDelimiter` (theory): comma, tab, semicolon, pipe and whitespace, each with a 5-line preamble.\n2. `Dialect_QuotedDelimiterAndNewline_DoNotSplit`.\n3. `Dialect_RunawayQuote_DisqualifiesCandidate_WithEvidence`.\n4. `Regions_PreambleKeyValue_HeaderUnitsDataFooter`: exact line ranges, byte ranges and keys for `lab/sweep-preamble.csv`.\n5. `Regions_PreambleValues_OnlyWithIncludeValues`.\n6. `UnitsRow_DetectedAlways_TextOnlyWithIncludeValues`.\n7. `Header_AllNumericFirstRow_IsData`.\n8. `Header_AllStringTable_AssumedWithEvidence`.\n9. `RaggedRows_ReportedNotRejected`.\n10. `ValueClassifier_Theory`: about 40 rows, including `007` (an int with `leadingZero`), `1,5` (a string with `commaDecimalLike`), `NaN` (null), and the date pattern order. It runs under `tr-TR`.\n11. `Irregular_FallsBackToText_WithIssue`.\n12. Goldens for all four fixtures."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the tests.\n2. Implement the tokenizer and the RLE.\n3. Implement the line classifier and the selector.\n4. Implement `ValueClassifier`, then the header detector, then the profiler.\n5. Register the profiler in `FormatRegistry`.\n6. Mutation checks: change the run-start window from 5 to 1, and test 4 must go red. Drop the \"fails that type\" clause, and test 7 must go red."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- Profiling `delimited/semiconductor-sweep.csv` names all 13 header fields in order, with `hasHeader` true.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-04` on branch `sq-04`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-04: delimited dialect and regions` when the owner approves."
     }
   ],
   "notes": []

@@ -1,8 +1,9 @@
 {
   "id": "sq-07",
-  "title": "Include-values policy",
+  "title": "squalify must include literal values only with --include-values, and never leak them otherwise",
   "lead": [
-    "`--include-values` adds top-k values, lexical min/max, preamble values and value-bearing stable-line regexes. Tests prove that no literal values leak without the flag. Settles whether numeric min/max are gated too."
+    "Implements the values tier:\n- top-k values per field (k = 10);\n- lexical min/max for string fields;\n- preamble values and units-row text;\n- value-bearing `stableLines`.",
+    "It also adds `ValuesPolicy`, the single list of value-bearing descriptor members, and canary leak tests that every later format joins."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +11,31 @@
   "flags": [],
   "trees_note": "core, cli",
   "trees_plural": true,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** sample rows (not planned); STDF MIR text (later item).",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goal: values are opt-in.\n\nOwner decisions (2026-10-13):\n- Numeric and temporal statistics are on by default.\n- Lexical min/max, top-k values, preamble values and units-row text need the flag.\n\nA single policy list plus a canary test means a new descriptor member cannot leak values unnoticed."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/Fields/TopK.cs`:\n  - Counts are exact while the distinct set is exact.\n  - Past the cap, it switches to Space-Saving with 1,000 counters, keyed by value with `XxHash64` buckets (sq-11 shares it). That keeps the error at most N/1000.\n  - Order: count descending, then ordinal value.\n  - Output: `top[] {value, count}`, plus `approximate` and `maxError`.\n- `FieldAccumulator`: `text {min, max}` (ordinal), only when the option is set.\n- `src/squalify/ValuesPolicy.cs`: lists every value-bearing member (region `values`, key=value values, Parquet KV values, comment text, `fields[].top`, `fields[].text`, `fields[].unit`, and value-bearing `stableLines`). The writer refuses to write any of these when `includeValues` is false, and throws `InvalidOperationException` (a bug, not a user error).\n- Canary fixtures: `canary/canary.csv` and `canary/canary-preamble.csv`. Every string value and preamble value contains `CANARY`; header names do not.\n- `docs/descriptor.md`: the \"Values tier\" table becomes normative. `docs/how-it-works.md` section 6."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Canary_NoValuesWithoutFlag` (theory over every canary fixture): without the flag the descriptor bytes do not contain `CANARY`; with the flag they do. Later format slices add rows.\n2. `TopK_ExactOrderingAndTies`.\n3. `TopK_SpaceSaving_ErrorBoundRespected`, using an injected small cap.\n4. `ValuesPolicy_AllValueMembersRegistered`: reflection over the descriptor model checks each member marked `[ValueBearing]` against the policy list.\n5. `Writer_RefusesValueMemberWithoutFlag`.\n6. `Options_IncludeValues_RecordedInDescriptor`."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the tests.\n2. Implement `TopK`, the text min/max, `ValuesPolicy` and the writer guard.\n3. Mutation check: remove the gate on preamble values, and test 1 must go red."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-07` on branch `sq-07`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-07: values tier` when the owner approves."
     }
   ],
   "notes": []

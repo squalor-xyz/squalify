@@ -1,8 +1,8 @@
 {
   "id": "sq-08",
-  "title": "Parquet profiler",
+  "title": "squalify must profile Parquet files through DuckDB",
   "lead": [
-    "Schema, row groups and column statistics through DuckDB.NET.Data.Full 1.5.5, mapped to the same field-profile shape. Row-group aggregation is deterministic."
+    "Adds the `parquet` family.\n- It reads file metadata, the schema, row groups and key/value metadata keys through DuckDB.NET.Data.Full 1.5.5.\n- It streams every row, in one thread and in order, into the shared field accumulators, so Parquet fields have the same profile shape as text.\n- It adds the Parquet fingerprint contribution and the `parquetColumns` hint."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +10,31 @@
   "flags": [],
   "trees_note": "core",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** expanding nested columns (only count, nulls and `sourceType`); hive directories (directory input is not in v1).",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goal: the v1 formats.\n\nOwner decision: DuckDB.NET.Data.Full 1.5.5, the same pin as DataBall. DataBall checked that `DESCRIBE SELECT * FROM read_parquet(path)` returns exactly the top-level columns, and that `PAR1` sits at both ends of the file (`DataBall/src/DataBall/FileProbe.cs:69-75` and `:86-104`).\n\nThe column lists for the `parquet_*` functions come from the current, unversioned duckdb.org docs and must be checked against 1.5.5."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/squalify.csproj`: adds `DuckDB.NET.Data.Full` 1.5.5.\n- `src/squalify/Parquet/ParquetProfiler.cs`: scores 1.0 when the `parquet` magic matches at both ends. It uses an in-memory connection set up with `SET threads=1; SET preserve_insertion_order=true;`.\n  - `parquet_file_metadata`: `num_rows`, `num_row_groups`, `format_version` and `created_by`. `created_by` names the writer software, so it is always included.\n  - `parquet_schema`: top-level columns, plus the physical, logical and converted types and the repetition.\n  - `parquet_metadata`, aggregated in `row_group_id` order:\n    - `dialect.rowGroups {count, rows {min, max}, compression[], encodings[]}`, with the sets sorted;\n    - per column, `statisticsPresent`.\n  - `parquet_kv_metadata`: `kvKeys` always; values only with `--include-values`.\n  - Rows: `SELECT * FROM read_parquet(?)`, read through a `DbDataReader`, with typed values passed to the accumulators.\n- Type mapping:\n  - BOOLEAN → bool.\n  - INT8 to INT64 and UINT8 to UINT32 → int. UINT64 → int, or float when a value exceeds Int64.\n  - FLOAT and DOUBLE → float.\n  - DECIMAL → float, with `sourceType` `DECIMAL(p,s)`.\n  - DATE → date; TIMESTAMP (any precision or time zone) → datetime; TIME → time.\n  - VARCHAR → string.\n  - BLOB → string, with `sourceType` and length statistics only.\n  - STRUCT, LIST and MAP → `type: null`, with `sourceType`, count and nulls only.\n- `src/squalify/Parquet/ParquetFingerprint.cs`: `layout` adds the column names in order with their repetition; `typed` adds the physical and logical types.\n- Hints: `parquetColumns`.\n- Fixtures:\n  - generated in the test setup through DuckDB `COPY (…) TO '<tmp>/x.parquet' (FORMAT PARQUET, ROW_GROUP_SIZE n)`;\n  - `parquet/sweep.parquet`, committed as a golden input, produced by `tests/squalify.Tests/fixtures/parquet/make-sweep.sql`, which is documented so it can be regenerated.\n- `docs/design.md` \"Parquet\"; `docs/descriptor.md` `format.dialect` for Parquet."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Parquet_SchemaAndTypes_Mapped` (theory over each DuckDB type in the mapping).\n2. `Parquet_FieldStats_MatchCsvOfSameData`: profiling the sweep as CSV and as Parquet gives equal numeric statistics and types.\n3. `Parquet_RowGroups_Aggregated`.\n4. `Parquet_KvValues_OnlyWithFlag`, plus a canary theory row.\n5. `Parquet_Nested_CountsOnly`.\n6. `Parquet_TruncatedFile_DescribedAsBinaryWithIssue`.\n7. A golden for `parquet/sweep.parquet`."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Check the column lists of `parquet_file_metadata`, `parquet_schema`, `parquet_metadata` and `parquet_kv_metadata` against DuckDB 1.5.5, and record them in a slicer note.\n2. Write the tests.\n3. Implement.\n4. Mutation check: drop `threads=1`, and confirm the golden stays stable or a test catches the ordering change. If it stays stable, note why."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- CI is green on all three OSes. DuckDB ships native binaries per platform.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-08` on branch `sq-08`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-08: Parquet profiler` when the owner approves."
     }
   ],
   "notes": []

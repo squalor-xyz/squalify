@@ -1,0 +1,42 @@
+{
+  "id": "sq-14",
+  "title": "squalify must report each file's header-unit convention",
+  "lead": [
+    "Parses every header name against a fixed set of conventions:\n- `nameParenUnit`, as in `I_Total(A)`;\n- `nameBracketUnit`, as in `Pout[dBm]`;\n- `nameUnderscoreUnit`, as in `VCC_V`, only when the suffix is a known unit, so `I_Total` stays a plain name;\n- `unitsRow`;\n- `none`.",
+    "Each field gets `nameParts {base, unit, convention}`. The file gets `layout.headerConvention {dominant, share, counts}` and the `headerConvention` hint, both with evidence."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** user-supplied unit tables; normalizing or converting units.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-13): units appear in many custom forms, such as `I_Total(A)`, `VCC(V)`, `VCC_V` and `ICC_A`, and the descriptor should say which convention a file uses. Unit text from a units row is a value, so it is opt-in. Unit text parsed from header names comes from the header, which is always included.\n\nThe conventions mirror DataBall's `HeaderParser` patterns and its unit table (`DataBall/src/DataBall/HeaderParser.cs:12-89`, `Config.cs:108-122`), including its rule that a `_unit` suffix needs a known unit. That lets a consumer map conventions directly."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Units/UnitTable.cs`: a fixed table with version 1. `limits.unitTable` records the version.\n  - Base units: V, A, W, Hz, s, Ohm/ohm/Ω, F, H, dB, dBm, dBc, %, C/degC/°C, K.\n  - SI prefixes f, p, n, u/µ, m, k, M and G apply to V, A, W, Hz, s, Ohm, F and H.\n  - Matching is case-sensitive, apart from a documented alias list (for example `ohm`, `degC`).\n- `src/squalify/Units/HeaderConventionParser.cs`: tries `nameParenUnit`, then `nameBracketUnit`, then `nameUnderscoreUnit` (splitting at the last `_` and checking the suffix against the table), then `none`. If the file has a units row, `unitsRow` applies to the fields that have no unit in their name.\n- `FieldProfile.nameParts` is always included. `fields[].unit` from a units row is values tier.\n- The `layout` fingerprint adds the dominant convention name. Full header names stay in the projection.\n- `docs/design.md` \"Header-unit conventions\"; `docs/descriptor.md`; `docs/how-it-works.md` section 8."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Convention_Theory`:\n   - `I_Total(A)` → base `I_Total`, unit `A`, paren;\n   - `VCC_V` → underscore;\n   - `ICC_A` → underscore;\n   - `I_Total` → none;\n   - `Pout[dBm]` → bracket;\n   - `Temp(degC)` → unit `degC`;\n   - `Date(date)` → paren with an unknown unit (base `Date`, unit `date`, flag `unknownUnit`).\n2. `Convention_DominantAndShare`.\n3. `Convention_UnitsRow_ConventionAlways_TextOptIn`.\n4. `UnitTable_PrefixedUnits` (`mA`, `µA`, `uA`, `GHz`, `kOhm`).\n5. A golden for the DataBall sweep. Expected: dominant `nameParenUnit`, 10 of 13 headers, with SN and Teststand as none."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Implement the table, then the parser, then the wiring.\n3. Mutation check: drop the known-unit check for underscore, and `I_Total` must flip, turning test 1 red."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-14` on branch `sq-14`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-14: header-unit conventions` when the owner approves."
+    }
+  ],
+  "notes": []
+}

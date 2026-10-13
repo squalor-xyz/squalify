@@ -1,8 +1,9 @@
 {
   "id": "sq-09",
-  "title": "Lab text formats",
+  "title": "squalify must profile Touchstone files and key=value/INI documents",
   "lead": [
-    "Touchstone (option line, `!` comments, port count, numeric block shape) and key=value header-block tables, as their own format families with regions and fields."
+    "Adds two text families.\n- **`touchstone`** (v1 and v2): the option line, the port count, network data read as a flat token stream, v1 noise detection and the v2 keywords. The network data is exposed as synthesized numeric fields.\n- **`keyValue`**: whole-file `key=value` or `key: value` documents, with optional `[section]` headers.",
+    "**Owner gate:** the owner supplies at least one real anonymized Touchstone file, or a file generated with the Obfuscator tool (link to follow from the owner), before the slice closes. The synthetic builders are enough to implement against."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +11,31 @@
   "flags": [],
   "trees_note": "core",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** interpreting mixed-mode parameters beyond their names; HFSS `!` comment extensions (counted only); JSON and XML documents.",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goal: the v1 formats.\n\nOwner decision (2026-10-13): key=value blocks above a table stay as sq-04's preamble. Whole-file key=value and INI documents are their own family.\n\nDataBall's `TouchstoneHandler` only matches the extension (`DataBall/src/DataBall.Handlers/TouchstoneHandler.cs:12`), so squalify cannot reuse any parsing. The rules here follow scikit-rf's `skrf/io/touchstone.py`:\n- the option line is positional, defaulting to `GHz S MA R 50`;\n- `!` starts a comment, and inline comments are stripped;\n- data is a flat token stream, with 1 + 2N² values per frequency;\n- the port count comes from `[ghsyz](\\d+)p`, or from `[Number of Ports]`;\n- v1 2-port noise data starts where the frequency decreases;\n- the v2 keywords are listed below.\n\nThey must be checked against the IBIS Touchstone 2.0/2.1 text."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/Touchstone/TouchstoneProfiler.cs`\n  - **Score:** 0.9 when the extension matches `^\\.[ghsyz](\\d+)p$` or `.ts` and an option line or `[Version]` appears among the first non-comment lines. 0.7 for the content alone.\n  - **`format.dialect`:**\n    - `version` (`1.x` or `2.x`);\n    - `ports`, from the extension or `[Number of Ports]` (a mismatch is the issue `portMismatch`);\n    - `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, each defaulted with an evidence entry when missing;\n    - `twoPortOrder`: `21_12` for v1 2-port files, or from `[Two-Port Data Order]`;\n    - `matrixFormat`: Full by default;\n    - `keywords[]`: the v2 keywords present, in file order. The known set is `[Version]`, `[Number of Ports]`, `[Two-Port Data Order]`, `[Number of Frequencies]`, `[Number of Noise Frequencies]`, `[Reference]`, `[Matrix Format]`, `[Mixed-Mode Order]`, `[Network Data]`, `[Noise Data]`, `[End]`.\n  - **Data blocks:** the numeric token stream is split into blocks of 1 + 2N² values, or 1 + N(N+1) for Lower and Upper matrices, regardless of line breaks. `valuesPerLine {n: count}` is recorded.\n  - **Regions:** `preamble` (comments, the option line and keywords), `data`, and `block` with `label: \"noise\"`.\n  - **Synthesized fields:**\n    - `freq`;\n    - for each parameter in file order, `S11.<a>`, `S11.<b>`, and so on. For v1 2-port files the order is S11, S21, S12, S22. The suffixes depend on the format: `mag/ang` (MA), `db/ang` (DB), `re/im` (RI). The parameter letter follows `parameter`.\n    - noise fields: `freq`, `nfmin`, `gammaOpt.mag`, `gammaOpt.ang`, `rn`.\n\n    All of them go through `FieldAccumulator`.\n  - **Comments:** comment text appears only with `--include-values`; comment counts are always included.\n  - **Issues:** `incompleteBlock`, `portMismatch`, `nonMonotonicFrequency`.\n- `src/squalify/KeyValue/KeyValueProfiler.cs`\n  - **Score:** up to 0.6, when at least 80% of the lines that are neither blank nor comments are key/value pairs, and no delimited candidate scores above 0.6.\n  - **`sections[] {name, line, keys[]}`:** names and keys are always included.\n  - **Per key:** a type vote through `ValueClassifier`, giving a field profile per key (count 1, or N when a key repeats across sections).\n  - **Issues:** `duplicateKey`.\n  - Values only with `--include-values`.\n- **Fingerprint contributions:**\n  - Touchstone `layout`: version, ports, parameter, dataFormat, matrixFormat and whether noise is present.\n  - keyValue `layout`: section names and keys, in order.\n- `tests/squalify.Tests/Builders/TouchstoneBuilder.cs`: generates v1 and v2 files for a given N, format, line wrap and noise block.\n- `docs/design.md` \"Touchstone\" and \"Key=value / INI documents\"; `docs/descriptor.md` dialects."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Touchstone_OptionLine_DefaultsAndOrder` (theory).\n2. `Touchstone_PortsFromExtensionAndKeyword_MismatchIssue`.\n3. `Touchstone_FlatTokenStream_AnyLineBreaks`: a 4-port file with 1, 4 and 8 values per line gives identical fields.\n4. `Touchstone_TwoPortOrder_FieldsNamedS21BeforeS12`.\n5. `Touchstone_V1Noise_DetectedByFrequencyDrop`.\n6. `Touchstone_V2Keywords_AndNoiseData`.\n7. `Touchstone_IncompleteBlock_Issue`.\n8. `KeyValue_IniSections_KeysAlwaysValuesOptIn`, plus canary theory rows for both families.\n9. `KeyValue_NotChosen_ForPreambleCsv`: a regression guard for sq-04.\n10. Goldens for the synthetic files. Once the owner supplies a sample, `lab/owner-sample.s2p` (or the supplied name) gets a golden too."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Check the Touchstone rules against the IBIS 2.0/2.1 text, and record any deviation in a slicer note.\n2. Write the builders, then the tests.\n3. Implement the Touchstone profiler, then the keyValue profiler.\n4. Mutation check: drop the 2-port order quirk, and test 4 must go red.\n5. Stop at the owner gate before closing."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-09` on branch `sq-09`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-09: Touchstone and key=value docs` when the owner approves."
     }
   ],
   "notes": []

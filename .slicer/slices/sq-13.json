@@ -1,0 +1,41 @@
+{
+  "id": "sq-13",
+  "title": "squalify must describe files with repeated header and data blocks",
+  "lead": [
+    "Detects multi-table files: two or more data runs with the same k, each at least 5 records long, separated by records with a different field count. Each block gets `block` regions (with an index) that hold its own preamble, header and data.\n- If every block's header is identical, the fields are profiled across all blocks.\n- Otherwise only the first block's fields are profiled, the issue `heterogeneousBlocks` is raised, and the other blocks' headers are listed."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** blocks with different delimiters; nested tables.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-13): repeated blocks are split out of sq-04 into their own item. Lab exports often repeat a header and table per site, temperature or sweep."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Delimited/BlockDetector.cs`: works on sq-04's RLE.\n- `DelimitedProfiler`: aggregates fields across blocks when the headers are identical.\n- Layout fingerprint: adds `blocks: true` when there is more than one block. The block count is excluded, so 3 blocks and 5 blocks give the same fingerprint.\n- `dialect.blocks` gives the count.\n- `docs/descriptor.md`: the `block` region with `index` and `label`. `docs/how-it-works.md` section 4."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Blocks_IdenticalHeaders_FieldsAggregated`.\n2. `Blocks_Heterogeneous_FirstProfiled_Issue`.\n3. `Blocks_SingleTable_GoldensUnchanged`: every sq-04 and sq-05 golden stays byte-identical.\n4. `Blocks_Fingerprint_BlockCountExcluded`.\n5. A golden for `delimited/per-site-blocks.csv`."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Implement the detector, then the wiring.\n3. Mutation check: change the minimum run length from 5 to 1, and tests 1 and 3 must change."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-13` on branch `sq-13`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-13: repeated blocks` when the owner approves."
+    }
+  ],
+  "notes": []
+}

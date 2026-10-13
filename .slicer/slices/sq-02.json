@@ -1,8 +1,8 @@
 {
   "id": "sq-02",
-  "title": "Descriptor model and canonical JSON writer",
+  "title": "squalify must write descriptors as canonical, byte-stable JSON",
   "lead": [
-    "The descriptor types from docs/descriptor.md, and a writer that produces canonical JSON: fixed key order, invariant culture, round-trip numbers, LF and a trailing newline. Includes a golden-file test harness and a test that profiles twice and under another culture and compares the bytes."
+    "Adds the descriptor object model from `docs/descriptor.md` and a canonical JSON writer. It also adds the determinism kit that every later slice relies on:\n- ordinal sorting and case folding;\n- `DetMath`, deterministic logarithms;\n- `XxHash64`;\n- the golden-file test harness."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +10,31 @@
   "flags": [],
   "trees_note": "core",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** reading files (sq-03); the JSON Schema file (sq-12); sketches (sq-11).",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "The goal is a deterministic descriptor, byte-identical on every OS and CPU (owner decision 2026-10-13). Three things would break that:\n- The reflection serializer's property order is not a contract.\n- `Utf8JsonWriter` defaults to the platform newline (CRLF on Windows).\n- `Math.Log`, `Exp` and `Pow` may differ by 1 ulp between platform math libraries.\n\nOwner decisions:\n- The sketch hash is an in-repo xxHash64, not the System.IO.Hashing package.\n- Output-affecting math uses only IEEE `+ - * /` and `Math.Sqrt`. Logarithms go through `DetMath`."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/Descriptor/*.cs`: sealed model classes for each top-level section in `docs/descriptor.md`, plus `Region`, `FieldProfile`, `Evidence`/`Candidate`, `Issue`, `Fingerprint`, `Hints`, `Limits`, `KindLabel` and `ProfileOptions`.\n  - Collections are `IReadOnlyList<T>`, built already sorted.\n  - Optional members are omitted when null, unless the doc marks them as always present.\n- `src/squalify/Json/DescriptorWriter.cs`: an explicit `Write(Utf8JsonWriter)` per model type, in documented key order.\n  - Writer options: `Indented=true`, `IndentSize=2`, `NewLine=\"\\n\"`, `Encoder=JavaScriptEncoder.UnsafeRelaxedJsonEscaping`.\n  - Output is UTF-8 with no BOM, plus a trailing LF.\n- `src/squalify/Json/CanonicalNumber.cs`:\n  - a `double` is written in shortest round-trip form;\n  - `-0` is written as `0`;\n  - NaN, `Infinity` and `-Infinity` are written as JSON strings;\n  - a `long` is written as an integer.\n- `src/squalify/Determinism/DetMath.cs`:\n  - `Log2(double)` splits the value into exponent and mantissa with `Math.ILogB`/`Math.ScaleB`, then evaluates a fixed atanh-series or minimax polynomial using only `+ - * /`. Its documented maximum relative error is at most 1e-12, and powers of two are exact.\n  - `Ln(x)` is `Log2(x) * Ln2`, with `Ln2` as a literal constant.\n- `src/squalify/Determinism/XxHash64.cs`: a full xxHash64 with seed 0, applied to UTF-8 bytes.\n- `src/squalify/Determinism/Ordinal.cs`: `CaseFold` (`ToLowerInvariant`) and ordinal sort helpers.\n- `tests/squalify.Tests/Golden.cs`: `Golden.Verify(string fixtureRelPath, Descriptor d)` writes the descriptor and compares it byte for byte with `<fixture>.squalify.json`. With `SQUALIFY_UPDATE_GOLDEN=1` set, it rewrites the golden instead. On a mismatch it fails with a unified line diff.\n- `tests/squalify.Tests/fixtures/detmath-log2.tsv`: inputs and expected IEEE bit patterns. They are generated once with an arbitrary-precision tool, and a header comment records how. The golden is checked against them.\n- `docs/descriptor.md`: the key order becomes normative. `docs/design.md`: Determinism rules link to the code."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Writer_KeyOrder_MatchesSchemaDoc`: a fully populated model, compared with a hand-written golden.\n2. `Writer_UsesLfAndTrailingNewline_OnEveryOs`: the bytes contain no `\\r`, and the last byte is `\\n`.\n3. `Writer_NonFiniteAndNegativeZero`.\n4. `Writer_NonAsciiHeader_EmittedLiterally`: `µA` and `Ω` are written as UTF-8, not escaped.\n5. `Writer_SameModel_SameBytes_UnderDeDeAndTrTrCulture`.\n6. `DetMath_Log2_MatchesReferenceTable`: an exact bit match.\n7. `DetMath_Log2_PowersOfTwoExact`.\n8. `XxHash64_PublishedVectors`: the empty string, `\"a\"`, `\"abc\"`, and a 100-byte input, each with seed 0. The expected values come from the reference implementation's test suite, which is cited in the test.\n9. `Golden_Mismatch_FailsWithDiff` and `Golden_UpdateMode_Writes`."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the tests and see them fail.\n2. Write the model, following `docs/descriptor.md`.\n3. Write the writer and `CanonicalNumber`.\n4. Write `DetMath` and generate the reference table.\n5. Write `XxHash64`.\n6. Write the golden harness.\n7. Mutation checks:\n   - swap two keys in the writer, and test 1 must go red;\n   - replace `DetMath.Log2` with `Math.Log2`, and confirm test 6 still pins the bits on this machine, then note in the PR that CI covers the other platforms;\n   - drop `NewLine`, and test 2 must go red on Windows CI."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- CI is green on all three OSes with the same golden bytes.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-02` on branch `sq-02`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-02: canonical descriptor writer` when the owner approves."
     }
   ],
   "notes": []

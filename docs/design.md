@@ -1,134 +1,309 @@
 # squalify design
 
-Status: draft. Sections marked **(proposed)** are open for the owner's review and are not settled decisions.
+Status: design settled by the owner on 2026-10-13 (spec interview). Code lands slice by slice (`slicer list`). For the diagrams, see [how-it-works.md](how-it-works.md). For the descriptor schema, see [descriptor.md](descriptor.md).
 
 ## Purpose
 
-squalify reads one data file and writes a descriptor (see [descriptor.md](descriptor.md)). Consumers use the descriptor to classify the file, choose a transform or draft a file type. A consumer should be able to make those decisions from the descriptor alone, without opening the file again.
+squalify reads one data file and writes a descriptor. Consumers use the descriptor to classify the file, choose a transform or draft a file type. A consumer should be able to make those decisions from the descriptor alone, without opening the file again.
 
 ## Settled decisions
 
 | Decision | Choice |
 |---|---|
-| Scope | One tool. It outputs a descriptor only. No classification, no config proposal, no conversion. |
+| Scope | One tool. It outputs a descriptor only. No config proposal, no conversion, no matching against a user library of known types. |
+| Kind label | A generic `kind` label from a fixed, built-in rule set, with evidence (sq-15). |
 | Stack | .NET 10, standalone. No reference to DataBall. |
 | Names | Namespace `squalor.squalify`, CLI `squalify`, slicer ids `sq-NN`. |
-| v1 formats | Delimited text (with lab preambles), Parquet, lab text formats (Touchstone, key=value header blocks), binary (STDF first). |
+| v1 formats | Delimited text (with preambles, units rows and repeated blocks), Parquet, Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk plus a generic byte profile). |
+| Compressed and archive files | Described as binary with a named magic. No decompression in v1. |
 | Read depth | A full streaming scan with bounded memory. |
-| Values | Opt-in through `--include-values`. Header names are always included. |
-| Parquet | DuckDB.NET.Data.Full 1.5.5 (MIT), the same pin as DataBall. |
-| Matching aids | Structural fingerprint, layout regions, evidence trail, detect-rule hints. |
-| Determinism | The same bytes and the same tool version give a byte-identical descriptor. No ML, LLM or network. |
+| Values | Opt-in through `--include-values`. See [Values tier](#values-tier). |
+| Dependencies | DuckDB.NET.Data.Full 1.5.5 (Parquet) and System.CommandLine 2.0.11 (CLI). Tests: Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3, xunit.runner.visualstudio 3.1.5. |
+| Determinism | The same bytes and the same tool version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network. |
+| Exit codes | 0 for success; 1 for any error (the same as DataBall's CLI). |
 
 ## Pipeline
 
 ```mermaid
 flowchart LR
-  A[Byte sniff<br/><small>encoding, BOM, text/binary, magic</small>] --> B[Format detection<br/><small>scored candidates + evidence</small>]
-  B --> C[Format profiler<br/><small>delimited / parquet / lab text / binary</small>]
-  C --> D[Field profilers<br/><small>types, stats, shapes</small>]
-  D --> E[Fingerprint + hints]
-  E --> F[Canonical JSON writer]
+  A[Byte pass<br/><small>ByteSniffer</small>] --> B[Choose format<br/><small>FormatRegistry</small>]
+  B --> C[Format profiler<br/><small>IFormatProfiler</small>]
+  C --> D[Field accumulators<br/><small>FieldAccumulator</small>]
+  D --> E[Fingerprint, hints,<br/>conventions, kind]
+  E --> F[Canonical JSON<br/><small>DescriptorWriter</small>]
 ```
 
-1. **Byte sniff.** Reads the head and the tail. It records the BOM, the encoding candidates (UTF-8 validity, UTF-16/32 BOMs, Latin-1 fallback), the text/binary verdict (NUL and control-byte ratios), line-ending style and magic bytes matched against an in-repo table. The file-level hashes (SHA-256 of the whole content) are computed during the main streaming pass.
-2. **Format detection.** Every format profiler scores the sniff result. Scores and reasons go into the evidence trail. The highest score wins, and ties break by a fixed profiler order. A file that no profiler claims gets the generic `binary` or `text` profile.
-3. **Format profiler.** Streams the file once and does three jobs:
-   - It splits the file into **regions** (preamble/metadata, header, data, footer, repeated blocks), each with byte and line ranges.
-   - It parses the data region into records.
-   - It feeds each field's values to the field profilers.
-4. **Field profilers.** One accumulator per field. Each one tracks counts, nulls, type votes, numeric and lexical ranges, lengths, shape masks and distinct values/quantiles. Accumulators have bounded memory (see below).
-5. **Fingerprint and hints.** These are derived only from the finished, value-free structural parts of the descriptor (see below).
-6. **Writer.** Serializes to canonical JSON.
+### Source
+
+`IProfileSource { string Name; long Length; Stream Open(); }`. `FileSource` wraps a path. Tests use synthetic sources that generate bytes on the fly. Every pass reopens the source. A path never reaches the descriptor; only `Name` (the file name) does.
+
+### Passes
+
+Each pass streams the file once with bounded memory.
+
+- **Pass 0, the byte pass (every file).** Computes:
+  - SHA-256 of the content;
+  - the 256-bin byte histogram;
+  - NUL counts at even and odd offsets;
+  - the count of control bytes (0x00–0x08, 0x0E–0x1F, 0x7F);
+  - strict UTF-8 validity, using `System.Text.Unicode.Utf8` and carrying incomplete sequences across buffer boundaries;
+  - the BOM;
+  - magic matches.
+
+  Text, binary and empty are decided from these whole-file counts:
+  1. A zero-length file is empty.
+  2. A binary magic means binary.
+  3. A UTF-16/32 BOM means text.
+  4. A NUL-parity pattern means UTF-16 without a BOM. The pattern is: at least 90% of NULs at odd offsets, or at least 90% at even ones, with NULs at least 30% of all bytes.
+  5. Any other NUL, or control bytes above 5%, means binary.
+  6. Otherwise the file is text. The charset is `ascii`, else `utf-8` if valid, else `latin-1`. If bytes 0x80–0x9F occur, the evidence notes "possibly windows-1252".
+- **Pass 1, structure (text profilers).** Tokenizes and classifies records and lines, keeping only bounded summaries.
+- **Pass 2, fields (text profilers).** Parses the chosen data region and feeds the field accumulators.
+- Parquet reads its metadata and then streams rows. STDF walks record headers in one pass.
+
+### Choosing a format
+
+Each `IFormatProfiler` scores the sniff result between 0 and 1. The highest score wins. Ties break by registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary`. Every profiler's score and reason goes into the evidence trail.
+
+| Profiler | Score |
+|---|---|
+| parquet, stdf | 1.0 when the magic is confirmed |
+| touchstone | 0.9 for extension plus content; 0.7 for content only |
+| keyValue | up to 0.6 |
+| delimited | 0.3 + 0.4 × consistency (at most 0.7) |
+| text | 0.1 |
+| binary | 0.1, or 0.2 with a named magic (gzip, zip, …) |
 
 ## Delimited text
 
-- Delimiter candidates are `,`, `;`, `\t`, `|` and whitespace runs. Each is scored on the consistency of its field count across the data region. Quote character and escape style are detected, and every candidate's score is recorded as evidence. This is similar in spirit to DataBall's `FileProbe.SniffDelimiter`, but squalify scans the whole file, not only the first 20 lines.
-- **Preamble detection:** the data region starts at the first run of lines whose field counts stay consistent. Lines before it form the preamble. squalify classifies preamble lines as `key=value`, `key: value`, `key<delim>value`, comment (`#`, `!`, `;`) or free text.
-- **Header row:** the line just before the data region, when its field types differ from the data rows (for example, all strings over numeric columns).
+- **Candidates.** The delimiter candidates are `,`, `\t`, `;`, `|` and whitespace runs. Pass 1 runs one quote-aware tokenizer per candidate, all at the same time.
+  - Quoting follows RFC 4180 with `"`: a quote counts only at the start of a field, `""` is an escape, and newlines are allowed inside quotes.
+  - A runaway quote (an open quoted field longer than 65,536 characters) disqualifies that candidate.
+  - Each candidate keeps run-length-encoded field counts. More than 100,000 runs disqualifies it as "too irregular".
+  - If every candidate is disqualified, the file falls back to the text profile, with an issue.
+- **Dialect and data run.**
+  - k is the modal field count among records with at least two fields. A tie goes to the larger k.
+  - The data run starts at the first record that, together with the next min(5, remaining) records, has k fields. It ends at the last record with k fields.
+  - The score is the number of records in the data run with k fields, divided by the number of non-blank records. Ties break by higher k, then by candidate order.
+- **Line kinds** (preamble and footer):
+  - `blank`;
+  - `comment`: the trimmed line starts with `#`, `!` or `//`;
+  - `keyValue`: `key=value` or `key: value`, with a non-numeric key of at most 64 characters;
+  - `keyDelimValue`: two fields, the first non-numeric;
+  - `text`.
+- **Header and units rows.** Pass 2 reads up to 1,000 records from the start of the data run (`limits.headerSample`) and classifies them with `ValueClassifier`.
+  - Record 0 is the header if all of these hold: its fields are non-empty and distinct (case-insensitive); some column's sample type is not `string`; and record 0's value in that column fails that type.
+  - If every column is `string`, record 0 is the header when it is non-empty and distinct. The evidence then says "assumed: all-string table".
+  - Record 1 is a units row if all of these hold: a header exists; every field fails its column type; every field is at most 16 characters; and the columns are non-string.
+- **Repeated blocks** (sq-13). Two or more data runs with the same k, each at least 5 records long, are profiled as blocks. If every block's header is identical, the fields are aggregated across blocks. Otherwise only the first block is profiled and the issue `heterogeneousBlocks` is recorded.
+- **Problems are described, not rejected.** squalify records issues and still writes a descriptor: `raggedRows`, `commentInData`, `duplicateHeader`, `emptyHeaderName`, `invalidUtf8`, `mixedLineEndings`.
 
-## Lab text formats
+## Touchstone
 
-- **Touchstone:** the `#` option line (frequency unit, parameter, format, reference impedance), `!` comments, the port count inferred from the extension and the data width, and the numeric block shape.
-- **key=value header blocks:** a block of metadata pairs followed by tabular data. squalify reports the keys (always) and the values (only with `--include-values`).
+Rules follow common practice as implemented in scikit-rf, and are checked against the IBIS Touchstone 2.0/2.1 text in sq-09.
 
-## Binary
+- **Option line.** `# <freq unit> <parameter> <format> R <ohms>` is positional, case-insensitive, and defaults to `GHz S MA R 50`. Every defaulted value gets an evidence entry.
+- **Port count.** It comes from the extension `.[ghsyz]<N>p` or from `[Number of Ports]`. A mismatch between the two is an issue.
+- **Data.** Network data is a flat token stream. Each block holds 1 + 2N² values (N(N+1) for Lower/Upper matrices), whatever the line breaks. `!` starts a comment, and inline comments are stripped.
+- **2-port order.** v1 2-port data uses the order S11 S21 S12 S22. In v2, `[Two-Port Data Order]` sets it.
+- **Noise.** In v1 2-port files, noise data starts where the frequency decreases. In v2 it is marked by `[Noise Data]`.
+- **Fields.** The data is exposed as synthesized numeric fields: `freq`, then `Sij.<a|b>`, with suffixes by format (`mag/ang`, `db/ang`, `re/im`), in file order.
 
-- Byte-value histogram, entropy per fixed-size block, magic and signature matches.
-- **STDF:** walks the record headers (`REC_LEN`, `REC_TYP`, `REC_SUB`). It reports CPU type and endianness from the FAR record, the counts of each record type, the record sequence shape and any truncation. It does not decode field values unless `--include-values` is set (proposed: v1 does not decode them at all).
+## Key=value / INI documents
+
+These are whole files of `key=value` or `key: value` lines, with optional `[section]` headers. Section names and keys are always included. Values appear only with `--include-values`, but each key's value type vote is always included. Key=value lines above a table are not this family; they are the delimited profiler's preamble.
+
+## Binary and STDF
+
+- **Any binary file.**
+  - The byte histogram, whole-file Shannon entropy, and the entropy of 4 KiB blocks: count, min, max and mean.
+  - A fixed 16-segment entropy profile.
+  - All computed with `DetMath.Log2`.
+- **STDF V4** (layouts from pystdf; the 2007 additions are checked against the primary spec in sq-10).
+  - Each record header is REC_LEN U2 (payload only) + REC_TYP U1 + REC_SUB U1.
+  - FAR is (0, 10), and its CPU_TYPE sets endianness: 2 = little, 1 = big, 0 = VAX (an issue).
+  - squalify walks every record header and reports:
+    - record-type counts;
+    - the first-occurrence order;
+    - whether FAR is first and MRR last;
+    - truncation.
+  - **Test catalog.** For each test, squalify records TEST_NUM, the kind (P, M or F) and the first non-empty TEST_TXT or TEST_NAM, taken from PTR, MPR, FTR and TSR. Test names behave like column headers, so they are always included, up to `limits.stdfTests` (10,000).
+  - Result values are never decoded.
 
 ## Parquet
 
-DuckDB reads the schema, the row-group metadata and the column chunk statistics. squalify maps them to the same field-profile shape as text formats. Statistics that DuckDB provides only per row group are aggregated deterministically, in row-group order.
+DuckDB.NET runs on an in-memory connection with `threads=1` and `preserve_insertion_order=true`.
 
-## Bounded memory (proposed caps)
+- **Metadata.** squalify reads `parquet_file_metadata`, `parquet_schema`, `parquet_metadata` (aggregated in row-group order) and `parquet_kv_metadata`. KV keys are always included; KV values only with `--include-values`.
+- **Rows.** Rows stream into the same field accumulators as text, so the statistics match the text profile.
+- **Nested columns.** These report only count, nulls and `sourceType`.
+
+## Fields
+
+### Value classification and types
+
+`ValueClassifier` is a pure function that uses the invariant culture.
+
+- **Null tokens:** `""`, `NA`, `N/A`, `null`, `NaN`, `-`. They are matched case-insensitively after trimming.
+- **Types:**
+  - `bool`: `true`, `false`, `yes`, `no`.
+  - `int`: `^[+-]?\d+$` and fits Int64.
+  - `float`: `NumberStyles.Float` and finite.
+  - `date`: `yyyy-MM-dd`, `yyyy/MM/dd`, `MM/dd/yyyy`, `dd/MM/yyyy`, `dd.MM.yyyy`, tried in that order. The pattern that matched is recorded.
+  - `datetime`: ISO 8601 (with `T` or a space, and an optional fraction and offset), or `MM/dd/yyyy HH:mm[:ss]`.
+  - `time`: `HH:mm[:ss[.f+]]`.
+  - `string`: anything else.
+- **Flags:** `leadingZero` (for example `007`) and `commaDecimalLike` (`^[+-]?\d+,\d+$`).
+
+The type lattice:
+
+- `empty` < `bool`
+- `empty` < `int` < `float`
+- `empty` < `date` < `datetime`
+- `empty` < `time`
+- Any other join is `string`.
+
+A field's `type` is the join over all its non-null votes (the strict rule). Votes are always reported, together with the dominant type and its share. A plurality tie goes to the narrower type.
+
+### Statistics
+
+- **Numeric:** min and max (integers for `int`); mean and sample stddev by Welford in input order; quantiles p01, p05, p25, p50, p75, p95 and p99 by lower nearest rank.
+- **Temporal:** min and max as ISO 8601, and quantiles over ticks.
+- **All fields:** lengths, padded values, null tokens, monotonicity (numeric and temporal only), constant, and unique.
+- **Shape masks** (value-free, so always included):
+  - each character maps to a class: `9` for a digit, `A` for upper case, `a` for lower case;
+  - ASCII punctuation and space are kept literally; other characters become `?`;
+  - runs of two or more are written as `c{n}`;
+  - a mask longer than 64 tokens is truncated with `+`;
+  - a field keeps at most 64 masks, and the rest are counted as `other`.
+
+### Bounded memory and sketches
 
 | Accumulator | Exact up to | Beyond the cap |
 |---|---|---|
-| Distinct values per field | 10,000 distinct | A deterministic HyperLogLog with a fixed seed and hash; marked `approximate: true` |
-| Quantiles | 100,000 numeric values | A deterministic KLL-style sketch with fixed compaction (no randomness); marked approximate |
-| Top-k values (with `--include-values`) | Exact while distinct ≤ cap | Space-saving counter with fixed k; ties break by ordinal value |
-| Shape masks per field | 64 distinct masks | Further masks counted as `other` |
-| Region list | 1,000 regions | Truncated with a `truncated` count |
+| Distinct values per field | 10,000 | HyperLogLog, p=14, over `XxHash64` (seed 0), with linear counting below 2.5m |
+| Quantiles per field | 100,000 values | Greenwald-Khanna, ε = 0.001, compressing every ⌊1/(2ε)⌋ inserts |
+| Top-k values (`--include-values`) | while the distinct set is exact | Space-Saving, 1,000 counters; k = 10 |
+| Shapes per field | 64 masks | counted as `other` |
+| Regions | 1,000 | truncated, with a count |
+| STDF test catalog | 10,000 tests | counted |
 
-The cap values are proposals. Whatever the caps are, they are part of the tool version's behavior and are recorded in the descriptor (`limits`).
+- **Crossing a cap.** The exact buffer is fed to the sketch in input order and then freed. The output is marked `approximate: true` and carries `errorBound`.
+- **Global budget.** A global budget of 10M exact quantile values and 2M exact distinct values caps each field at min(cap, budget ÷ field count). The effective caps are written to `limits`.
 
-## Type inference (proposed vocabulary)
+## Values tier
 
-`empty`, `bool`, `int`, `float`, `decimal`, `date`, `datetime`, `time`, `duration`, `hex`, `string`.
+| Always included | Only with `--include-values` |
+|---|---|
+| Header names, preamble keys, section names and keys, Parquet column names and KV keys, STDF test names | Preamble values, key=value values, Parquet KV values, comment text |
+| Counts, nulls, types, votes, shapes, lengths | Top-k values, lexical (string) min/max |
+| Numeric and temporal min/max/mean/stddev/quantiles | Units-row text (field `unit` from a units row) |
+| Header-unit convention and units parsed from header names | Value-bearing `stableLines` regexes (comment and text lines) |
 
-Every non-null value votes for the narrowest type it parses as. squalify uses invariant-culture parsing plus an explicit list of accepted date/number patterns, and records the matched pattern. The field type is the narrowest type that covers at least the configured share of non-null values (proposed: 100% for the declared type; the per-type vote counts are always reported). The **null tokens** (`""`, `NA`, `N/A`, `null`, `NaN`, `-`) are a fixed list, and the descriptor reports which tokens actually occurred.
+`ValuesPolicy` lists every value-bearing descriptor member in one place. Canary tests prove that nothing leaks without the flag.
 
-## Shape masks
+## Header-unit conventions
 
-A value maps to a mask by character class: `9` for digit, `A` for uppercase, `a` for lowercase, and punctuation kept literally. Runs are compressed with counts (for example, `A{2}-9{4}`). The masks are value-free and are always included.
+Each header name is parsed against a fixed set of conventions:
+
+| Convention | Example |
+|---|---|
+| `nameParenUnit` | `I_Total(A)` |
+| `nameBracketUnit` | `Pout[dBm]` |
+| `nameUnderscoreUnit` | `VCC_V`. Only when the suffix is a known unit, so `I_Total` stays a plain name. |
+| `unitsRow` | a units row under the header |
+| `none` | |
+
+The unit table is fixed and versioned (`limits.unitTable`). It contains these base units, combined with the SI prefixes f, p, n, u/µ, m, k, M and G:
+
+- V, A, W
+- Hz, s
+- Ohm/Ω, F, H
+- dB, dBm, dBc
+- %, C/degC/°C, K
+
+This matches DataBall's `HeaderParser` patterns, so a consumer can map conventions directly.
 
 ## Structural fingerprint
 
-`fingerprint.structure` is the SHA-256 of a canonical JSON projection of the descriptor that contains only structural facts:
+There are three SHA-256 hashes, each written as `sha256:<hex>`. Each is computed over a compact canonical JSON projection that contains no values.
 
-- format family and dialect (delimiter, quote, encoding family, line ending)
-- region kinds in order (not their sizes)
-- preamble keys in order (not their values)
-- ordered field names, case-folded, with their inferred types
-- for binary formats, the record-type set (not the counts)
+- **`layout`.** The projection holds:
+  - the family and the dialect (delimiter, quote, hasHeader, unitsRow);
+  - the charset family (`unicode` or `latin1`);
+  - the region kinds, in order;
+  - the preamble keys;
+  - the dominant header-unit convention;
+  - the ordered, case-folded field names (`#<index>` when unnamed);
+  - each family's own contribution.
+- **`typed`.** `layout` plus the field types.
+- **`names`.** The sorted, unique, case-folded field names.
 
-Files of the same type and layout share this hash. A second, looser hash, `fingerprint.fields`, covers only the sorted, case-folded field names. The fingerprint projection is versioned (`fingerprint.version`) independently of the schema.
+Family contributions:
+
+- **Parquet:** column names with repetition. The typed hash adds the physical and logical types.
+- **Touchstone:** version, ports, parameter, format, matrix and noise.
+- **keyValue:** sections and keys.
+- **STDF:**
+  - layout: the record-type set and the endianness;
+  - typed: the catalog's `(testNum, kind)` pairs;
+  - names: the test names.
+
+`fingerprint.version` changes whenever a projection changes.
 
 ## Detect-rule hints
 
-The hints are neutral facts that a consumer can turn into match rules. They are not DataBall syntax:
+Hints are neutral facts that a consumer can turn into match rules:
 
-- the extension
-- stable header lines (line index and an anchored regex built from the line's shape)
-- the exact header field list, and the required-field subset (fields that are never null)
-- the field-count range
-- magic bytes and their offset
-- for Parquet, the column names
+- `extension`.
+- `magic`.
+- `stableLines`: each entry has a 0-based `line` and an anchored, portable regex. For example, a header line becomes `^<escaped header>$`, and a preamble key becomes `^\s*<key>\s*[=:]`.
+- `headerFields` and `requiredFields`.
+- `fieldCount`, `dataStartLine`, `delimiter`.
+- `headerConvention`.
+- `parquetColumns`.
+- `stdf { cpuType, version }`.
+
+## Kind label
+
+A fixed, ordered rule table runs over the finished descriptor only, never the file, and the first match wins. Every rule's matched or missed reason goes into the evidence.
+
+The labels are:
+
+- `stdfTestLog`, `touchstoneNetwork`, `parquetTable`, `keyValueDocument`
+- `labSweepTable`, `measurementTable`, `genericTable`
+- `textLog`, `text`
+- `archive`, `binary`, `empty`
+
+The owner confirms the rule details at the start of sq-15.
 
 ## Evidence trail
 
-Every inference adds one entry: `{ "topic": "delimiter", "chosen": ",", "candidates": [{ "value": ",", "score": 1.0, "reason": "..." }, ...] }`. Entries are ordered by pipeline stage and then by topic. Reason strings are fixed templates filled with deterministic values, never free-form text.
+Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason }] }`. Entries are ordered by pipeline stage, then by topic. Reasons are fixed templates filled with value-free numbers.
 
 ## Determinism rules
 
-- Do not use `DateTime.Now`, the environment, the absolute path, mtime, the machine name or the user name.
-- Use `CultureInfo.InvariantCulture` everywhere. Format doubles with the shortest round-trip format (`"R"`/default .NET Core formatting), and write non-finite values as strings (`"NaN"`, `"Infinity"`).
-- Sort every map and set by an ordinal key before writing. Do not iterate `Dictionary`/`HashSet` in output paths without sorting first.
-- No parallelism that affects the order of results. Parallel accumulation is allowed only when the merge is order-independent and exact.
-- Sketches use fixed seeds and a fixed hash function (no `string.GetHashCode`, which is randomized per process).
-- JSON output: UTF-8 without BOM, LF line endings, two-space indent, keys in schema order, trailing newline.
-- The descriptor records `toolVersion`. A behavior change that alters output for the same input requires a version bump.
+- **No environment input.** Output never depends on the time, environment, absolute path, mtime, machine or user.
+- **Culture and sorting.** Use `CultureInfo.InvariantCulture` everywhere. Case-fold with `ToLowerInvariant` and sort ordinally. Tests run under `de-DE` and `tr-TR`.
+- **Collections.** Sort every map and set before writing.
+- **Single thread.** Accumulation runs in a single thread, in input order.
+- **Writer.** `Utf8JsonWriter` with an explicit key order, `Indented`, `IndentSize` 2, `NewLine` `"\n"` (the platform default is CRLF on Windows) and `JavaScriptEncoder.UnsafeRelaxedJsonEscaping`. Output is UTF-8 with no BOM and a trailing LF.
+- **Numbers.** Doubles use the shortest round-trip form. `-0` is written as `0`, and NaN/±Infinity are written as strings.
+- **Floating-point math.** Output-affecting math uses only IEEE `+ - * /` and `Math.Sqrt`, which are exact on every platform. Logarithms use the in-repo `DetMath`, and powers of two use `Math.ScaleB`. No `Math.Log`, `Exp` or `Pow` is allowed in output paths.
+- **Hashing.** Sketches use the in-repo `XxHash64` with seed 0, never `string.GetHashCode`.
+- **Version.** `toolVersion` comes from `AssemblyInformationalVersion`, with `IncludeSourceRevisionInInformationalVersion=false`. A behavior change that alters output for the same input bumps the version.
+- **CI.** The same golden files are compared on Windows, macOS and Linux.
 
 ## Errors
 
-- An unreadable file, a permission error or I/O failure raises `SqualifyException` and the CLI exits non-zero (proposed: exit code 2 for I/O errors, 1 for usage errors).
-- Malformed content is described, not rejected. Ragged rows, bad encoding bytes and truncated records are counted and reported in `issues[]`, and a descriptor is still written.
+- An unreadable path, a permission error or an I/O failure raises `SqualifyException`, and the CLI exits 1 with the message on stderr. A directory input is an error in v1.
+- Malformed content is described, not rejected. Problems are counted and listed in `issues[]`, and the descriptor is still written.
 
 ## Non-goals
 
-- Proposing DataBall configs or file types, or classifying against a library of known types.
+- Proposing DataBall configs or file types.
+- Classifying against a user library of known types. The built-in `kind` label is in scope.
 - ML, LLM or network use.
 - Editing, repairing or converting files.
 - A dependency on DataBall.
-- Directory or multi-file profiling in v1 (proposed: later).
+- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.

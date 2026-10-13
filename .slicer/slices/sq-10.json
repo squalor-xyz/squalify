@@ -1,8 +1,10 @@
 {
   "id": "sq-10",
-  "title": "Binary and STDF profiler",
+  "title": "squalify must profile binary files, and walk STDF V4 with a test catalog",
   "lead": [
-    "Byte histogram and block entropy for any binary. STDF record walk: FAR CPU type and endianness, record-type counts, sequence shape and truncation. No field decoding in v1."
+    "Every binary file gets a value-free entropy profile: whole-file 4 KiB block statistics, plus 16 fixed segments. STDF V4 becomes its own family. squalify:\n- reads the endianness from FAR;\n- walks every record header;\n- counts record types and records their first-occurrence order;\n- detects truncation;\n- builds a **test catalog** (test number, kind, name and occurrences) from PTR, MPR, FTR and TSR. The catalog is always included, up to a cap.",
+    "Result values are never decoded.",
+    "**Owner gate:** the owner supplies at least one real anonymized STDF file, or Obfuscator output (link to follow from the owner), and the record codes are checked against the primary STDF V4-2007 spec before the slice closes."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +12,31 @@
   "flags": [],
   "trees_note": "core",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** MIR and SDR text fields (tester type, part type and so on: a later item); decoding PTR, MPR or FTR results; STDF V3; compressed `.stdf.gz` (decompression is not in v1).",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goal: the v1 formats.\n\nOwner decision (2026-10-13): walk the records and build the test catalog. Test names act like column headers, so they are always included.\n\nDataBall's `StdfHandler` only matches the extension and its `Parse` throws (`DataBall/src/DataBall.Handlers/StdfHandler.cs:11-34`), so there is nothing to reuse. The layouts come from pystdf (`pystdf/V4.py`, `pystdf/IO.py`), because the Teradyne PDF could not be reached during the spec pass:\n- the header is REC_LEN U2 (payload length only) + REC_TYP U1 + REC_SUB U1;\n- FAR is (0, 10), with CPU_TYPE U1 and STDF_VER U1, and CPU_TYPE 2 means little-endian;\n- PTR (15, 10): TEST_NUM U4, HEAD U1, SITE U1, TEST_FLG B1, PARM_FLG B1, RESULT R4, TEST_TXT Cn;\n- MPR (15, 15): TEST_NUM, HEAD, SITE, TEST_FLG, PARM_FLG, RTN_ICNT U2, RSLT_CNT U2, RTN_STAT N1×j, RTN_RSLT R4×k, TEST_TXT;\n- FTR (15, 20): TEST_TXT comes after the fixed fields, the RTN and PGM arrays, FAIL_PIN Dn, VECT_NAM, TIME_SET and OP_CODE;\n- TSR (10, 30): HEAD, SITE, TEST_TYP C1, TEST_NUM U4, EXEC_CNT, FAIL_CNT, ALRM_CNT, TEST_NAM Cn;\n- trailing fields may be missing from a short record."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/Binary/EntropyProfile.cs`: entropy of each 4 KiB block (`DetMath.Log2`), reported as `blocks {count, min, max, mean}`, plus `segments[16]`: the file split into 16 equal byte ranges, each with the entropy of its histogram. The generic binary profile and the STDF profile both write it.\n- `src/squalify/Stdf/RecordTypes.cs`: a static table of `(typ, sub, name)`:\n  - all V4 records: FAR, ATR, MIR, MRR, PCR, HBR, SBR, PMR, PGR, PLR, RDR, SDR, WIR, WRR, WCR, PIR, PRR, TSR, PTR, MPR, FTR, BPS, EPS, GDR, DTR;\n  - the V4-2007 additions (VUR, PSR, NMR, CNR, SSR, CDR, STR), with codes checked against the primary spec;\n  - an unknown code is named `unknown:TT/SS`.\n- `src/squalify/Stdf/StdfProfiler.cs`: scores 1.0 when the `stdf-le` or `stdf-be` magic is at offset 0.\n  - **Endianness from CPU_TYPE:** 2 → little; 1 → big; 0 → `vax`, read as little-endian with an issue; any other value → an issue, read as big-endian as pystdf does.\n  - **Walk:** read the 4-byte header, then read or skip REC_LEN payload bytes through a buffered stream with a reused buffer.\n  - **`stdf`:**\n    - `records[] {name, typ, sub, count}`, sorted by typ then sub;\n    - `firstOccurrenceOrder[]`;\n    - `farFirst` and `mrrLast`;\n    - `tests[]` and `testsTruncated`.\n  - **Dialect:** `cpuType`, `endianness`, `version`.\n  - **Issues:** `truncatedRecord` (with the byte offset), `missingFar`, `mrrNotLast`, `unknownRecordType`.\n  - **Test catalog:** decode only the leading fields, up to TEST_TXT or TEST_NAM. A field that is missing because the record is short counts as absent.\n    - Each entry is `{testNum, kind (P|M|F, or TSR's TEST_TYP), name (the first non-empty name seen), occurrences}`.\n    - Entries are sorted by testNum, then kind.\n    - The cap is 10,000 entries (`limits.stdfTests`); the excess is counted in `testsTruncated`.\n- **Fingerprint contribution:**\n  - `layout`: the sorted set of record types plus the endianness (counts are excluded);\n  - `typed`: adds the catalog's sorted `(testNum, kind)` pairs;\n  - `names`: the sorted, case-folded test names.\n- **Hints:** `magic`, and `stdf {cpuType, version}`.\n- `tests/squalify.Tests/Builders/StdfBuilder.cs`: writes FAR, MIR, PIR, PTR, MPR, FTR, PRR, TSR and MRR in either endianness, with options to truncate the last record, omit TEST_TXT after the first occurrence, and include short records.\n- `docs/design.md` \"Binary and STDF\"; `docs/descriptor.md` `stdf`."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Entropy_Segments_Golden`: the same bytes on every OS.\n2. `Stdf_Endianness_FromCpuType` (theory: 1, 2, 0, 7).\n3. `Stdf_RecordCounts_AndFirstOccurrenceOrder`.\n4. `Stdf_Truncated_IssueWithOffset`.\n5. `Stdf_Catalog_FromPtrMprFtrTsr_FirstNonEmptyName`.\n6. `Stdf_Catalog_ShortRecord_FieldAbsent`.\n7. `Stdf_Catalog_CapAndTruncatedCount`.\n8. `Stdf_NoResultValuesInDescriptor`: canary RESULT values (for example 12345.678) never appear in the bytes.\n9. `Stdf_Fingerprint_SameProgramDifferentLots_LayoutEqual`.\n10. Goldens for synthetic LE and BE files. Once the owner supplies a sample, it gets a golden too."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Check `RecordTypes` and the PTR, MPR, FTR and TSR layouts against the primary STDF V4-2007 spec, and record that in a slicer note.\n2. Write the builder, then the tests.\n3. Implement entropy, then the walk, then the catalog.\n4. Mutation check: misread REC_LEN as including the header, and tests 3 and 4 must go red.\n5. Stop at the owner gate before closing."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- Profiling a 50 MB synthetic STDF stays within the memory budget. Use the sq-11 harness if it has landed; otherwise do a manual check and record it in a note.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-10` on branch `sq-10`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-10: binary and STDF` when the owner approves."
     }
   ],
   "notes": []

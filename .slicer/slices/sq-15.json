@@ -1,0 +1,43 @@
+{
+  "id": "sq-15",
+  "title": "squalify must suggest a generic kind label from a fixed rule set, with evidence",
+  "lead": [
+    "Adds `kind {label, ruleId, confidence}`. An ordered, built-in rule table runs over the finished descriptor only, never the file. The first matching rule wins, and every rule's result goes into the evidence.",
+    "**Owner gate:** confirm the labels and rule details at the start of the slice.",
+    "Proposed labels, in order:\n1. `stdfTestLog`\n2. `touchstoneNetwork`\n3. `parquetTable`\n4. `keyValueDocument`\n5. `labSweepTable`: a delimited table with at least one monotonic numeric field whose base name looks like a stimulus (Freq, Frequency, Temp, Vcc, Vdd, Pin, Pwr, Power, Time, Sweep, Bias, case-insensitive), plus at least two other numeric fields.\n6. `measurementTable`: delimited, with at least 50% numeric fields, and units in the header convention or a units row.\n7. `genericTable`\n8. `textLog`: text with no table, where more than 50% of lines start with a date, datetime or time.\n9. `text`\n10. `archive`: a compressed or archive magic.\n11. `binary`\n12. `empty`"
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** user or extension rule sets; matching against known types (non-goal).",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-13): squalify should \"suggest which type the file has\". This is done with a fixed, explainable, deterministic rule set. Matching against a user library of known types stays a non-goal. The stimulus names echo DataBall's default stimulus parameters (`DataBall/src/DataBall/Config.cs:124-125`)."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Kind/KindRules.cs`: a static ordered table of `{id (K01…), label, predicate(Descriptor), confidence}`.\n- `src/squalify/Kind/KindClassifier.cs`: takes a `Descriptor` and has no file access. It evaluates every rule and records each rule's matched or missed reason under evidence stage `kind`.\n- `docs/descriptor.md` `kind`; `docs/design.md` \"Kind label\"; `docs/how-it-works.md` section 8; README."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Kind_EachLabel_FromGoldenFixture` (theory over the goldens).\n2. `Kind_FirstMatchWins_RuleOrder`.\n3. `Kind_EvidenceListsAllRules`.\n4. `Kind_DependsOnlyOnDescriptor`: an architecture test that `KindClassifier` references no `System.IO` types."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Owner gate: confirm the labels and rules.\n2. Write the tests.\n3. Implement the rules and the classifier.\n4. Mutation check: swap K05 and K06, and test 2 must go red."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-15` on branch `sq-15`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-15: kind label` when the owner approves."
+    }
+  ],
+  "notes": []
+}

@@ -1,8 +1,8 @@
 {
   "id": "sq-12",
-  "title": "Descriptor schema v1 freeze",
+  "title": "squalify must publish and enforce descriptor schema v1",
   "lead": [
-    "Publish the JSON Schema for v1 and add tests that validate every golden descriptor against it. Pass over README and docs, and set the versioning policy as final."
+    "Freezes the descriptor at `schemaVersion` `1.0`. This slice:\n- publishes `schema/descriptor-v1.schema.json`, written in a JSON Schema 2020-12 subset;\n- validates every golden against it, with an in-repo subset validator in the test project;\n- makes the versioning policy normative;\n- does a final docs pass."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +10,31 @@
   "flags": [],
   "trees_note": "docs, core",
   "trees_plural": true,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** consumer tooling (that is DataBall's work); schema 1.x additions.",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goal: a stable, versioned descriptor schema.\n\nOwner decision (2026-10-13): an in-repo subset validator in the test project only. The BCL has no JSON Schema validator, and the owner declined a package for it."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `schema/descriptor-v1.schema.json`. It uses only these keywords: `$schema`, `$id`, `type`, `required`, `properties`, `additionalProperties`, `enum`, `const`, `items`, `minimum`, `maximum`, `pattern`, `$ref`/`$defs`, `oneOf`.\n- `tests/squalify.Tests/Schema/SubsetValidator.cs`: implements exactly that subset. It rejects any other keyword when the schema loads.\n- `docs/descriptor.md`: the \"draft\" label is dropped, the policy becomes normative, and a changelog is added.\n- `README.md`: the usage examples become real output.\n- `ToolInfo.SchemaVersion` = `1.0`.\n- `docs/how-it-works.md`: final pass, and re-render."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Schema_UsesOnlySupportedKeywords`.\n2. `AllGoldens_ValidateAgainstSchema` (theory over every `*.squalify.json` file under fixtures).\n3. `Validator_RejectsKnownBadDescriptors`: a missing required key, a wrong type, an unknown enum value, and an extra key where `additionalProperties` is false.\n4. `Schema_KeyOrderInDoc_MatchesWriter`.\n5. `Descriptor_SchemaVersionIs1_0`."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the validator and its own tests first.\n2. Write the schema, then the docs pass.\n3. Mutation check: remove a `required` entry, and test 3 must go red."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- The reviewer reads README, design.md, descriptor.md and how-it-works.md against the code.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-12` on branch `sq-12`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-12: schema v1 freeze` when the owner approves."
     }
   ],
   "notes": []

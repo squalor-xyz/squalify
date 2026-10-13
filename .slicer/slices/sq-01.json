@@ -1,8 +1,8 @@
 {
   "id": "sq-01",
-  "title": "Solution skeleton",
+  "title": "squalify must build, test and run as a .NET 10 solution",
   "lead": [
-    "Create squalify.sln with src/squalify, src/squalify.Cli and tests/squalify.Tests, plus global.json (10.0.400), Directory.Build.props, nullable, SPDX headers and `squalify --version`. Build, test and format pass."
+    "Creates the solution skeleton that every later slice builds on: a library, a CLI and two test projects, plus CI that runs on three operating systems. The CLI prints its version. Its `profile` command exists but fails cleanly until sq-03."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +10,31 @@
   "flags": [],
   "trees_note": "build",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** any profiling; the descriptor model (sq-02); packaging or publishing the tool.",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "The goals call for a standalone .NET 10 tool that follows DataBall's conventions (AGENTS.md). The descriptor's `toolVersion` must stay stable between commits (goal: deterministic descriptor). .NET appends `+<commit>` to the informational version by default, so this slice turns that off.\n\nOwner decisions (2026-10-13):\n- System.CommandLine 2.0.11 for the CLI.\n- The xUnit stack in the test projects: Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3, xunit.runner.visualstudio 3.1.5.\n- Exit codes match DataBall's CLI: 0 for success, 1 for any error (DataBall `CliApp.RunAsync`)."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `global.json`: SDK `10.0.400`, `rollForward` `latestFeature`, `allowPrerelease` false. This is the same as DataBall.\n- `Directory.Build.props`: copied from DataBall's file, with the squalify repository URLs, plus:\n  - `Version` 0.1.0;\n  - `IncludeSourceRevisionInInformationalVersion` false;\n  - `Deterministic` true;\n  - `TreatWarningsAsErrors` true;\n  - `GenerateDocumentationFile` set when `MSBuildProjectName` is `squalify`.\n- `squalify.sln`.\n- `src/squalify/squalify.csproj`: AssemblyName and RootNamespace `squalor.squalify`. It contains:\n  - `SqualifyException.cs`, the single public failure type;\n  - `ToolInfo.cs`: `Name` = \"squalify\" and `Version`, read from `AssemblyInformationalVersionAttribute`.\n- `src/squalify.Cli/squalify.Cli.csproj`: System.CommandLine 2.0.11, `PackAsTool`, `ToolCommandName` `squalify`, AssemblyName `squalify`.\n  - `Program.cs` returns `await CommandFactory.InvokeAsync(args, Console.Out, Console.Error)`, as DataBall's does.\n  - `CommandFactory.cs`: the root command with `--version`, plus `profile <path> [-o|--output <file>] [--include-values]`.\n  - `CliApp.cs`: `RunAsync` is the exit gate. It returns 0 on success. On a `SqualifyException`, a usage error or an unexpected exception, it writes the message to stderr and returns 1. Until sq-03, `profile` throws `SqualifyException(\"profiling is not implemented yet\")`.\n- `tests/squalify.Tests/squalify.Tests.csproj` and `tests/squalify.Cli.Tests/squalify.Cli.Tests.csproj`: the xUnit stack, with `fixtures/**` copied to the output directory.\n- `.github/workflows/ci.yml`: DataBall's matrix (windows, macos and ubuntu-latest; restore, build, test in Release), plus a `dotnet format squalify.sln --verify-no-changes` step.\n- `AGENTS.md`: the Layout section is no longer marked \"planned\". `README.md`: Status.\n- `docs/how-it-works.md`: section 1's source paths drop \"(planned)\" for the projects that now exist. Re-render."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `ToolInfo_Version_HasNoSourceRevision`: `ToolInfo.Version` matches `^\\d+\\.\\d+\\.\\d+$`. It fails while the `+sha` suffix is present.\n2. `Cli_Version_PrintsToolVersion`: stdout is `ToolInfo.Version` plus a newline, and the exit code is 0.\n3. `Cli_Profile_MissingPath_ExitsOne`: a usage error, with the message on stderr.\n4. `Cli_Profile_NotImplemented_ExitsOneWithMessage`."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Create the solution, the projects and the props files. Build.\n2. Write the four tests and watch them fail for the stated reasons.\n3. Implement `ToolInfo` and the CLI.\n4. Mutation check: turn the source revision back on, and test 1 must go red.\n5. Run the CI commands locally."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- `dotnet run --project src/squalify.Cli -c Release -- --version` prints `0.1.0`.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-01` on branch `sq-01`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-01: solution skeleton` when the owner approves."
     }
   ],
   "notes": []

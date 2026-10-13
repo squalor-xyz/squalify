@@ -13,3 +13,72 @@
 {"when": "2026-10-13T15:07:56Z", "item": "sq-10", "action": "add", "from": "", "to": "open", "note": "Binary and STDF profiler"}
 {"when": "2026-10-13T15:07:56Z", "item": "sq-11", "action": "add", "from": "", "to": "open", "note": "Large-file streaming and sketches"}
 {"when": "2026-10-13T15:07:56Z", "item": "sq-12", "action": "add", "from": "", "to": "open", "note": "Descriptor schema v1 freeze"}
+{"when": "2026-10-13T15:37:58Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-13T15:37:59Z", "item": "non_goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-13T15:37:59Z", "item": "sq-13", "action": "add", "from": "", "to": "open", "note": "squalify must describe files with repeated header and data blocks"}
+{"when": "2026-10-13T15:37:59Z", "item": "sq-14", "action": "add", "from": "", "to": "open", "note": "squalify must report each file's header-unit convention"}
+{"when": "2026-10-13T15:37:59Z", "item": "sq-15", "action": "add", "from": "", "to": "open", "note": "squalify must suggest a generic kind label from a fixed rule set, with evidence"}
+{"when": "2026-10-13T15:38:09Z", "item": "sq-01", "action": "set", "from": "", "to": "", "note": "title Solution skeleton→squalify must build, test and run as a .NET 10 solution"}
+{"when": "2026-10-13T15:38:09Z", "item": "sq-02", "action": "set", "from": "", "to": "", "note": "title Descriptor model and canonical JSON writer→squalify must write descriptors as canonical, byte-stable JSON; short_title Descriptor model and canonical JSON writer→Canonical descriptor writer"}
+{"when": "2026-10-13T15:38:09Z", "item": "sq-03", "action": "set", "from": "", "to": "", "note": "title Byte sniff→squalify must sniff any file and write a generic descriptor end to end; short_title Byte sniff→Byte sniff and generic profile; size S→M; effort 1→2"}
+{"when": "2026-10-13T15:38:09Z", "item": "sq-04", "action": "set", "from": "", "to": "", "note": "title Delimited text profiler→squalify must detect the dialect, header and regions of delimited text, with evidence; short_title Delimited text profiler→Delimited dialect and regions; size M→L; effort 2→3"}
+{"when": "2026-10-13T15:38:09Z", "item": "sq-05", "action": "set", "from": "", "to": "", "note": "title Field profiling→squalify must profile every field with types, statistics and shapes in bounded memory"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-06", "action": "set", "from": "", "to": "", "note": "title Structural fingerprint and detect-rule hints→squalify must emit structural fingerprints and neutral detect-rule hints; short_title Structural fingerprint and detect-rule hints→Fingerprints and hints"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-07", "action": "set", "from": "", "to": "", "note": "title Include-values policy→squalify must include literal values only with --include-values, and never leak them otherwise; short_title Include-values policy→Values tier"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-08", "action": "set", "from": "", "to": "", "note": "title Parquet profiler→squalify must profile Parquet files through DuckDB"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-09", "action": "set", "from": "", "to": "", "note": "title Lab text formats→squalify must profile Touchstone files and key=value/INI documents; short_title Lab text formats→Touchstone and key=value docs"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-10", "action": "set", "from": "", "to": "", "note": "title Binary and STDF profiler→squalify must profile binary files, and walk STDF V4 with a test catalog; short_title Binary and STDF profiler→Binary and STDF"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-11", "action": "set", "from": "", "to": "", "note": "title Large-file streaming and sketches→squalify must stay exact up to its caps and approximate deterministically beyond them, in bounded memory; short_title Large-file streaming and sketches→Sketches and memory bounds"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "title Descriptor schema v1 freeze→squalify must publish and enforce descriptor schema v1; short_title Descriptor schema v1 freeze→Schema v1 freeze; depends_on sq-06,sq-07,sq-08,sq-09,sq-10,sq-11→sq-06,sq-07,sq-08,sq-09,sq-10,sq-11,sq-13,sq-14,sq-15"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-13", "action": "set", "from": "", "to": "", "note": "short_title squalify must describe files with repeated header and data blocks→Repeated blocks; depends_on -→sq-05"}
+{"when": "2026-10-13T15:38:10Z", "item": "sq-14", "action": "set", "from": "", "to": "", "note": "short_title squalify must report each file's header-unit convention→Header-unit conventions; depends_on -→sq-04"}
+{"when": "2026-10-13T15:38:11Z", "item": "sq-15", "action": "set", "from": "", "to": "", "note": "short_title squalify must suggest a generic kind label from a fixed rule set, with evidence→Kind label; depends_on -→sq-06,sq-08,sq-09,sq-10,sq-13,sq-14"}
+{"when": "2026-10-13T15:41:47Z", "item": "sq-01", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:52Z", "item": "sq-02", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:52Z", "item": "sq-03", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-04", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-05", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-06", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-07", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-08", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-09", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-10", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-11", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-12", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:53Z", "item": "sq-13", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:54Z", "item": "sq-14", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:41:54Z", "item": "sq-15", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-01", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-02", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-03", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-08", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:11Z", "item": "sq-09", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-10", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-13", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-14", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-01", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): System.CommandL", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-02", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): output is byte-", "by": "Jon R"}
+{"when": "2026-10-13T15:42:12Z", "item": "sq-03", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): compressed and ", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): units-row text ", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): numeric and tem", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (spec interview): three fingerprin", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): lexical min/max", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-08", "action": "note", "from": "", "to": "", "note": "Owner decision: DuckDB.NET.Data.Full 1.5.5, the same pin as ", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-09", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): sq-09 covers To", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-10", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): walk the record", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (spec interview): HLL p=14 above ", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (spec interview): an in-repo JSON ", "by": "Jon R"}
+{"when": "2026-10-13T15:42:13Z", "item": "sq-13", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (spec interview): repeated blocks ", "by": "Jon R"}
+{"when": "2026-10-13T15:42:14Z", "item": "sq-14", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (spec interview): units show up in", "by": "Jon R"}
+{"when": "2026-10-13T15:42:14Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (spec interview, 'Both'): report t", "by": "Jon R"}
+{"when": "2026-10-13T15:42:20Z", "item": "sq-13", "action": "move", "from": "13", "to": "12", "note": ""}
+{"when": "2026-10-13T15:42:20Z", "item": "sq-14", "action": "move", "from": "14", "to": "13", "note": ""}
+{"when": "2026-10-13T15:42:20Z", "item": "sq-15", "action": "move", "from": "15", "to": "14", "note": ""}
+{"when": "2026-10-13T15:42:21Z", "item": "sq-12", "action": "move", "from": "15", "to": "15", "note": ""}

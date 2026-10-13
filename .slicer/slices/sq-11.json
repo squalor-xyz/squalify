@@ -1,8 +1,9 @@
 {
   "id": "sq-11",
-  "title": "Large-file streaming and sketches",
+  "title": "squalify must stay exact up to its caps and approximate deterministically beyond them, in bounded memory",
   "lead": [
-    "Deterministic HLL and KLL-style sketches beyond the caps, marked approximate. Memory-bound tests on generated multi-GB streams (not committed fixtures)."
+    "Replaces the `exceeds` placeholders with deterministic sketches:\n- HyperLogLog: p = 14, over `XxHash64`, with linear counting below 2.5m through `DetMath.Ln`;\n- Greenwald-Khanna: ε = 0.001.",
+    "When a cap is crossed, the sketch absorbs the exact buffer in input order. Memory accounting is added, along with tests on generated streams: 256 MB in CI, and 4 GB run manually."
   ],
   "depends_note": null,
   "findings_note": "",
@@ -10,31 +11,31 @@
   "flags": [],
   "trees_note": "core",
   "trees_plural": false,
-  "boundary": "**Not in this slice:**",
+  "boundary": "**Not in this slice:** the HLL++ empirical bias tables; parallel accumulation.",
   "sections": [
     {
       "heading": "Why",
-      "body": ""
+      "body": "Goals: a full streaming scan with bounded memory, and determinism.\n\nOwner decisions (2026-10-13): the caps as drafted, an in-repo xxHash64, and byte-identical output across OS and CPU, using `DetMath` instead of `Math.Log`.\n\nBoth sketches are deterministic for a fixed hash and input order:\n- HLL takes the max of its registers, so its estimate does not depend on input order. Its relative error is 1.04/√m.\n- GK has no randomness, and its rank error is at most εN."
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `src/squalify/Sketches/HyperLogLog.cs`: m = 16,384 byte registers.\n  - The index is the top 14 bits of `XxHash64(value)`. The rank is `BitOperations.LeadingZeroCount` of the remaining bits plus 1.\n  - The raw estimate is α_m·m²/Σ2^−M[j], with the powers of two from `Math.ScaleB`, which is exact.\n  - Linear counting, m·`DetMath.Ln`(m/V), is used when E ≤ 2.5m and V > 0.\n  - The result is rounded to a long using `Math.Round` with `MidpointRounding.ToEven`.\n- `src/squalify/Sketches/GreenwaldKhanna.cs`: insert, and compress on the fixed schedule of every ⌊1/(2ε)⌋ inserts. A query returns a stored value.\n- `FieldAccumulator`: when a cap is crossed, it feeds the exact buffer to the sketch in input order and frees the buffer. The output gets `approximate: true` and an `errorBound`: relative 1.04/√m for distinct counts, and εN ranks for quantiles.\n- `MemoryBudget`: each accumulator gets an `EstimatedBytes` figure.\n- `tests/squalify.Tests/Sources/SyntheticCsvSource.cs`: an `IProfileSource` that generates N rows × M columns of mixed types on the fly, from a seeded xorshift generator. Nothing is written to disk.\n- `docs/design.md` \"Bounded memory and sketches\"; `docs/how-it-works.md` section 5."
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "1. `Hll_ErrorWithin3Sigma_On1MDistinct`.\n2. `Hll_SameSetDifferentOrder_SameEstimate`.\n3. `Hll_SmallRange_LinearCounting`.\n4. `Gk_RankErrorWithinEpsilonN` on 10M values.\n5. `CapCrossing_Boundary` (theory: cap−1, cap, cap+1 give exact, exact, approximate).\n6. `Approximate_FlaggedWithErrorBound`.\n7. `MemoryAccounting_UnderBudget_256MbStream`, run in CI.\n8. `[Trait(\"Category\",\"Large\")] Memory_4GbStream_PeakWorkingSetBounded`: manual only. CI runs with `--filter Category!=Large`.\n9. `Sketch_Goldens_SameBytesOnAllOs`."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the tests.\n2. Implement HLL, then GK, then the crossover, then the accounting.\n3. Update the CI workflow's test filter.\n4. Mutation checks: seed the hash randomly, and test 9 must go red. Swap `DetMath.Ln` for `Math.Log`, and confirm on CI that the goldens are still pinned, noting in the PR which platforms were checked."
     },
     {
       "heading": "Check",
-      "body": ""
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- One manual run of `dotnet test --filter Category=Large`, with peak memory and duration recorded in a slicer note.\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
     },
     {
       "heading": "Git",
-      "body": ""
+      "body": "Worktree `.worktrees/sq-11` on branch `sq-11`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-11: sketches and memory bounds` when the owner approves."
     }
   ],
   "notes": []

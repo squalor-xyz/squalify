@@ -26,30 +26,35 @@
 </head><body>
 <h1>Roadmap</h1>
 <div class="prose"><p>squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.</p></div>
-<section><h2>Goals</h2><div class="prose"><p>- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor. No ML, LLM or network.<br>
-- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic approximations that the descriptor marks as approximate.<br>
-- **v1 formats:** delimited text (with lab preambles), Parquet (through DuckDB.NET), lab text formats (Touchstone, key=value header blocks), binary (STDF record walk, generic byte profile).<br>
-- **Useful for classification:** a structural fingerprint, layout regions, detect-rule hints and an evidence trail for every inference.<br>
-- **Values are opt-in.** No literal data values without `--include-values`. Header names and preamble keys are always included.<br>
-- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).</p></div></section>
+<section><h2>Goals</h2><div class="prose"><p>- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.<br>
+- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.<br>
+- **v1 formats:** delimited text (preambles, units rows, repeated blocks), Parquet (through DuckDB.NET), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).<br>
+- **Useful for classification:** structural fingerprints (layout, typed, names), layout regions, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.<br>
+- **Values are opt-in.** No literal data values without `--include-values`. Header names, preamble keys, test names, and numeric and temporal statistics are always included.<br>
+- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).<br>
+- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.</p></div></section>
 <section><h2>Non-goals</h2><div class="prose"><p>- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.<br>
-- Classifying files against a library of known types.<br>
+- Classifying files against a user library of known types. The built-in `kind` label is in scope.<br>
 - ML, LLM or network use.<br>
 - Editing, repairing or converting files.<br>
-- A dependency on DataBall. The descriptor schema is the contract.</p></div></section>
-<p class="summary">12 items · — 12</p>
+- A dependency on DataBall. The descriptor schema is the contract.<br>
+- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
+<p class="summary">15 items · — 15</p>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="open"><td>1</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>2</td><td>sq-02</td><td>Descriptor model and canonical JSON writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>3</td><td>sq-03</td><td>Byte sniff</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>4</td><td>sq-04</td><td>Delimited text profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>2</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>3</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>4</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">—</td></tr>
 <tr class="open"><td>5</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>6</td><td>sq-06</td><td>Structural fingerprint and detect-rule hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>7</td><td>sq-07</td><td>Include-values policy</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>6</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>7</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">—</td></tr>
 <tr class="open"><td>8</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>9</td><td>sq-09</td><td>Lab text formats</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>10</td><td>sq-10</td><td>Binary and STDF profiler</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>11</td><td>sq-11</td><td>Large-file streaming and sketches</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>12</td><td>sq-12</td><td>Descriptor schema v1 freeze</td><td>S</td><td>1</td><td>docs, core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>9</td><td>sq-09</td><td>Touchstone and key=value docs</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>10</td><td>sq-10</td><td>Binary and STDF</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>11</td><td>sq-11</td><td>Sketches and memory bounds</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>12</td><td>sq-13</td><td>Repeated blocks</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>13</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>14</td><td>sq-15</td><td>Kind label</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>15</td><td>sq-12</td><td>Schema v1 freeze</td><td>S</td><td>1</td><td>docs, core</td><td></td><td class="status">—</td></tr>
 </tbody></table>
 </body></html>

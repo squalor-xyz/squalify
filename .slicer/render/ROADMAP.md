@@ -6,34 +6,39 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 
 ## Goals
 
-- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor. No ML, LLM or network.
-- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic approximations that the descriptor marks as approximate.
-- **v1 formats:** delimited text (with lab preambles), Parquet (through DuckDB.NET), lab text formats (Touchstone, key=value header blocks), binary (STDF record walk, generic byte profile).
-- **Useful for classification:** a structural fingerprint, layout regions, detect-rule hints and an evidence trail for every inference.
-- **Values are opt-in.** No literal data values without `--include-values`. Header names and preamble keys are always included.
+- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.
+- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.
+- **v1 formats:** delimited text (preambles, units rows, repeated blocks), Parquet (through DuckDB.NET), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).
+- **Useful for classification:** structural fingerprints (layout, typed, names), layout regions, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.
+- **Values are opt-in.** No literal data values without `--include-values`. Header names, preamble keys, test names, and numeric and temporal statistics are always included.
 - **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).
+- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.
 
 ## Non-goals
 
 - Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.
-- Classifying files against a library of known types.
+- Classifying files against a user library of known types. The built-in `kind` label is in scope.
 - ML, LLM or network use.
 - Editing, repairing or converting files.
 - A dependency on DataBall. The descriptor schema is the contract.
+- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-12 items · — 12
+15 items · — 15
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | — |
-| 2 | [sq-02](slices/sq-02.md) | Descriptor model and canonical JSON writer | M | 2 | core |  | — |
-| 3 | [sq-03](slices/sq-03.md) | Byte sniff | S | 1 | core |  | — |
-| 4 | [sq-04](slices/sq-04.md) | Delimited text profiler | M | 2 | core |  | — |
+| 2 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | — |
+| 3 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | — |
+| 4 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | — |
 | 5 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | — |
-| 6 | [sq-06](slices/sq-06.md) | Structural fingerprint and detect-rule hints | M | 2 | core |  | — |
-| 7 | [sq-07](slices/sq-07.md) | Include-values policy | S | 1 | core, cli |  | — |
+| 6 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | — |
+| 7 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | — |
 | 8 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | — |
-| 9 | [sq-09](slices/sq-09.md) | Lab text formats | M | 2 | core |  | — |
-| 10 | [sq-10](slices/sq-10.md) | Binary and STDF profiler | L | 3 | core |  | — |
-| 11 | [sq-11](slices/sq-11.md) | Large-file streaming and sketches | M | 2 | core |  | — |
-| 12 | [sq-12](slices/sq-12.md) | Descriptor schema v1 freeze | S | 1 | docs, core |  | — |
+| 9 | [sq-09](slices/sq-09.md) | Touchstone and key=value docs | M | 2 | core |  | — |
+| 10 | [sq-10](slices/sq-10.md) | Binary and STDF | L | 3 | core |  | — |
+| 11 | [sq-11](slices/sq-11.md) | Sketches and memory bounds | M | 2 | core |  | — |
+| 12 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | — |
+| 13 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | — |
+| 14 | [sq-15](slices/sq-15.md) | Kind label | M | 2 | core |  | — |
+| 15 | [sq-12](slices/sq-12.md) | Schema v1 freeze | S | 1 | docs, core |  | — |
