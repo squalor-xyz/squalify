@@ -41,7 +41,7 @@ Run all three before handing off a change.
 
 ## Docs
 
-`docs/how-it-works.md` explains in plain language how squalify works, with Mermaid diagrams. `docs/how-it-works.html` and `docs/how-it-works.pdf` are generated from it with quire's built-in plain style (`--no-config`) and committed.
+`docs/how-it-works.md` explains in plain language how squalify works, with Mermaid diagrams. `docs/how-it-works.html` and `docs/how-it-works.pdf` are generated from it with quire's `squalor` profile (`--config squalor`) and committed.
 
 - **Update it on every architectural review.** Update `docs/how-it-works.md` and its diagrams whenever an architectural review happens. That covers:
   - the relay architect's review of a slice;
@@ -55,7 +55,7 @@ Run all three before handing off a change.
   - Each diagram shows one idea.
   - Each diagram names the source file it comes from, or "(planned)" until the code exists.
 - **Rendering.** Run `./scripts/render-docs.sh`. Then check that every Mermaid block drew (the HTML has one `<svg` per diagram) and that the PDF has no clipped diagrams. Commit the `.md`, `.html` and `.pdf` together, and never edit the renders by hand.
-- **Requirements.** `render-docs.sh` needs `quire` on PATH, with its Mermaid renderer installed (`python3 install.py --with-mermaid` in the quire checkout). quire may live in `~/.local/bin`, which is not on the non-interactive PATH; prefix the command with `PATH="$HOME/.local/bin:$PATH"`. To render another doc, add its name to `DOCS` in the script.
+- **Requirements.** `render-docs.sh` needs `quire` on PATH, with its Mermaid renderer installed (`python3 install.py --with-mermaid` in the quire checkout) and the `squalor` profile in its user config. quire may live in `~/.local/bin`, which is not on the non-interactive PATH; prefix the command with `PATH="$HOME/.local/bin:$PATH"`. To render another doc, add its name to `DOCS` in the script.
 - **Same-commit rule.** `docs/design.md` and `docs/descriptor.md` change in the same commit as the behavior they describe.
 
 ## Tests
