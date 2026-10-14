@@ -73,7 +73,7 @@ Run all three before handing off a change.
 
 Slices normally run as a slice relay (`slicer ai relay`).
 
-- **Worktree:** `.worktrees/<id>` on branch `<id>`, created by the orchestrator before the implementer starts. `.worktrees/` is excluded via `.git/info/exclude`.
+- **Worktree:** `.worktrees/<id>` on branch `<id>`, created by the orchestrator before the implementer starts. `.worktrees/` is ignored via `.gitignore`.
 - **Briefs:** the slice from `slicer show <id> --json --lean`. Reviewers also get `slicer goals --json --lean`, `slicer list --json --lean`, `docs/design.md`, `docs/descriptor.md` and `docs/how-it-works.md`.
 - **Architect:** checks `docs/how-it-works.md` and its diagrams against the change, and reports drift as a finding (see Docs).
 - **Size S** slices run a lite relay without the architect. M and L slices run the full relay.

@@ -47,3 +47,6 @@ Thumbs.db
 
 # slicer advisory lock (transient, never state)
 /.slicer/lock
+
+# slice relay worktrees
+/.worktrees/
