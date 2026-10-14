@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>squalor.squalify</AssemblyName>
+    <RootNamespace>squalor.squalify</RootNamespace>
+  </PropertyGroup>
+</Project>

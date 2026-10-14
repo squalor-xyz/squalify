@@ -23,28 +23,33 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-21 items · — 20 · later 1
+21 items · — 19 · done 1 · later 1
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | — |
-| 2 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | — |
-| 3 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | — |
-| 4 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | — |
-| 5 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | — |
-| 6 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | — |
-| 7 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | — |
-| 8 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | — |
-| 9 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | — |
-| 10 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | — |
-| 11 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | — |
-| 12 | [sq-09](slices/sq-09.md) | Touchstone and key=value docs | M | 2 | core |  | — |
-| 13 | [sq-10](slices/sq-10.md) | Binary and STDF | L | 3 | core |  | — |
-| 14 | [sq-11](slices/sq-11.md) | Sketches and memory bounds | M | 2 | core |  | — |
-| 15 | [sq-19](slices/sq-19.md) | Throughput benchmark | M | 2 | core |  | — |
-| 16 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | — |
-| 17 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | — |
-| 18 | [sq-15](slices/sq-15.md) | Kind label | M | 2 | core |  | — |
-| 19 | [sq-20](slices/sq-20.md) | Compact evidence | M | 2 | core |  | — |
-| 20 | [sq-12](slices/sq-12.md) | Schema v1 freeze | S | 1 | docs, core |  | — |
-| 21 | sq-21 | Header-name grammar hint | L | 3 | core |  | later |
+| 1 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | — |
+| 2 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | — |
+| 3 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | — |
+| 4 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | — |
+| 5 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | — |
+| 6 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | — |
+| 7 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | — |
+| 8 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | — |
+| 9 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | — |
+| 10 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | — |
+| 11 | [sq-09](slices/sq-09.md) | Touchstone and key=value docs | M | 2 | core |  | — |
+| 12 | [sq-10](slices/sq-10.md) | Binary and STDF | L | 3 | core |  | — |
+| 13 | [sq-11](slices/sq-11.md) | Sketches and memory bounds | M | 2 | core |  | — |
+| 14 | [sq-19](slices/sq-19.md) | Throughput benchmark | M | 2 | core |  | — |
+| 15 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | — |
+| 16 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | — |
+| 17 | [sq-15](slices/sq-15.md) | Kind label | M | 2 | core |  | — |
+| 18 | [sq-20](slices/sq-20.md) | Compact evidence | M | 2 | core |  | — |
+| 19 | [sq-12](slices/sq-12.md) | Schema v1 freeze | S | 1 | docs, core |  | — |
+| 20 | sq-21 | Header-name grammar hint | L | 3 | core |  | later |
+
+---
+
+| # | Slice | Title | Size | Effort | Trees | Findings | Status |
+|---|---|---|---|---|---|---|---|
+| 21 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |

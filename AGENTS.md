@@ -4,18 +4,19 @@ Guidance for coding agents working in this repository. The README is the user-fa
 
 squalify is an Apache-2.0 .NET 10 library (`squalor.squalify`) and CLI (`squalify`). It profiles one data file and writes a deterministic JSON descriptor. It does not reference DataBall; the descriptor schema in `docs/descriptor.md` is the contract.
 
-## Layout (planned; created by sq-01)
+## Layout
 
 - `src/squalify/`: the library. It holds the pipeline stages (sniff, format detection, format profilers, field profilers) and the descriptor model and writer.
 - `src/squalify.Cli/`: the `squalify` tool.
-- `tests/squalify.Tests/`: xUnit. Fixtures live under `tests/squalify.Tests/fixtures/`, and golden descriptors sit next to them.
+- `tests/squalify.Tests/`: xUnit for the library. Fixtures live under `tests/squalify.Tests/fixtures/`, and golden descriptors sit next to them.
+- `tests/squalify.Cli.Tests/`: xUnit for the CLI, run in-process through `CommandFactory.InvokeAsync`.
 - `docs/`: `how-it-works.md` (diagrams; `.html` and `.pdf` are committed renders of it), `design.md` (architecture) and `descriptor.md` (schema).
 - `scripts/`: `render-docs.sh` renders the committed docs (see Docs below).
 - `.slicer/`: roadmap and slice tracking. Manage it only through the `slicer` CLI.
 
 ## Build, test, format
 
-The SDK is pinned by `global.json` (added by sq-01).
+The SDK is pinned by `global.json`.
 
 ```bash
 dotnet build squalify.sln -c Release
@@ -40,7 +41,7 @@ Run all three before handing off a change.
 
 ## Docs
 
-`docs/how-it-works.md` explains in plain language how squalify works, with Mermaid diagrams. `docs/how-it-works.html` and `docs/how-it-works.pdf` are generated from it with quire's squalor profile and committed.
+`docs/how-it-works.md` explains in plain language how squalify works, with Mermaid diagrams. `docs/how-it-works.html` and `docs/how-it-works.pdf` are generated from it with quire's built-in plain style (`--no-config`) and committed.
 
 - **Update it on every architectural review.** Update `docs/how-it-works.md` and its diagrams whenever an architectural review happens. That covers:
   - the relay architect's review of a slice;
@@ -54,7 +55,7 @@ Run all three before handing off a change.
   - Each diagram shows one idea.
   - Each diagram names the source file it comes from, or "(planned)" until the code exists.
 - **Rendering.** Run `./scripts/render-docs.sh`. Then check that every Mermaid block drew (the HTML has one `<svg` per diagram) and that the PDF has no clipped diagrams. Commit the `.md`, `.html` and `.pdf` together, and never edit the renders by hand.
-- **Requirements.** `render-docs.sh` needs `quire` on PATH with the `squalor` profile configured. To render another doc, add its name to `DOCS` in the script.
+- **Requirements.** `render-docs.sh` needs `quire` on PATH, with its Mermaid renderer installed (`python3 install.py --with-mermaid` in the quire checkout). quire may live in `~/.local/bin`, which is not on the non-interactive PATH; prefix the command with `PATH="$HOME/.local/bin:$PATH"`. To render another doc, add its name to `DOCS` in the script.
 - **Same-commit rule.** `docs/design.md` and `docs/descriptor.md` change in the same commit as the behavior they describe.
 
 ## Tests

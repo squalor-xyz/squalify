@@ -10,7 +10,7 @@
       "id": "sq-01",
       "title": "squalify must build, test and run as a .NET 10 solution",
       "short_title": "Solution skeleton",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -55,7 +55,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

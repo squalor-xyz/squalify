@@ -3,7 +3,7 @@
 #
 # Renders the committed HTML and PDF copies of the docs listed below from their
 # Markdown source with quire (pandoc + WeasyPrint, Mermaid diagrams drawn as SVG),
-# using the squalor profile. Run from anywhere: ./scripts/render-docs.sh
+# using its built-in plain style (--no-config). Run from anywhere: ./scripts/render-docs.sh
 # Re-render in the same change as any edit to the source; see "Docs" in AGENTS.md.
 set -euo pipefail
 
@@ -20,7 +20,7 @@ fi
 for doc in "${DOCS[@]}"; do
     src="$root/docs/$doc.md"
     for ext in pdf html; do
-        quire --config squalor --resource-path "$root/docs" "$src" -o "$root/docs/$doc.$ext"
+        quire --no-config --resource-path "$root/docs" "$src" -o "$root/docs/$doc.$ext"
         echo "render-docs: docs/$doc.$ext"
     done
 done

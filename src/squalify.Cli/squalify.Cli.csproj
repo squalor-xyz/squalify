@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>squalor.squalify.Cli</RootNamespace>
+    <AssemblyName>squalify</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>squalify</ToolCommandName>
+    <IsPackable>true</IsPackable>
+    <Description>Command-line tool that profiles a data file into a deterministic JSON descriptor.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="squalify.Cli.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.11" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\squalify\squalify.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,10 +1,10 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). No slice has landed yet, so every source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Only the solution skeleton (sq-01) has landed: the CLI shell, `ToolInfo` and `SqualifyException` exist, and every other source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
-Each diagram shows one idea. Labels are in plain language, with the code name in small text. Source paths are relative to `src/squalify/`.
+Each diagram shows one idea. Labels are in plain language, with the code name in small text. Source paths are relative to `src/squalify/`, so the CLI project is written `../squalify.Cli/`.
 
 ## 1. The pieces
 
@@ -20,7 +20,7 @@ flowchart LR
     Out --> Consumers["DataBall and other tools"]
 ```
 
-*Source: `Profiler.cs`, `Formats/` (planned).*
+*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`; `Profiler.cs`, `Formats/` (planned).* The CLI exists today: `squalify --version` prints the tool version, and `squalify profile` exits 1 with "profiling is not implemented yet" until the profiler lands.
 
 ## 2. One profile run
 

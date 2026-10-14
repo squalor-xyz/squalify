@@ -4,7 +4,7 @@ squalify profiles a data file and writes a **descriptor**. The descriptor is a v
 
 Other tools read the descriptor to decide what to do with the file. Examples: classifying it as a known file type, picking the right transform or import route, or drafting a [DataBall](../../DataBall/) file type. squalify itself only describes the file. It suggests a generic `kind` label (for example `labSweepTable` or `stdfTestLog`) from a fixed set of built-in rules, and it reports how header names carry units (for example `Vcc(V)` or `ICC_A`).
 
-> Status: design phase. Nothing is implemented yet. The roadmap lives in slicer (`slicer goals`, `slicer list`).
+> Status: design phase. Only the solution skeleton exists: `squalify --version` works and `squalify profile` fails cleanly until profiling lands. The roadmap lives in slicer (`slicer goals`, `slicer list`).
 
 ## Principles
 
@@ -21,6 +21,7 @@ squalify profile data.csv                     # descriptor to stdout
 squalify profile data.csv -o data.squalify.json
 squalify profile data.csv --include-values     # include literal values
 squalify profile data.csv --include-values-for Program   # values of named keys/columns only
+squalify profile data.csv --verbose            # print full exception details on error
 squalify --version
 ```
 
