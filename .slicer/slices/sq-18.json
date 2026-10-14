@@ -1,0 +1,41 @@
+{
+  "id": "sq-18",
+  "title": "squalify must run against a private corpus of real files without committing them",
+  "lead": [
+    "Adds an opt-in test category and a script that profile every file in a directory outside the repository. Real files found the worst design gap so far; this keeps them useful as a regression check while they stay out of the repo."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** committing any real file, golden or file name; running the corpus in CI; anonymizing or synthesizing fixtures from real files.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Goals: deterministic output, and robustness on real lab files.\n\nSample-data review (2026-10-13), adopted by the owner: the real samples cannot be committed, and findings from them are recorded generically under `docs/reviews/`. Synthetic fixtures model what was learned, but only real files catch what nobody has modelled yet."
+    },
+    {
+      "heading": "Files",
+      "body": "- `tests/squalify.Tests/Corpus/CorpusRunner.cs`: lists the corpus and checks one file.\n  - **Listing:** every file under the directory, recursively, skipping `*.squalify.json` goldens and hidden files and directories; sorted by relative path, ordinally.\n  - **`Check(path)`** returns `pass`, `fail` (with the exception or the determinism mismatch) or `diff` (golden mismatch), with a message.\n- `tests/squalify.Tests/Corpus/CorpusTests.cs`: `[Trait(\"Category\",\"Corpus\")]` theory over `CorpusRunner`'s listing of the directory named by `SQUALIFY_CORPUS`; each row asserts `Check` returns `pass`. When the variable is unset, the theory yields one row that passes with an explicit \"corpus not configured\" message. `Check` verifies that each file:\n  - profiles without an exception;\n  - gives byte-identical descriptors on two runs, and under `de-DE` and `tr-TR`;\n  - matches `<file>.squalify.json` next to it, when that golden exists (the golden also stays outside the repo). `SQUALIFY_UPDATE_GOLDEN=1` rewrites it, as in sq-02.\n- `scripts/corpus-check.sh <dir>`: runs `dotnet test --filter Category=Corpus` with `SQUALIFY_CORPUS` set and prints a per-file summary. It writes only under `<dir>`.\n- CI keeps `--filter Category!=Corpus` (alongside `Category!=Large` from sq-11).\n- `AGENTS.md` \"Tests\": real samples never enter the repository; findings from them are written up generically under `docs/reviews/`."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Corpus_Unset_PassesWithMessage`.\n2. `CorpusRunner_TempDirectory_PassAndDiff`: the test writes two synthetic files, one matching and one mismatching golden, a hidden file and a subdirectory file to a temp directory, then calls `CorpusRunner` directly: the listing excludes the golden and hidden files and includes the subdirectory file, and `Check` returns `pass` for one file and `diff` for the other. It is not in the `Corpus` category, so it runs in CI."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Implement `CorpusRunner`, then the theory, then the script.\n3. Mutation check: skip the golden comparison, and test 2 must go red."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`\n- One manual run of `./scripts/corpus-check.sh` against the owner's private corpus, with the pass/fail summary (no file names) recorded in a slicer note."
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-18` on branch `sq-18`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-18: private corpus harness` when the owner approves."
+    }
+  ],
+  "notes": []
+}

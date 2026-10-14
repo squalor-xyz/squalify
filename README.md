@@ -11,7 +11,7 @@ Other tools read the descriptor to decide what to do with the file. Examples: cl
 - **Deterministic.** The same input bytes and the same squalify version always give the same descriptor, byte for byte. squalify uses no machine learning, no LLM and no network.
 - **Describe, don't decide.** squalify does not match files against a library of known types, propose configs or convert data. Consumers do that from the descriptor. The built-in `kind` label is a generic hint, and the evidence shows how it was chosen.
 - **Full scan, bounded memory.** squalify streams the whole file. The statistics are exact where that is affordable and come from deterministic, documented approximations beyond fixed caps. The descriptor marks every approximate value as approximate.
-- **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text) appear only with `--include-values`. Column header names are always included, because matching needs them.
+- **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text, and the statistics of columns that hold one value for the whole file) appear only with `--include-values`, or for named keys and columns with `--include-values-for`. Column header names are always included, because matching needs them.
 - **Explainable.** Every inference (encoding, delimiter, header row, field type, format) has an evidence entry that lists the candidates considered and why the winner won.
 
 ## Planned usage
@@ -20,6 +20,7 @@ Other tools read the descriptor to decide what to do with the file. Examples: cl
 squalify profile data.csv                     # descriptor to stdout
 squalify profile data.csv -o data.squalify.json
 squalify profile data.csv --include-values     # include literal values
+squalify profile data.csv --include-values-for Program   # values of named keys/columns only
 squalify --version
 ```
 
@@ -27,7 +28,7 @@ squalify --version
 
 | Family | Examples | What is described |
 |---|---|---|
-| Delimited text | CSV, TSV, `;` and `\|` separated, with or without a lab preamble, a units row or repeated blocks | encoding, delimiter/quoting, preamble keys, header and units rows, data region, per-field profiles, header-unit convention |
+| Delimited text | CSV, TSV, `;` and `\|` separated, with or without a lab preamble, annotation rows above the header, a units row, padding or repeated blocks | encoding, delimiter/quoting/padding, preamble keys, annotation, header and units rows, data region, row classes, per-field profiles, header-unit convention |
 | Parquet | `.parquet` | schema, row groups, per-column profiles (through DuckDB) |
 | Touchstone | `.s1p` … `.sNp`, `.ts` (v1 and v2) | option line, ports, network and noise blocks, per-parameter profiles |
 | Key=value documents | INI-style `[section]` + `key=value` files | sections, keys, value types |
@@ -43,6 +44,7 @@ DataBall picks a handler from a bounded 64 KiB `FileProbe`, and its file types d
 - [`docs/how-it-works.md`](docs/how-it-works.md): diagrams of how a profile run works ([PDF](docs/how-it-works.pdf)).
 - [`docs/design.md`](docs/design.md): architecture, pipeline, determinism rules and memory bounds.
 - [`docs/descriptor.md`](docs/descriptor.md): descriptor schema v1 (draft).
+- [`docs/reviews/`](docs/reviews/): generic reviews of real sample data and what they changed.
 - [`profiler-idea.md`](profiler-idea.md): the original idea prompt.
 - [`AGENTS.md`](AGENTS.md): how to work on this repo.
 

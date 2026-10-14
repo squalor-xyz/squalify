@@ -10,18 +10,18 @@ A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and 
 |---|---|---|---|
 | `schemaVersion` | string | yes | `"1.0"` |
 | `tool` | object | yes | `{ "name": "squalify", "version": "x.y.z" }` |
-| `options` | object | yes | Options that affect output: `{ "includeValues": false }` |
+| `options` | object | yes | Options that affect output: `{ "includeValues": false, "includeValuesFor": [] }`. `includeValuesFor` lists allow-listed names, sorted ordinally; names that match nothing are reported as the issue `includeValuesForUnmatched`. |
 | `limits` | object | yes | Caps and table versions in effect. See below. |
 | `file` | object | yes | `name` (not a path), `size` (bytes), `sha256` |
-| `encoding` | object | yes | `kind` (`empty`/`text`/`binary`), `charset`, `bom`, `lineEndings {crlf, lf, cr}`, `invalidBytes` |
+| `encoding` | object | yes | `kind` (`empty`/`text`/`binary`), `charset`, `bom`, `lineEndings {crlf, lf, cr}`, `invalidBytes`, `controlBytes` |
 | `format` | object | yes | `family` (`delimited`, `parquet`, `touchstone`, `keyValue`, `stdf`, `text`, `binary`, `empty`), `dialect` (family-specific), `score` |
 | `kind` | object | yes | `label`, `ruleId`, `confidence` (sq-15) |
-| `layout` | object | yes | `regions[]`, `headerConvention` (tabular) |
-| `table` | object | when tabular | `rows`, `fieldCount {min, max}`, `fields[]` |
+| `layout` | object | yes | `regions[]`, `headerConvention` (tabular), `maxLineLength` (text) |
+| `table` | object | when tabular | `rows`, `fieldCount {min, max}`, `rowClasses`, `fields[]` |
 | `sections` | array | keyValue | `[{ name, line, keys[] }]` |
 | `binary` | object | when binary | `bytes {histogram[256], nul, printableAscii, high, entropy}`, `blocks {count, min, max, mean}`, `segments[16]` |
 | `stdf` | object | stdf | See below. |
-| `fingerprint` | object | yes | `version`, `layout`, `typed`, `names` |
+| `fingerprint` | object | yes | `version`, `structure`, `layout`, `typed`, `names` |
 | `hints` | object | yes | Detect-rule hints |
 | `issues` | array | yes | `[{ code, count, firstLines[] or offsets[] }]`, sorted by code |
 | `evidence` | array | yes | The inference trail |
@@ -30,11 +30,12 @@ A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and 
 
 ```json
 { "distinctPerField": 10000, "quantilePerField": 100000, "shapesPerField": 64, "regions": 1000,
-  "headerSample": 1000, "stdfTests": 10000, "budget": { "quantileValues": 10000000, "distinctValues": 2000000 },
-  "unitTable": 1 }
+  "headerSample": 1000, "rowClasses": 64, "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
+  "stdfTests": 10000,
+  "budget": { "quantileValues": 10000000, "distinctValues": 2000000 }, "nullTokens": 1, "unitTable": 1 }
 ```
 
-`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields).
+`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `nullTokens` and `unitTable` are versions of fixed built-in tables.
 
 ## `layout.regions[]`
 
@@ -43,16 +44,33 @@ A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and 
   "keys": ["Lot", "Wafer", "Temp", "Operator", "Date"] }
 ```
 
-- Region kinds: `preamble`, `header`, `units`, `data`, `footer`, `block`, `unknown`.
+- Region kinds: `preamble`, `annotation`, `header`, `units`, `data`, `footer`, `block`, `unknown`.
 - Lines are 1-based and inclusive. Bytes are 0-based and half-open.
 - `block` regions carry `index` and an optional `label` (for example `"noise"` in Touchstone).
-- Preamble `keys` are always included. `values`, aligned with `keys`, are **values tier**.
+- Preamble `keys` are always included, normalized (trimmed, trailing `:` or `=` removed). `values`, aligned with `keys`, are **values tier**.
+- An `annotation` region holds the column-aligned rows between the start of the table run and the header:
+
+  ```json
+  { "kind": "annotation", "lines": [7, 8], "bytes": [210, 655], "rows": [
+    { "line": 7, "label": "Upper", "blankFields": 1, "nullTokens": { "NA": 2 }, "typeVotes": { "float": 9 }, "type": "float" } ] }
+  ```
+
+  `label` is always included. The row cells (`values`) are **values tier**.
 
 ## `layout.headerConvention`
 
 ```json
 { "dominant": "nameParenUnit", "share": 0.769, "counts": { "nameParenUnit": 10, "none": 3 } }
 ```
+
+## `table.rowClasses`
+
+```json
+{ "count": 3, "transitions": 120, "allNullRows": 40, "truncated": 0, "classes": [
+  { "id": "rc:3f9a…", "count": 900, "fields": [[0, 11]], "firstLine": 3, "lastLine": 1002 } ] }
+```
+
+Records are grouped by their set of non-null fields (sq-17). `fields` are inclusive index ranges. The `id` hashes the non-null field indexes, so it compares across files only when the column set matches. Classes are sorted by count descending, then id. Past `limits.rowClasses`, records are counted in `truncated`.
 
 ## `table.fields[]`
 
@@ -67,11 +85,13 @@ A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and 
   "patterns": null,
   "count": 10000,
   "nulls": 0,
+  "nullsExcludingAllNullRows": 0,
   "nullTokens": {},
   "flags": { "leadingZero": 0, "commaDecimalLike": 0, "padded": 0 },
   "distinct": { "value": 81, "approximate": false },
   "numeric": { "min": 700, "max": 2700, "mean": 1700, "stddev": 584.5, "quantiles": { "p01": 700, "p05": 800, "p25": 1200, "p50": 1700, "p75": 2200, "p95": 2600, "p99": 2700 }, "approximate": false },
   "temporal": null,
+  "statsWithheld": null,
   "length": { "min": 3, "max": 6, "mean": 5.2 },
   "shapes": [{ "mask": "9{4}", "count": 9120 }, { "mask": "9{3}", "count": 880 }],
   "monotonic": "nonDecreasing",
@@ -84,20 +104,22 @@ A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and 
 }
 ```
 
-- `numeric` is for `int` and `float`. `temporal` (`min`, `max`, `quantiles` as ISO 8601) is for `date`, `datetime` and `time`. Both are always included.
+- `numeric` is for `int` and `float`. `temporal` (`orders`, `ambiguous`, `clock`, and `min`, `max`, `quantiles` as ISO 8601) is for `date`, `datetime` and `time`. When `ambiguous` is true, `min`, `max`, `quantiles` and the field's `monotonic` are null. Both are always included, except for constant fields.
+- `statsWithheld` is `"constant"` when every non-null value of the field is equal and values are not opted in for it; `numeric` and `temporal` are then null.
+- `nameHex` (present only when the name contains U+FFFD) is the hex of the name's original bytes.
 - `patterns` gives the counts of matched date and time patterns.
 - `distinct` past the cap, before sq-11: `{ "value": null, "exceeds": 10000 }`. From sq-11: `{ "value": n, "approximate": true, "errorBound": 0.0081 }`.
 - `sourceType` is the native type for Parquet (for example `DECIMAL(10,2)`).
 - `unit` is the unit from a units row. **Values tier.** Units parsed from header names are in `nameParts` and are always included.
 - `top` (`[{ value, count }]`, plus `approximate` and `maxError`) and `text` (`{ min, max }`, lexical) are **values tier**.
-- `monotonic` is one of `increasing`, `decreasing`, `nonDecreasing`, `nonIncreasing` or `none`.
+- `monotonic` is one of `increasing`, `decreasing`, `nonDecreasing`, `nonIncreasing` or `none`; it is null for an ambiguous temporal field.
 - Shapes are sorted by count descending, then by mask (ordinal). Past the cap, the rest go into `{ "mask": "other", "count": n }`.
 
 ## `format.dialect` by family
 
 | Family | Dialect keys |
 |---|---|
-| delimited | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `blocks` |
+| delimited | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `decimalSeparator`, `padding {trim, paddedShare, constantLineLength, lineLength}`, `blocks` |
 | touchstone | `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords[]`, `valuesPerLine {n: count}`, `noise` |
 | keyValue | `separator` (`=` or `:`), `hasSections` |
 | parquet | `formatVersion`, `createdBy`, `numRows`, `rowGroups {count, rows {min, max}, compression[], encodings[]}`, `kvKeys[]` (KV values are values tier) |
@@ -122,10 +144,10 @@ A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and 
 ## `fingerprint`
 
 ```json
-{ "version": 1, "layout": "sha256:…", "typed": "sha256:…", "names": "sha256:…" }
+{ "version": 1, "structure": "sha256:…", "layout": "sha256:…", "typed": "sha256:…", "names": "sha256:…" }
 ```
 
-The projections are defined in [design.md](design.md#structural-fingerprint).
+The projections are defined in [design.md](design.md#structural-fingerprint). Fingerprint equality is not a family test.
 
 ## `hints`
 
@@ -135,19 +157,23 @@ The projections are defined in [design.md](design.md#structural-fingerprint).
   "magic": null,
   "stableLines": [{ "line": 0, "regex": "^Lot\\s*[=:]" }],
   "headerFields": ["Site", "Vth", "Idsat"],
-  "requiredFields": ["Site", "Vth"],
+  "headerPrefix": ["Site", "Vth", "Idsat"],
+  "nonNullFields": [0, 1],
   "fieldCount": { "min": 3, "max": 3 },
   "dataStartLine": 8,
   "delimiter": ",",
   "headerConvention": "nameParenUnit",
   "parquetColumns": null,
-  "stdf": null
+  "stdf": null,
+  "fileNameShape": "a{5}_9{3}.a{3}"
 }
 ```
 
+- `nonNullFields` lists the indexes of fields with no nulls in this file. It is an observation, not a requirement of the type.
+
 - `stableLines[].line` is 0-based, matching DataBall's `lineMatches`.
 - Regexes escape only `\.^$|?*+()[]{}`, so they compile under both .NET and ECMAScript.
-- Regexes for comment and text lines are **values tier**.
+- Regexes for comment and text lines are **values tier**. The full-header regex and the header-prefix regex are always emitted.
 
 ## `evidence[]`
 
@@ -161,12 +187,15 @@ The projections are defined in [design.md](design.md#structural-fingerprint).
 
 | Member | Tier |
 |---|---|
-| Header names, preamble keys, section names and keys, Parquet column names and KV keys, STDF test names | always |
-| Numeric and temporal statistics, counts, types, shapes, lengths | always |
+| Header names, preamble keys, annotation labels, section names and keys, Parquet column names and KV keys, STDF test names | always |
+| Numeric and temporal statistics, counts, types, shapes, lengths | always, except statistics of constant fields |
 | `nameParts` and `headerConvention` | always |
-| Region `values`, key=value values, Parquet KV values, comment text | values tier |
+| Region `values` (preamble and annotation), key=value values, Parquet KV values, comment text | values tier |
+| `numeric` and `temporal` of constant fields | values tier |
 | `fields[].top`, `fields[].text`, `fields[].unit` (units row) | values tier |
 | `stableLines` for comment and text lines | values tier |
+
+`--include-values-for <name>` opts in the values tier for the named preamble keys, annotation labels, key=value keys and fields only.
 
 ## Versioning policy
 

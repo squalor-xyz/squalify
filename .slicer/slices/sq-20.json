@@ -1,0 +1,41 @@
+{
+  "id": "sq-20",
+  "title": "squalify must keep descriptors compact for wide files",
+  "lead": [
+    "Shrinks the evidence trail and repeated field lists before the schema freeze. Descriptors for files with a few hundred columns reached several hundred KB, mostly per-field evidence repeating type votes and long name lists."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** shrinking field profiles; compressing the output; an optional compact output mode.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Goals: a stable schema (this changes shapes, so it lands before sq-12) and output that consumers can store and diff.\n\nSample-data review (2026-10-13, finding 14), adopted by the owner: wide files gave descriptors of several hundred KB, mostly per-field evidence repeating unanimous type votes and long field-name lists. That evidence adds nothing a consumer cannot read from the field's `type` and `typeVotes`. Grouping it keeps the descriptor proportional to what is unusual in the file.\n\nOwner decision (2026-10-13): no whole-descriptor size budget; the test checks only what this slice changes, the evidence section's growth with field count."
+    },
+    {
+      "heading": "Files",
+      "body": "- Evidence (stage `type`): a per-field entry only when the votes are not unanimous. Fields whose votes are unanimous are listed in one entry per type: `{ stage: \"type\", topic: \"unanimous\", chosen: \"<type>\", fields: [indexes] }`.\n- Hints: `nonNullFields` becomes ascending field indexes; `headerFields` keeps names (DataBall matches on them).\n- `docs/descriptor.md` `evidence` and `hints`; `docs/design.md` \"Evidence trail\"."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Evidence_Unanimous_Grouped`: a file with 200 unanimous float fields and one mixed field gives one grouped entry and one per-field entry.\n2. `Evidence_Size_GrowsOnlyByIndexList`: synthetic padded fixtures with 50 and 250 unanimous columns (same types, same rows). The serialized `evidence` section of the 250-column descriptor exceeds the 50-column one by no more than the extra index digits and separators (at most 6 bytes per extra field).\n3. Every golden is re-recorded, and the diff is reviewed."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Implement the grouping, then the hint indexes.\n3. Mutation check: write per-field entries for unanimous fields, and test 2 must go red."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-20` on branch `sq-20`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-20: compact evidence` when the owner approves."
+    }
+  ],
+  "notes": []
+}

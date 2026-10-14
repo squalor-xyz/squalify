@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13). No slice has landed yet, so every source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). No slice has landed yet, so every source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -57,11 +57,14 @@ flowchart LR
 
 ## 4. Reading a delimited file
 
-A lab CSV is often more than a header and rows. squalify splits the file into regions. It tries every common delimiter at the same time and picks the one that gives the longest steady run of rows with the same field count.
+A lab CSV is often more than a header and rows. squalify splits the file into regions. It tries every common delimiter at the same time and picks the one that gives the longest steady run of rows with the same field count, and whose cells split cleanly. On tables padded with spaces, splitting on spaces looks almost as steady, so cleanliness decides.
+
+The header is not always the first row of that run. Some exports put rows of limits, units or line numbers above the header, lined up with its columns. squalify scores the first rows of the run and picks the one that looks most like names over typed data. The rows above it become **annotation** rows: their labels are kept, their cells are opt-in.
 
 ```mermaid
 flowchart TD
-    R1["Preamble: Lot=A12, Temp=25, comments<br/><small>keys always kept, values opt-in</small>"] --> R2["Header row: Freq(MHz), Pout(dBm), …"]
+    R1["Preamble: Lot=A12, Temp=25, comments<br/><small>keys always kept, values opt-in</small>"] --> RA["Annotation rows (optional): limits, units<br/><small>labels kept, cells opt-in</small>"]
+    RA --> R2["Header row: Freq(MHz), Pout(dBm), …<br/><small>best-scoring candidate</small>"]
     R2 --> R3["Units row (optional): MHz, dBm<br/><small>text opt-in</small>"]
     R3 --> R4["Data rows<br/><small>the steady run of k fields</small>"]
     R4 --> R5["Footer (optional)"]
@@ -70,14 +73,18 @@ flowchart TD
 
 *Source: `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`, `Delimited/BlockDetector.cs` (planned).*
 
+squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer.
+
 ## 5. Profiling one field
 
-Each value is classified on its own: empty, true/false, whole number, decimal number, date, time or text. A field's type is the narrowest type that fits **every** non-empty value. Statistics are exact up to a cap. Past the cap they switch to a fixed approximation that gives the same answer every time, and the descriptor marks them as approximate.
+Each value is classified on its own: empty, true/false, whole number, decimal number, date, time or text. A field's type is the narrowest type that fits **every** non-empty value. Empty markers such as `NA` or `NA.` come from a fixed, versioned list. Statistics are exact up to a cap. Past the cap they switch to a fixed approximation that gives the same answer every time, and the descriptor marks them as approximate.
+
+Dates never assume a locale. `6/5/2026` could be June 5 or May 6, so squalify reports both possible orders and marks the field ambiguous. It then leaves out the date range and whether the dates rise or fall, because both would assume one order.
 
 ```mermaid
 flowchart LR
     V["One value<br/>'12.5'"] --> C["Classify<br/><small>ValueClassifier</small>"]
-    C --> T["Join into the field's type<br/><small>int → float → string</small>"]
+    C --> T["Join into the field's type<br/><small>int → float → string;<br/>date orders intersect</small>"]
     C --> St["Update statistics<br/><small>count, min/max, mean, shapes</small>"]
     St --> X{"Over the cap?"}
     X -- "no" --> Exact["Exact distinct count and quantiles"]
@@ -88,7 +95,9 @@ flowchart LR
 
 ## 6. What is always included, and what needs `--include-values`
 
-By default a descriptor describes the **shape** of the data and its statistics, not its contents. Literal text from the file appears only when you ask for it.
+By default a descriptor describes the **shape** of the data and its statistics, not its contents. Literal text from the file appears only when you ask for it: all of it with `--include-values`, or only named keys and columns with `--include-values-for <name>`.
+
+A column with one value for the whole file, such as a serial number, is a special case. Its range would just be that value, so its statistics are opt-in too.
 
 ```mermaid
 flowchart LR
@@ -96,7 +105,7 @@ flowchart LR
         direction TB
         A1["Header names, preamble keys,<br/>STDF test names"]
         A2["Types, counts, shapes"]
-        A3["Number and date ranges,<br/>means, quantiles"]
+        A3["Number and date ranges,<br/>means, quantiles<br/><small>not for one-value columns</small>"]
         A4["Units parsed from header names"]
         A1 ~~~ A2 ~~~ A3 ~~~ A4
     end
@@ -104,8 +113,9 @@ flowchart LR
         direction TB
         O1["Preamble and key=value values"]
         O2["Most common values, text min/max"]
-        O3["Units-row text, comment text"]
-        O1 ~~~ O2 ~~~ O3
+        O3["Units-row and annotation cells,<br/>comment text"]
+        O4["Statistics of one-value columns"]
+        O1 ~~~ O2 ~~~ O3 ~~~ O4
     end
     always ~~~ optin
 ```
@@ -114,11 +124,14 @@ flowchart LR
 
 ## 7. Fingerprints
 
-squalify hashes a stripped-down copy of the descriptor that contains no data values. Two files of the same type therefore get the same fingerprint, even when their data differs. There are three fingerprints at different levels of strictness.
+squalify hashes a stripped-down copy of the descriptor that contains no data values. Two files of the same type therefore get the same fingerprint, even when their data differs. There are four fingerprints at different levels of strictness. `structure` uses no column names at all, so it survives a changed column set.
+
+A matching fingerprint does not prove two files are the same kind of file. Many unrelated CSVs share one `structure`, and files whose columns change per run get a new `layout` each time. Consumers combine fingerprints with names and hints.
 
 ```mermaid
 flowchart LR
     D["Finished descriptor"] --> P["Value-free projection<br/><small>Projection</small>"]
+    P --> S["structure<br/><small>format, dialect, region kinds;<br/>no names</small>"]
     P --> L["layout<br/><small>format, delimiter, regions,<br/>preamble keys, column names</small>"]
     P --> T["typed<br/><small>layout + column types</small>"]
     P --> N["names<br/><small>sorted column names only</small>"]
@@ -158,3 +171,16 @@ flowchart LR
 ```
 
 *Source: `Determinism/`, `Json/` (planned); `tests/squalify.Tests/Golden.cs` (planned).*
+
+## 10. Row classes
+
+Some exports mix several kinds of row in one table: measurement rows, setup rows, error rows and empty separator rows, switching kind on almost every line. squalify groups rows by which columns are filled in and reports each group, how often the kind switches, and how many rows are empty. Column null counts are also given without the empty rows, so separators do not look like missing measurements.
+
+```mermaid
+flowchart LR
+    R["Each data row"] --> M["Which columns are filled<br/><small>null mask</small>"]
+    M --> G["Group rows with the same mask<br/><small>RowClassAccumulator</small>"]
+    G --> O["rowClasses: count, columns,<br/>first and last line, switches,<br/>empty rows"]
+```
+
+*Source: `Fields/RowClassAccumulator.cs` (planned).*

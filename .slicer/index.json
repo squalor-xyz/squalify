@@ -2,7 +2,7 @@
   "version": 8,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 16,
+  "next_id": 22,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -143,6 +143,104 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "21ff7e47-b268-40fa-bca0-f8352518c75f",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review, finding 8): stray invalid bytes within a fixed tolerance keep the dominant charset, with issues.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "01ba6347-540d-4f17-988f-d3278ad96b77",
+          "kind": "",
+          "text": "**2026-10-13** — 2026-10-13: the charset tolerance numbers are proposals for the owner to confirm.",
+          "created_at": "2026-10-13T20:31:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "2632b9d5-1ff3-422d-ab4a-83b263767fbf",
+          "kind": "",
+          "text": "**2026-10-13** — Owner confirmed the charset tolerance: at most 8 invalid sequences per file and at most 1 per 64 KiB.",
+          "created_at": "2026-10-13T21:48:39Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-16",
+      "title": "squalify must classify single values without assuming a locale",
+      "short_title": "Value classifier",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-01"
+      ],
+      "note_records": [
+        {
+          "id": "ca471a33-a3b0-4647-a69a-522f9823a41f",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T20:16:43Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "925fed82-3621-4598-a263-d5bc36577230",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (sample-data review): ValueClassifier carved out of sq-04. Null vocabulary is fixed and versioned and includes NA.; dates report every possible field order and the clock and never assume a locale.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "54f39d86-b18e-47f8-8490-d7998d53e501",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: '-' and 'NaN' stay in the null vocabulary; booleans are only true/false/yes/no; scope boundary filled in, with two-digit years left as string in v1 (recommended, owner may revisit).",
+          "created_at": "2026-10-14T12:34:15Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -173,7 +271,8 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [
-        "sq-03"
+        "sq-03",
+        "sq-16"
       ],
       "note_records": [
         {
@@ -192,6 +291,39 @@
           "kind": "",
           "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): units-row text is opt-in (--include-values), but the units region is always detected. Preamble keys are always included; preamble values are opt-in. Key=value blocks above a table belong to this profiler's preamble. Repeated blocks moved to sq-13. Delimiter and header detection scan the whole file, not a head.",
           "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "a3f346ca-c9c3-4144-b062-a8e2b78713d1",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (sample-data review): findings 1 (header candidate scoring + annotation region) and 3 (delimiter clean share) adopted here, plus padding facts, decimal separator, record cap and leading null-heavy rows. ValueClassifier and the null vocabulary (finding 2) moved to sq-16.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "ee0907f4-37b2-42ec-ba4e-0ea29f3d63a1",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13: no caps that drop data. headerCandidates and recordChars removed: every record in the header sample is a header candidate, and every record is profiled; layout.maxLineLength reports the longest line.",
+          "created_at": "2026-10-13T20:31:11Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "b9bf3f35-e005-4449-9e88-7237ea91b60f",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: keep the runaway-quote limit (65,536 chars) and the 100,000-run irregularity limit; keep limits.headerSample at 1,000; keep sq-04 as one slice (padding and decimal separator stay here).",
+          "created_at": "2026-10-14T12:35:48Z",
           "attempt": 0,
           "by": "Jon R",
           "verified_by": "",
@@ -251,6 +383,28 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "7c68f730-dc4b-405c-8ab3-cb529b9e52c9",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (sample-data review, findings 5 and 6): temporal stats omitted when the date order is ambiguous; numeric and temporal stats withheld for constant fields unless values are opted in.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "af159fd9-fff1-4674-b745-e9f2908a26b3",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: monotonic is null for an ambiguous temporal field; constant fields keep shapes and lengths; constant means every non-null value is equal, so a sparse one-value field is withheld too.",
+          "created_at": "2026-10-14T12:37:19Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -271,6 +425,147 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-17",
+      "title": "squalify must report row classes in delimited tables",
+      "short_title": "Row classes",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05"
+      ],
+      "note_records": [
+        {
+          "id": "d70d31f3-a8b8-45ff-9c26-340d47812a6a",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "c7934e57-b012-4d1f-affc-7ead2f42032b",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review, finding 4): row classes as a new slice after sq-05, with all-null rows counted apart from field nulls.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "77362897-1e70-43c9-9cec-a83bc15cfb28",
+          "kind": "",
+          "text": "**2026-10-13** — 2026-10-13: a row-class cap stays for bounded memory; the number (proposed 64) is for the owner to confirm.",
+          "created_at": "2026-10-13T20:31:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "3b8e69b0-c1b0-4a9f-b47c-fdd19cfd8ce8",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: limits.rowClasses = 64; past the cap the first-seen classes are kept with exact counts and later ones go to truncated; test 5 reworded; scope boundary filled in.",
+          "created_at": "2026-10-14T12:38:29Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-18",
+      "title": "squalify must run against a private corpus of real files without committing them",
+      "short_title": "Private-corpus harness",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-03"
+      ],
+      "note_records": [
+        {
+          "id": "aaba194a-4fdb-496c-88a7-0173c4442591",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "a982423d-ec4f-406f-ad27-dd4e88a36047",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review): real samples stay outside the repo; a private-corpus harness keeps them useful as a regression check.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "058d0f3e-ea5e-4490-99c8-5e5b0c759ed3",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: per-file check moved into CorpusRunner so test 2 calls it directly (no deliberately failing test); listing is recursive, skips *.squalify.json and hidden files, sorted by relative path ordinally; the script may print file names to the local terminal.",
+          "created_at": "2026-10-14T12:39:40Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 2,
+        "effort": 1,
         "attempts": 0
       }
     },
@@ -300,6 +595,39 @@
           "kind": "",
           "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview): three fingerprints. layout (no types), typed (layout + types), names (sorted case-folded names).",
           "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "91737b23-9365-4282-9058-98b69285d6a9",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decisions 2026-10-13 (sample-data review, findings 7 and 12): add the name-free structure fingerprint; exclude names with control or invalid bytes; requiredFields renamed nonNullFields; headerPrefix and fileNameShape hints; header regex length cap.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "eb19d954-3de3-49d4-aa86-359951f8b6ed",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13: regexChars removed; the full header regex is always emitted. The headerPrefix length (proposed 5) is for the owner to confirm.",
+          "created_at": "2026-10-13T20:31:12Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "d80e7954-0ea1-4baa-96d6-fed9f8044119",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: headerPrefix = first 5 names (all when fewer); structure keeps region kinds and unitsRow; Why text updated to four hashes.",
+          "created_at": "2026-10-14T12:41:01Z",
           "attempt": 0,
           "by": "Jon R",
           "verified_by": "",
@@ -354,6 +682,28 @@
           "kind": "",
           "text": "**2026-10-13** — Owner decisions 2026-10-13 (spec interview): lexical min/max, top-k values, preamble values and units-row text are values tier. Numeric and temporal stats are not.",
           "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "c8086cd6-cacc-4109-b1a0-23302af4625c",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review, finding 6): add the --include-values-for allow-list.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "ce8d844e-bce9-4dc9-bde5-d134e8e891c1",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: ValuesPolicy gains annotation cells and constant-field statistics, with a numeric canary test; a name matching several members exposes all; unmatched names give the issue includeValuesForUnmatched.",
+          "created_at": "2026-10-14T12:42:41Z",
           "attempt": 0,
           "by": "Jon R",
           "verified_by": "",
@@ -576,6 +926,93 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "f65f57f5-d810-4080-9eda-0f56315e2a9c",
+          "kind": "",
+          "text": "**2026-10-13** — 2026-10-13: sq-19 extends SyntheticCsvSource with a wide, padded fixed-width mode for the throughput benchmark.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "414ee377-4993-497c-a6d4-db3114ed866d",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decision (sq-19 review): MemoryBudget.CeilingBytes = sum of accumulator EstimatedBytes + a fixed allowance, documented in design.md; test 8 and sq-19 assert peak working set against it. The allowance number is for the owner to confirm before the slice starts.",
+          "created_at": "2026-10-14T12:43:58Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-19",
+      "title": "squalify must measure its throughput on GB-scale wide files",
+      "short_title": "Throughput benchmark",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-11"
+      ],
+      "note_records": [
+        {
+          "id": "b4abe177-c60e-40c3-97c2-1fe2436590ca",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "a2e76873-27e8-4419-9381-d25a9611f95c",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review): measure throughput on GB-scale wide padded files before any pass-fusion decision. No design change in this slice.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "dfd49dc9-fdfe-43ec-929a-4a7054c4db3c",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: memory is asserted against an explicit byte ceiling, MemoryBudget.CeilingBytes from sq-11; 1 GB runs are asserted, the 4 GB run is recorded only; scope boundary filled in.",
+          "created_at": "2026-10-14T12:43:58Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -743,6 +1180,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "9d894bc1-fa19-4371-826d-f55513ee6a30",
+          "kind": "",
+          "text": "**2026-10-13** — 2026-10-13 (sample-data review): at the owner gate, consider a label for limit-annotated test tables (an annotation region with limit-like rows above the header) and whether rules should use rowClasses (sq-17).",
+          "created_at": "2026-10-13T20:16:46Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -767,6 +1215,72 @@
       }
     },
     {
+      "id": "sq-20",
+      "title": "squalify must keep descriptors compact for wide files",
+      "short_title": "Compact evidence",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-05",
+        "sq-06"
+      ],
+      "note_records": [
+        {
+          "id": "6e2d6079-6bc0-4e4f-9783-c0e3b4f171ee",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "8f075439-c984-4f55-be41-dc1a5c188ec2",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review, finding 14): compact evidence lands before the schema freeze (sq-12).",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "17dc2288-0074-4654-8770-bfed7f1de7e6",
+          "kind": "",
+          "text": "**2026-10-14** — Owner decisions: no whole-descriptor size budget; test 2 asserts the evidence section grows only by the index list between 50 and 250 unanimous columns; Why and scope boundary filled in.",
+          "created_at": "2026-10-14T12:52:52Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
       "id": "sq-12",
       "title": "squalify must publish and enforce descriptor schema v1",
       "short_title": "Schema v1 freeze",
@@ -781,7 +1295,10 @@
         "sq-11",
         "sq-13",
         "sq-14",
-        "sq-15"
+        "sq-15",
+        "sq-17",
+        "sq-18",
+        "sq-20"
       ],
       "note_records": [
         {
@@ -800,6 +1317,17 @@
           "kind": "",
           "text": "**2026-10-13** — Owner decision 2026-10-13 (spec interview): an in-repo JSON Schema subset validator in the test project only; no package.",
           "created_at": "2026-10-13T15:42:13Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "f335707d-195f-4e2a-b759-2e60e7267887",
+          "kind": "",
+          "text": "**2026-10-13** — 2026-10-13: now also waits on sq-17, sq-18 and sq-20. The docs pass and the schema cover the members they add (annotation region, rowClasses, structure fingerprint, temporal orders, statsWithheld, includeValuesFor, nonNullFields).",
+          "created_at": "2026-10-13T20:16:46Z",
           "attempt": 0,
           "by": "Jon R",
           "verified_by": "",
@@ -828,10 +1356,64 @@
         "effort": 1,
         "attempts": 0
       }
+    },
+    {
+      "id": "sq-21",
+      "title": "squalify should report a structured header-name grammar as a hint",
+      "short_title": "Header-name grammar hint",
+      "status": "later",
+      "has_slice": false,
+      "depends_on": [
+        "sq-14"
+      ],
+      "note_records": [
+        {
+          "id": "f0edcdc5-ecab-4cb0-9604-0f31f954229f",
+          "kind": "",
+          "text": "**2026-10-13** — Docs rule (owner, 2026-10-13): update docs/how-it-works.md and its diagrams, and re-render with ./scripts/render-docs.sh, whenever an architectural review happens. That covers the relay architect's review of this slice, a spec or design review, and any change to the pipeline, an interface, a descriptor section or a determinism rule. The architect reports drift as a finding.",
+          "created_at": "2026-10-13T20:16:44Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "70f0c411-2db1-4d96-a364-4a99ecff49ed",
+          "kind": "",
+          "text": "**2026-10-13** — Owner decision 2026-10-13 (sample-data review, finding 13): recorded as a low-priority later item. sq-14's nameParenUnit leaves a bracketed condition list in base; a grammar hint would report the pattern and key set without values.",
+          "created_at": "2026-10-13T20:16:45Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "L",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 3,
+        "attempts": 0
+      }
     }
   ],
   "epilogue": "",
-  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, units rows, repeated blocks), Parquet (through DuckDB.NET), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).\n- **Useful for classification:** structural fingerprints (layout, typed, names), layout regions, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`. Header names, preamble keys, test names, and numeric and temporal statistics are always included.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
+  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks), Parquet (through DuckDB.NET), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
   "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a user library of known types. The built-in `kind` label is in scope.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.\n- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.",
   "catalog": {
     "next_id": 1,

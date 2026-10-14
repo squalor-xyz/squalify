@@ -1,0 +1,41 @@
+{
+  "id": "sq-19",
+  "title": "squalify must measure its throughput on GB-scale wide files",
+  "lead": [
+    "Adds a manual benchmark on generated GB-scale streams, including wide, right-padded fixed-width tables. It measures the three-pass design with five candidate tokenizers and records figures that inform any later decision to fuse passes. It changes no design by itself."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** merging passes or other optimisation (a separate item if the figures call for it); parallel processing; speed checks in CI.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Goal: a full streaming scan with bounded memory, at the sizes real files reach.\n\nSample-data review (2026-10-13), adopted by the owner: production-test exports reach several GB with hundreds of columns, and about 90% of their bytes are padding. Processing cost tracks cells rather than bytes, and the design reads the file three times. Nobody has measured squalify on such a file."
+    },
+    {
+      "heading": "Files",
+      "body": "- `tests/squalify.Tests/Sources/SyntheticCsvSource.cs` (from sq-11): adds a wide, padded mode: M columns of fixed width with right padding, a key preamble, annotation rows and a header, generated on the fly.\n- `tests/squalify.Tests/Bench/ThroughputTests.cs`: `[Trait(\"Category\",\"Large\")]`, manual only. For a 1 GB stream, padded wide and plain, it records wall time, MB/s, cells/s and peak working set, for the byte pass alone and for the full profile, and asserts peak working set ≤ `MemoryBudget.CeilingBytes` (sq-11). `Bench_PaddedWide_4Gb` records the same figures for a 4 GB padded wide stream without asserting them; its figures go into the note only.\n- A slicer note on this item with the figures, the machine class (no host names) and a recommendation: keep three passes, or file an item to fuse them."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `SyntheticCsvSource_PaddedWide_ConstantLineLength`: every table line has the same length, and the profiler reports `constantLineLength`.\n2. `Bench_PaddedWide_1Gb` and `Bench_Plain_1Gb` (Large): complete with peak working set ≤ `MemoryBudget.CeilingBytes` (sq-11)."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Extend the source, then the benchmark.\n3. Run the Large category by hand and record the note."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`\n- One manual run of `dotnet test --filter Category=Large` (1 GB asserted, 4 GB recorded only), with the figures in a slicer note."
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-19` on branch `sq-19`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-19: throughput benchmark` when the owner approves."
+    }
+  ],
+  "notes": []
+}

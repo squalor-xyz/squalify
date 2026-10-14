@@ -1,6 +1,6 @@
 # squalify design
 
-Status: design settled by the owner on 2026-10-13 (spec interview). Code lands slice by slice (`slicer list`). For the diagrams, see [how-it-works.md](how-it-works.md). For the descriptor schema, see [descriptor.md](descriptor.md).
+Status: design settled by the owner on 2026-10-13 (spec interview), amended the same day after the [sample-data review](reviews/sample-data-review.md). Code lands slice by slice (`slicer list`). For the diagrams, see [how-it-works.md](how-it-works.md). For the descriptor schema, see [descriptor.md](descriptor.md).
 
 ## Purpose
 
@@ -57,6 +57,7 @@ Each pass streams the file once with bounded memory.
   4. A NUL-parity pattern means UTF-16 without a BOM. The pattern is: at least 90% of NULs at odd offsets, or at least 90% at even ones, with NULs at least 30% of all bytes.
   5. Any other NUL, or control bytes above 5%, means binary.
   6. Otherwise the file is text. The charset is `ascii`, else `utf-8` if valid, else `latin-1`. If bytes 0x80–0x9F occur, the evidence notes "possibly windows-1252".
+  7. Stray invalid UTF-8 sequences within `limits.charsetTolerance` (at most 8, and at most 1 per 64 KiB) keep the `ascii` or `utf-8` charset. They decode to U+FFFD and are reported as `invalidUtf8` issues with offsets. Beyond the tolerance, rule 6's `latin-1` applies.
 - **Pass 1, structure (text profilers).** Tokenizes and classifies records and lines, keeping only bounded summaries.
 - **Pass 2, fields (text profilers).** Parses the chosen data region and feeds the field accumulators.
 - Parquet reads its metadata and then streams rows. STDF walks record headers in one pass.
@@ -84,18 +85,24 @@ Each `IFormatProfiler` scores the sniff result between 0 and 1. The highest scor
 - **Dialect and data run.**
   - k is the modal field count among records with at least two fields. A tie goes to the larger k.
   - The data run starts at the first record that, together with the next min(5, remaining) records, has k fields. It ends at the last record with k fields.
-  - The score is the number of records in the data run with k fields, divided by the number of non-blank records. Ties break by higher k, then by candidate order.
+  - The score is the number of records in the data run with k fields, divided by the number of non-blank records, times the **clean share**: the share of trimmed tokens in the run that neither start nor end with another candidate's delimiter character. Without it, whitespace runs nearly tie with the real delimiter on right-padded tables. Ties break by higher k, then by candidate order.
+- **Padding and decimal separator.** The dialect reports `padding {trim, paddedShare, constantLineLength, lineLength}` over the data run; cells are always trimmed before typing. Fixed-width tables are described, not parsed by offset. The decimal separator is `,` only when the delimiter is not `,` and comma-decimal cells outnumber dot-decimal cells in the header sample.
 - **Line kinds** (preamble and footer):
   - `blank`;
   - `comment`: the trimmed line starts with `#`, `!` or `//`;
   - `keyValue`: `key=value` or `key: value`, with a non-numeric key of at most 64 characters;
   - `keyDelimValue`: two fields, the first non-numeric;
   - `text`.
-- **Header and units rows.** Pass 2 reads up to 1,000 records from the start of the data run (`limits.headerSample`) and classifies them with `ValueClassifier`.
-  - Record 0 is the header if all of these hold: its fields are non-empty and distinct (case-insensitive); some column's sample type is not `string`; and record 0's value in that column fails that type.
-  - If every column is `string`, record 0 is the header when it is non-empty and distinct. The evidence then says "assumed: all-string table".
-  - Record 1 is a units row if all of these hold: a header exists; every field fails its column type; every field is at most 16 characters; and the columns are non-string.
+- **Header, annotation and units rows.** Pass 2 reads up to 1,000 records from the start of the data run (`limits.headerSample`) and classifies them with `ValueClassifier`. Some exports put several column-aligned rows (limits, units, line references) above the header, with the table's field count, so the header is not always the run's first record.
+  - Every record in the header sample is a header candidate; there is no separate cap. A candidate is eligible if its fields are non-empty and distinct (case-insensitive), and in some non-`string` column (typed over the records below it, skipping all-null records) its value fails the type.
+  - Score = nonEmpty × nonNumeric × unique × (0.5 + 0.5 × contrast), where contrast is the share of non-string columns whose type the candidate fails. The highest score wins; ties go to the earliest. All candidates' scores go into evidence.
+  - If no candidate is eligible and every column is `string`, record 0 is the header when it is non-empty and distinct. The evidence then says "assumed: all-string table".
+  - Records between the run start and the header form one `annotation` region. Each row reports a label (its normalized first field, when non-numeric), blank fields, null tokens and type votes. Labels are always included; cell text is values tier.
+  - The record after the header is a units row if every field fails its column type, every field is at most 16 characters, and the columns are non-string.
+- **Keys and labels** are normalized: trimmed, with a trailing `:` or `=` removed. A name containing U+FFFD also carries `nameHex`, the hex of its original bytes.
+- **No record-length cap.** Every record is profiled, however long. `layout.maxLineLength` reports the longest line. Memory stays bounded by the per-field runaway-quote limit and the field accumulators' caps.
 - **Repeated blocks** (sq-13). Two or more data runs with the same k, each at least 5 records long, are profiled as blocks. If every block's header is identical, the fields are aggregated across blocks. Otherwise only the first block is profiled and the issue `heterogeneousBlocks` is recorded.
+- **Row classes** (sq-17). Data records are grouped by which fields are non-null. Some exports interleave measurement, setup, error and all-null separator rows, switching thousands of times, which contiguous regions cannot express. `table.rowClasses` reports each class (count, field ranges, first and last line, a stable ID), the number of class transitions and the all-null record count. Each field also reports its nulls excluding all-null records.
 - **Problems are described, not rejected.** squalify records issues and still writes a descriptor: `raggedRows`, `commentInData`, `duplicateHeader`, `emptyHeaderName`, `invalidUtf8`, `mixedLineEndings`.
 
 ## Touchstone
@@ -142,16 +149,17 @@ DuckDB.NET runs on an in-memory connection with `threads=1` and `preserve_insert
 
 ### Value classification and types
 
-`ValueClassifier` is a pure function that uses the invariant culture.
+`ValueClassifier` (sq-16) is a pure function that uses the invariant culture. It takes the dialect's decimal separator.
 
-- **Null tokens:** `""`, `NA`, `N/A`, `null`, `NaN`, `-`. They are matched case-insensitively after trimming.
+- **Null tokens, vocabulary 1:** `""`, `NA`, `NA.`, `N/A`, `null`, `NaN`, `-`. They are matched case-insensitively after trimming. The vocabulary is fixed and versioned (`limits.nullTokens`), never learned from the data: learning it would make one column's type depend on the others.
 - **Types:**
   - `bool`: `true`, `false`, `yes`, `no`.
   - `int`: `^[+-]?\d+$` and fits Int64.
   - `float`: `NumberStyles.Float` and finite.
-  - `date`: `yyyy-MM-dd`, `yyyy/MM/dd`, `MM/dd/yyyy`, `dd/MM/yyyy`, `dd.MM.yyyy`, tried in that order. The pattern that matched is recorded.
-  - `datetime`: ISO 8601 (with `T` or a space, and an optional fraction and offset), or `MM/dd/yyyy HH:mm[:ss]`.
-  - `time`: `HH:mm[:ss[.f+]]`.
+  - `date`: three numeric parts separated by `/`, `-` or `.`, with a 4-digit year and 1–2 digit day and month. The value reports every **order** (`YMD`, `MDY`, `DMY`) under which it is a valid date. squalify never picks a locale.
+  - `datetime`: ISO 8601 (with `T` or a space, and an optional fraction and offset), or a `date` followed by a time.
+  - `time`: `H:mm[:ss[.f+]]`, with an optional ASCII `AM`/`PM` (the **clock** is `12h`, else `24h`).
+  - A field's orders are the intersection over its values. More than one left means `ambiguous`; none left joins the field to `string`, with evidence.
   - `string`: anything else.
 - **Flags:** `leadingZero` (for example `007`) and `commaDecimalLike` (`^[+-]?\d+,\d+$`).
 
@@ -168,7 +176,8 @@ A field's `type` is the join over all its non-null votes (the strict rule). Vote
 ### Statistics
 
 - **Numeric:** min and max (integers for `int`); mean and sample stddev by Welford in input order; quantiles p01, p05, p25, p50, p75, p95 and p99 by lower nearest rank.
-- **Temporal:** min and max as ISO 8601, and quantiles over ticks.
+- **Temporal:** `orders`, `ambiguous` and `clock`; min and max as ISO 8601, and quantiles over ticks. When the order is ambiguous, min, max, quantiles and monotonicity are omitted, because any value would assume a locale.
+- **Constant fields:** when every non-null value of a field is equal (including a sparse field with one value), its numeric or temporal statistics are that value. They are withheld (`statsWithheld: "constant"`) unless values are opted in for the field.
 - **All fields:** lengths, padded values, null tokens, monotonicity (numeric and temporal only), constant, and unique.
 - **Shape masks** (value-free, so always included):
   - each character maps to a class: `9` for a digit, `A` for upper case, `a` for lower case;
@@ -187,20 +196,24 @@ A field's `type` is the join over all its non-null votes (the strict rule). Vote
 | Shapes per field | 64 masks | counted as `other` |
 | Regions | 1,000 | truncated, with a count |
 | STDF test catalog | 10,000 tests | counted |
+| Row classes per table | 64 (first seen kept, exact counts) | counted in `truncated` |
 
 - **Crossing a cap.** The exact buffer is fed to the sketch in input order and then freed. The output is marked `approximate: true` and carries `errorBound`.
 - **Global budget.** A global budget of 10M exact quantile values and 2M exact distinct values caps each field at min(cap, budget ÷ field count). The effective caps are written to `limits`.
+- **Memory ceiling.** Peak working set stays at or below `MemoryBudget.CeilingBytes`: the sum of the accumulators' estimated bytes plus a fixed allowance for the runtime and I/O buffers. sq-11 sets the allowance (owner to confirm) and tests it on generated streams; sq-19 benchmarks against it.
 
 ## Values tier
 
 | Always included | Only with `--include-values` |
 |---|---|
-| Header names, preamble keys, section names and keys, Parquet column names and KV keys, STDF test names | Preamble values, key=value values, Parquet KV values, comment text |
+| Header names, preamble keys, annotation labels, section names and keys, Parquet column names and KV keys, STDF test names | Preamble values, annotation-row cells, key=value values, Parquet KV values, comment text |
 | Counts, nulls, types, votes, shapes, lengths | Top-k values, lexical (string) min/max |
-| Numeric and temporal min/max/mean/stddev/quantiles | Units-row text (field `unit` from a units row) |
+| Numeric and temporal min/max/mean/stddev/quantiles, except for constant fields | Units-row text (field `unit` from a units row); statistics of constant fields |
 | Header-unit convention and units parsed from header names | Value-bearing `stableLines` regexes (comment and text lines) |
 
-`ValuesPolicy` lists every value-bearing descriptor member in one place. Canary tests prove that nothing leaks without the flag.
+`--include-values` opts in every value. `--include-values-for <name>` (repeatable) opts in only the values of the named preamble keys, annotation labels, key=value keys and fields, matched case-folded; identity often lives in one or two of them. A name that matches several members opts in all of them; a name that matches nothing gives the issue `includeValuesForUnmatched`. `options.includeValuesFor` records the names.
+
+`ValuesPolicy` lists every value-bearing descriptor member in one place, including annotation cells and the statistics of constant fields. Canary tests prove that nothing leaks without the flag or an allow-list entry.
 
 ## Header-unit conventions
 
@@ -226,18 +239,24 @@ This matches DataBall's `HeaderParser` patterns, so a consumer can map conventio
 
 ## Structural fingerprint
 
-There are three SHA-256 hashes, each written as `sha256:<hex>`. Each is computed over a compact canonical JSON projection that contains no values.
+There are four SHA-256 hashes, each written as `sha256:<hex>`. Each is computed over a compact canonical JSON projection that contains no values.
+
+- **`structure`.** No names at all: the family, the dialect (delimiter, quote, hasHeader, unitsRow, decimal separator, constant line length), the charset family, the region kinds in order, and the dominant preamble line kind.
 
 - **`layout`.** The projection holds:
   - the family and the dialect (delimiter, quote, hasHeader, unitsRow);
   - the charset family (`unicode` or `latin1`);
   - the region kinds, in order;
-  - the preamble keys;
+  - the preamble keys (normalized);
   - the dominant header-unit convention;
   - the ordered, case-folded field names (`#<index>` when unnamed);
   - each family's own contribution.
 - **`typed`.** `layout` plus the field types.
 - **`names`.** The sorted, unique, case-folded field names.
+
+A name with a control character or U+FFFD is hashed as `#<index>` (fields) or left out (keys), with the issue `nameExcludedFromFingerprint`. Such bytes may vary per file and would otherwise make every sibling unique.
+
+**Fingerprint equality is not a family test.** Column sets often vary by recipe, unit or bench, so `layout`, `typed` and `names` can be unique per file, and every plain header-plus-rows CSV shares one `structure`. Family recognition needs more evidence, such as name containment and hints. Consumers comparing `typed` should treat `empty` as matching any type and `int` as within `float`.
 
 Family contributions:
 
@@ -257,8 +276,9 @@ Hints are neutral facts that a consumer can turn into match rules:
 
 - `extension`.
 - `magic`.
-- `stableLines`: each entry has a 0-based `line` and an anchored, portable regex. For example, a header line becomes `^<escaped header>$`, and a preamble key becomes `^\s*<key>\s*[=:]`.
-- `headerFields` and `requiredFields`.
+- `stableLines`: each entry has a 0-based `line` and an anchored, portable regex. For example, a header line becomes `^<escaped header>$` at any length, the header prefix becomes a padding-tolerant regex over the first 5 names (all when there are fewer), and a preamble key becomes `^\s*<key>\s*[=:]`.
+- `headerFields`, `headerPrefix` and `nonNullFields` (fields with no nulls in this file: an observation, not a requirement of the type).
+- `fileNameShape`: the shape mask of the file name.
 - `fieldCount`, `dataStartLine`, `delimiter`.
 - `headerConvention`.
 - `parquetColumns`.
@@ -279,14 +299,14 @@ The owner confirms the rule details at the start of sq-15.
 
 ## Evidence trail
 
-Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason }] }`. Entries are ordered by pipeline stage, then by topic. Reasons are fixed templates filled with value-free numbers.
+Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason }] }`. Entries are ordered by pipeline stage, then by topic. Reasons are fixed templates filled with value-free numbers. Unanimous field-type inferences are grouped into one entry per type that lists field indexes (sq-20), so wide files stay compact.
 
 ## Determinism rules
 
 - **No environment input.** Output never depends on the time, environment, absolute path, mtime, machine or user.
 - **Culture and sorting.** Use `CultureInfo.InvariantCulture` everywhere. Case-fold with `ToLowerInvariant` and sort ordinally. Tests run under `de-DE` and `tr-TR`.
 - **Collections.** Sort every map and set before writing.
-- **Single thread.** Accumulation runs in a single thread, in input order.
+- **Single thread.** Accumulation runs in a single thread, in input order. Greenwald-Khanna summaries do not merge exactly across shards, so parallel profiling would need fixed shard boundaries and a mergeable sketch first. sq-19 measures throughput before any such change.
 - **Writer.** `Utf8JsonWriter` with an explicit key order, `Indented`, `IndentSize` 2, `NewLine` `"\n"` (the platform default is CRLF on Windows) and `JavaScriptEncoder.UnsafeRelaxedJsonEscaping`. Output is UTF-8 with no BOM and a trailing LF.
 - **Numbers.** Doubles use the shortest round-trip form. `-0` is written as `0`, and NaN/±Infinity are written as strings.
 - **Floating-point math.** Output-affecting math uses only IEEE `+ - * /` and `Math.Sqrt`, which are exact on every platform. Logarithms use the in-repo `DetMath`, and powers of two use `Math.ScaleB`. No `Math.Log`, `Exp` or `Pow` is allowed in output paths.

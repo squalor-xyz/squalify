@@ -82,3 +82,113 @@
 {"when": "2026-10-13T15:42:20Z", "item": "sq-14", "action": "move", "from": "14", "to": "13", "note": ""}
 {"when": "2026-10-13T15:42:20Z", "item": "sq-15", "action": "move", "from": "15", "to": "14", "note": ""}
 {"when": "2026-10-13T15:42:21Z", "item": "sq-12", "action": "move", "from": "15", "to": "15", "note": ""}
+{"when": "2026-10-13T20:13:16Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-13T20:14:55Z", "item": "sq-03", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:14:55Z", "item": "sq-03", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:14:55Z", "item": "sq-03", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-13T20:14:55Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "lead"}
+{"when": "2026-10-13T20:14:55Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-10-13T20:14:56Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-13T20:14:56Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:14:56Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:14:56Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-13T20:14:56Z", "item": "sq-05", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-13T20:14:57Z", "item": "sq-05", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:14:57Z", "item": "sq-05", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:14:57Z", "item": "sq-05", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-13T20:14:57Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "lead"}
+{"when": "2026-10-13T20:14:57Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-13T20:14:58Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:14:58Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:14:58Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-13T20:14:58Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "lead"}
+{"when": "2026-10-13T20:14:58Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-13T20:14:58Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:14:59Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:14:59Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-13T20:16:14Z", "item": "sq-20", "action": "add", "from": "", "to": "open", "note": "squalify must keep descriptors compact for wide files"}
+{"when": "2026-10-13T20:16:14Z", "item": "sq-21", "action": "add", "from": "", "to": "later", "note": "squalify should report a structured header-name grammar as a hint"}
+{"when": "2026-10-13T20:16:15Z", "item": "sq-20", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T20:16:22Z", "item": "sq-16", "action": "add", "from": "", "to": "open", "note": "squalify must classify single values without assuming a locale"}
+{"when": "2026-10-13T20:16:22Z", "item": "sq-17", "action": "add", "from": "", "to": "open", "note": "squalify must report row classes in delimited tables"}
+{"when": "2026-10-13T20:16:22Z", "item": "sq-18", "action": "add", "from": "", "to": "open", "note": "squalify must run against a private corpus of real files without committing them"}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-19", "action": "add", "from": "", "to": "open", "note": "squalify must measure its throughput on GB-scale wide files"}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-16", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-17", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-18", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-19", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-04", "action": "set", "from": "", "to": "", "note": "depends_on sq-03→sq-03,sq-16"}
+{"when": "2026-10-13T20:16:23Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-08,sq-09,sq-10,sq-11,sq-13,sq-14,sq-15→sq-06,sq-07,sq-08,sq-09,sq-10,sq-11,sq-13,sq-14,sq-15,sq-17,sq-18,sq-20"}
+{"when": "2026-10-13T20:16:29Z", "item": "sq-16", "action": "move", "from": "18", "to": "4", "note": ""}
+{"when": "2026-10-13T20:16:29Z", "item": "sq-17", "action": "move", "from": "19", "to": "7", "note": ""}
+{"when": "2026-10-13T20:16:29Z", "item": "sq-18", "action": "move", "from": "20", "to": "8", "note": ""}
+{"when": "2026-10-13T20:16:29Z", "item": "sq-20", "action": "move", "from": "19", "to": "18", "note": ""}
+{"when": "2026-10-13T20:16:29Z", "item": "sq-19", "action": "move", "from": "21", "to": "15", "note": ""}
+{"when": "2026-10-13T20:16:43Z", "item": "sq-16", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-17", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-18", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-19", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-21", "action": "note", "from": "", "to": "", "note": "Docs rule (owner, 2026-10-13): update docs/how-it-works.md a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-16", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (sample-data review): ValueClassi", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-17", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review, finding 4): r", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-18", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review): real samples", "by": "Jon R"}
+{"when": "2026-10-13T20:16:44Z", "item": "sq-19", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review): measure thro", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review, finding 14): ", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-21", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review, finding 13): ", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (sample-data review): findings 1 ", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-03", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review, finding 8): s", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (sample-data review, findings 5 a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-13 (sample-data review, findings 7 a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13 (sample-data review, finding 6): a", "by": "Jon R"}
+{"when": "2026-10-13T20:16:45Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "2026-10-13: sq-19 extends SyntheticCsvSource with a wide, pa", "by": "Jon R"}
+{"when": "2026-10-13T20:16:46Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "2026-10-13: now also waits on sq-17, sq-18 and sq-20. The do", "by": "Jon R"}
+{"when": "2026-10-13T20:16:46Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "2026-10-13 (sample-data review): at the owner gate, consider", "by": "Jon R"}
+{"when": "2026-10-13T20:30:54Z", "item": "sq-03", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:30:54Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-13T20:30:55Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:30:55Z", "item": "sq-04", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:30:55Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:30:55Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:30:55Z", "item": "sq-17", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T20:30:55Z", "item": "sq-20", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-13T20:31:11Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13: no caps that drop data. headerCan", "by": "Jon R"}
+{"when": "2026-10-13T20:31:12Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-13: regexChars removed; the full head", "by": "Jon R"}
+{"when": "2026-10-13T20:31:12Z", "item": "sq-17", "action": "note", "from": "", "to": "", "note": "2026-10-13: a row-class cap stays for bounded memory; the nu", "by": "Jon R"}
+{"when": "2026-10-13T20:31:12Z", "item": "sq-03", "action": "note", "from": "", "to": "", "note": "2026-10-13: the charset tolerance numbers are proposals for ", "by": "Jon R"}
+{"when": "2026-10-13T21:48:36Z", "item": "sq-03", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-13T21:48:39Z", "item": "sq-03", "action": "note", "from": "", "to": "", "note": "Owner confirmed the charset tolerance: at most 8 invalid seq", "by": "Jon R"}
+{"when": "2026-10-14T12:34:15Z", "item": "sq-16", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-10-14T12:34:15Z", "item": "sq-16", "action": "note", "from": "", "to": "", "note": "Owner decisions: '-' and 'NaN' stay in the null vocabulary; ", "by": "Jon R"}
+{"when": "2026-10-14T12:35:48Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "Owner decisions: keep the runaway-quote limit (65,536 chars)", "by": "Jon R"}
+{"when": "2026-10-14T12:37:19Z", "item": "sq-05", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:37:19Z", "item": "sq-05", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:37:19Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "Owner decisions: monotonic is null for an ambiguous temporal", "by": "Jon R"}
+{"when": "2026-10-14T12:38:29Z", "item": "sq-17", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:38:29Z", "item": "sq-17", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:38:29Z", "item": "sq-17", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-10-14T12:38:29Z", "item": "sq-17", "action": "note", "from": "", "to": "", "note": "Owner decisions: limits.rowClasses = 64; past the cap the fi", "by": "Jon R"}
+{"when": "2026-10-14T12:39:40Z", "item": "sq-18", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:39:40Z", "item": "sq-18", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:39:40Z", "item": "sq-18", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-14T12:39:40Z", "item": "sq-18", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-10-14T12:39:40Z", "item": "sq-18", "action": "note", "from": "", "to": "", "note": "Owner decisions: per-file check moved into CorpusRunner so t", "by": "Jon R"}
+{"when": "2026-10-14T12:41:00Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:41:00Z", "item": "sq-06", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-14T12:41:01Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "Owner decisions: headerPrefix = first 5 names (all when fewe", "by": "Jon R"}
+{"when": "2026-10-14T12:42:40Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:42:40Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:42:41Z", "item": "sq-07", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-14T12:42:41Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "Owner decisions: ValuesPolicy gains annotation cells and con", "by": "Jon R"}
+{"when": "2026-10-14T12:43:57Z", "item": "sq-11", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:43:57Z", "item": "sq-11", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:43:57Z", "item": "sq-19", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-14T12:43:57Z", "item": "sq-19", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:43:57Z", "item": "sq-19", "action": "edit", "from": "", "to": "", "note": "Check"}
+{"when": "2026-10-14T12:43:57Z", "item": "sq-19", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-10-14T12:43:58Z", "item": "sq-19", "action": "note", "from": "", "to": "", "note": "Owner decisions: memory is asserted against an explicit byte", "by": "Jon R"}
+{"when": "2026-10-14T12:43:58Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decision (sq-19 review): MemoryBudget.CeilingBytes = s", "by": "Jon R"}
+{"when": "2026-10-14T12:52:51Z", "item": "sq-20", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-14T12:52:51Z", "item": "sq-20", "action": "edit", "from": "", "to": "", "note": "Why"}
+{"when": "2026-10-14T12:52:52Z", "item": "sq-20", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-10-14T12:52:52Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "Owner decisions: no whole-descriptor size budget; test 2 ass", "by": "Jon R"}

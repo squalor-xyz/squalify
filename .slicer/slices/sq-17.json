@@ -1,0 +1,41 @@
+{
+  "id": "sq-17",
+  "title": "squalify must report row classes in delimited tables",
+  "lead": [
+    "Adds row classes: the data records grouped by which fields are non-null. Some exports interleave several record kinds in one table (measurement rows, setup rows, error rows and all-null separator rows), switching kind thousands of times. Regions cannot express that, because they are contiguous. Row classes can."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** row classes for other formats (Parquet feeds the same accumulator later); statistics per class; naming or labelling classes.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Goal: output that is useful for classification, sharding and storage.\n\nSample-data review (2026-10-13, finding 4), adopted by the owner as a new slice after sq-05:\n- Lab exports carried one to six record kinds per file, interleaved.\n- All-null separator rows can be close to half of a file's rows, and they dominate every field's null count unless counted apart."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Fields/RowClassAccumulator.cs`: takes each data record's null mask in file order (a bit per field, from the field accumulators' null decision). Written so later formats (Parquet) can feed it too.\n  - Class ID `rc:<16 lowercase hex>` = `XxHash64` of the ascending non-null field indexes, written as UTF-8 decimal numbers separated by commas. The ID depends on column order, so it compares across files only when the column set matches.\n  - Cap `limits.rowClasses` = 64 (owner-confirmed 2026-10-13). A cap is needed because the number of classes can grow with the row count. The first 64 classes seen are kept with exact counts; records of later classes are counted in `truncated`.\n- `table.rowClasses {count, transitions, allNullRows, classes[], truncated}`:\n  - `classes[] {id, count, fields, firstLine, lastLine}`, where `fields` is the non-null field indexes as inclusive ranges `[[a, b], …]`; sorted by count descending, then id ordinally;\n  - `transitions`: the number of adjacent data records whose classes differ;\n  - `allNullRows`: records in which every field is null.\n- `FieldAccumulator`: `nullsExcludingAllNullRows` per field.\n- `DelimitedProfiler`: feeds the accumulator in pass 2.\n- `docs/design.md` (Fields, and the bounded-memory table); `docs/descriptor.md` `table.rowClasses` and the field member; `docs/how-it-works.md` \"Row classes\"."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `RowClasses_Interleaved`: a synthetic file with setup rows at the start of each group, measurement rows, all-null separators and one rare error row gives four classes with exact counts, lines and `transitions`.\n2. `RowClasses_AllNullRows_CountedAndExcludedFromFieldNulls`.\n3. `RowClasses_Cap_TruncatedCounted`, with a small injected cap.\n4. `RowClasses_IdIndependentOfRowOrder`: the same records in another order give the same IDs and counts.\n5. `RowClasses_PlainTable_OneClass`: a table without nulls gives exactly one class. Existing delimited goldens are re-recorded and reviewed."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Implement the accumulator, then the field member, then the wiring.\n3. Mutation checks: include the record's line number in the ID hash, and test 4 must go red. Count separator rows in field nulls, and test 2 must go red."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture (the pipeline, an interface, a descriptor section or a determinism rule), `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run. The architect confirms there is no drift.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-17` on branch `sq-17`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-17: row classes` when the owner approves."
+    }
+  ],
+  "notes": []
+}
