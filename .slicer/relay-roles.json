@@ -117,6 +117,7 @@
       "role": "architect",
       "when": {
         "size": [
+          "M",
           "L"
         ],
         "effort": [],

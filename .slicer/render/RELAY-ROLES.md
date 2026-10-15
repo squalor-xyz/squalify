@@ -12,7 +12,7 @@
 | r4 | Implementer | split part | Claude Code | Claude | haiku | xhigh | per part of a split slice |
 | r5 | Reviewer | every slice | Claude Code | Claude | opus | medium | - |
 | r6 | Gate | every slice | Claude Code | Claude | opus | medium | - |
-| r7 | Architect | size L | Claude Code | Claude | opus | high | - |
+| r7 | Architect | size M or L | Claude Code | Claude | opus | high | - |
 
 ## Rules
 
