@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Only the solution skeleton (sq-01) has landed: the CLI shell, `ToolInfo` and `SqualifyException` exist, and every other source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Two slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. Every other source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -20,7 +20,7 @@ flowchart LR
     Out --> Consumers["DataBall and other tools"]
 ```
 
-*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`; `Profiler.cs`, `Formats/` (planned).* The CLI exists today: `squalify --version` prints the tool version, and `squalify profile` exits 1 with "profiling is not implemented yet" until the profiler lands.
+*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`; `Profiler.cs`, `Formats/` (planned).* The CLI exists today: `squalify --version` prints the tool version, and `squalify profile` exits 1 with "profiling is not implemented yet" until the profiler lands.
 
 ## 2. One profile run
 
@@ -31,11 +31,11 @@ flowchart TD
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
     B --> C["3. Read the structure:<br/>regions, header, records<br/><small>IFormatProfiler</small>"]
     C --> D["4. Profile every field:<br/>types and statistics<br/><small>FieldAccumulator</small>"]
-    D --> E["5. Summarize: fingerprints, hints,<br/>unit conventions, kind label<br/><small>Fingerprint, Hints, Kind</small>"]
+    D --> E["5. Summarize: fingerprints, hints,<br/>unit conventions, kind label<br/><small>Projection, HeaderConventionParser,<br/>KindRules, hints builder</small>"]
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Profiler.cs`, `Sniff/`, `Json/DescriptorWriter.cs` (planned).*
+*Source: `Json/DescriptorWriter.cs`; `Profiler.cs`, `Sniff/`, `Formats/`, `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).*
 
 ## 3. Choosing a format
 
@@ -163,14 +163,16 @@ The same file and the same squalify version always give the same descriptor, byt
 ```mermaid
 flowchart LR
     G1["No time, paths or machine info<br/>in the output"] --> Same
-    G2["One thread, input order;<br/>everything sorted before writing"] --> Same
-    G3["Fixed JSON writer: key order,<br/>LF newlines, number format<br/><small>DescriptorWriter</small>"] --> Same
+    G2["One thread, input order;<br/>everything sorted before writing<br/><small>Ordinal, CountMap</small>"] --> Same
+    G3["Fixed JSON writer: key order,<br/>LF newlines, number format<br/><small>DescriptorWriter, CanonicalNumber</small>"] --> Same
     G4["Platform-independent math and hashing<br/><small>DetMath, XxHash64</small>"] --> Same
-    G5["Golden files compared<br/>on all three OSes"] --> Same
+    G5["Golden files compared<br/>on all three OSes<br/><small>Golden</small>"] --> Same
     Same["Byte-identical descriptor"]
 ```
 
-*Source: `Determinism/`, `Json/` (planned); `tests/squalify.Tests/Golden.cs` (planned).*
+*Source: `Determinism/Ordinal.cs`, `Determinism/DetMath.cs`, `Determinism/XxHash64.cs`, `Descriptor/CountMap.cs`, `Json/DescriptorWriter.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.*
+
+Logarithms are the one place where platforms can disagree: the system math library may differ by one bit between operating systems. squalify therefore computes them itself, from additions, multiplications and divisions only, which every CPU rounds identically. A reference table made with an arbitrary-precision tool pins the result bit for bit. Hashing uses squalify's own copy of xxHash64, checked against published test vectors.
 
 ## 10. Row classes
 
@@ -184,3 +186,19 @@ flowchart LR
 ```
 
 *Source: `Fields/RowClassAccumulator.cs` (planned).*
+
+## 11. Writing the descriptor
+
+The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine.
+
+```mermaid
+flowchart TD
+    M["Descriptor model:<br/>lists and maps already sorted<br/><small>Descriptor, CountMap</small>"] --> W["Write every object<br/>in the documented key order<br/><small>DescriptorWriter</small>"]
+    W --> N["Numbers: shortest round-trip form,<br/>-0 as 0, NaN and Infinity as strings<br/><small>CanonicalNumber</small>"]
+    W --> T["Text and layout: UTF-8, no BOM,<br/>LF newlines, 2-space indent,<br/>one trailing LF<br/><small>DescriptorWriter options</small>"]
+    N --> B["Descriptor bytes"]
+    T --> B
+    B -. "tests compare with" .-> G["Golden file<br/><small>Golden</small>"]
+```
+
+*Source: `Descriptor/`, `Json/DescriptorWriter.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.* The key order is part of the schema: see [descriptor.md](descriptor.md#canonical-form).

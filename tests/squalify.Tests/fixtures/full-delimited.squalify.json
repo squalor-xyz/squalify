@@ -1,0 +1,573 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "squalify",
+    "version": "0.1.0"
+  },
+  "options": {
+    "includeValues": true,
+    "includeValuesFor": [
+      "Lot",
+      "Program"
+    ]
+  },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "regions": 1000,
+    "headerSample": 1000,
+    "rowClasses": 64,
+    "charsetTolerance": {
+      "invalidSequences": 8,
+      "perBytes": 65536
+    },
+    "stdfTests": 10000,
+    "budget": {
+      "quantileValues": 10000000,
+      "distinctValues": 2000000
+    },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "lot42_sweep.csv",
+    "size": 10212,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "utf-8",
+    "bom": "utf-8",
+    "lineEndings": {
+      "crlf": 0,
+      "lf": 10010,
+      "cr": 0
+    },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "delimited",
+    "dialect": {
+      "delimiter": ",",
+      "quote": "\"",
+      "hasHeader": true,
+      "unitsRow": false,
+      "decimalSeparator": ".",
+      "padding": {
+        "trim": true,
+        "paddedShare": 0.125,
+        "constantLineLength": true,
+        "lineLength": 118
+      },
+      "blocks": 2
+    },
+    "score": 0.95
+  },
+  "kind": {
+    "label": "labSweepTable",
+    "ruleId": "K05",
+    "confidence": 0.8
+  },
+  "layout": {
+    "regions": [
+      {
+        "kind": "preamble",
+        "lines": [
+          1,
+          6
+        ],
+        "bytes": [
+          0,
+          212
+        ],
+        "lineKinds": {
+          "comment": 1,
+          "keyValue": 5
+        },
+        "keys": [
+          "Lot",
+          "Wafer"
+        ],
+        "values": [
+          "A12",
+          "7"
+        ]
+      },
+      {
+        "kind": "annotation",
+        "lines": [
+          7,
+          8
+        ],
+        "bytes": [
+          212,
+          655
+        ],
+        "rows": [
+          {
+            "line": 7,
+            "label": "Upper",
+            "blankFields": 1,
+            "nullTokens": {
+              "NA": 2
+            },
+            "typeVotes": {
+              "float": 9
+            },
+            "type": "float",
+            "values": [
+              "1",
+              "2"
+            ]
+          },
+          {
+            "line": 8,
+            "label": null,
+            "blankFields": 0,
+            "nullTokens": {},
+            "typeVotes": {},
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "kind": "header",
+        "lines": [
+          9,
+          9
+        ],
+        "bytes": [
+          655,
+          700
+        ]
+      },
+      {
+        "kind": "block",
+        "index": 1,
+        "label": "noise",
+        "lines": [
+          10,
+          12
+        ],
+        "bytes": [
+          700,
+          760
+        ]
+      }
+    ],
+    "headerConvention": {
+      "dominant": "nameParenUnit",
+      "share": 0.769,
+      "counts": {
+        "nameParenUnit": 10,
+        "none": 3
+      }
+    },
+    "maxLineLength": 118
+  },
+  "table": {
+    "rows": 10000,
+    "fieldCount": {
+      "min": 4,
+      "max": 4
+    },
+    "rowClasses": {
+      "count": 2,
+      "transitions": 4,
+      "allNullRows": 1,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:3f9a",
+          "count": 900,
+          "fields": [
+            [
+              0,
+              3
+            ]
+          ],
+          "firstLine": 3,
+          "lastLine": 1002
+        },
+        {
+          "id": "rc:7b01",
+          "count": 99,
+          "fields": [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "firstLine": 4,
+          "lastLine": 1001
+        }
+      ]
+    },
+    "fields": [
+      {
+        "index": 0,
+        "name": "Frequency(MHz)",
+        "nameParts": {
+          "base": "Frequency",
+          "unit": "MHz",
+          "convention": "nameParenUnit"
+        },
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 0.9998
+        },
+        "typeVotes": {
+          "float": 9998,
+          "int": 2
+        },
+        "patterns": {
+          "yyyy-MM-dd": 3
+        },
+        "count": 10000,
+        "nulls": 3,
+        "nullsExcludingAllNullRows": 2,
+        "nullTokens": {
+          "-": 1,
+          "NA": 2
+        },
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 1,
+          "padded": 4
+        },
+        "distinct": {
+          "value": 81,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 700,
+          "max": 2700,
+          "mean": 1700,
+          "stddev": 584.5,
+          "quantiles": {
+            "p01": 700,
+            "p05": 800,
+            "p25": 1200,
+            "p50": 1700,
+            "p75": 2200,
+            "p95": 2600,
+            "p99": 2700.5
+          },
+          "approximate": false
+        },
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 3,
+          "max": 6,
+          "mean": 5.2
+        },
+        "shapes": [
+          {
+            "mask": "9{4}",
+            "count": 9120
+          },
+          {
+            "mask": "9{3}",
+            "count": 880
+          },
+          {
+            "mask": "other",
+            "count": 0
+          }
+        ],
+        "monotonic": "nonDecreasing",
+        "constant": false,
+        "unique": false,
+        "sourceType": null,
+        "unit": "MHz",
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 1,
+        "name": "Start",
+        "nameParts": {
+          "base": "Start",
+          "unit": null,
+          "convention": "none"
+        },
+        "type": "datetime",
+        "dominant": {
+          "type": "datetime",
+          "share": 1
+        },
+        "typeVotes": {
+          "datetime": 10000
+        },
+        "patterns": null,
+        "count": 10000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 5000,
+          "approximate": true,
+          "errorBound": 0.0081
+        },
+        "numeric": null,
+        "temporal": {
+          "orders": [
+            "YMD"
+          ],
+          "ambiguous": false,
+          "clock": "24h",
+          "min": "2026-01-01T00:00:00",
+          "max": "2026-01-02T03:46:39",
+          "quantiles": {
+            "p01": "2026-01-01T00:00:00",
+            "p05": "2026-01-01T01:23:19",
+            "p25": "2026-01-01T06:56:39",
+            "p50": "2026-01-01T13:53:19",
+            "p75": "2026-01-01T20:49:59",
+            "p95": "2026-01-02T02:23:19",
+            "p99": "2026-01-02T03:46:39"
+          }
+        },
+        "statsWithheld": null,
+        "length": {
+          "min": 19,
+          "max": 19,
+          "mean": 19
+        },
+        "shapes": [
+          {
+            "mask": "9{4}-9{2}-9{2}T9{2}:9{2}:9{2}",
+            "count": 10000
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 2,
+        "name": "Lot�",
+        "nameHex": "4c6f74ff",
+        "nameParts": {
+          "base": "Lot�",
+          "unit": null,
+          "convention": "none"
+        },
+        "type": "string",
+        "dominant": {
+          "type": "string",
+          "share": 1
+        },
+        "typeVotes": {
+          "string": 10000
+        },
+        "patterns": null,
+        "count": 10000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": null,
+          "exceeds": 10000
+        },
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": "constant",
+        "length": {
+          "min": 4,
+          "max": 4,
+          "mean": 4
+        },
+        "shapes": [
+          {
+            "mask": "A{3}9",
+            "count": 10000
+          }
+        ],
+        "monotonic": "none",
+        "constant": true,
+        "unique": false,
+        "sourceType": "VARCHAR",
+        "unit": null,
+        "top": {
+          "items": [
+            {
+              "value": "ABC1",
+              "count": 9990
+            },
+            {
+              "value": "ABC2",
+              "count": 10
+            }
+          ],
+          "approximate": true,
+          "maxError": 3
+        },
+        "text": {
+          "min": "ABC1",
+          "max": "ABC2"
+        }
+      },
+      {
+        "index": 3,
+        "name": "Date",
+        "nameParts": {
+          "base": "Date",
+          "unit": null,
+          "convention": "none"
+        },
+        "type": "date",
+        "dominant": {
+          "type": "date",
+          "share": 1
+        },
+        "typeVotes": {
+          "date": 10000
+        },
+        "patterns": null,
+        "count": 10000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 30,
+          "approximate": false
+        },
+        "numeric": null,
+        "temporal": {
+          "orders": [
+            "DMY",
+            "MDY"
+          ],
+          "ambiguous": true,
+          "clock": null,
+          "min": null,
+          "max": null,
+          "quantiles": null
+        },
+        "statsWithheld": null,
+        "length": null,
+        "shapes": [
+          {
+            "mask": "9/9/9{4}",
+            "count": 10000
+          }
+        ],
+        "monotonic": null,
+        "constant": false,
+        "unique": false,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 1,
+    "structure": "sha256:aa",
+    "layout": "sha256:bb",
+    "typed": "sha256:cc",
+    "names": "sha256:dd"
+  },
+  "hints": {
+    "extension": ".csv",
+    "magic": null,
+    "stableLines": [
+      {
+        "line": 0,
+        "regex": "^Lot\\s*[=:]"
+      }
+    ],
+    "headerFields": [
+      "Frequency(MHz)",
+      "Start"
+    ],
+    "headerPrefix": [
+      "Frequency(MHz)"
+    ],
+    "nonNullFields": [
+      0,
+      1
+    ],
+    "fieldCount": {
+      "min": 4,
+      "max": 4
+    },
+    "dataStartLine": 9,
+    "delimiter": ",",
+    "headerConvention": "nameParenUnit",
+    "parquetColumns": null,
+    "stdf": null,
+    "fileNameShape": "a{3}9{2}.a{3}"
+  },
+  "issues": [
+    {
+      "code": "commentInData",
+      "count": 2,
+      "firstLines": [
+        5,
+        9
+      ]
+    },
+    {
+      "code": "invalidUtf8",
+      "count": 1,
+      "offsets": [
+        100
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "stage": "dialect",
+      "topic": "delimiter",
+      "chosen": ",",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 1,
+          "reason": "k=4; 10000/10000 records; run lines 10-10009"
+        },
+        {
+          "value": ";",
+          "score": 0,
+          "reason": "k=1; no run"
+        }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": null,
+      "candidates": []
+    }
+  ]
+}

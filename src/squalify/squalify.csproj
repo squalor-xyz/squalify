@@ -3,4 +3,7 @@
     <AssemblyName>squalor.squalify</AssemblyName>
     <RootNamespace>squalor.squalify</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="squalify.Tests" />
+  </ItemGroup>
 </Project>

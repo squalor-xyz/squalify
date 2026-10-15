@@ -1,8 +1,8 @@
 {
-  "version": 8,
+  "version": 9,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 22,
+  "next_id": 24,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -47,6 +47,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -62,7 +63,7 @@
       "id": "sq-02",
       "title": "squalify must write descriptors as canonical, byte-stable JSON",
       "short_title": "Canonical descriptor writer",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-01"
@@ -101,6 +102,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -109,7 +111,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -176,6 +178,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "a5470d90-5cf8-4c09-8d39-21be7d9e2280",
+          "kind": "",
+          "text": "**2026-10-19** — From sq-02 architect review: descriptor.md does not yet document the order of evidence candidates[]. This slice sets it (sorted by a documented key, never insertion order) in its descriptor.md change.",
+          "created_at": "2026-10-19T15:12:22Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -188,6 +201,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -253,6 +267,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -341,6 +356,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -405,6 +421,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "325ee2e0-336d-4f8b-bc77-315e4809f5bd",
+          "kind": "",
+          "text": "**2026-10-19** — From sq-02 architect review: (1) descriptor.md does not yet document the order of temporal.orders[]; set it in this slice's descriptor.md change. (2) This spec's Why section says ambiguous-date min/max/quantiles are 'omitted', but the Behavior section and the sq-02 writer write them as null; null is correct (descriptor.md, design.md as of sq-02).",
+          "created_at": "2026-10-19T15:12:22Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -417,6 +444,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -493,6 +521,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -558,6 +587,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -633,6 +663,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "4b350c0e-bdc7-4ca3-bab2-322105fb5b57",
+          "kind": "",
+          "text": "**2026-10-19** — From sq-02 architect review: descriptor.md does not yet document the order of hints.stableLines[]; set it (e.g. by line ascending) in this slice's descriptor.md change.",
+          "created_at": "2026-10-19T15:12:22Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -645,6 +686,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -722,6 +764,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -776,6 +819,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -830,6 +874,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -872,6 +917,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "46afc10c-63b0-4ad0-b8de-53cbe529b4eb",
+          "kind": "",
+          "text": "**2026-10-19** — From sq-02 architect review: descriptor.md does not yet document the order of stdf.tests[]; set it in this slice's descriptor.md change. stdf.records[] is already documented as typ then sub ascending.",
+          "created_at": "2026-10-19T15:12:23Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -884,6 +940,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -960,6 +1017,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1025,6 +1083,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1079,6 +1138,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1133,6 +1193,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1203,6 +1264,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1269,6 +1331,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1346,6 +1409,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1400,6 +1464,7 @@
         "trees_literal": false,
         "findings": "",
         "discovered_from": "",
+        "parent": "",
         "cites": [],
         "key": "",
         "pass": "",
@@ -1408,6 +1473,70 @@
         "importance": 1,
         "urgency": 1,
         "effort": 3,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-22",
+      "title": "squalify must state, or own, how text escaping depends on the .NET runtime",
+      "short_title": "Runtime-stable escaping",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [
+        "sq-02"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table.",
+        "discovered_from": "sq-02",
+        "parent": "",
+        "cites": [],
+        "key": "sq02-arch-runtime-escaping",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-23",
+      "title": "squalify must clear the sq-02 review nits",
+      "short_title": "sq-02 review nits",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [
+        "sq-02"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-02 architect nits: (1) how-it-works.md:34 small text 'hints builder' is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow.",
+        "discovered_from": "sq-02",
+        "parent": "",
+        "cites": [],
+        "key": "sq02-arch-nits",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
         "attempts": 0
       }
     }
