@@ -50,3 +50,6 @@ Thumbs.db
 
 # slice relay worktrees
 /.worktrees/
+
+# scratch files for agents and scripts (never /tmp)
+/.scratch/

@@ -74,7 +74,8 @@ Run all three before handing off a change.
 
 Slices normally run as a slice relay (`slicer ai relay`).
 
-- **Worktree:** `.worktrees/<id>` on branch `<id>`, created by the orchestrator before the implementer starts. `.worktrees/` is ignored via `.gitignore`.
+- **Worktree:** `.worktrees/<id>` on branch `<id>`, created by the orchestrator before the implementer starts. Every git worktree, relay or not, goes under `./.worktrees/`, which is ignored via `.gitignore`.
+- **Scratch:** each role's temp directory is `.scratch/<id>/<role>/` in the main checkout, which is also ignored. Agents and scripts never use `/tmp` or a session scratchpad: those sit outside the working directory, and reads there prompt the owner.
 - **Briefs:** the slice from `slicer show <id> --json --lean`. Reviewers also get `slicer goals --json --lean`, `slicer list --json --lean`, `docs/design.md`, `docs/descriptor.md` and `docs/how-it-works.md`.
 - **Architect:** checks `docs/how-it-works.md` and its diagrams against the change, and reports drift as a finding (see Docs).
 - **Size S** slices run a lite relay without the architect. M and L slices run the full relay.
