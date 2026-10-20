@@ -40,7 +40,22 @@ public sealed record Limits(
     long StdfTests,
     Budget Budget,
     long NullTokens,
-    long UnitTable);
+    long UnitTable)
+{
+    /// <summary>The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>.</summary>
+    public static Limits Default { get; } = new(
+        DistinctPerField: 10_000,
+        QuantilePerField: 100_000,
+        ShapesPerField: 64,
+        Regions: 1_000,
+        HeaderSample: 1_000,
+        RowClasses: 64,
+        CharsetTolerance: new CharsetTolerance(8, 65_536),
+        StdfTests: 10_000,
+        Budget: new Budget(10_000_000, 2_000_000),
+        NullTokens: 1,
+        UnitTable: 1);
+}
 
 /// <summary>Tolerated stray invalid UTF-8 sequences.</summary>
 /// <param name="InvalidSequences">Maximum invalid sequences tolerated.</param>

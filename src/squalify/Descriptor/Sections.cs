@@ -10,9 +10,9 @@ public sealed record KeyValueSection(string Name, long Line, IReadOnlyList<strin
 
 /// <summary>The <c>binary</c> section.</summary>
 /// <param name="Bytes">Whole-file byte statistics.</param>
-/// <param name="Blocks">Statistics of the per-block entropy.</param>
-/// <param name="Segments">The fixed 16-segment entropy profile.</param>
-public sealed record BinarySection(ByteStats Bytes, BlockStats Blocks, IReadOnlyList<double> Segments);
+/// <param name="Blocks">Statistics of the per-block entropy, or null before sq-10 adds them.</param>
+/// <param name="Segments">The fixed 16-segment entropy profile, or null before sq-10 adds it.</param>
+public sealed record BinarySection(ByteStats Bytes, BlockStats? Blocks = null, IReadOnlyList<double>? Segments = null);
 
 /// <summary>Whole-file byte statistics.</summary>
 /// <param name="Histogram">The 256-bin byte histogram.</param>

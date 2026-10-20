@@ -2,7 +2,7 @@
   "version": 9,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 24,
+  "next_id": 25,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -118,7 +118,7 @@
       "id": "sq-03",
       "title": "squalify must sniff any file and write a generic descriptor end to end",
       "short_title": "Byte sniff and generic profile",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-02"
@@ -189,6 +189,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "ecbc37be-2841-41af-9b22-b2e7b35e0b66",
+          "kind": "",
+          "text": "**2026-10-20** — Owner decisions 2026-10-20 (relay, after implementer report): (1) accept interim kind (text K09 / binary K11 / empty K12, confidence 1) and interim fingerprint (version 0, family-only hashes) until sq-15 and sq-06 replace them; (2) no minimum line length: the text profile reports only layout.maxLineLength; (3) charset tolerance is min(8, ceil(size / 64 KiB)), so a file under 64 KiB tolerates one invalid sequence; (4) the invalidUtf8 issue is written only when the charset ends as ascii or utf-8; latin-1 gets no issue, and encoding.invalidBytes still counts.",
+          "created_at": "2026-10-20T15:29:52Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -210,7 +221,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -344,6 +355,28 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "f21b3651-035f-4823-bbb7-db28e1482af5",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 review: Profiler.SortEvidence orders evidence by Profiler.StageOrder, then topic; a stage missing from StageOrder ranks with every other unknown stage and interleaves by topic. Any new evidence stage must be added to StageOrder (and documented in descriptor.md's evidence order).",
+          "created_at": "2026-10-20T15:40:05Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "454e9250-602d-4d97-b3c2-a04ccfccd63f",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 architect review: (1) IFormatProfiler.Score(SniffResult) (Formats/IFormatProfiler.cs:35) cannot express the delimited score (0.3 + 0.4 x whole-file tokenizer consistency), and SniffResult keeps no head bytes; this slice must change the interface (e.g. give Score the source, or add a structure pass before scoring) and add the fallback from a failed profile to text that Irregular_FallsBackToText_WithIssue needs (FormatRegistry.Detect -> Profile has none). Update design.md 'Choosing a format' and how-it-works section 3 with it. (2) Line-ending counting and the mixedLineEndings issue live in a private nested LineCounter in GenericTextProfiler.cs:90; lift it into a shared helper (e.g. under Text/) rather than copy it.",
+          "created_at": "2026-10-20T16:25:34Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -427,6 +460,17 @@
           "kind": "",
           "text": "**2026-10-19** — From sq-02 architect review: (1) descriptor.md does not yet document the order of temporal.orders[]; set it in this slice's descriptor.md change. (2) This spec's Why section says ambiguous-date min/max/quantiles are 'omitted', but the Behavior section and the sq-02 writer write them as null; null is correct (descriptor.md, design.md as of sq-02).",
           "created_at": "2026-10-19T15:12:22Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "dd158aae-cda4-4422-b2e2-107c6ea21652",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 review: sq-03 added src/squalify/Hints/FileNameShape.cs, which implements the shape-mask rules this slice owns (with its own choices: a surrogate pair becomes ?{2}, '+' after 64 tokens). Replace it with, or merge it into, the field-mask implementation so there is one source of truth.",
+          "created_at": "2026-10-20T15:40:04Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -669,6 +713,28 @@
           "kind": "",
           "text": "**2026-10-19** — From sq-02 architect review: descriptor.md does not yet document the order of hints.stableLines[]; set it (e.g. by line ascending) in this slice's descriptor.md change.",
           "created_at": "2026-10-19T15:12:22Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "e5b34790-7d60-4b96-bf4f-8fd65a594b34",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 (owner-accepted 2026-10-20): Profiler writes an interim fingerprint, version 0, whose structure/layout/typed hashes cover only {\"family\":...} and names covers []. This slice replaces it and bumps the fingerprint version.",
+          "created_at": "2026-10-20T15:29:56Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "866511c1-0743-4c7c-92f3-17856f896eb2",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 review: hints.magic is a string (the sq-02 model is string?); this slice must change it to the structured {name, offset, hex} form, with the schema-doc change.",
+          "created_at": "2026-10-20T15:40:05Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -1252,6 +1318,28 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "983d1d3e-c110-43b3-8c63-3f5dcb5c45d7",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 (owner-accepted 2026-10-20): Profiler writes an interim kind label from the byte-pass class (text K09, binary K11, empty K12, confidence 1). This slice replaces it with the real rule set; the K-numbers were taken from the proposed table and are not binding.",
+          "created_at": "2026-10-20T15:29:56Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "3e399cb7-f864-427c-a50b-41dbe687d7a5",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 review: (1) gzip/zip currently get the interim label binary (K11); the planned list has archive. (2) encoding.controlBytes is a raw byte count: for UTF-16/32 text it counts the zero high-order bytes, so no kind rule should read it as a control-character count for those charsets.",
+          "created_at": "2026-10-20T15:40:04Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1316,6 +1404,17 @@
           "created_at": "2026-10-14T12:52:52Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "a7da6877-2448-4b35-867d-bd3ba2994dd2",
+          "kind": "",
+          "text": "**2026-10-20** — From sq-03 review: Profiler.SortEvidence orders evidence by Profiler.StageOrder, then topic; a stage missing from StageOrder ranks with every other unknown stage and interleaves by topic. Any new evidence stage must be added to StageOrder (and documented in descriptor.md's evidence order).",
+          "created_at": "2026-10-20T15:40:05Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
@@ -1517,7 +1616,30 @@
       "depends_on": [
         "sq-02"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "ab30fba5-0430-4f7d-b21f-a37aaf957d6f",
+          "kind": "",
+          "text": "**2026-10-20** — More nits from the sq-03 architect review: (1) FileSource with an empty path throws ArgumentException ('The value cannot be an empty string. (Parameter path)'), which the CLI prints as-is; give user input a friendlier SqualifyException. (2) Limits.Default (Descriptor/Options.cs:46) is public and pins the caps as API; consider internal. (3) IProfileSource.Length (Sources/IProfileSource.cs:14) is never used; drop it or use it.",
+          "created_at": "2026-10-20T16:25:34Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "ef511984-a738-498f-8641-497c046667ae",
+          "kind": "",
+          "text": "**2026-10-20** — From the sq-03 gate: on macOS/Linux a file name may legally contain a backslash; FileSource passes it through and the Profiler name guard (Profiler.cs:22-25) rejects it, so such a file cannot be profiled via the CLI. Decide whether FileSource should accept it (e.g. guard only '/' on Unix, or check the name differently).",
+          "created_at": "2026-10-20T17:00:56Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -1535,6 +1657,38 @@
         "group": "",
         "reason": "",
         "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-24",
+      "title": "squalify must report invalid UTF-16 and UTF-32 data instead of replacing it silently",
+      "short_title": "Invalid UTF-16/32 reporting",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [
+        "sq-03"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change.",
+        "discovered_from": "sq-03",
+        "parent": "",
+        "cites": [],
+        "key": "sq03-review-utf16-invalid",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
         "urgency": 1,
         "effort": 1,
         "attempts": 0

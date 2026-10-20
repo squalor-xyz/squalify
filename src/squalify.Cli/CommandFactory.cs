@@ -28,7 +28,7 @@ public static class CommandFactory
                 versionOption.Action = new VersionAction(stdout);
         }
 
-        root.Subcommands.Add(CreateProfileCommand(stderr, verboseOption));
+        root.Subcommands.Add(CreateProfileCommand(stdout, stderr, verboseOption));
         return root;
     }
 
@@ -47,7 +47,7 @@ public static class CommandFactory
         return await parseResult.InvokeAsync();
     }
 
-    private static Command CreateProfileCommand(TextWriter stderr, Option<bool> verboseOption)
+    private static Command CreateProfileCommand(TextWriter stdout, TextWriter stderr, Option<bool> verboseOption)
     {
         var path = new Argument<string>("path") { Description = "Data file to profile" };
         var output = new Option<string?>("--output", "-o") { Description = "Write the descriptor to this file instead of stdout" };
@@ -57,6 +57,7 @@ public static class CommandFactory
             result.GetValue(path)!,
             result.GetValue(output),
             result.GetValue(includeValues),
+            stdout,
             stderr,
             result.GetValue(verboseOption)));
         return command;

@@ -4,7 +4,7 @@ squalify profiles a data file and writes a **descriptor**. The descriptor is a v
 
 Other tools read the descriptor to decide what to do with the file. Examples: classifying it as a known file type, picking the right transform or import route, or drafting a [DataBall](../../DataBall/) file type. squalify itself only describes the file. It suggests a generic `kind` label (for example `labSweepTable` or `stdfTestLog`) from a fixed set of built-in rules, and it reports how header names carry units (for example `Vcc(V)` or `ICC_A`).
 
-> Status: design phase. The solution skeleton, the descriptor model and the canonical JSON writer (with its determinism kit) exist; profiling does not yet. `squalify --version` works and `squalify profile` fails cleanly until profiling lands. The roadmap lives in slicer (`slicer goals`, `slicer list`).
+> Status: early build. The solution skeleton, the descriptor model, the canonical JSON writer (with its determinism kit), the byte pass and the generic profiles exist. `squalify profile <file>` already writes a valid descriptor for any file (file hash, encoding, text, binary or empty, line endings, byte statistics for binary files), and a directory is an error. The format profilers (delimited, Parquet, Touchstone, key=value, STDF), fingerprints, hints and the kind label are still to come; until then those descriptor sections hold fixed placeholder values (hints carry only the extension, magic and file-name shape). The roadmap lives in slicer (`slicer goals`, `slicer list`).
 
 ## Principles
 
@@ -14,13 +14,13 @@ Other tools read the descriptor to decide what to do with the file. Examples: cl
 - **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text, and the statistics of columns that hold one value for the whole file) appear only with `--include-values`, or for named keys and columns with `--include-values-for`. Column header names are always included, because matching needs them.
 - **Explainable.** Every inference (encoding, delimiter, header row, field type, format) has an evidence entry that lists the candidates considered and why the winner won.
 
-## Planned usage
+## Usage
 
 ```bash
 squalify profile data.csv                     # descriptor to stdout
 squalify profile data.csv -o data.squalify.json
-squalify profile data.csv --include-values     # include literal values
-squalify profile data.csv --include-values-for Program   # values of named keys/columns only
+squalify profile data.csv --include-values     # include literal values (no value-bearing member exists yet)
+squalify profile data.csv --include-values-for Program   # values of named keys/columns only (planned)
 squalify profile data.csv --verbose            # print full exception details on error
 squalify --version
 ```

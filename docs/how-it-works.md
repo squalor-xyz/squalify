@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Two slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. Every other source file is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Three slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -20,7 +20,7 @@ flowchart LR
     Out --> Consumers["DataBall and other tools"]
 ```
 
-*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`; `Profiler.cs`, `Formats/` (planned).* The CLI exists today: `squalify --version` prints the tool version, and `squalify profile` exits 1 with "profiling is not implemented yet" until the profiler lands.
+*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`; the other profilers under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. Only the `text` and `binary` profilers exist so far, so every file is described as text, binary or empty; the other profilers in the diagram are planned. A directory is an error.
 
 ## 2. One profile run
 
@@ -35,7 +35,7 @@ flowchart TD
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`; `Profiler.cs`, `Sniff/`, `Formats/`, `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).*
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`; `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the generic text and binary profiles are the whole of step 3 for now, and the fingerprint and kind label hold fixed placeholder values until their slices land.
 
 ## 3. Choosing a format
 
@@ -53,7 +53,7 @@ flowchart LR
     W --> Ev["All scores go to evidence"]
 ```
 
-*Source: `Formats/FormatRegistry.cs` (planned).*
+*Source: `Formats/FormatRegistry.cs`; the profilers other than text and binary are planned.* A file with no bytes is called empty before any profiler scores it. For files that are not empty, the evidence lists the score of each profiler that is registered, in registry order; today that is just text and binary.
 
 ## 4. Reading a delimited file
 
@@ -202,3 +202,25 @@ flowchart TD
 ```
 
 *Source: `Descriptor/`, `Json/DescriptorWriter.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.* The key order is part of the schema: see [descriptor.md](descriptor.md#canonical-form).
+
+## 12. Text, binary or empty?
+
+The byte pass counts every byte of the file once and then applies seven rules, in order. The first rule that fits decides. A file is never rejected: odd bytes are counted, and invalid UTF-8 in ascii or utf-8 text is also reported as an issue. A few stray invalid bytes in an otherwise plain text file do not change its encoding, because a single bad byte in a large log should not turn it into "Latin-1" or "binary"; the allowance is at most 8 per file and at most 1 per 64 KiB.
+
+```mermaid
+flowchart LR
+    S["Count every byte<br/><small>ByteSniffer</small>"] --> R1["1. No bytes?"]
+    R1 --> R2["2. Known magic<br/>such as gzip?"]
+    R2 --> R3["3. UTF-16/32<br/>byte order mark?"]
+    R3 --> R4["4. NULs in a<br/>UTF-16 pattern?"]
+    R4 --> R5["5. Other NULs, or over<br/>5% control bytes?"]
+    R5 --> R6["6 and 7. Plain text<br/><small>SniffResult</small>"]
+    R1 -. "yes" .-> E["empty"]
+    R2 -. "yes" .-> B["binary<br/><small>magic named, not unpacked</small>"]
+    R5 -. "yes" .-> B
+    R3 -. "yes" .-> T16["text: UTF-16 or UTF-32"]
+    R4 -. "yes" .-> T16
+    R6 --> T["text: ascii, utf-8 or latin-1"]
+```
+
+*Source: `Sniff/ByteSniffer.cs`, `Sniff/SniffResult.cs`, `Sniff/MagicTable.cs`.* The exact thresholds and the magic table are in [descriptor.md](descriptor.md#encoding).

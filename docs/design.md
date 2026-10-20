@@ -35,7 +35,7 @@ flowchart LR
 
 ### Source
 
-`IProfileSource { string Name; long Length; Stream Open(); }`. `FileSource` wraps a path. Tests use synthetic sources that generate bytes on the fly. Every pass reopens the source. A path never reaches the descriptor; only `Name` (the file name) does.
+`IProfileSource { string Name; long Length; Stream Open(); }`. `FileSource` wraps a path; a directory or a missing file raises `SqualifyException` when the source is created. Tests use synthetic sources that generate bytes on the fly. Every pass reopens the source. A path never reaches the descriptor; only `Name` (the file name) does, and `Profiler` enforces it: a `Name` that is empty or contains `/` or `\` raises `SqualifyException`, so a host's own source cannot smuggle a path into `file.name` or `hints.fileNameShape`. `Profiler.Profile(IProfileSource, ProfileOptions)` and `Profiler.Profile(string path, ProfileOptions)` (`src/squalify/Profiler.cs`) run the pipeline.
 
 ### Passes
 
@@ -57,14 +57,18 @@ Each pass streams the file once with bounded memory.
   4. A NUL-parity pattern means UTF-16 without a BOM. The pattern is: at least 90% of NULs at odd offsets, or at least 90% at even ones, with NULs at least 30% of all bytes.
   5. Any other NUL, or control bytes above 5%, means binary.
   6. Otherwise the file is text. The charset is `ascii`, else `utf-8` if valid, else `latin-1`. If bytes 0x80–0x9F occur, the evidence notes "possibly windows-1252".
-  7. Stray invalid UTF-8 sequences within `limits.charsetTolerance` (at most 8, and at most 1 per 64 KiB) keep the `ascii` or `utf-8` charset. They decode to U+FFFD and are reported as `invalidUtf8` issues with offsets. Beyond the tolerance, rule 6's `latin-1` applies.
+  7. Stray invalid UTF-8 sequences within `limits.charsetTolerance` (at most 8, and at most 1 per 64 KiB) keep the `ascii` or `utf-8` charset. They decode to U+FFFD and are reported as `invalidUtf8` issues with offsets. Beyond the tolerance, rule 6's `latin-1` applies. The number allowed is `min(8, ceil(size / 65536))`, so a file shorter than 64 KiB tolerates one.
+
+  The sniffer reads 64 KiB buffers and keeps up to 3 trailing bytes of an incomplete UTF-8 sequence for the next buffer, so a character that straddles a buffer boundary is not counted as invalid. It also keeps the first 512 and last 16 bytes for the magic table. `SniffResult` (`src/squalify/Sniff/SniffResult.cs`) holds the counted facts and applies the rules; `MagicTable` (`src/squalify/Sniff/MagicTable.cs`) is the ordered table of named magics, which [descriptor.md](descriptor.md#encoding) lists. A UTF-8 BOM is valid UTF-8, so a BOM plus ASCII text is `utf-8` with `bom: "utf-8"`.
 - **Pass 1, structure (text profilers).** Tokenizes and classifies records and lines, keeping only bounded summaries.
 - **Pass 2, fields (text profilers).** Parses the chosen data region and feeds the field accumulators.
 - Parquet reads its metadata and then streams rows. STDF walks record headers in one pass.
 
 ### Choosing a format
 
-Each `IFormatProfiler` scores the sniff result between 0 and 1. The highest score wins. Ties break by registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary`. Every profiler's score and reason goes into the evidence trail.
+Each `IFormatProfiler` scores the sniff result between 0 and 1. The highest score wins. Ties break by registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary`. Every registered profiler's score and reason goes into the evidence trail (stage `format`, topic `family`), with the candidates in registry order. `FormatRegistry` (`src/squalify/Formats/FormatRegistry.cs`) sorts whatever it is given into that order, and rejects an unknown or repeated family. A zero-length file is `empty` by rule 1, before any score counts: no profiler claims it, `format.score` is 1, and every candidate scores 0. Only the `text` and `binary` profilers are registered so far; each later format slice registers its own.
+
+The generic profiles are the fallbacks. `GenericTextProfiler` decodes the text with `TextDecoder` (`src/squalify/Text/TextDecoder.cs`, which maps every character to the byte offset where it starts, for the regions of later profilers) and reports line endings, blank lines, the longest line and one `unknown` region. `GenericBinaryProfiler` reports the histogram, the byte-class counts and the entropy of `ByteEntropy`.
 
 | Profiler | Score |
 |---|---|
@@ -122,7 +126,7 @@ These are whole files of `key=value` or `key: value` lines, with optional `[sect
 
 ## Binary and STDF
 
-- **Any binary file.**
+- **Any binary file.** The byte histogram and whole-file entropy exist from sq-03; block entropy and segments come with sq-10.
   - The byte histogram, whole-file Shannon entropy, and the entropy of 4 KiB blocks: count, min, max and mean.
   - A fixed 16-segment entropy profile.
   - All computed with `DetMath.Log2`.
@@ -299,7 +303,7 @@ The owner confirms the rule details at the start of sq-15.
 
 ## Evidence trail
 
-Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason }] }`. Entries are ordered by pipeline stage, then by topic. Reasons are fixed templates filled with value-free numbers. Unanimous field-type inferences are grouped into one entry per type that lists field indexes (sq-20), so wide files stay compact.
+Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason }] }`. Entries are ordered by pipeline stage, then by topic. Candidates are never in insertion order: each topic documents its own key (a fixed table, or a sort key), as listed in [descriptor.md](descriptor.md#evidence). Reasons are fixed templates filled with value-free numbers. Unanimous field-type inferences are grouped into one entry per type that lists field indexes (sq-20), so wide files stay compact.
 
 ## Determinism rules
 

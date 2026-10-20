@@ -519,14 +519,18 @@ public static class DescriptorWriter
         w.WriteNumber("high", v.Bytes.High);
         Double(w, "entropy", v.Bytes.Entropy);
         w.WriteEndObject();
-        w.WritePropertyName("blocks");
-        w.WriteStartObject();
-        w.WriteNumber("count", v.Blocks.Count);
-        Double(w, "min", v.Blocks.Min);
-        Double(w, "max", v.Blocks.Max);
-        Double(w, "mean", v.Blocks.Mean);
-        w.WriteEndObject();
-        List(w, "segments", v.Segments, static (writer, entropy) => CanonicalNumber.Write(writer, entropy));
+        if (v.Blocks is { } blocks)
+        {
+            w.WritePropertyName("blocks");
+            w.WriteStartObject();
+            w.WriteNumber("count", blocks.Count);
+            Double(w, "min", blocks.Min);
+            Double(w, "max", blocks.Max);
+            Double(w, "mean", blocks.Mean);
+            w.WriteEndObject();
+        }
+
+        OptionalList(w, "segments", v.Segments, static (writer, entropy) => CanonicalNumber.Write(writer, entropy));
         w.WriteEndObject();
     }
 

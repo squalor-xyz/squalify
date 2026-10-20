@@ -1,17 +1,44 @@
 // SPDX-License-Identifier: Apache-2.0
+using System.Text;
+using System.Text.Json;
 using squalor.squalify;
 using squalor.squalify.Cli;
 
 namespace squalor.squalify.Cli.Tests;
 
-public class CliTests
+public sealed class CliTests : IDisposable
 {
+    private readonly string _root = Path.Combine(Path.GetTempPath(), "squalify-cli-" + Guid.NewGuid().ToString("N"));
+
+    public CliTests()
+    {
+        Directory.CreateDirectory(_root);
+    }
+
+    public void Dispose()
+    {
+        Directory.Delete(_root, recursive: true);
+    }
+
     private static async Task<(int Code, string Out, string Err)> RunAsync(params string[] args)
     {
         var stdout = new StringWriter();
         var stderr = new StringWriter();
         var code = await CommandFactory.InvokeAsync(args, stdout, stderr);
         return (code, stdout.ToString(), stderr.ToString());
+    }
+
+    private string WriteInput(string name, string content)
+    {
+        var path = Path.Combine(_root, name);
+        File.WriteAllText(path, content, new UTF8Encoding(false));
+        return path;
+    }
+
+    private static string Expected(string path, bool includeValues = false)
+    {
+        var descriptor = Profiler.Profile(path, ProfileOptions.Create(includeValues, Array.Empty<string>()));
+        return Encoding.UTF8.GetString(DescriptorWriter.ToBytes(descriptor));
     }
 
     [Fact]
@@ -32,21 +59,98 @@ public class CliTests
     }
 
     [Fact]
-    public async Task Cli_Profile_NotImplemented_ExitsOneWithMessage()
+    public async Task Cli_Profile_WritesDescriptorToStdout()
     {
-        var (code, output, error) = await RunAsync("profile", "some-file.csv");
-        Assert.Equal(1, code);
-        Assert.Equal(string.Empty, output);
-        Assert.Contains("profiling is not implemented yet", error);
+        var path = WriteInput("sample.txt", "café one\nline two\n");
+        var (code, output, error) = await RunAsync("profile", path);
+        Assert.Equal(0, code);
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(Expected(path), output);
+        Assert.EndsWith("}\n", output);
+        Assert.DoesNotContain('\r', output);
+        using var json = JsonDocument.Parse(output);
+        Assert.Equal("sample.txt", json.RootElement.GetProperty("file").GetProperty("name").GetString());
+        Assert.Equal("text", json.RootElement.GetProperty("format").GetProperty("family").GetString());
+        Assert.DoesNotContain(_root, output, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Cli_Profile_AllOptions_ReachesNotImplemented()
+    public async Task Cli_Profile_OutputFile_ReplacedAtomically()
     {
-        var (code, output, error) = await RunAsync("profile", "x", "-o", "y", "--include-values");
+        var path = WriteInput("sample.txt", "a\nb\n");
+        var target = Path.Combine(_root, "out.json");
+        File.WriteAllText(target, "stale descriptor");
+        File.WriteAllText(target + ".tmp", "stale partial write");
+
+        var (code, output, error) = await RunAsync("profile", path, "-o", target);
+
+        Assert.Equal(0, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(Expected(path), File.ReadAllText(target));
+        Assert.Equal(DescriptorWriter.ToBytes(Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>()))), File.ReadAllBytes(target));
+        Assert.False(File.Exists(target + ".tmp"), "the temporary file must be moved into place, not left behind");
+    }
+
+    [Fact]
+    public async Task Cli_Profile_OutputFile_NewFileIsCreated()
+    {
+        var path = WriteInput("sample.txt", "a\n");
+        var target = Path.Combine(_root, "new.json");
+        var (code, _, _) = await RunAsync("profile", path, "--output", target);
+        Assert.Equal(0, code);
+        Assert.Equal(Expected(path), File.ReadAllText(target));
+    }
+
+    [Fact]
+    public async Task Cli_Profile_OutputFile_FailedProfileLeavesTheExistingFileAlone()
+    {
+        var target = Path.Combine(_root, "out.json");
+        File.WriteAllText(target, "previous good descriptor");
+        var (code, output, error) = await RunAsync("profile", Path.Combine(_root, "missing.csv"), "-o", target);
         Assert.Equal(1, code);
         Assert.Equal(string.Empty, output);
-        Assert.Contains("profiling is not implemented yet", error);
+        Assert.False(string.IsNullOrWhiteSpace(error));
+        Assert.Equal("previous good descriptor", File.ReadAllText(target));
+        Assert.False(File.Exists(target + ".tmp"));
+    }
+
+    [Fact]
+    public async Task Cli_Profile_MissingFile_ExitsOne()
+    {
+        var (code, output, error) = await RunAsync("profile", Path.Combine(_root, "missing.csv"));
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Contains("missing.csv", error);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_Directory_ExitsOne()
+    {
+        var (code, output, error) = await RunAsync("profile", _root);
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Contains("directory", error, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_IncludeValues_IsRecordedInOptions()
+    {
+        var path = WriteInput("sample.txt", "a\n");
+        var (code, output, _) = await RunAsync("profile", path, "--include-values");
+        Assert.Equal(0, code);
+        Assert.Equal(Expected(path, includeValues: true), output);
+        using var json = JsonDocument.Parse(output);
+        Assert.True(json.RootElement.GetProperty("options").GetProperty("includeValues").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Cli_Profile_TwiceGivesIdenticalOutput()
+    {
+        var path = WriteInput("sample.txt", "x\ny\n");
+        var first = await RunAsync("profile", path);
+        var second = await RunAsync("profile", path);
+        Assert.Equal(first.Out, second.Out);
     }
 
     [Fact]

@@ -1,0 +1,5 @@
+squalify profiles one data file.
+It writes a deterministic JSON descriptor.
+
+The same bytes give the same descriptor.
+Line endings here are all LF, and the text is plain ASCII.

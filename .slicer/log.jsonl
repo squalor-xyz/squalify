@@ -204,3 +204,18 @@
 {"when": "2026-10-19T15:12:22Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "From sq-02 architect review: (1) descriptor.md does not yet ", "by": "Jon Robbins"}
 {"when": "2026-10-19T15:12:22Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "From sq-02 architect review: descriptor.md does not yet docu", "by": "Jon Robbins"}
 {"when": "2026-10-19T15:12:23Z", "item": "sq-10", "action": "note", "from": "", "to": "", "note": "From sq-02 architect review: descriptor.md does not yet docu", "by": "Jon Robbins"}
+{"when": "2026-10-19T15:28:23Z", "item": "sq-03", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:29:51Z", "item": "sq-03", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-20T15:29:52Z", "item": "sq-03", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-20 (relay, after implementer report)", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:29:56Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "From sq-03 (owner-accepted 2026-10-20): Profiler writes an i", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:29:56Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "From sq-03 (owner-accepted 2026-10-20): Profiler writes an i", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:40:04Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "From sq-03 review: sq-03 added src/squalify/Hints/FileNameSh", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:40:04Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "From sq-03 review: (1) gzip/zip currently get the interim la", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:40:05Z", "item": "sq-06", "action": "note", "from": "", "to": "", "note": "From sq-03 review: hints.magic is a string (the sq-02 model ", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:40:05Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "From sq-03 review: Profiler.SortEvidence orders evidence by ", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:40:05Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "From sq-03 review: Profiler.SortEvidence orders evidence by ", "by": "Jon Robbins"}
+{"when": "2026-10-20T15:40:05Z", "item": "sq-24", "action": "add", "from": "", "to": "open", "note": "squalify must report invalid UTF-16 and UTF-32 data instead of replacing it silently"}
+{"when": "2026-10-20T16:25:34Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "From sq-03 architect review: (1) IFormatProfiler.Score(Sniff", "by": "Jon Robbins"}
+{"when": "2026-10-20T16:25:34Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "More nits from the sq-03 architect review: (1) FileSource wi", "by": "Jon Robbins"}
+{"when": "2026-10-20T17:00:56Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "From the sq-03 gate: on macOS/Linux a file name may legally ", "by": "Jon Robbins"}
+{"when": "2026-10-20T17:00:56Z", "item": "sq-03", "action": "status", "from": "started", "to": "done", "note": "Relay run run-20261019-152755-c640: review ACCEPT; architect FAIL on doc drift (how-it-works section 12, README hints) plus a path-leak guard, all fixed; gate PASS. Build 0 warnings, 216 library + 11 CLI tests pass, format clean, docs re-rendered (12 svg / 12 mermaid). Any file now yields a descriptor via squalify profile.", "by": "Jon Robbins"}
