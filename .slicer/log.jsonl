@@ -219,3 +219,12 @@
 {"when": "2026-10-20T16:25:34Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "More nits from the sq-03 architect review: (1) FileSource wi", "by": "Jon Robbins"}
 {"when": "2026-10-20T17:00:56Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "From the sq-03 gate: on macOS/Linux a file name may legally ", "by": "Jon Robbins"}
 {"when": "2026-10-20T17:00:56Z", "item": "sq-03", "action": "status", "from": "started", "to": "done", "note": "Relay run run-20261019-152755-c640: review ACCEPT; architect FAIL on doc drift (how-it-works section 12, README hints) plus a path-leak guard, all fixed; gate PASS. Build 0 warnings, 216 library + 11 CLI tests pass, format clean, docs re-rendered (12 svg / 12 mermaid). Any file now yields a descriptor via squalify profile.", "by": "Jon Robbins"}
+{"when": "2026-10-26T15:59:34Z", "item": "sq-25", "action": "add", "from": "", "to": "open", "note": "Consumer classification contract"}
+{"when": "2026-10-26T15:59:41Z", "item": "sq-25", "action": "set", "from": "", "to": "", "note": "depends_on -→sq-04,sq-05,sq-14,sq-17"}
+{"when": "2026-10-26T15:59:41Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "A downstream consumer (a lab sweep-table splitter in another", "by": "Jon Robbins"}
+{"when": "2026-10-26T15:59:41Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "A downstream consumer (a lab sweep-table splitter in another", "by": "Jon Robbins"}
+{"when": "2026-10-26T15:59:41Z", "item": "sq-14", "action": "note", "from": "", "to": "", "note": "A downstream consumer (a lab sweep-table splitter in another", "by": "Jon Robbins"}
+{"when": "2026-10-26T15:59:42Z", "item": "sq-17", "action": "note", "from": "", "to": "", "note": "A downstream consumer (a lab sweep-table splitter in another", "by": "Jon Robbins"}
+{"when": "2026-10-26T15:59:42Z", "item": "sq-25", "action": "note", "from": "", "to": "", "note": "Packaging: the consumer prefers to reference squalify as a p", "by": "Jon Robbins"}
+{"when": "2026-10-26T16:01:30Z", "item": "sq-26", "action": "add", "from": "", "to": "open", "note": "NuGet package for library consumers"}
+{"when": "2026-10-26T16:01:30Z", "item": "sq-26", "action": "set", "from": "", "to": "", "note": "depends_on -→sq-25"}

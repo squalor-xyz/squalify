@@ -2,7 +2,7 @@
   "version": 9,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 25,
+  "next_id": 27,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -377,6 +377,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "24899b8a-494c-4149-a80c-30a9a0af1dc8",
+          "kind": "",
+          "text": "**2026-10-26** — A downstream consumer (a lab sweep-table splitter in another repo) plans to replace its stand-in describer with squalify once this lands; see sq-25 for the members it relies on.",
+          "created_at": "2026-10-26T15:59:41Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -476,6 +487,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "e5e4c1ca-4813-41e4-9742-570f2fa02b33",
+          "kind": "",
+          "text": "**2026-10-26** — A downstream consumer (a lab sweep-table splitter in another repo) plans to replace its stand-in describer with squalify once this lands; see sq-25 for the members it relies on.",
+          "created_at": "2026-10-26T15:59:41Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -550,6 +572,17 @@
           "created_at": "2026-10-14T12:38:29Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "61ae70d6-686c-41c8-9aae-8fab99a84759",
+          "kind": "",
+          "text": "**2026-10-26** — A downstream consumer (a lab sweep-table splitter in another repo) plans to replace its stand-in describer with squalify once this lands; see sq-25 for the members it relies on.",
+          "created_at": "2026-10-26T15:59:42Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
@@ -1247,6 +1280,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "c73b9bd2-7a74-4cbf-b18e-d14d2de769c8",
+          "kind": "",
+          "text": "**2026-10-26** — A downstream consumer (a lab sweep-table splitter in another repo) plans to replace its stand-in describer with squalify once this lands; see sq-25 for the members it relies on.",
+          "created_at": "2026-10-26T15:59:41Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1685,6 +1729,85 @@
         "parent": "",
         "cites": [],
         "key": "sq03-review-utf16-invalid",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-25",
+      "title": "Consumer classification contract",
+      "short_title": "Consumer classification contract",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-04",
+        "sq-05",
+        "sq-14",
+        "sq-17"
+      ],
+      "note_records": [
+        {
+          "id": "45c15bbc-46ff-4331-bfa9-352f362c1e32",
+          "kind": "",
+          "text": "**2026-10-26** — Packaging: the consumer prefers to reference squalify as a pinned NuGet package (decided on the consumer side, still open). If chosen, squalify needs a packaging item (package id, versioning, feed).",
+          "created_at": "2026-10-26T15:59:42Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "consumer-classification-contract",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 2,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-26",
+      "title": "NuGet package for library consumers",
+      "short_title": "NuGet package for library consumers",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-25"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "nuget-package",
         "pass": "",
         "group": "",
         "reason": "",

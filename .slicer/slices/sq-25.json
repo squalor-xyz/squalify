@@ -1,0 +1,41 @@
+{
+  "id": "sq-25",
+  "title": "Consumer classification contract",
+  "lead": [
+    "Document and test the descriptor members a downstream classifier relies on to match delimited lab exports against its own declared file types, so a consumer can swap its stand-in describer for squalify. **Not in this slice:** classification itself (a non-goal), new descriptor members unless a gap is found."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "A first consumer (a splitter for lab sweep tables, in another repo) now reads files as describe, classify, transform, split. It ships a small stand-in describer whose output is a subset of this descriptor and will replace it with squalify once delimited profiling exists. Its classifier needs a stable, documented subset; squalify still only describes."
+    },
+    {
+      "heading": "Files",
+      "body": "- `docs/descriptor.md`: a \"Consumer subset\" section listing the members and their stability under the schema-version policy\n- tests on synthetic fixtures under `tests/` (no real files); the private-corpus harness (sq-18) covers real files"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- A synthetic lab sweep table (key columns with an `(id)` unit, `(unit)` measurement columns, unitless setup columns, interleaved all-null separator rows) gives: the dialect and header (sq-04), every header name with its parsed unit convention (sq-14), the row classes with the all-null class (sq-17), and per field `type`, `nulls` and `constant` (sq-05).\n- A synthetic one-condition capture table (no key columns, a few varying columns, the rest constant) gives `constant` true for the constant fields and false for the varying ones.\n- With values off, a constant field's description says it is constant without revealing the value (`statsWithheld`).\n- The consumer-subset members are byte-identical across two runs."
+    },
+    {
+      "heading": "Implement",
+      "body": "- Document how `constant` treats nulls (every non-null value equal) and how a consumer derives \"constant with NULL counted as a value\" from `constant`, `nulls` and `count`."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

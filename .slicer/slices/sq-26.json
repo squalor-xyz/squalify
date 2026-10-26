@@ -1,0 +1,41 @@
+{
+  "id": "sq-26",
+  "title": "NuGet package for library consumers",
+  "lead": [
+    "Publish the squalify library as a versioned NuGet package so a .NET consumer can pin it instead of calling the CLI. **Not in this slice:** a public feed choice beyond what the owner names, API changes."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "The first downstream consumer (a lab sweep-table splitter in another repo) will reference squalify as a pinned package once delimited profiling and the consumer contract (sq-25) are built."
+    },
+    {
+      "heading": "Files",
+      "body": "- the library project (package metadata: id, version, license Apache-2.0, readme), `Directory.Build.props` if versioning lives there, README (how to reference the package)"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- `dotnet pack` produces one package whose version matches the squalify version reported in descriptors.\n- A throwaway consumer project restores the package from a local folder feed and profiles a synthetic file to the same descriptor bytes as the CLI."
+    },
+    {
+      "heading": "Implement",
+      "body": "- Ask the owner which feed to publish to before publishing anywhere; a local folder feed is enough for the tests."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}
