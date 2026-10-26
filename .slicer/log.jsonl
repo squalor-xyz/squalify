@@ -228,3 +228,6 @@
 {"when": "2026-10-26T15:59:42Z", "item": "sq-25", "action": "note", "from": "", "to": "", "note": "Packaging: the consumer prefers to reference squalify as a p", "by": "Jon Robbins"}
 {"when": "2026-10-26T16:01:30Z", "item": "sq-26", "action": "add", "from": "", "to": "open", "note": "NuGet package for library consumers"}
 {"when": "2026-10-26T16:01:30Z", "item": "sq-26", "action": "set", "from": "", "to": "", "note": "depends_on -→sq-25"}
+{"when": "2026-10-26T19:24:29Z", "item": "sq-16", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-26T19:24:29Z", "item": "sq-05", "action": "note", "from": "", "to": "", "note": "**2026-10-26** — prism tie-in: prism D74/D77 expect `table.f", "by": "Jon Robbins"}
+{"when": "2026-10-26T19:24:30Z", "item": "sq-25", "action": "note", "from": "", "to": "", "note": "**2026-10-26** — prism tie-in: the consumer subset should in", "by": "Jon Robbins"}

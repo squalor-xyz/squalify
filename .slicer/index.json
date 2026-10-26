@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
   "next_id": 27,
@@ -493,6 +493,17 @@
           "kind": "",
           "text": "**2026-10-26** — A downstream consumer (a lab sweep-table splitter in another repo) plans to replace its stand-in describer with squalify once this lands; see sq-25 for the members it relies on.",
           "created_at": "2026-10-26T15:59:41Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "0f50cb71-5828-4427-a086-2975655cd29d",
+          "kind": "",
+          "text": "**2026-10-26** — **2026-10-26** — prism tie-in: prism D74/D77 expect `table.fields[].nullTokens` per column, with counts per null token (prism counts case-sensitive spellings NULL, empty, null, NA, N/A). sq-16 returns the matched vocabulary entry; sq-05 decides whether to count by vocabulary entry or exact spelling. prism treats `NaN` as a number in `(unit)` columns (D38), so it must be able to see NaN counts separately.",
+          "created_at": "2026-10-26T19:24:29Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -1756,6 +1767,17 @@
           "kind": "",
           "text": "**2026-10-26** — Packaging: the consumer prefers to reference squalify as a pinned NuGet package (decided on the consumer side, still open). If chosen, squalify needs a packaging item (package id, versioning, feed).",
           "created_at": "2026-10-26T15:59:42Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "52566a8b-1288-4ee9-99a2-c3efd23000fb",
+          "kind": "",
+          "text": "**2026-10-26** — **2026-10-26** — prism tie-in: the consumer subset should include per-field `nullTokens` with counts per token (prism D74/D77) and say how `NaN` is reported, since prism reads it as a number in `(unit)` columns (D38) while squalify vocabulary 1 treats it as null.",
+          "created_at": "2026-10-26T19:24:30Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
