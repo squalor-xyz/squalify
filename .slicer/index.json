@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 32,
+  "next_id": 33,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -1863,7 +1863,7 @@
       "id": "sq-20",
       "title": "squalify must keep descriptors compact for wide files",
       "short_title": "Compact evidence",
-      "status": "open",
+      "status": "retired",
       "has_slice": true,
       "depends_on": [
         "sq-05",
@@ -1952,7 +1952,7 @@
         "key": "",
         "pass": "",
         "group": "",
-        "reason": "",
+        "reason": "Owner decision (2026-10-27), verbatim: \"Retire, refile on fields (Recommended)\". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.",
         "importance": 2,
         "urgency": 2,
         "effort": 2,
@@ -1974,7 +1974,7 @@
         "sq-14",
         "sq-17",
         "sq-18",
-        "sq-20"
+        "sq-32"
       ],
       "note_records": [
         {
@@ -2114,6 +2114,17 @@
           "kind": "",
           "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"Drop sq-15 from sq-12 (Recommended)\" (option text: \"The freeze waits only on non-format work; kind is added after the freeze as an additive member, with all its labels at once.\").",
           "created_at": "2026-10-27T19:13:50Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "65ec747c-f266-4de8-8129-fcb43c7af373",
+          "kind": "",
+          "text": "**2026-10-27** — sq-20 retired (2026-10-27); sq-32 (compact field profiles) replaces it as a freeze dependency.",
+          "created_at": "2026-10-27T19:27:44Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -2767,6 +2778,38 @@
         "urgency": 3,
         "effort": 1,
         "attempts": 1
+      }
+    },
+    {
+      "id": "sq-32",
+      "title": "Compact field profiles",
+      "short_title": "Compact field profiles",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-11"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
       }
     }
   ],

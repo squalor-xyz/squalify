@@ -361,3 +361,9 @@
 {"when": "2026-10-27T19:13:51Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27): sq-12 no longer depends on sq-1", "by": "Jon Robbins"}
 {"when": "2026-10-27T19:13:51Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"64 MB (Recommended)\"", "by": "Jon Robbins"}
 {"when": "2026-10-27T19:13:51Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "Orchestrator (2026-10-27): per the sq-06 K8 note, hints.nonN", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:27:44Z", "item": "sq-32", "action": "add", "from": "", "to": "open", "note": "Compact field profiles"}
+{"when": "2026-10-27T19:27:44Z", "item": "sq-32", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-27T19:27:44Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-20→sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32"}
+{"when": "2026-10-27T19:27:44Z", "item": "sq-20", "action": "retire", "from": "open", "to": "retired", "note": "Owner decision (2026-10-27), verbatim: \"Retire, refile on fields (Recommended)\". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo."}
+{"when": "2026-10-27T19:27:44Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "sq-20 retired (2026-10-27); sq-32 (compact field profiles) r", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:27:52Z", "item": "sq-32", "action": "set", "from": "", "to": "", "note": "effort -→2"}
