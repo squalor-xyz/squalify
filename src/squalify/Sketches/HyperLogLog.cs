@@ -40,10 +40,10 @@ internal sealed class HyperLogLog
     /// <summary>The number of registers, <c>m</c>.</summary>
     public const int RegisterCount = 1 << Precision;
 
-    // The constant of the harmonic mean for m >= 128.
     // The raw estimate is replaced by linear counting up to this multiple of m.
     private const double LinearCountingLimit = 3.5;
 
+    // The constant of the harmonic mean for m >= 128.
     private const double Alpha = 0.7213 / (1.0 + (1.079 / RegisterCount));
 
     // 2^-rank for every rank a register can hold (at most 64 - 14 + 1 = 51).
