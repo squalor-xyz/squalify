@@ -414,3 +414,4 @@
 {"when": "2026-10-27T20:18:19Z", "item": "sq-38", "action": "promote", "from": "", "to": "", "note": ""}
 {"when": "2026-10-27T20:18:24Z", "item": "sq-38", "action": "set", "from": "", "to": "", "note": "effort -→2"}
 {"when": "2026-10-27T20:36:56Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27, fix round 2), verbatim: \"Next to", "by": "Jon Robbins"}
+{"when": "2026-10-27T20:59:51Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner (2026-10-27), verbatim, on the flaky Windows process-m", "by": "Jon Robbins"}
