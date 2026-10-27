@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Four slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Five slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -20,7 +20,7 @@ flowchart LR
     Out --> Consumers["DataBall and other tools"]
 ```
 
-*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`; the other profilers under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. Only the `text` and `binary` profilers exist so far, so every file is described as text, binary or empty; the other profilers in the diagram are planned. A directory is an error.
+*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`, `Delimited/DelimitedProfiler.cs`; the other profilers (Parquet, Touchstone, key=value, STDF) under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. The `delimited`, `text` and `binary` profilers exist so far, so every file is described as a delimited table, text, binary or empty; the other profilers in the diagram are planned. A directory is an error.
 
 ## 2. One profile run
 
@@ -35,31 +35,70 @@ flowchart TD
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`; `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the generic text and binary profiles are the whole of step 3 for now, and the fingerprint and kind label hold fixed placeholder values until their slices land.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`; `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now, step 4 is limited to the type votes that the delimited profile counts (the other field statistics come later), and the fingerprint and kind label hold fixed placeholder values until their slices land. For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
 
 ## 3. Choosing a format
 
-Every profiler looks at the byte-pass result and gives a score from 0 to 1. The highest score wins, and a tie goes to whichever profiler comes first in the registry list. Every score and its reason are kept in the descriptor's evidence, so you can see why a format was chosen.
+Every profiler looks at the file and gives a score from 0 to 1. The highest score wins, and a tie goes to whichever profiler comes first in the registry list. Every score and its reason are kept in the descriptor's evidence, so you can see why a format was chosen. Most profilers score from the byte-pass result alone. A delimited table cannot be recognized that way, so the delimited profiler is handed the file too and reads all of it while it scores (the structure pass of section 4); if it wins, it keeps what it found, so the file is not read again for the same work.
 
 ```mermaid
 flowchart LR
-    S["Byte-pass result<br/><small>SniffResult</small>"] --> P1["Parquet: magic at both ends → 1.0"]
+    S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P1["Parquet: magic at both ends → 1.0"]
     S --> P2["STDF: FAR record at start → 1.0"]
     S --> P3["Touchstone: extension + option line → 0.9"]
     S --> P4["Key=value document → up to 0.6"]
-    S --> P5["Delimited table → up to 0.7"]
+    S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score<br/><small>DelimitedProfiler</small>"]
     S --> P6["Plain text / other binary → 0.1–0.2"]
     P1 & P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
     W --> Ev["All scores go to evidence"]
 ```
 
-*Source: `Formats/FormatRegistry.cs`; the profilers other than text and binary are planned.* A file with no bytes is called empty before any profiler scores it. For files that are not empty, the evidence lists the score of each profiler that is registered, in registry order; today that is just text and binary.
+*Source: `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`; the other profilers are planned.* A file with no bytes is called empty before any profiler scores it. For files that are not empty, the evidence lists the score of each profiler that is registered, in registry order; today that is delimited, text and binary.
+
+A profiler can also decline a file and say why. When the delimited profiler finds delimiter evidence but gives up, because no delimiter is good enough and at least one candidate was disqualified, it scores 0 and hands back an issue (`tooIrregular`) and its evidence. The registry passes these on even though the profiler lost, so the plain text profile describes the file and the descriptor still explains why it is not treated as a table.
+
+```mermaid
+flowchart TD
+    D["Delimited profiler scores the file<br/><small>DelimitedProfiler.Score</small>"] --> V{"Is any delimiter good enough?<br/><small>DialectSelector</small>"}
+    V -- "yes" --> Keep["Score 0.5 to 0.7, and keeps what it found<br/><small>FormatScore.State</small>"]
+    V -- "no, but some were disqualified" --> Dec["Declines with score 0, an issue and evidence<br/><small>FormatScore.NotChosenIssues</small>"]
+    V -- "no, none disqualified" --> Plain["Declines with score 0"]
+    Dec --> T["Plain text profile wins; the issue is written<br/><small>FormatRegistry.Detect, Profiler</small>"]
+    Plain --> T2["Plain text profile wins<br/><small>GenericTextProfiler</small>"]
+```
+
+*Source: `Delimited/DelimitedProfiler.cs`, `Delimited/DialectSelector.cs`, `Formats/IFormatProfiler.cs`, `Formats/FormatRegistry.cs`, `Profiler.cs`.*
 
 ## 4. Reading a delimited file
 
-A lab CSV is often more than a header and rows. squalify splits the file into regions. It tries every common delimiter at the same time and picks the one that gives the longest steady run of rows with the same field count, and whose cells split cleanly. On tables padded with spaces, splitting on spaces looks almost as steady, so cleanliness decides.
+A lab CSV is often more than a header and rows. squalify splits the file into regions. It tries every common delimiter at the same time, in one pass over the whole file. It picks the delimiter that gives the longest steady run of rows with the same field count, and whose cells split cleanly. On tables padded with spaces, splitting on spaces looks almost as steady, so cleanliness decides.
+
+```mermaid
+flowchart TD
+    F["The whole file, decoded once<br/><small>TextScanner</small>"] --> T["One reader per delimiter, side by side:<br/>comma, tab, semicolon, bar, spaces<br/><small>RecordTokenizer</small>"]
+    T --> R["Field counts stored as runs<br/><small>FieldCountRle</small>"]
+    R --> K["Score each delimiter:<br/>share of rows in the steady run<br/>× share of clean cells<br/><small>DialectSelector</small>"]
+    K --> W["Best score wins, if it is good enough:<br/>at least 2 rows (6 for spaces) and a score of 0.5<br/><small>ties: tab beats spaces, then more fields, then fixed order</small>"]
+    T -. "quote never closes, or<br/>count changes too often" .-> X["That delimiter is disqualified"]
+```
+
+*Source: `Delimited/TextScanner.cs`, `Delimited/RecordTokenizer.cs`, `Delimited/FieldCountRle.cs`, `Delimited/DialectSelector.cs`.* Quotes follow the usual CSV rule (a doubled quote is one quote, and a quoted cell may hold a comma or a line break). A closing quote may be followed by spaces before the comma or the line end, as in padded tables. A stray quote inside a quoted cell, with no comma or line end after it, is kept as plain text, because some instruments write quotes inside a quoted cell without doubling them. A cell counts as clean when it is quoted or contains none of the characters `,` `;` `|` other than its own delimiter, and, for those three delimiters, no tab inside the cell. Spaces never make a cell unclean, and a decimal comma such as `1,5` does not count, so a semicolon file with decimal commas is told apart from a comma file. A delimiter is only chosen when it is good enough: its steady run has at least 2 rows (6 for spaces) and its score is at least 0.5. When tab and spaces tie, tab wins.
 
 The header is not always the first row of that run. Some exports put rows of limits, units or line numbers above the header, lined up with its columns. squalify scores the first rows of the run and picks the one that looks most like names over typed data. The rows above it become **annotation** rows: their labels are kept, their cells are opt-in.
+
+```mermaid
+flowchart TD
+    S["First 1,000 rows of the steady run<br/><small>DelimitedPass</small>"] --> C["Every row is a header candidate<br/><small>HeaderDetector</small>"]
+    C --> E["Only rows with names filled and different, that disagree<br/>with a typed column below, can win<br/><small>HeaderDetector.Evaluate</small>"]
+    E --> Sc["Score = filled × not numbers × different<br/>× (0.5 + 0.5 × contrast)<br/><small>HeaderDetector.Evaluate</small>"]
+    Sc --> H["Best score wins<br/>a tie goes to the earlier row<br/><small>HeaderDetector.Detect</small>"]
+    H --> A["Rows above it:<br/>annotation rows<br/><small>DelimitedPass</small>"]
+    H --> U["Row below it is a units row when every non-empty cell<br/>disagrees with its column type<br/><small>empty cells do not count</small>"]
+```
+
+*Source: `Delimited/DelimitedPass.cs`, `Delimited/HeaderDetector.cs`.* The contrast is the share of typed columns (columns that are not text) that the candidate disagrees with, so a row of units scores below the header that sits under it. A header with a blank or repeated name is still taken when nothing else qualifies, with an issue. A table made only of text takes its first row as the header and says so in the evidence. A first data row that is all `NULL` is never taken for a units row, so the interleaved separator rows of a DangerTest export do no harm. A comment line (`#`, `!`, `//`) is free text: it is never a header, an annotation row or a label, wherever it sits. The evidence lists the eligible candidates and the winner, and one summary line that counts the rest by reason.
+
+With the dialect and header known, the file falls into regions, each with line and byte ranges. Regions tile the file: a blank line belongs to the region before it.
 
 ```mermaid
 flowchart TD
@@ -71,9 +110,9 @@ flowchart TD
     R4 -. "same header again" .-> R6["Repeated blocks<br/><small>one per site or sweep</small>"]
 ```
 
-*Source: `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`, `Delimited/BlockDetector.cs` (planned).*
+*Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`; `Delimited/BlockDetector.cs` (planned).*
 
-squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer.
+squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer. Every data row is read a second time to count the type of each field, so the descriptor already says which fields are numbers; the other field statistics come later.
 
 ## 5. Profiling one field
 

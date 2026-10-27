@@ -14,6 +14,8 @@
     "shapesPerField": 64,
     "regions": 1000,
     "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
     "rowClasses": 64,
     "charsetTolerance": {
       "invalidSequences": 8,
@@ -374,6 +376,11 @@
       "topic": "family",
       "chosen": "binary",
       "candidates": [
+        {
+          "value": "delimited",
+          "score": 0,
+          "reason": "not text: binary content"
+        },
         {
           "value": "text",
           "score": 0,

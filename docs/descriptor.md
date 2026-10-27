@@ -22,7 +22,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 
 | Object | Keys, in order |
 |---|---|
-| `layout` | `regions`, `headerConvention` (tabular), `maxLineLength` (text) |
+| `layout` | `regions`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
 | `layout.regions[]` | `kind`, `index` (block), `label` (block, optional), `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation) |
 | `layout.regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
 | `table` | `rows`, `fieldCount`, `rowClasses` (sq-17), `fields` |
@@ -56,7 +56,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `encoding` | object | yes | `kind` (`empty`/`text`/`binary`), `charset`, `bom`, `lineEndings {crlf, lf, cr}`, `invalidBytes`, `controlBytes` |
 | `format` | object | yes | `family` (`delimited`, `parquet`, `touchstone`, `keyValue`, `stdf`, `text`, `binary`, `empty`), `dialect` (family-specific), `score` (the winning profiler's score; 1 for `empty`) |
 | `kind` | object | yes | `label`, `ruleId`, `confidence` (sq-15) |
-| `layout` | object | yes | `regions[]`, `headerConvention` (tabular), `maxLineLength` (text) |
+| `layout` | object | yes | `regions[]`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
 | `table` | object | when tabular | `rows`, `fieldCount {min, max}`, `rowClasses`, `fields[]` |
 | `sections` | array | keyValue | `[{ name, line, keys[] }]` |
 | `binary` | object | when binary | `bytes {histogram[256], nul, printableAscii, high, entropy}`, `blocks {count, min, max, mean}` and `segments[16]` (both from sq-10; omitted until then) |
@@ -70,12 +70,13 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 
 ```json
 { "distinctPerField": 10000, "quantilePerField": 100000, "shapesPerField": 64, "regions": 1000,
-  "headerSample": 1000, "rowClasses": 64, "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
+  "headerSample": 1000, "runawayQuote": 65536, "fieldCountRuns": 100000, "rowClasses": 64,
+  "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
   "stdfTests": 10000,
   "budget": { "quantileValues": 10000000, "distinctValues": 2000000 }, "nullTokens": 1, "unitTable": 1 }
 ```
 
-`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `nullTokens` and `unitTable` are versions of fixed built-in tables. `nullTokens` is the version of the null vocabulary: version 1 is `""`, `NA`, `NA.`, `N/A`, `null`, `NaN` and `-`, matched ASCII case-insensitively after trimming U+0009 to U+000D, U+0020 and U+00A0 from both ends (a fixed set; other space characters, such as U+2028 and U+3000, are not trimmed). The vocabulary is never learned from the data; any change to it bumps this version. See [Value classification and types](design.md#value-classification-and-types).
+`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `headerSample` is the number of records of a delimited data run that are scored as header candidates. `runawayQuote` is the longest open quoted field, in characters, before a delimiter candidate is disqualified, and `fieldCountRuns` is the most field-count runs a candidate may have before it is disqualified as too irregular (see [`format.dialect`](#formatdialect-by-family)). `nullTokens` and `unitTable` are versions of fixed built-in tables. `nullTokens` is the version of the null vocabulary: version 1 is `""`, `NA`, `NA.`, `N/A`, `null`, `NaN` and `-`, matched ASCII case-insensitively after trimming U+0009 to U+000D, U+0020 and U+00A0 from both ends (a fixed set; other space characters, such as U+2028 and U+3000, are not trimmed). The vocabulary is never learned from the data; any change to it bumps this version. See [Value classification and types](design.md#value-classification-and-types).
 
 `charsetTolerance` sets how many invalid UTF-8 sequences a file may hold and still keep its `ascii` or `utf-8` charset (see [`encoding`](#encoding)). The number allowed for a file is `min(invalidSequences, ceil(size / perBytes))`: at most 8 per file and at most 1 per 64 KiB, and a file shorter than 64 KiB tolerates one. For example, a 100-byte file tolerates 1, a 65,537-byte file 2, and any file of 8 × 64 KiB or more 8.
 
@@ -127,6 +128,26 @@ A text file that no other profiler claims has one `unknown` region over the whol
 - A file with no characters (for example only a BOM) has `regions: []` and `maxLineLength: 0`.
 - Empty and binary files have `regions: []`, and a binary file has no `maxLineLength`.
 
+## `layout` of a delimited file
+
+A file that the delimited profiler claims has its regions in file order, and `layout.maxLineLength` is the longest line in characters (UTF-16 code units of the decoded text, line break excluded: the same measure as for a text file). Regions tile the file: each starts at the first record of its kind and ends on the line before the next one starts, a blank line belongs to the region before it, the first region starts at byte 0 (a BOM included) and the last ends at the file size. Byte ranges are offsets in the file's own charset. For `lab/sweep-preamble.csv` (`tests/squalify.Tests/fixtures/lab/`):
+
+```json
+{ "regions": [
+    { "kind": "preamble", "lines": [1, 7], "bytes": [0, 98], "lineKinds": { "comment": 1, "keyValue": 4, "text": 2 },
+      "keys": ["Lot", "Wafer", "Temp", "Operator"] },
+    { "kind": "header", "lines": [8, 8], "bytes": [98, 127] },
+    { "kind": "units", "lines": [9, 9], "bytes": [127, 138] },
+    { "kind": "data", "lines": [10, 29], "bytes": [138, 435] },
+    { "kind": "footer", "lines": [30, 31], "bytes": [435, 448], "lineKinds": { "keyValue": 1, "text": 1 } } ],
+  "maxLineLength": 28 }
+```
+
+- `preamble`: the lines before the data run (written only when the run does not start on line 1). `lineKinds` counts the records and blank lines by kind (`blank`, `comment`, `keyValue`, `keyDelimValue`, `text`; a kind with none is omitted); `keys` lists the normalized keys of the `keyValue` and `keyDelimValue` records, in file order (an empty list when there are none); `values`, aligned with `keys`, is **values tier**.
+- `annotation`: the records between the start of the run and the header, except comment lines (a comment line inside the run is counted as `commentInData`, never listed with a label or cells) (see [`layout.regions[]`](#layoutregions)).
+- `header`: the header record. `units`: the units row. `data`: from the first record after those. `footer`: the non-blank records after the run, with `lineKinds`.
+- `hasHeader: false` leaves out `annotation`, `header` and `units`. A header with no data rows leaves out `data`.
+
 ## `binary.bytes`
 
 ```json
@@ -137,10 +158,11 @@ A text file that no other profiler claims has one `unknown` region over the whol
 
 ## Interim members
 
-Until the slices that own them land, three sections hold fixed interim values, so that every file yields a valid descriptor:
+Until the slices that own them land, these members hold fixed interim values (or `null`), so that every file yields a valid descriptor:
 
 - `kind` follows the byte-pass class: `empty` (`K12`), `binary` (`K11`) or `text` (`K09`), with confidence 1. sq-15 replaces it with the rule table.
 - `fingerprint` has `version` 0. `structure`, `layout` and `typed` are the SHA-256 of the compact JSON `{"family":"<family>"}`, and `names` is the SHA-256 of `[]`. sq-06 replaces these with the real projections and `version` 1.
+- `table.fields[]` of a delimited file (sq-04) holds real values for `index`, `name`, `nameHex`, `type` (the strict join of the votes), `dominant` (the plurality vote, a tie going to the narrower type, with its share of the non-null votes; `empty` with share 0 when there are none), `typeVotes`, `count` (non-null plus null cells of records with the header's field count), `nulls`, `nullsExcludingAllNullRows` and `unit` (values tier). Every other member is written as `null` until the slice that computes it lands (sq-05 for the statistics, sq-14 for `nameParts`): `nameParts`, `patterns`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `sourceType`, `top` and `text`. A consumer must read `null` as "not computed", not as "none found". `unit` is `null` without `--include-values` or when the units cell is null.
 - `hints` carries `extension` (lower case, with the dot, or `null`), `magic` (the magic name or `null`) and `fileNameShape` (the shape mask of the file name); every other member is `null`, and `stableLines` is `[]`. sq-06 adds the rest, and the structured `magic`.
 
 ## `layout.regions[]`
@@ -161,7 +183,7 @@ Until the slices that own them land, three sections hold fixed interim values, s
     { "line": 7, "label": "Upper", "blankFields": 1, "nullTokens": { "NA": 2 }, "typeVotes": { "float": 9 }, "type": "float" } ] }
   ```
 
-  `label` is always included. The row cells (`values`) are **values tier**.
+  `label` is the normalized first field when it is non-numeric, else `null`; it is always included. When there is a label, that cell is left out of `blankFields`, `nullTokens`, `typeVotes` and `type`. `blankFields` counts blank cells; `nullTokens` counts the other null-vocabulary cells by the vocabulary's spelling (`NA.`, `NaN`, ...); `typeVotes` counts the non-null cells by type; `type` is their strict join (`empty` when there are none). The row cells (`values`, every cell trimmed, the label included) are **values tier**.
 
 ## `layout.headerConvention`
 
@@ -213,7 +235,8 @@ Records are grouped by their set of non-null fields (sq-17). `fields` are inclus
 - `numeric` is for `int` and `float`. `temporal` (`orders`, `ambiguous`, `clock`, and `min`, `max`, `quantiles` as ISO 8601) is for `date`, `datetime` and `time`. When `ambiguous` is true, `min`, `max`, `quantiles` and the field's `monotonic` are null. Both are always included, except for constant fields.
 - `length` is null for a field that has no non-null values. `temporal.clock` is `12h` or `24h` for fields that carry a time of day and null for `date` fields.
 - `statsWithheld` is `"constant"` when every non-null value of the field is equal and values are not opted in for it; `numeric` and `temporal` are then null.
-- `nameHex` (present only when the name contains U+FFFD) is the hex of the name's original bytes.
+- `name` is the trimmed header text; it is `null` when the table has no header (later slices refer to the field as `#<index>`), and `""` for a blank header name (with the issue `emptyHeaderName`).
+- `nameHex` (present only when the name contains U+FFFD) is the hex (lower case) of the original bytes of the field as written, trimmed, quotes included.
 - `patterns` gives the counts of matched date, datetime and time patterns, keyed by pattern; it is null for fields with no such value. A pattern is the order-neutral layout of a value: `yyyy` for a 4-digit year, `nn` or `n` for a 1–2 digit day or month, with the separator kept (`n/n/yyyy` for `6/5/2026`, whichever order it is; the orders are in `temporal.orders`); `HH`/`H` (24-hour) or `hh`/`h` (12-hour) for the hour with `:mm`, `:ss`, `.f+` (a fraction of any length) and `tt` (an `AM`/`PM` marker, preceded by a space when the value has one); `Z`, `zz` (`+hh`), `zzzz` (`+hhmm`) or `zzz` (`+hh:mm`) for a zone offset; and a literal `T` or space between date and time. For example `yyyy-nn-nn`, `nn/n/yyyy hh:mm:ss tt` and `yyyy-nn-nnTHH:mm:ssZ`. The classifier (sq-16) produces one pattern per value; filling the map is sq-05.
 - `nullTokens` counts null values by token. The classifier reports which vocabulary entry matched each null; the spelling of the keys is set by sq-05, which fills the map.
 - `distinct` past the cap, before sq-11: `{ "value": null, "exceeds": 10000 }`. From sq-11: `{ "value": n, "approximate": true, "errorBound": 0.0081 }`.
@@ -232,6 +255,21 @@ Records are grouped by their set of non-null fields (sq-17). `fields` are inclus
 | keyValue | `separator` (`=` or `:`), `hasSections` |
 | parquet | `formatVersion`, `createdBy`, `numRows`, `rowGroups {count, rows {min, max}, compression[], encodings[]}`, `kvKeys[]` (KV values are values tier) |
 | stdf | `cpuType`, `endianness`, `version` |
+
+### delimited
+
+```json
+{ "delimiter": ",", "quote": "\"", "hasHeader": true, "unitsRow": false, "decimalSeparator": ".",
+  "padding": { "trim": true, "paddedShare": 0.9726027397260274, "constantLineLength": true, "lineLength": 74 },
+  "blocks": 1 }
+```
+
+- `delimiter` is `,`, a tab, `;`, `|`, or `whitespace` for runs of white space (the characters of the null-vocabulary trim set, leading and trailing white space trimmed).
+- `quote` is always `"` for a delimited file: it is the quote character that the tokenizer honors, whether or not the file has a quoted field (the delimiter evidence counts the quoted fields). Quoting is RFC 4180: a quote opens a field only at the start of a field, `""` inside a quoted field is an escape, and line breaks are allowed inside quotes. A closing quote followed by spaces or tabs and then the delimiter, or the end of the line, closes the field. A lone `"` inside a quoted field that is followed by neither `"`, nor (after optional spaces or tabs) the delimiter or the end of the line is literal text. A quoted field longer than `limits.runawayQuote` characters disqualifies that delimiter.
+- `hasHeader` is true when a header was chosen (see the `header` evidence below); `unitsRow` is true when the record after the header is a units row: every non-null field fails its column's type, is at most 16 characters and sits in a column that is not `string`, and at least one field is non-null. Blank cells and null-vocabulary tokens are neutral.
+- `decimalSeparator` is `,` only when the delimiter is not `,` and comma-decimal cells (`^[+-]?[0-9]+,[0-9]+$`) outnumber dot-decimal cells (`^[+-]?[0-9]+\.[0-9]+$`) in the header sample; otherwise `.`.
+- `padding` describes the data run (from its first to its last record). `paddedShare` is the share of cells that are non-empty after trimming and start or end with a trim-set character; `trim` is true when any cell is padded; `constantLineLength` is true when every non-blank physical line of the run has the same byte length, and `lineLength` is then that length **in bytes** (`null` otherwise). Unlike `layout.maxLineLength`, which counts characters, `padding.lineLength` counts the bytes of the file's own charset, line break excluded.
+- `blocks` is 1 until sq-13 (repeated blocks).
 
 ## `stdf`
 
@@ -292,6 +330,16 @@ Issues are sorted by `code`, ordinally. Each has a `count` and, for some, locati
 | `invalidUtf8` | The charset is `ascii` or `utf-8` and the file holds invalid UTF-8 sequences (within the tolerance). Not written for `latin-1`, where nothing is lost; `encoding.invalidBytes` still counts them. | Invalid sequences | `offsets`: byte offsets where the first 10 start, ascending |
 | `mixedLineEndings` | More than one of CRLF, lone LF and lone CR occurs. | Line endings that are not the dominant kind (most frequent; a tie goes to CRLF, then LF, then CR) | `firstLines`: the first 10 lines, ascending, that end with a non-dominant kind |
 
+The delimited profiler writes these:
+
+| Code | When | `count` | Locations |
+|---|---|---|---|
+| `raggedRows` | A record in the data run (after the header and units row) has a field count other than k. It is counted in `table.rows` and `table.fieldCount` but not typed. | Ragged records | `firstLines`: the first 10 lines, ascending |
+| `commentInData` | A comment line (`#`, `!` or `//` after trimming) lies inside the data run, before or after the header. It is neither a header candidate, an annotation row nor a data row, and not ragged; its text never reaches the descriptor. | Comment lines | `firstLines`: the first 10 lines, ascending |
+| `duplicateHeader` | Two header names are equal under ASCII case folding (only possible through the relaxed header pass). | Names that repeat an earlier name | `firstLines`: the header line |
+| `emptyHeaderName` | A header name is blank (relaxed header pass). | Blank names | `firstLines`: the header line |
+| `tooIrregular` | The delimited profiler declined the file: no candidate delimiter is viable and at least one was disqualified (a runaway quote, or more than `limits.fieldCountRuns` field-count runs). The generic text profile describes the file. | Disqualified candidates | `firstLines`: the lines where they were disqualified, ascending, at most 10 |
+
 ## `evidence[]`
 
 ```json
@@ -300,7 +348,7 @@ Issues are sorted by `code`, ordinally. Each has a `count` and, for some, locati
   { "value": ";", "score": 0, "reason": "k=1; no run" } ] }
 ```
 
-**Order of entries.** Entries are sorted by stage in pipeline order (`encoding`, then `format`, then the stages that later slices add), and within a stage by `topic`, ordinally.
+**Order of entries.** Entries are sorted by stage in pipeline order (`encoding`, `format`, `dialect`, `header`, then the stages that later slices add), and within a stage by `topic`, ordinally. A stage that is not in the list ranks after the known ones, so every new stage must be added to `Profiler.StageOrder` and listed here.
 
 **Order of `candidates`.** The order is never insertion order. Each topic documents its own key, and a topic with a fixed set of candidates uses a fixed table. A later slice documents its topics here when it adds them.
 
@@ -308,7 +356,11 @@ Issues are sorted by `code`, ordinally. Each has a `count` and, for some, locati
 |---|---|---|
 | `encoding` / `class` | `binary`, `empty`, `text`; the chosen one scores 1, the others 0 | `value`, ordinally |
 | `encoding` / `charset` (text files only) | Rule 3 or 4: only the charset that the rule implies. Rule 6: `ascii`, `latin-1`, `utf-8`; the chosen one scores 1, the others 0. The reason of the chosen candidate carries the invalid-sequence count and the tolerance when they matter | `value`, ordinally |
-| `format` / `family` | Every registered profiler: its family as `value`, its score and its reason. `chosen` is the family with the highest score, a tie going to the earlier family; for a zero-length file it is `empty`, which no profiler claims, and every candidate scores 0 | Registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary` (only registered profilers appear; at present `text` and `binary`) |
+| `format` / `family` | Every registered profiler: its family as `value`, its score and its reason. `chosen` is the family with the highest score, a tie going to the earlier family; for a zero-length file it is `empty`, which no profiler claims, and every candidate scores 0 | Registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary` (only registered profilers appear; at present `delimited`, `text` and `binary`) |
+
+| `dialect` / `delimiter` (delimited text files, when the profiler wins, or when it declined a file as too irregular) | The five delimiter candidates as `value`: `,`, a tab, `;`, `|`, `whitespace`. `score` is the candidate's dialect score (0 for a disqualified one); `chosen` is the winner, `null` when none is viable. The reason is `k={k}; {inRun}/{total} records; clean={c}; run lines {a}-{b}`, with `; {n} quoted fields` always appended and `; {n} literal quotes` appended when the candidate saw any; `k={k}; no run` (with the same quoted-fields and literal-quotes suffixes); `disqualified: runaway quote opened at line {n}`; or `disqualified: too irregular, more than {limit} field-count runs by line {n}` | Candidate order: `,`, tab, `;`, `|`, `whitespace` |
+| `dialect` / `decimalSeparator` (delimited) | `,` and `.`; the chosen one scores 1. The reasons carry the counts of comma-decimal and dot-decimal cells in the header sample | `value`, ordinally |
+| `header` / `candidates` (delimited) | Every eligible record of the header sample, with `value` = its 1-based line and `score` = its header score; the chosen record too when it is not eligible (relaxed or assumed); then one entry with `value` `summary` and score 0. The reason of a record is `eligible; nonEmpty=..; nonNumeric=..; unique=..; contrast=..`, `relaxed: blank or repeated names; ...` or `assumed: all-string table; ...`. The reason of the summary counts only: `sampled={n}; eligible={e}; ineligible={i} (comment line={a}, field count={b}, blank or repeated names={c}, fits every typed column={d})`. `chosen` is the header line, `null` when there is no header | Records by line, ascending (numerically); `summary` last |
 
 Reasons are fixed templates filled with value-free numbers (counts and offsets), never data values.
 
@@ -331,4 +383,4 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.
 - Consumers must ignore unknown keys within a major version.
 - `fingerprint.version` changes whenever a projection changes. Hashes from different versions cannot be compared.
-- sq-12 makes this policy normative.
+- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages) do not bump `schemaVersion`, which stays `1.0`.

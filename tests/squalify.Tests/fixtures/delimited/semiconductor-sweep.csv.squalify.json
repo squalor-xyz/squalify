@@ -1,0 +1,690 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "squalify",
+    "version": "0.1.0"
+  },
+  "options": {
+    "includeValues": false,
+    "includeValuesFor": []
+  },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": {
+      "invalidSequences": 8,
+      "perBytes": 65536
+    },
+    "stdfTests": 10000,
+    "budget": {
+      "quantileValues": 10000000,
+      "distinctValues": 2000000
+    },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "semiconductor-sweep.csv",
+    "size": 10294,
+    "sha256": "367522f6acdd5f3f48ce1da6bbece7bff440784cdd1a2d2c93d743dee522e1ab"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": {
+      "crlf": 82,
+      "lf": 0,
+      "cr": 0
+    },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "delimited",
+    "dialect": {
+      "delimiter": ",",
+      "quote": "\"",
+      "hasHeader": true,
+      "unitsRow": false,
+      "decimalSeparator": ".",
+      "padding": {
+        "trim": false,
+        "paddedShare": 0,
+        "constantLineLength": false,
+        "lineLength": null
+      },
+      "blocks": 1
+    },
+    "score": 0.7
+  },
+  "kind": {
+    "label": "text",
+    "ruleId": "K09",
+    "confidence": 1
+  },
+  "layout": {
+    "regions": [
+      {
+        "kind": "header",
+        "lines": [
+          1,
+          1
+        ],
+        "bytes": [
+          0,
+          131
+        ]
+      },
+      {
+        "kind": "data",
+        "lines": [
+          2,
+          82
+        ],
+        "bytes": [
+          131,
+          10294
+        ]
+      }
+    ],
+    "maxLineLength": 132
+  },
+  "table": {
+    "rows": 81,
+    "fieldCount": {
+      "min": 13,
+      "max": 13
+    },
+    "fields": [
+      {
+        "index": 0,
+        "name": "stimulusGrp(id)",
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 1,
+        "name": "sweep(id)",
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 2,
+        "name": "SN",
+        "nameParts": null,
+        "type": "string",
+        "dominant": {
+          "type": "string",
+          "share": 1
+        },
+        "typeVotes": {
+          "string": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 3,
+        "name": "Date(date)",
+        "nameParts": null,
+        "type": "date",
+        "dominant": {
+          "type": "date",
+          "share": 1
+        },
+        "typeVotes": {
+          "date": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 4,
+        "name": "Teststand",
+        "nameParts": null,
+        "type": "string",
+        "dominant": {
+          "type": "string",
+          "share": 1
+        },
+        "typeVotes": {
+          "string": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 5,
+        "name": "Temp(degC)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 6,
+        "name": "Vcc(V)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 7,
+        "name": "Frequency(MHz)",
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 8,
+        "name": "Pout(dBm)",
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 81
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 9,
+        "name": "Pin(dBm)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 0.9012345679012346
+        },
+        "typeVotes": {
+          "float": 73,
+          "int": 8
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 10,
+        "name": "Gain(dB)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 0.8765432098765432
+        },
+        "typeVotes": {
+          "float": 71,
+          "int": 10
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 11,
+        "name": "I_Total(A)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 0.9135802469135802
+        },
+        "typeVotes": {
+          "float": 74,
+          "int": 7
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 12,
+        "name": "EVM(dB)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 0.8641975308641975
+        },
+        "typeVotes": {
+          "float": 70,
+          "int": 11
+        },
+        "patterns": null,
+        "count": 81,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 0,
+    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "hints": {
+    "extension": ".csv",
+    "magic": null,
+    "stableLines": [],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": null,
+    "fieldCount": null,
+    "dataStartLine": null,
+    "delimiter": null,
+    "headerConvention": null,
+    "parquetColumns": null,
+    "stdf": null,
+    "fileNameShape": "a{13}-a{5}.a{3}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        {
+          "value": "ascii",
+          "score": 1,
+          "reason": "no bytes at or above 0x80"
+        },
+        {
+          "value": "latin-1",
+          "score": 0,
+          "reason": "UTF-8 or ASCII decoding accepted"
+        },
+        {
+          "value": "utf-8",
+          "score": 0,
+          "reason": "no bytes at or above 0x80"
+        }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "empty",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "text",
+          "score": 1,
+          "reason": "rule 6: no NUL bytes; 0 of 10294 bytes are control bytes"
+        }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "delimited",
+      "candidates": [
+        {
+          "value": "delimited",
+          "score": 0.7,
+          "reason": "delimiter comma; k=13; 82/82 records; clean=1; run lines 1-82; 0 quoted fields"
+        },
+        {
+          "value": "text",
+          "score": 0.1,
+          "reason": "text content"
+        },
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not binary: text content"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "decimalSeparator",
+      "chosen": ".",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0,
+          "reason": "0 comma-decimal cells; the delimiter is a comma"
+        },
+        {
+          "value": ".",
+          "score": 1,
+          "reason": "450 dot-decimal cells"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "delimiter",
+      "chosen": ",",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 1,
+          "reason": "k=13; 82/82 records; clean=1; run lines 1-82; 0 quoted fields"
+        },
+        {
+          "value": "\t",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": ";",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "|",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "whitespace",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        }
+      ]
+    },
+    {
+      "stage": "header",
+      "topic": "candidates",
+      "chosen": "1",
+      "candidates": [
+        {
+          "value": "1",
+          "score": 1,
+          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
+        },
+        {
+          "value": "81",
+          "score": 0.12587412587412586,
+          "reason": "eligible; nonEmpty=1; nonNumeric=0.23076923076923078; unique=1; contrast=0.09090909090909091"
+        },
+        {
+          "value": "summary",
+          "score": 0,
+          "reason": "sampled=82; eligible=2; ineligible=80 (comment line=0, field count=0, blank or repeated names=13, fits every typed column=67)"
+        }
+      ]
+    }
+  ]
+}
