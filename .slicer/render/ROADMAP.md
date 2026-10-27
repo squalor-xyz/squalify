@@ -69,7 +69,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 17 | sq-21 | Header-name grammar hint | L | 3 | core |  | later |
 | 18 | sq-23 | sq-02 review nits | S | 1 | core | sq-02 architect nits: (1) how-it-works.md:34 small text 'hints builder' is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02 | — |
 | 19 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · Owner decision (2026-10-27), verbatim: "Fold into sq-34". Scope moved to sq-34. · discovered from sq-27 | retired |
-| 20 | [sq-38](slices/sq-38.md) | Sketches under the memory budget | M | - | core | discovered from sq-11 | — |
+| 20 | [sq-38](slices/sq-38.md) | Sketches under the memory budget | M | 2 | core | discovered from sq-11 | — |
 
 ---
 
