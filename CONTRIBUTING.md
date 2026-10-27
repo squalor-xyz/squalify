@@ -6,7 +6,7 @@ Coding agents: [`AGENTS.md`](AGENTS.md) adds the agent-specific rules on top of 
 
 ## Prerequisites
 
-The .NET SDK pinned by [`global.json`](global.json) (10.0.x). Nothing else is needed to build and test. Rendering the diagram docs needs quire (see [Docs](#docs)).
+The .NET SDK pinned by [`global.json`](global.json) (10.0.x). Nothing else is needed to build and test. Rendering the diagram docs also needs quire (see [Docs](#docs)).
 
 ## Layout
 
@@ -55,7 +55,8 @@ Run the first three before you send a change; CI runs them on all three operatin
 
 - The README is a front page and is packed into both NuGet packages: keep it short, and link to the guides with absolute `https://github.com/squalor-xyz/squalify/blob/main/...` URLs. Other docs use relative links.
 - Guides ([getting started](docs/getting-started.md), [user guide](docs/user-guide.md), [examples](docs/examples.md)): every command and output excerpt must come from a real run on a committed fixture. Move content instead of duplicating it.
-- `docs/how-it-works.md` explains the pipeline with Mermaid diagrams, and its `.html` and `.pdf` are generated from it with quire's `squalor` profile and committed together. Run `./scripts/render-docs.sh` (quire on `PATH`, with its Mermaid renderer installed and the `squalor` profile in its config), check that the HTML has one `<svg` per Mermaid block and that the PDF shows no clipped diagram, and never edit the renders by hand. To render another doc, add its name to `DOCS` in the script.
+- `docs/how-it-works.md` explains the pipeline with Mermaid diagrams, and its `.html` and `.pdf` are generated from it with quire's `squalor` profile and committed together. Run `./scripts/render-docs.sh`, then check that the HTML has one `<svg` per Mermaid block and that the PDF shows no clipped diagram, and never edit the renders by hand. To render another doc, add its name to `DOCS` in the script.
+- Rendering needs quire on `PATH` (it may live in `~/.local/bin`, which a non-interactive shell does not have: prefix the command with `PATH="$HOME/.local/bin:$PATH"`), its Mermaid renderer (`python3 install.py --with-mermaid` in the quire checkout), and the `squalor` profile in quire's user config.
 - Diagram rules: plain-language labels with the type or method name in `<small>` text; one idea per diagram; each diagram names its source file, or "(planned)" until the code exists.
 
 ## Tracking and slices

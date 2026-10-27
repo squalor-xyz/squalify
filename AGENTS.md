@@ -40,3 +40,4 @@ Slices normally run as a slice relay (`slicer ai relay`).
 - **Briefs:** the slice from `slicer show <id> --json --lean`. Reviewers also get `slicer goals --json --lean`, `slicer list --json --lean`, `docs/design.md`, `docs/descriptor.md` and `docs/how-it-works.md`.
 - **Architect:** checks `docs/how-it-works.md` and its diagrams against the change, and reports drift as a finding (see Docs).
 - **Size S** slices run a lite relay without the architect. M and L slices run the full relay.
+- **Relay log:** `docs/process/relay-log.md` holds lessons from slice relays. The orchestrator reads it before a relay and updates it afterwards.

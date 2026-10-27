@@ -18,10 +18,15 @@ squalify profile tests/squalify.Tests/fixtures/lab/sweep-preamble.csv | jq -c '.
 {"kind":"footer","lines":[30,31],"keys":null}
 ```
 
-One column in full (`.table.fields[1]`, compacted):
+One column (`.table.fields[1]`), picking some of its members:
+
+```bash
+squalify profile tests/squalify.Tests/fixtures/lab/sweep-preamble.csv \
+  | jq -c '.table.fields[1] | {name, nameParts, type, numeric: {min: .numeric.min, max: .numeric.max}, monotonic, unique}'
+```
 
 ```json
-{"name":"Pout(dBm)","nameParts":{"base":"Pout","unit":"dBm","convention":"nameParenUnit"},"type":"float","min":10,"max":19.5,"monotonic":"increasing","unique":true}
+{"name":"Pout(dBm)","nameParts":{"base":"Pout","unit":"dBm","convention":"nameParenUnit","unknownUnit":false},"type":"float","numeric":{"min":10,"max":19.5},"monotonic":"increasing","unique":true}
 ```
 
 The unit comes from the header (`dBm`), the type is inferred from all 20 rows, and the column is strictly increasing. A loader for this file needs: skip the preamble, read the header on line 8, skip the units row, read lines 10 to 29.

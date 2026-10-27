@@ -29,7 +29,7 @@ squalify profile sweep-preamble.csv | jq -c '{family: .format.family, rows: .tab
 {"family":"delimited","rows":20,"regions":[["preamble",1,7],["header",8,8],["units",9,9],["data",10,29],["footer",30,31]],"issues":[]}
 ```
 
-`squalify profile data.csv` alone writes the whole descriptor (about 600 lines for this 31-line file) to stdout; `-o descriptor.json` writes it to a file. The exit code is 0 on success and 1 on any error.
+`squalify profile data.csv` alone writes the whole descriptor (about 620 lines for this 31-line file) to stdout; `-o descriptor.json` writes it to a file. The exit code is 0 on success and 1 on any error.
 
 ## What it is for
 
