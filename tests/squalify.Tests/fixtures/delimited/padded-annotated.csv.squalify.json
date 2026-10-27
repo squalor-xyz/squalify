@@ -536,22 +536,71 @@
     ]
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    "version": 1,
+    "structure": "sha256:bb60ef86ad44a378096d31806b1100728c2c93b7d7abcdf2386a6d9cbe31aa09",
+    "layout": "sha256:15d23a33beac58439d7180bc26758288b396c275ed280abdeb398bea41af4a8a",
+    "typed": "sha256:79c2ff1a06b6d1f8352e8dd7c5944f289c274b8e1fd1f92bf9be42cd35065d46",
+    "names": "sha256:a70d7609489ed0463a4c1991e28d695a50a7054e5d43ce47a3e4f6286ef5eec0"
   },
   "hints": {
     "extension": ".csv",
     "magic": null,
-    "stableLines": [],
-    "headerFields": null,
-    "headerPrefix": null,
-    "nonNullFields": null,
-    "fieldCount": null,
-    "dataStartLine": null,
-    "delimiter": null,
+    "stableLines": [
+      {
+        "line": 0,
+        "regex": "^\\s*Lot\\s*[=:]"
+      },
+      {
+        "line": 1,
+        "regex": "^\\s*Wafer\\s*[=:]"
+      },
+      {
+        "line": 2,
+        "regex": "^\\s*Tester\\s*[=:]"
+      },
+      {
+        "line": 3,
+        "regex": "^\\s*Program\\s*[=:]"
+      },
+      {
+        "line": 4,
+        "regex": "^\\s*Date\\s*[=:]"
+      },
+      {
+        "line": 9,
+        "regex": "^ *\"?Site\"? *, *\"?Pout\\(dBm\\)\"? *, *\"?Gain\\(dB\\)\"? *, *\"?Icc\\(mA\\)\"? *, *\"?Vcc\\(V\\)\"? *"
+      },
+      {
+        "line": 9,
+        "regex": "^Site          ,Pout\\(dBm\\)     ,Gain\\(dB\\)      ,Icc\\(mA\\)       ,Vcc\\(V\\)        $"
+      }
+    ],
+    "headerFields": [
+      "Site",
+      "Pout(dBm)",
+      "Gain(dB)",
+      "Icc(mA)",
+      "Vcc(V)"
+    ],
+    "headerPrefix": [
+      "Site",
+      "Pout(dBm)",
+      "Gain(dB)",
+      "Icc(mA)",
+      "Vcc(V)"
+    ],
+    "nonNullFields": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "fieldCount": {
+      "min": 4,
+      "max": 5
+    },
+    "dataStartLine": 11,
+    "delimiter": ",",
     "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,

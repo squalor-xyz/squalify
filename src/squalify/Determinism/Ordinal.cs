@@ -18,6 +18,39 @@ internal static class Ordinal
         return value.ToLowerInvariant();
     }
 
+    /// <summary>Folds the ASCII letters A to Z to lower case and leaves every other character as it is.</summary>
+    /// <param name="value">The text to fold.</param>
+    /// <returns>The folded text.</returns>
+    public static string AsciiFold(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        var first = -1;
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (value[i] is >= 'A' and <= 'Z')
+            {
+                first = i;
+                break;
+            }
+        }
+
+        if (first < 0)
+        {
+            return value;
+        }
+
+        var chars = value.ToCharArray();
+        for (var i = first; i < chars.Length; i++)
+        {
+            if (chars[i] is >= 'A' and <= 'Z')
+            {
+                chars[i] = (char)(chars[i] + ('a' - 'A'));
+            }
+        }
+
+        return new string(chars);
+    }
+
     /// <summary>Compares two strings ordinally (UTF-16 code unit order).</summary>
     /// <param name="left">The first string.</param>
     /// <param name="right">The second string.</param>

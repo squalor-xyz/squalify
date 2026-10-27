@@ -369,22 +369,62 @@
     ]
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    "version": 1,
+    "structure": "sha256:4bb113e362c81b0f64b1b23f4e9ae219097fd4aebe8f2f592ff8b5947c8e4740",
+    "layout": "sha256:e1897adc103ec60b290edf56308743d78af2d9d23375790f72b8d6c0e779d5a0",
+    "typed": "sha256:9f8de819f1eaca5a6436ec7e9a99f8f52dfb2cc089a841a48fe3812586742e3d",
+    "names": "sha256:86a843b70ecdd89e9579476e7da402f625af37f405ab72b84578054646265786"
   },
   "hints": {
     "extension": ".csv",
     "magic": null,
-    "stableLines": [],
-    "headerFields": null,
-    "headerPrefix": null,
-    "nonNullFields": null,
-    "fieldCount": null,
-    "dataStartLine": null,
-    "delimiter": null,
+    "stableLines": [
+      {
+        "line": 1,
+        "regex": "^\\s*Lot\\s*[=:]"
+      },
+      {
+        "line": 2,
+        "regex": "^\\s*Wafer\\s*[=:]"
+      },
+      {
+        "line": 3,
+        "regex": "^\\s*Temp\\s*[=:]"
+      },
+      {
+        "line": 6,
+        "regex": "^\\s*Operator\\s*[=:]"
+      },
+      {
+        "line": 7,
+        "regex": "^ *\"?Freq\\(MHz\\)\"? *, *\"?Pout\\(dBm\\)\"? *, *\"?Gain\\(dB\\)\"? *"
+      },
+      {
+        "line": 7,
+        "regex": "^Freq\\(MHz\\),Pout\\(dBm\\),Gain\\(dB\\)$"
+      }
+    ],
+    "headerFields": [
+      "Freq(MHz)",
+      "Pout(dBm)",
+      "Gain(dB)"
+    ],
+    "headerPrefix": [
+      "Freq(MHz)",
+      "Pout(dBm)",
+      "Gain(dB)"
+    ],
+    "nonNullFields": [
+      0,
+      1,
+      2
+    ],
+    "fieldCount": {
+      "min": 3,
+      "max": 3
+    },
+    "dataStartLine": 10,
+    "delimiter": ",",
     "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,

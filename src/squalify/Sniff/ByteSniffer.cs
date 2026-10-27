@@ -99,6 +99,7 @@ internal static class ByteSniffer
         var headSpan = head.AsSpan(0, headLength);
         var tailSpan = tail.AsSpan(0, tailLength);
         var (bom, bomLength) = DetectBom(headSpan);
+        var magic = MagicTable.Find(headSpan, tailSpan, offset);
         return new SniffFacts(
             Length: offset,
             Sha256: Convert.ToHexStringLower(hash.GetHashAndReset()),
@@ -113,7 +114,8 @@ internal static class ByteSniffer
             InvalidOffsets: utf8.Offsets.ToArray(),
             Bom: bom,
             BomLength: bomLength,
-            Magic: MagicTable.Match(headSpan, tailSpan, offset));
+            Magic: magic?.Name,
+            MagicDetail: magic is null ? null : MagicTable.Describe(magic));
     }
 
     private static int ReadFully(Stream stream, Span<byte> destination)

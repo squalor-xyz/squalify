@@ -16,6 +16,7 @@ namespace squalor.squalify;
 /// <param name="Bom">The BOM name, or null.</param>
 /// <param name="BomLength">The BOM length in bytes (0 when there is none).</param>
 /// <param name="Magic">The named binary magic, or null.</param>
+/// <param name="MagicDetail">The name, offset and hex of the matched magic, or null.</param>
 internal sealed record SniffFacts(
     long Length,
     string Sha256,
@@ -30,7 +31,8 @@ internal sealed record SniffFacts(
     IReadOnlyList<long> InvalidOffsets,
     string? Bom,
     int BomLength,
-    string? Magic)
+    string? Magic,
+    MagicHint? MagicDetail = null)
 {
     /// <summary>The NUL byte count.</summary>
     public long Nul => Histogram[0];
@@ -70,6 +72,9 @@ internal sealed class SniffResult
 
     /// <summary>The named binary magic, or null.</summary>
     public string? Magic => Facts.Magic;
+
+    /// <summary>The name, offset and hex of the matched magic, or null.</summary>
+    public MagicHint? MagicDetail => Facts.MagicDetail;
 
     /// <summary>
     /// The number of invalid UTF-8 sequences that keep an <c>ascii</c> or <c>utf-8</c> charset:
