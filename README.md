@@ -38,7 +38,7 @@ var bytes = DescriptorWriter.ToBytes(descriptor);
 
 **Version policy.** The package version is the version the tool reports: `squalify --version`, `ToolInfo.Version`, and `tool.version` in every descriptor. All three come from `<Version>` in `Directory.Build.props`, so one string names each build. The first package is 0.1.0, while the descriptor schema is still a draft.
 
-**Not published yet.** The package is not on nuget.org. Build it and reference it from a local folder feed:
+**Not published yet.** The CLI also packs as the `squalify` .NET tool, and both packages are unpublished. Build the library package and reference it from a local folder feed:
 
 ```bash
 dotnet pack src/squalify/squalify.csproj -c Release -o ./nupkg

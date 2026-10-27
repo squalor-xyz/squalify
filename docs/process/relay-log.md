@@ -33,6 +33,9 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 | 2026-10-27 | Owner questions are asked while the next role runs, not between roles | sq-04 |
 | 2026-10-27 | Role time is read from the harness duration, not the role's own report | sq-04 |
 | 2026-10-27 | The implementer brief includes a local real-sample sanity table (no names or values) | sq-04 |
+| 2026-10-27 | Owner decisions are quoted verbatim in briefs, never paraphrased | sq-06 |
+| 2026-10-27 | Parallel landing: commit the branch and merge main before the last fix round, then gate once on the merged result | sq-05, sq-06 |
+| 2026-10-27 | Clones run `slicer setup-git` and its git config, so `.slicer` files merge without conflicts | sq-26 |
 
 ## Proposed upstream (slicer)
 
@@ -40,11 +43,39 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 - `slicer show ID --json` reports `ready: false` for a slice that `slicer list` and `slicer next` treat as ready (sq-16, 2026-10-26). Document what the field means, or align it.
 - A small fix round is re-checked by "the reviewer" (Order). Allow any read-only role that already holds the findings, such as the gate, when that role is cheaper. In sq-16 that took 30 s instead of a reviewer that had run for 72 min.
 - An owner answer that arrives after the finish step needs `slicer set --status started`, then a fix round, a re-gate and `slicer done` again. Consider a contract line that asks non-blocking owner questions before the gate, so the common case avoids the rollback.
-- Merging main into a parallel slice branch conflicts in the generated `.slicer/render/ROADMAP.{md,html}`. Taking either side and re-running `slicer render` fixes it. A git merge driver for the renders (perhaps via `slicer setup-git`) would remove the step (2026-10-27).
+- Withdrawn (2026-10-27): the render merge conflicts came from this clone never running `slicer setup-git` (slicer S121 already provides the drivers). Filed upstream instead: notes on slicer s412 and the new item s416.
 - `slicer land` rejects `--render`, unlike the other mutations (2026-10-27).
 - A Check item that needs another slice to land first (sq-18's corpus run after sq-04) has no place in the contract. The finish step was deferred until after the merge.
 
 ## Entries
+
+### Parallel run: sq-14, sq-05, sq-17, sq-06, sq-25, sq-27, sq-26 (2026-10-27)
+
+Seven slices landed in one session, with two running at any time. The prism blockers (sq-05, sq-14, sq-17, sq-25, sq-26) are all landed.
+
+- Lineup: M slices implementer sonnet/high, reviewer opus/medium, architect opus/high, gate opus/medium. S slices: lite relay, implementer haiku/xhigh (sq-18, sq-26) or sonnet/high (sq-25, sq-27, chosen for judgment-heavy work).
+- Metrics:
+  - **Wall time (harness), implementer:** 7 to 19 min for M slices, 7 to 11 min for S slices (sq-26: 38 min including cross-platform test plumbing).
+  - **Read-only roles:** 1 to 5 min each, every time. Gates passed first time on every slice except sq-25 (one confidentiality line) and the sq-06 gate's flaky-test observation.
+  - **Owner attention:** about 15 short sittings, each asked while another role ran. The owner overrode a recommendation twice (null-token keys by vocabulary entry; parsed-value `constant`).
+  - **Merges:** sq-05 (after sq-14), sq-06 (after sq-17), sq-25 (after sq-06), sq-26 (after sq-27).
+- Frictions:
+  - **My briefs and specs had errors** that roles caught: a paraphrased owner decision (`Count > 0` instead of non-null values, sq-06 K2), a naive run-start rule in the sq-27 spec I wrote (absorbed preamble lines), an invented "CLI stays non-packable" (sq-26), and an owner option worded without testing its own example (sq-04 clean share).
+  - **Generated renders conflicted on every parallel merge** until `slicer setup-git`'s merge drivers were configured (this clone never had them). The first merge afterwards (sq-26) had zero conflicts.
+  - **A flaky test landed on main** (sq-17's allocation bound, hit by JIT tier-up). The sq-06 gate saw one failure in 21 runs; the orchestrator reproduced it and fixed the bound at land.
+  - **Gate-merge-regate** (sq-05) cost an extra role run; committing the branch and merging main before the fix round (sq-06 onward) let one gate cover the merged result.
+- Wins:
+  - **Asking owner questions while the next role runs** cost no wall time and avoided every post-finish rollback.
+  - **Architects reading the parallel slice's in-progress diff** found a cross-slice product issue (sq-06 `nonNullFields` empty on DangerTest files) before that slice reached review, and predicted merge conflicts, both semantic ones included, correctly.
+  - **Consumer probing:** the sq-25 reviewer tested each contract formula against the code and the consumer's decisions, and found three overclaims plus internal decision IDs in an Apache-licensed doc.
+  - **Implementers verified and pushed back with evidence:** the 11-of-13 arithmetic (sq-14), the `nulls == 0` never-null test (sq-25), the lead rule (sq-27).
+  - **Real-sample sanity tables** (local, aggregates only) on every slice caught nothing wrong, and made regressions cheap to rule out.
+- Changes, from the next slice on:
+  - **Quote filed owner decisions verbatim** in briefs; never paraphrase.
+  - **Treat orchestrator-written specs like any other:** check a proposed rule against the existing fixtures before filing it.
+  - **Parallel landing:** commit the branch and merge main before the last fix round, then gate once on the merged result.
+  - **Every re-gate brief keeps the standard scans** (non-ASCII, banned APIs) and runs the library suite at least 3 times.
+  - **New clones run `slicer setup-git`** and the git config it prints.
 
 ### sq-18: Private-corpus harness (2026-10-27)
 

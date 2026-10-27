@@ -1979,6 +1979,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "10688d98-c528-434f-bd0d-7d3c8651492e",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-26 gate: the pack test does not assert that README.md and lib/net10.0/squalor.squalify.xml are in the nupkg or that the license expression is set; add before publishing.",
+          "created_at": "2026-10-27T17:26:39Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
