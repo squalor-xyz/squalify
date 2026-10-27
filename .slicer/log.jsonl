@@ -425,3 +425,6 @@
 {"when": "2026-10-27T21:43:01Z", "item": "sq-24", "action": "promote", "from": "", "to": "", "note": ""}
 {"when": "2026-10-27T21:43:02Z", "item": "sq-22", "action": "promote", "from": "", "to": "", "note": ""}
 {"when": "2026-10-27T21:43:02Z", "item": "sq-35", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27), verbatim: scope \"Scope block, ", "by": "Jon Robbins"}
+{"when": "2026-10-27T21:53:01Z", "item": "sq-32", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27) after the step 1 measurement, v", "by": "Jon Robbins"}
+{"when": "2026-10-27T21:53:01Z", "item": "sq-36", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim, on whether whitespace", "by": "Jon Robbins"}
+{"when": "2026-10-27T21:53:01Z", "item": "sq-37", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"No, always written (", "by": "Jon Robbins"}
