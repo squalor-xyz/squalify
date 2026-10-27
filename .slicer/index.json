@@ -1126,6 +1126,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "37b79f95-1b68-483d-a7b4-ba371b8612ad",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-26 review (P7): the Package consumer test restores with <clear/> plus the local feed only; once the library references DuckDB.NET.Data.Full the restore fails. Add the outer restore's global-packages folder as a second offline source, or pre-seed the isolated packages folder.",
+          "created_at": "2026-10-27T17:13:12Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -2057,7 +2068,30 @@
       "depends_on": [
         "sq-02"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "6bb22a7b-e1be-4851-b1be-37d1cb18d987",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27): descriptor bytes are guaranteed only within one .NET runtime major version; document it (consumers pin the package and the runtime). No in-repo escape table. Fingerprints are already runtime-stable (sq-06 ProjectionJson).",
+          "created_at": "2026-10-27T16:35:19Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "6f5e0086-5e60-4a75-bb81-e50f2c863be4",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-26 review (P5): when documenting the per-runtime-major guarantee, add it to the README 'Use as a library' version policy, where library consumers read it.",
+          "created_at": "2026-10-27T17:13:13Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -2350,13 +2384,28 @@
       "id": "sq-26",
       "title": "NuGet package for library consumers",
       "short_title": "NuGet package for library consumers",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-25"
       ],
-      "note_records": [],
-      "claim": null,
+      "note_records": [
+        {
+          "id": "daecf127-d81f-41ac-9f67-61729f8451fe",
+          "kind": "",
+          "text": "**2026-10-27** — For the owner's publish step (review P4, P6): the packed README's relative docs/ links break on nuget.org; no snupkg/symbols yet, and the SDK stamps <repository commit=...> so nupkg bytes differ per commit. Decide both when publishing.",
+          "created_at": "2026-10-27T17:13:13Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-27T16:32:09Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -2375,7 +2424,7 @@
         "importance": 2,
         "urgency": 1,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

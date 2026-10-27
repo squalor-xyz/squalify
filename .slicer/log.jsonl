@@ -310,3 +310,11 @@
 {"when": "2026-10-27T16:24:39Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "From sq-06 gate: the writer goldens full-delimited and full-", "by": "Jon Robbins"}
 {"when": "2026-10-27T16:24:39Z", "item": "sq-06", "action": "status", "from": "started", "to": "done", "note": "Gate PASS 2026-10-27 (run-20261027-154422-8780) on the merge with main (sq-17): 800 library + 11 CLI, 0 warnings. At land the orchestrator fixed a flaky sq-17 allocation test (1 KiB bound hit by JIT tier-up; now < 1 byte per row), 10/10 runs green.", "by": "Jon Robbins"}
 {"when": "2026-10-27T16:30:25Z", "item": "sq-25", "action": "status", "from": "started", "to": "done", "note": "Gate PASS 2026-10-27 (run-20261027-160302-682e) on the merge with main (sq-06), after a one-line confidentiality fix: 834 library + 11 CLI (3 runs), no product code changed; owner decisions recorded.", "by": "Jon Robbins"}
+{"when": "2026-10-27T16:31:30Z", "item": "sq-26", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-27T16:32:09Z", "item": "sq-26", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
+{"when": "2026-10-27T16:35:12Z", "item": "sq-26", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-27T16:35:19Z", "item": "sq-22", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27): descriptor bytes are guaranteed", "by": "Jon Robbins"}
+{"when": "2026-10-27T17:10:46Z", "item": "sq-26", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-27T17:13:12Z", "item": "sq-08", "action": "note", "from": "", "to": "", "note": "From sq-26 review (P7): the Package consumer test restores w", "by": "Jon Robbins"}
+{"when": "2026-10-27T17:13:13Z", "item": "sq-22", "action": "note", "from": "", "to": "", "note": "From sq-26 review (P5): when documenting the per-runtime-maj", "by": "Jon Robbins"}
+{"when": "2026-10-27T17:13:13Z", "item": "sq-26", "action": "note", "from": "", "to": "", "note": "For the owner's publish step (review P4, P6): the packed REA", "by": "Jon Robbins"}

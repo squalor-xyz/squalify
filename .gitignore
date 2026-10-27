@@ -53,3 +53,6 @@ Thumbs.db
 
 # scratch files for agents and scripts (never /tmp)
 /.scratch/
+
+# private sample data (kept local; never commit)
+/data-descriptors/

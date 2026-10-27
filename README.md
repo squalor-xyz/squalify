@@ -25,6 +25,26 @@ squalify profile data.csv --verbose            # print full exception details on
 squalify --version
 ```
 
+## Use as a library
+
+The NuGet package `squalor.squalify` holds the profiler that the CLI uses, so a .NET program can write a descriptor in process:
+
+```csharp
+using squalor.squalify;
+
+var descriptor = Profiler.Profile("data.csv", ProfileOptions.Create(includeValues: false, includeValuesFor: []));
+var bytes = DescriptorWriter.ToBytes(descriptor);
+```
+
+**Version policy.** The package version is the version the tool reports: `squalify --version`, `ToolInfo.Version`, and `tool.version` in every descriptor. All three come from `<Version>` in `Directory.Build.props`, so one string names each build. The first package is 0.1.0, while the descriptor schema is still a draft.
+
+**Not published yet.** The package is not on nuget.org. Build it and reference it from a local folder feed:
+
+```bash
+dotnet pack src/squalify/squalify.csproj -c Release -o ./nupkg
+dotnet add package squalor.squalify --version 0.1.0 --source ./nupkg
+```
+
 ## Formats in v1
 
 | Family | Examples | What is described |
