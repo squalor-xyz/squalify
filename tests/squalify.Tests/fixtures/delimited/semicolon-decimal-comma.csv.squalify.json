@@ -341,22 +341,46 @@
     ]
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    "version": 1,
+    "structure": "sha256:e43294be115b54919e0a775dd5a433bc53bae8f682e629739e3b4f23c5147e6e",
+    "layout": "sha256:c38285e29725bee55c22ed9c71f160f0728d5dd523f8f2e330b6d1f243edc91b",
+    "typed": "sha256:894734f841492166654d3c6485781350223ad2a824a55f16a6dde33919122129",
+    "names": "sha256:86a843b70ecdd89e9579476e7da402f625af37f405ab72b84578054646265786"
   },
   "hints": {
     "extension": ".csv",
     "magic": null,
-    "stableLines": [],
-    "headerFields": null,
-    "headerPrefix": null,
-    "nonNullFields": null,
-    "fieldCount": null,
-    "dataStartLine": null,
-    "delimiter": null,
+    "stableLines": [
+      {
+        "line": 0,
+        "regex": "^ *\"?Freq\\(MHz\\)\"? *; *\"?Pout\\(dBm\\)\"? *; *\"?Gain\\(dB\\)\"? *"
+      },
+      {
+        "line": 0,
+        "regex": "^Freq\\(MHz\\);Pout\\(dBm\\);Gain\\(dB\\)$"
+      }
+    ],
+    "headerFields": [
+      "Freq(MHz)",
+      "Pout(dBm)",
+      "Gain(dB)"
+    ],
+    "headerPrefix": [
+      "Freq(MHz)",
+      "Pout(dBm)",
+      "Gain(dB)"
+    ],
+    "nonNullFields": [
+      0,
+      1,
+      2
+    ],
+    "fieldCount": {
+      "min": 3,
+      "max": 3
+    },
+    "dataStartLine": 2,
+    "delimiter": ";",
     "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,

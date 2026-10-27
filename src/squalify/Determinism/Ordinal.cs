@@ -9,13 +9,31 @@ namespace squalor.squalify;
 /// </summary>
 internal static class Ordinal
 {
-    /// <summary>Case-folds a name with <see cref="string.ToLowerInvariant"/>.</summary>
+    /// <summary>Folds the ASCII letters A to Z to lower case and leaves every other character as it is.</summary>
     /// <param name="value">The text to fold.</param>
-    /// <returns>The folded text.</returns>
-    public static string CaseFold(string value)
+    /// <returns>The folded text; the same instance when nothing changes.</returns>
+    public static string AsciiFold(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return value.ToLowerInvariant();
+        return value.AsSpan().IndexOfAnyInRange('A', 'Z') < 0 ? value : AsciiFold(value.AsSpan());
+    }
+
+    /// <summary>Folds the ASCII letters A to Z to lower case and leaves every other character as it is.</summary>
+    /// <param name="value">The text to fold.</param>
+    /// <returns>The folded text.</returns>
+    public static string AsciiFold(ReadOnlySpan<char> value)
+    {
+        return string.Create(
+            value.Length,
+            value,
+            static (destination, source) =>
+            {
+                for (var i = 0; i < source.Length; i++)
+                {
+                    var c = source[i];
+                    destination[i] = c is >= 'A' and <= 'Z' ? (char)(c + ('a' - 'A')) : c;
+                }
+            });
     }
 
     /// <summary>Compares two strings ordinally (UTF-16 code unit order).</summary>

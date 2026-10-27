@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-25 documented and tested the consumer subset of the descriptor (`docs/descriptor.md`, "Consumer subset"); it changes no code and no diagram. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. sq-25 documented and tested the consumer subset of the descriptor (`docs/descriptor.md`, "Consumer subset"); it changes no code and no diagram. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -24,18 +24,18 @@ flowchart LR
 
 ## 2. One profile run
 
-Every file goes through the same steps. A step that reads the file reads all of it, start to end, and keeps only bounded summaries in memory. The file can be far larger than RAM.
+Every file goes through the same steps. A step that reads the file reads all of it, start to end (the one exception is the hint step, which re-reads only the first lines, up to the header), and keeps only bounded summaries in memory. The file can be far larger than RAM.
 
 ```mermaid
 flowchart TD
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
     B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
     C --> D["4. Profile every field:<br/>types and statistics, and group the rows<br/><small>FieldAccumulator, RowClassAccumulator</small>"]
-    D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, KindRules, hints builder</small>"]
+    D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, HintBuilder, KindRules</small>"]
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and the fingerprint and kind label hold fixed placeholder values until their slices land. Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines.
 
 ## 3. Choosing a format
 
@@ -225,22 +225,63 @@ flowchart LR
 
 *Source: `Descriptor/Options.cs` (`ProfileOptions`), `Delimited/DelimitedPass.cs` (`DelimitedPass.Allows` decides, field by field and key by key, what may be written), `Fields/FieldAccumulator.cs` (the one-value-column rule). One `ValuesPolicy` that lists every value-bearing member in one place is planned.*
 
-## 7. Fingerprints
+## 7. Fingerprints and hints
 
-squalify hashes a stripped-down copy of the descriptor that contains no data values. Two files of the same type therefore get the same fingerprint, even when their data differs. There are four fingerprints at different levels of strictness. `structure` uses no column names at all, so it survives a changed column set.
+squalify hashes a stripped-down copy of the descriptor that contains no data values. Two files of the same type therefore get the same fingerprint, even when their data differs. There are four fingerprints at different levels of strictness. `structure` uses no column names at all, so it survives a changed column set. `layout` adds the column names (upper and lower case count as the same) and the preamble keys, `typed` adds the column types, and `names` keeps only the sorted set of names, so it survives reordered columns.
 
-A matching fingerprint does not prove two files are the same kind of file. Many unrelated CSVs share one `structure`, and files whose columns change per run get a new `layout` each time. Consumers combine fingerprints with names and hints.
+A matching fingerprint does not prove two files are the same kind of file. Many unrelated CSVs share one `structure`, and files whose columns change per run get a new `layout` each time. A column that is empty in one file and filled in another changes `typed` only, so a consumer treats `empty` as matching any type and `int` as inside `float`. Consumers combine fingerprints with names and hints.
 
 ```mermaid
 flowchart LR
-    D["Finished descriptor"] --> P["Value-free projection<br/><small>Projection</small>"]
+    D["Descriptor parts:<br/>format, layout, table"] --> P["Value-free projection<br/><small>Projection</small>"]
     P --> S["structure<br/><small>format, dialect, region kinds;<br/>no names</small>"]
-    P --> L["layout<br/><small>format, delimiter, regions,<br/>preamble keys, column names</small>"]
+    P --> L["layout<br/><small>format, delimiter, regions,<br/>preamble keys, header convention,<br/>column names</small>"]
     P --> T["typed<br/><small>layout + column types</small>"]
     P --> N["names<br/><small>sorted column names only</small>"]
 ```
 
-*Source: `Fingerprint/Projection.cs` (planned).*
+*Source: `Fingerprint/Projection.cs`.*
+
+Names are compared with upper-case ASCII letters folded to lower case and nothing else, never with the system's Unicode tables, so the hashes are the same on every machine. A name with a control character or a replacement character (a stray byte that could not be read as text) would differ from file to file, so it is left out and reported as an issue instead of making every sibling file unique.
+
+```mermaid
+flowchart TD
+    N["One header name or preamble key"] --> Q{"Has a control character<br/>or a replacement character?<br/><small>Projection.IsExcluded</small>"}
+    Q -- "yes" --> X["Left out: column shows as #index,<br/>key is dropped, issue is counted<br/><small>nameExcludedFromFingerprint</small>"]
+    Q -- "no" --> F["Fold A to Z to lower case<br/><small>Ordinal.AsciiFold</small>"]
+    F --> K["Goes into layout, typed and names<br/><small>fields, preambleKeys</small>"]
+```
+
+*Source: `Fingerprint/Projection.cs`, `Fingerprint/DelimitedFingerprint.cs`, `Determinism/Ordinal.cs`.*
+
+Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys today. The other families will add theirs when their profilers arrive.
+
+```mermaid
+flowchart TD
+    P["Projection<br/><small>Projection</small>"] --> R["Find the family's contributor<br/><small>FingerprintContributors.For</small>"]
+    R --> DC["Delimited: dialect,<br/>preamble keys and line kind<br/><small>DelimitedFingerprint</small>"]
+    R -. "later slices" .-> OC["Parquet, Touchstone, key=value, STDF<br/><small>(planned)</small>"]
+    DC --> M["Members written right after the family name<br/><small>FingerprintContribution</small>"]
+    OC -.-> M
+    M --> H["Hash of the compact JSON text<br/><small>SHA-256</small>"]
+```
+
+*Source: `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`. The Parquet, Touchstone, key=value and STDF contributors are (planned).*
+
+The **hints** are facts a consumer can turn into match rules: the extension, the named magic bytes with their offset, the header names, the first five names, the columns that had no empty values outside blank separator rows, the delimiter, and the file-name shape. The most useful are the **stable lines**: a regex for the header line, a looser one for just its first five names, and one for each `key=value` line in the preamble. Each regex is built from the real text of the line, so it matches the file as written, including quotes and padding. A comment or free-text line is data, so its regex is written only with `--include-values`, and a line with a stray unreadable byte or a control character gets no regex.
+
+The regexes use a very small part of the regex language, so the same text works in .NET and in other engines. squalify checks every regex against its own line under two engines (the .NET default and its stricter ECMAScript mode) and keeps only the ones that match under both.
+
+```mermaid
+flowchart TD
+    L["Header and preamble lines<br/>noted while reading<br/><small>DelimitedPass</small>"] --> R["Read those physical lines again<br/>from the file as written<br/><small>LineReader</small>"]
+    R --> E["Escape the text, add anchors<br/><small>PortableRegex</small>"]
+    E --> C{"Matches its own line<br/>in both engines?<br/><small>PortableRegex.MatchesBoth</small>"}
+    C -- "yes" --> K["Kept, sorted by line, then regex<br/><small>hints.stableLines</small>"]
+    C -- "no" --> D["Left out"]
+```
+
+*Source: `Delimited/DelimitedPass.cs` (`ReadStableLines`), `Text/LineReader.cs`, `Hints/PortableRegex.cs`, `Hints/HintBuilder.cs`.*
 
 ## 8. Header-unit conventions and the kind label
 
@@ -274,7 +315,7 @@ flowchart LR
     D --> E["Evidence: one score per convention<br/><small>stage unit</small>"]
 ```
 
-*Source: `Units/HeaderConventionParser.cs`, `Delimited/DelimitedPass.cs`, `Profiler.cs`.*
+*Source: `Units/HeaderConventionParser.cs`, `Delimited/DelimitedPass.cs`, `Hints/HintBuilder.cs`.*
 
 A second rule set, the **kind label**, is still planned. It will read the finished descriptor (never the file) and suggest a generic label such as `labSweepTable`, `stdfTestLog` or `touchstoneNetwork`. The first rule in a fixed, ordered list that matches wins, and every rule's result is kept as evidence.
 

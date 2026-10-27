@@ -220,7 +220,7 @@ internal static class TestModels
             Hints: new Hints(
                 ".csv",
                 null,
-                [new StableLine(0, "^Lot\\s*[=:]")],
+                [new StableLine(0, "^\\s*Lot\\s*[=:]")],
                 ["Frequency(MHz)", "Start"],
                 ["Frequency(MHz)"],
                 [0, 1],
@@ -277,7 +277,7 @@ internal static class TestModels
             Fingerprint: new Fingerprint(1, "sha256:aa", "sha256:bb", "sha256:cc", "sha256:dd"),
             Hints: new Hints(
                 ".stdf",
-                "stdf",
+                new MagicHint("stdf-le", 0, "0200000a"),
                 Array.Empty<StableLine>(),
                 null,
                 null,

@@ -412,7 +412,11 @@
   },
   "hints": {
     "extension": ".stdf",
-    "magic": "stdf",
+    "magic": {
+      "name": "stdf-le",
+      "offset": 0,
+      "hex": "0200000a"
+    },
     "stableLines": [],
     "headerFields": null,
     "headerPrefix": null,

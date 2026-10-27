@@ -25,6 +25,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private readonly long[] _preambleKinds = new long[5];
     private readonly List<string> _preambleKeys = [];
     private readonly List<string?> _preambleValues = [];
+    private readonly List<(long Line, StableLineKind Kind, string? Key)> _stableLines = [];
 
     // Footer.
     private readonly long[] _footerKinds = new long[5];
@@ -79,7 +80,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _rowClasses = new RowClassAccumulator(_k, context.Limits.RowClasses);
         foreach (var name in context.Options.IncludeValuesFor)
         {
-            _allowed.Add(AsciiFold(name));
+            _allowed.Add(Ordinal.AsciiFold(name));
         }
     }
 
@@ -158,6 +159,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             {
                 Line = record.StartLine,
                 StartByte = record.StartByte,
+                EndLine = record.EndLine,
                 Cells = record.Cells.ToArray(),
                 Spans = record.Spans.ToArray(),
                 IsComment = comment,
@@ -277,7 +279,31 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             issues,
             evidence,
             Table: table,
+            StableLines: ReadStableLines(source, sniff),
             EffectiveLimits: MemoryBudget.Record(_context.Limits, _caps));
+    }
+
+    // The text of the physical lines that may become stable-line regexes: the header line (when it is one physical line)
+    // and the preamble lines noted in AddPreamble. One bounded read of the start of the file.
+    private IReadOnlyList<StableLineSource> ReadStableLines(IProfileSource source, SniffResult sniff)
+    {
+        var wanted = _stableLines.ToList();
+        if (_headerRecord is { } header && header.EndLine == header.Line)
+        {
+            wanted.Add((header.Line, StableLineKind.Header, null));
+        }
+
+        var texts = LineReader.Read(source, sniff, wanted.Select(static w => w.Line));
+        var result = new List<StableLineSource>();
+        foreach (var (line, kind, key) in wanted)
+        {
+            if (texts.TryGetValue(line, out var text))
+            {
+                result.Add(new StableLineSource(line, kind, key, text));
+            }
+        }
+
+        return result;
     }
 
     // Per column, whether the units row has a value in it; null when the file has no units row.
@@ -297,20 +323,6 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         return has;
     }
 
-    private static string AsciiFold(string text)
-    {
-        var chars = text.ToCharArray();
-        for (var i = 0; i < chars.Length; i++)
-        {
-            if (chars[i] is >= 'A' and <= 'Z')
-            {
-                chars[i] = (char)(chars[i] + ('a' - 'A'));
-            }
-        }
-
-        return new string(chars);
-    }
-
     private static bool IsTrim(char c)
     {
         return ValueClassifier.TrimChars.Contains(c, StringComparison.Ordinal);
@@ -318,7 +330,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     private bool Allows(string? name)
     {
-        return _context.Options.IncludeValues || (name is not null && _allowed.Contains(AsciiFold(name)));
+        return _context.Options.IncludeValues || (name is not null && _allowed.Contains(Ordinal.AsciiFold(name)));
     }
 
     private void AddPreamble(RecordInfo record)
@@ -330,6 +342,19 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             _preambleKeys.Add(key);
             // A value is held only when it may be written; otherwise it is dropped here.
             _preambleValues.Add(Allows(key) ? result.Value ?? string.Empty : null);
+        }
+
+        // A stable line is one physical line; its text is read later, and only for the lines that may be written.
+        if (record.EndLine == record.StartLine)
+        {
+            if (result.Kind == LineKind.KeyValue && result.Key is { } stableKey)
+            {
+                _stableLines.Add((record.StartLine, StableLineKind.PreambleKey, stableKey));
+            }
+            else if (_context.Options.IncludeValues && result.Kind is LineKind.Comment or LineKind.Text)
+            {
+                _stableLines.Add((record.StartLine, StableLineKind.PreambleText, null));
+            }
         }
     }
 
@@ -562,7 +587,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             {
                 empty++;
             }
-            else if (!seen.Add(AsciiFold(name)))
+            else if (!seen.Add(Ordinal.AsciiFold(name)))
             {
                 repeated++;
             }
