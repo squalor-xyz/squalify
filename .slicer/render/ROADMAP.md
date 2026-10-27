@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-28 items · — 14 · done 12 · later 1 · started 1
+28 items · — 14 · done 13 · later 1
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
@@ -41,22 +41,22 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 12 | sq-22 | Runtime-stable escaping | S | 1 | core | sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02 | — |
 | 13 | sq-23 | sq-02 review nits | S | 1 | core | sq-02 architect nits: (1) how-it-works.md:34 small text 'hints builder' is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02 | — |
 | 14 | sq-24 | Invalid UTF-16/32 reporting | S | 1 | core | sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03 | — |
-| 15 | [sq-26](slices/sq-26.md) | NuGet package for library consumers | S | 1 | core |  | started |
-| 16 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · discovered from sq-27 | — |
+| 15 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · discovered from sq-27 | — |
 
 ---
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 17 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |
-| 18 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | done |
-| 19 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | done |
-| 20 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | done |
-| 21 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | done |
-| 22 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | done |
-| 23 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | done |
-| 24 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | done |
-| 25 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | done |
-| 26 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | done |
-| 27 | [sq-25](slices/sq-25.md) | Consumer classification contract | S | 1 | core |  | done |
+| 16 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |
+| 17 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | done |
+| 18 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | done |
+| 19 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | done |
+| 20 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | done |
+| 21 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | done |
+| 22 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | done |
+| 23 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | done |
+| 24 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | done |
+| 25 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | done |
+| 26 | [sq-25](slices/sq-25.md) | Consumer classification contract | S | 1 | core |  | done |
+| 27 | [sq-26](slices/sq-26.md) | NuGet package for library consumers | S | 1 | core |  | done |
 | 28 | [sq-27](slices/sq-27.md) | Ragged run start | S | 1 | core | sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25 | done |
