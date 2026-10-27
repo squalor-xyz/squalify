@@ -109,7 +109,7 @@ public sealed class ValuesTierTests
 
     private static FieldProfile Field(string name = "x")
     {
-        return TestModels.FloatField(new NumericStats(DescriptorNumber.Int(1), DescriptorNumber.Int(1), 1.0, null, null, null), name) with { Numeric = null };
+        return TestModels.FloatField(new NumericStats(DescriptorNumber.Int(1), DescriptorNumber.Int(1), 1.0, null, TestModels.IntQuantiles(1), false), name) with { Numeric = null };
     }
 
     private static Descriptor WithField(FieldProfile field, ProfileOptions options)
@@ -137,7 +137,7 @@ public sealed class ValuesTierTests
                 return WithField(Field("Lot") with { Text = new TextStats(Canary, Canary) }, options);
             case "constantNumeric":
                 return WithField(
-                    Field("Lot") with { Constant = true, Numeric = new NumericStats(DescriptorNumber.Int(987654321), DescriptorNumber.Int(987654321), 987654321.0, null, null, null) },
+                    Field("Lot") with { Constant = true, Numeric = new NumericStats(DescriptorNumber.Int(987654321), DescriptorNumber.Int(987654321), 987654321.0, null, TestModels.IntQuantiles(987654321), false) },
                     options);
             case "constantTemporal":
                 return WithField(
@@ -377,7 +377,7 @@ public sealed class ValuesTierTests
             builder.Append(i.ToString(CultureInfo.InvariantCulture)).Append(",light").Append(i % 9).Append('\n');
         }
 
-        var limits = new ProfileLimits(5, 100_000, 64, 64, new Budget(10_000_000, 2_000_000));
+        var limits = new ProfileLimits(5, 100_000, 64, 64, new Budget(10_000_000, 2_000_000, 16_000_000));
         var top = ProfileText(builder.ToString(), true, limits).Table!.Fields[1].Top!;
         Assert.True(top.Approximate);
         Assert.NotNull(top.MaxError);

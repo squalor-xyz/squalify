@@ -14,7 +14,7 @@ namespace squalor.squalify;
 internal sealed record ProfileLimits(long DistinctPerField, long QuantilePerField, long ShapesPerField, long RowClasses, Budget Budget)
 {
     /// <summary>The caps of this tool version, as in <c>docs/descriptor.md</c>.</summary>
-    public static ProfileLimits Default { get; } = new(10_000, 100_000, 64, 64, new Budget(10_000_000, 2_000_000));
+    public static ProfileLimits Default { get; } = new(10_000, 100_000, 64, 64, new Budget(10_000_000, 2_000_000, 16_000_000));
 
     /// <summary>Applies these caps to a limits record, leaving every other member as it is.</summary>
     /// <param name="limits">The limits to start from.</param>

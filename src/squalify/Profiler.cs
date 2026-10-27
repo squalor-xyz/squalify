@@ -21,8 +21,9 @@ public static class Profiler
     /// <param name="source">The source.</param>
     /// <param name="options">The options that affect output.</param>
     /// <param name="fieldLimits">The caps that bound field profiling.</param>
+    /// <param name="trace">Receives the peak of the estimated memory, or null.</param>
     /// <returns>The descriptor.</returns>
-    internal static Descriptor Profile(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits)
+    internal static Descriptor Profile(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits, MemoryTrace? trace = null)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(fieldLimits);
@@ -34,7 +35,7 @@ public static class Profiler
 
         try
         {
-            return ProfileCore(source, options, fieldLimits);
+            return ProfileCore(source, options, fieldLimits, trace);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -52,11 +53,11 @@ public static class Profiler
         return Profile(new FileSource(path), options);
     }
 
-    private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits)
+    private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits, MemoryTrace? trace)
     {
         var limits = fieldLimits.ApplyTo(Limits.Default);
         var sniff = ByteSniffer.Sniff(source, limits.CharsetTolerance);
-        var context = new ProfileContext(options, limits);
+        var context = new ProfileContext(options, limits, trace);
         var choice = FormatRegistry.Default.Detect(source, sniff, context);
         var profile = choice.Profiler?.Profile(source, sniff, context, choice.ProfilerScore!)
             ?? new FormatProfile(null, new LayoutSection(Array.Empty<Region>()), new LineEndings(0, 0, 0), Array.Empty<Issue>(), Array.Empty<Evidence>());

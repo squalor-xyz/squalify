@@ -1,0 +1,885 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "squalify",
+    "version": "0.1.0"
+  },
+  "options": {
+    "includeValues": false,
+    "includeValuesFor": []
+  },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": {
+      "invalidSequences": 8,
+      "perBytes": 65536
+    },
+    "stdfTests": 10000,
+    "budget": {
+      "quantileValues": 10000000,
+      "distinctValues": 2000000,
+      "shapeChars": 16000000
+    },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "synthetic.csv",
+    "size": 8190024,
+    "sha256": "c12e68bb89aa47e6a98a703c7b8fecfe45d078449417bfe546a8a0d6354997b7"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": {
+      "crlf": 0,
+      "lf": 130001,
+      "cr": 0
+    },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "delimited",
+    "dialect": {
+      "delimiter": ",",
+      "quote": "\"",
+      "hasHeader": true,
+      "unitsRow": false,
+      "decimalSeparator": ".",
+      "padding": {
+        "trim": false,
+        "paddedShare": 0,
+        "constantLineLength": false,
+        "lineLength": null
+      },
+      "blocks": 1
+    },
+    "score": 0.7
+  },
+  "kind": {
+    "label": "text",
+    "ruleId": "K09",
+    "confidence": 1
+  },
+  "layout": {
+    "regions": [
+      {
+        "kind": "header",
+        "lines": [
+          1,
+          1
+        ],
+        "bytes": [
+          0,
+          24
+        ]
+      },
+      {
+        "kind": "data",
+        "lines": [
+          2,
+          130001
+        ],
+        "bytes": [
+          24,
+          8190024
+        ]
+      }
+    ],
+    "headerConvention": {
+      "dominant": "none",
+      "share": 1,
+      "counts": {
+        "none": 8
+      }
+    },
+    "maxLineLength": 62
+  },
+  "table": {
+    "rows": 130000,
+    "fieldCount": {
+      "min": 8,
+      "max": 8
+    },
+    "rowClasses": {
+      "count": 1,
+      "transitions": 0,
+      "allNullRows": 0,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:2edde50339310da6",
+          "count": 130000,
+          "fields": [
+            [
+              0,
+              7
+            ]
+          ],
+          "firstLine": 2,
+          "lastLine": 130001
+        }
+      ]
+    },
+    "fields": [
+      {
+        "index": 0,
+        "name": "c0",
+        "nameParts": {
+          "base": "c0",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 130000
+        },
+        "patterns": null,
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 129662,
+          "approximate": true,
+          "errorBound": 0.008125
+        },
+        "numeric": {
+          "min": 100000000,
+          "max": 100129999,
+          "mean": 100064999.5,
+          "stddev": 37527.9118346154,
+          "quantiles": {
+            "p01": 100001197,
+            "p05": 100006487,
+            "p25": 100032544,
+            "p50": 100065109,
+            "p75": 100097499,
+            "p95": 100123505,
+            "p99": 100128742
+          },
+          "approximate": true,
+          "errorBound": 0.001
+        },
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 9,
+          "max": 9,
+          "mean": 9
+        },
+        "shapes": [
+          {
+            "mask": "9{9}",
+            "count": 130000
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 1,
+        "name": "c1",
+        "nameParts": {
+          "base": "c1",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 130000
+        },
+        "patterns": null,
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 120932,
+          "approximate": true,
+          "errorBound": 0.008125
+        },
+        "numeric": {
+          "min": 100000,
+          "max": 999997,
+          "mean": 550054.0622538418,
+          "stddev": 260105.21471117955,
+          "quantiles": {
+            "p01": 109069,
+            "p05": 144766,
+            "p25": 324695,
+            "p50": 551018,
+            "p75": 775817,
+            "p95": 955893,
+            "p99": 991966
+          },
+          "approximate": true,
+          "errorBound": 0.001
+        },
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 6,
+          "max": 6,
+          "mean": 6
+        },
+        "shapes": [
+          {
+            "mask": "9{6}",
+            "count": 130000
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 2,
+        "name": "c2",
+        "nameParts": {
+          "base": "c2",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 130000
+        },
+        "patterns": null,
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 129221,
+          "approximate": true,
+          "errorBound": 0.008125
+        },
+        "numeric": {
+          "min": 100.0048,
+          "max": 999.9971,
+          "mean": 548.9292981530697,
+          "stddev": 260.1194832393527,
+          "quantiles": {
+            "p01": 109.0369,
+            "p05": 145.0933,
+            "p25": 323.921,
+            "p50": 547.978,
+            "p75": 774.0039,
+            "p95": 955.5318,
+            "p99": 991.4257
+          },
+          "approximate": true,
+          "errorBound": 0.001
+        },
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 8,
+          "max": 8,
+          "mean": 8
+        },
+        "shapes": [
+          {
+            "mask": "9{3}.9{4}",
+            "count": 130000
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 3,
+        "name": "c3",
+        "nameParts": {
+          "base": "c3",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "date",
+        "dominant": {
+          "type": "date",
+          "share": 1
+        },
+        "typeVotes": {
+          "date": 130000
+        },
+        "patterns": {
+          "yyyy-nn-nn": 130000
+        },
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 7300,
+          "approximate": false
+        },
+        "numeric": null,
+        "temporal": {
+          "orders": [
+            "YMD"
+          ],
+          "ambiguous": false,
+          "clock": null,
+          "min": "2000-01-01",
+          "max": "2019-12-26",
+          "quantiles": {
+            "p01": "2000-03-14",
+            "p05": "2000-12-23",
+            "p25": "2004-12-28",
+            "p50": "2010-01-01",
+            "p75": "2014-12-29",
+            "p95": "2019-01-05",
+            "p99": "2019-10-23"
+          },
+          "approximate": true,
+          "errorBound": 0.001
+        },
+        "statsWithheld": null,
+        "length": {
+          "min": 10,
+          "max": 10,
+          "mean": 10
+        },
+        "shapes": [
+          {
+            "mask": "9{4}-9{2}-9{2}",
+            "count": 130000
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 4,
+        "name": "c4",
+        "nameParts": {
+          "base": "c4",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "string",
+        "dominant": {
+          "type": "string",
+          "share": 1
+        },
+        "typeVotes": {
+          "string": 130000
+        },
+        "patterns": null,
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 90,
+          "approximate": false
+        },
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "shapes": [
+          {
+            "mask": "A9{2}",
+            "count": 130000
+          }
+        ],
+        "monotonic": null,
+        "constant": false,
+        "unique": false,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 5,
+        "name": "c5",
+        "nameParts": {
+          "base": "c5",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "string",
+        "dominant": {
+          "type": "string",
+          "share": 1
+        },
+        "typeVotes": {
+          "string": 130000
+        },
+        "patterns": null,
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 129994,
+          "approximate": true,
+          "errorBound": 0.008125
+        },
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 8,
+          "max": 8,
+          "mean": 8
+        },
+        "shapes": [
+          {
+            "mask": "a{8}",
+            "count": 130000
+          }
+        ],
+        "monotonic": null,
+        "constant": false,
+        "unique": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 6,
+        "name": "c6",
+        "nameParts": {
+          "base": "c6",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "time",
+        "dominant": {
+          "type": "time",
+          "share": 1
+        },
+        "typeVotes": {
+          "time": 130000
+        },
+        "patterns": {
+          "HH:mm:ss": 130000
+        },
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 67001,
+          "approximate": true,
+          "errorBound": 0.008125
+        },
+        "numeric": null,
+        "temporal": {
+          "orders": [],
+          "ambiguous": false,
+          "clock": "24h",
+          "min": "00:00:00",
+          "max": "23:59:59",
+          "quantiles": {
+            "p01": "00:16:02",
+            "p05": "01:11:22",
+            "p25": "06:01:41",
+            "p50": "12:01:00",
+            "p75": "18:04:38",
+            "p95": "22:47:25",
+            "p99": "23:43:56"
+          },
+          "approximate": true,
+          "errorBound": 0.001
+        },
+        "statsWithheld": null,
+        "length": {
+          "min": 8,
+          "max": 8,
+          "mean": 8
+        },
+        "shapes": [
+          {
+            "mask": "9{2}:9{2}:9{2}",
+            "count": 130000
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 7,
+        "name": "c7",
+        "nameParts": {
+          "base": "c7",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 130000
+        },
+        "patterns": null,
+        "count": 130000,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 900,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 100,
+          "max": 999,
+          "mean": 549.5365153846247,
+          "stddev": 259.9277273084357,
+          "quantiles": {
+            "p01": 109,
+            "p05": 145,
+            "p25": 325,
+            "p50": 550,
+            "p75": 776,
+            "p95": 955,
+            "p99": 990
+          },
+          "approximate": true,
+          "errorBound": 0.001
+        },
+        "temporal": null,
+        "statsWithheld": null,
+        "length": {
+          "min": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "shapes": [
+          {
+            "mask": "9{3}",
+            "count": 130000
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
+        "unit": null,
+        "top": null,
+        "text": null
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 1,
+    "structure": "sha256:cbf546d81150b067d39eb659084f3cf59f7c3b872249f1e12718bd243bd0c900",
+    "layout": "sha256:bf25ab44510997f18095826ce68a19c062550e6c987519ceff288b6a8de44b60",
+    "typed": "sha256:86a43c122264c06b611ee75715c7bfa58133ca57b320c60eed482f129726eeae",
+    "names": "sha256:6b01f1e6c4e16ce7bc6c33612c971db8b5ec8962095e83b09469ef9cb9970c76"
+  },
+  "hints": {
+    "extension": ".csv",
+    "magic": null,
+    "stableLines": [
+      {
+        "line": 0,
+        "regex": "^ *\"?c0\"? *, *\"?c1\"? *, *\"?c2\"? *, *\"?c3\"? *, *\"?c4\"? *"
+      },
+      {
+        "line": 0,
+        "regex": "^c0,c1,c2,c3,c4,c5,c6,c7$"
+      }
+    ],
+    "headerFields": [
+      "c0",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7"
+    ],
+    "headerPrefix": [
+      "c0",
+      "c1",
+      "c2",
+      "c3",
+      "c4"
+    ],
+    "nonNullFields": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "fieldCount": {
+      "min": 8,
+      "max": 8
+    },
+    "dataStartLine": 2,
+    "delimiter": ",",
+    "headerConvention": "none",
+    "stdf": null,
+    "fileNameShape": "a{9}.a{3}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        {
+          "value": "ascii",
+          "score": 1,
+          "reason": "no bytes at or above 0x80"
+        },
+        {
+          "value": "latin-1",
+          "score": 0,
+          "reason": "UTF-8 or ASCII decoding accepted"
+        },
+        {
+          "value": "utf-8",
+          "score": 0,
+          "reason": "no bytes at or above 0x80"
+        }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "empty",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "text",
+          "score": 1,
+          "reason": "rule 6: no NUL bytes; 0 of 8190024 bytes are control bytes"
+        }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "delimited",
+      "candidates": [
+        {
+          "value": "delimited",
+          "score": 0.7,
+          "reason": "delimiter comma; k=8; 130001/130001 records; clean=1; run lines 1-130001; 0 quoted fields"
+        },
+        {
+          "value": "text",
+          "score": 0.1,
+          "reason": "text content"
+        },
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not binary: text content"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "decimalSeparator",
+      "chosen": ".",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0,
+          "reason": "0 comma-decimal cells; the delimiter is a comma"
+        },
+        {
+          "value": ".",
+          "score": 1,
+          "reason": "999 dot-decimal cells"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "delimiter",
+      "chosen": ",",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 1,
+          "reason": "k=8; 130001/130001 records; clean=1; run lines 1-130001; 0 quoted fields"
+        },
+        {
+          "value": "\t",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": ";",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "|",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "whitespace",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        }
+      ]
+    },
+    {
+      "stage": "header",
+      "topic": "candidates",
+      "chosen": "1",
+      "candidates": [
+        {
+          "value": "1",
+          "score": 1,
+          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
+        },
+        {
+          "value": "summary",
+          "score": 0,
+          "reason": "sampled=1000; eligible=1; ineligible=999 (comment line=0, field count=0, blank or repeated names=0, fits every typed column=999)"
+        }
+      ]
+    },
+    {
+      "stage": "unit",
+      "topic": "headerConvention",
+      "chosen": "none",
+      "candidates": [
+        {
+          "value": "nameParenUnit",
+          "score": 0,
+          "reason": "0 of 8 headers"
+        },
+        {
+          "value": "nameBracketUnit",
+          "score": 0,
+          "reason": "0 of 8 headers"
+        },
+        {
+          "value": "nameUnderscoreUnit",
+          "score": 0,
+          "reason": "0 of 8 headers"
+        },
+        {
+          "value": "unitsRow",
+          "score": 0,
+          "reason": "0 of 8 headers"
+        },
+        {
+          "value": "none",
+          "score": 1,
+          "reason": "8 of 8 headers"
+        }
+      ]
+    }
+  ]
+}

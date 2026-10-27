@@ -32,7 +32,7 @@ jobs:
         run: dotnet build squalify.sln -c Release --no-restore
 
       - name: Test
-        run: dotnet test squalify.sln -c Release --no-build --no-restore --filter "Category!=Corpus&Category!=Package"
+        run: dotnet test squalify.sln -c Release --no-build --no-restore --filter "Category!=Corpus&Category!=Package&Category!=Large"
 
       - name: Package
         run: dotnet test squalify.sln -c Release --no-build --no-restore --filter "Category=Package"

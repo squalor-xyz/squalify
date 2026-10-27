@@ -142,6 +142,7 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteNumber("quantileValues", v.Budget.QuantileValues);
         w.WriteNumber("distinctValues", v.Budget.DistinctValues);
+        w.WriteNumber("shapeChars", v.Budget.ShapeChars);
         w.WriteEndObject();
         w.WriteNumber("nullTokens", v.NullTokens);
         w.WriteNumber("unitTable", v.UnitTable);
@@ -402,18 +403,9 @@ public static class DescriptorWriter
     private static void Write(Utf8JsonWriter w, DistinctInfo v)
     {
         w.WriteStartObject();
-        NullableNumber(w, "value", v.Value);
-        if (v.Approximate is { } approximate)
-        {
-            w.WriteBoolean("approximate", approximate);
-        }
-
-        if (v.ErrorBound is { } errorBound)
-        {
-            Double(w, "errorBound", errorBound);
-        }
-
-        OptionalNumber(w, "exceeds", v.Exceeds);
+        w.WriteNumber("value", v.Value);
+        w.WriteBoolean("approximate", v.Approximate);
+        OptionalDouble(w, "errorBound", v.ErrorBound);
         w.WriteEndObject();
     }
 
@@ -440,9 +432,10 @@ public static class DescriptorWriter
             w.WriteNull("stddev");
         }
 
-        Nullable(w, "quantiles", v.Quantiles, static (writer, quantiles) => WriteQuantiles(writer, quantiles, static (inner, value) => Number(inner, value)));
-        NullableBoolean(w, "approximate", v.Approximate);
-        OptionalNumber(w, "exceeds", v.Exceeds);
+        w.WritePropertyName("quantiles");
+        WriteQuantiles(w, v.Quantiles, static (inner, value) => Number(inner, value));
+        w.WriteBoolean("approximate", v.Approximate);
+        OptionalDouble(w, "errorBound", v.ErrorBound);
         w.WriteEndObject();
     }
 
@@ -459,7 +452,8 @@ public static class DescriptorWriter
             "quantiles",
             v.Quantiles,
             static (writer, quantiles) => WriteQuantiles(writer, quantiles, static (inner, text) => inner.WriteStringValue(text)));
-        OptionalNumber(w, "exceeds", v.Exceeds);
+        NullableBoolean(w, "approximate", v.Approximate);
+        OptionalDouble(w, "errorBound", v.ErrorBound);
         w.WriteEndObject();
     }
 
@@ -786,6 +780,14 @@ public static class DescriptorWriter
         if (value is { } number)
         {
             w.WriteNumber(name, number);
+        }
+    }
+
+    private static void OptionalDouble(Utf8JsonWriter w, string name, double? value)
+    {
+        if (value is { } number)
+        {
+            Double(w, name, number);
         }
     }
 

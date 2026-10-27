@@ -179,20 +179,53 @@ flowchart TD
 
 *Source: `Fields/FieldAccumulator.cs`, `Values/DateOrders.cs`, `Fields/TemporalMath.cs`.*
 
-Every value of a field is also reduced to a **shape mask**: `9` for a digit, `A` for an upper-case letter, `a` for a lower-case letter, punctuation and spaces kept as they are, and `?` for anything that is not plain ASCII (and for curly braces, which the run counts use). A run of two or more is written with a count, so `Lot-A12` is `Aa{2}-A9{2}`. The masks show how a field is written without showing what is in it. A field keeps at most 64 masks and counts the rest as `other`. File names use the same masks.
+Every value of a field is also reduced to a **shape mask**: `9` for a digit, `A` for an upper-case letter, `a` for a lower-case letter, punctuation and spaces kept as they are, and `?` for anything that is not plain ASCII (and for curly braces, which the run counts use). A run of two or more is written with a count, so `Lot-A12` is `Aa{2}-A9{2}`. The masks show how a field is written without showing what is in it. A field keeps at most 64 masks, and at most its share of a global budget of mask text, and counts the rest as `other`. File names use the same masks.
 
-Some facts about a field are cheap to keep exactly, and some are not. Counts, the minimum and maximum, the mean and the spread take constant memory. The distinct count and the quantiles need the values themselves, so they are exact only up to a cap (10,000 distinct values and 100,000 values per field). A global budget keeps wide files bounded: each field gets the smaller of its cap and its share of the budget, so a file of 2,000 columns gets 5,000 quantile values and 1,000 distinct values per column, and `limits` in the descriptor records the caps in effect. Past a cap, the distinct count and the quantiles are reported as exceeded until sketches replace them.
+Some facts about a field are cheap to keep exactly, and some are not. Counts, the minimum and maximum, the mean and the spread take constant memory. The distinct count and the quantiles need the values themselves, so they are exact only up to a cap (10,000 distinct values and 100,000 values per field). A global budget keeps wide files bounded: each field gets the smaller of its cap and its share of the budget, so a file of 2,000 columns gets 5,000 quantile values and 1,000 distinct values per column, and `limits` in the descriptor records the caps in effect. The budget also covers the text of the shape masks, because a few adversarial values could otherwise make 2,000 columns hold hundreds of megabytes of masks.
+
+Past a cap a **sketch** takes over: a small, fixed-size summary that answers the same question with a known error, and the descriptor says so (`approximate: true` and `errorBound`). The distinct count becomes a HyperLogLog estimate, whose error is about 0.8 percent. The quantiles become a Greenwald-Khanna summary, whose rank error is at most 0.1 percent of the number of values. When the cap is crossed, the values already held are poured into the sketch in file order and freed. Both sketches use no randomness: HyperLogLog hashes with squalify's own xxHash64 and gives the same answer for the same set of values in any order, and Greenwald-Khanna depends only on the values and their order, so the descriptor is still the same on every machine.
 
 ```mermaid
 flowchart TD
-    B["Global budget: 10,000,000 quantile values and 2,000,000 distinct values<br/><small>Limits.Budget</small>"] --> P["Per field: the smaller of the cap and the budget<br/>divided by the number of fields<br/><small>MemoryBudget.Effective</small>"]
+    B["Global budget: 10,000,000 quantile values, 2,000,000 distinct values<br/>and 16,000,000 characters of shape masks<br/><small>Limits.Budget</small>"] --> P["Per field: the smaller of the cap and the budget<br/>divided by the number of fields<br/><small>MemoryBudget.Effective</small>"]
     P --> X{"More values than the cap?"}
-    X -- "no" --> Exact["Exact distinct count and quantiles"]
-    X -- "yes" --> Over["Distinct count and quantiles are reported as exceeded<br/>(min, max, mean and spread are not affected)<br/><small>distinct.exceeds, numeric.exceeds, temporal.exceeds</small>"]
-    Over -. "later" .-> Sk["Sketches replace them: HyperLogLog,<br/>Greenwald-Khanna, marked approximate<br/><small>Sketches/ (planned)</small>"]
+    X -- "no" --> Exact["Exact distinct count and quantiles<br/><small>approximate: false</small>"]
+    X -- "yes" --> Move["Pour the values held so far into a sketch, in file order, and free them<br/><small>FieldAccumulator.AddDistinct,<br/>FieldAccumulator.StartNumericSketch</small>"]
+    Move --> Hll["Distinct count: HyperLogLog, 16 KiB, error about 0.8%<br/><small>HyperLogLog</small>"]
+    Move --> Gk["Quantiles: Greenwald-Khanna, error at most 0.1% of the values<br/><small>GreenwaldKhanna</small>"]
+    Hll --> Ap["Marked approximate, with the error bound<br/>(min, max, mean and spread are not affected)<br/><small>approximate, errorBound</small>"]
+    Gk --> Ap
 ```
 
-*Source: `Fields/MemoryBudget.cs`, `Fields/ProfileLimits.cs`, `Fields/FieldAccumulator.cs`, `Descriptor/Options.cs`; `Sketches/` (planned).*
+*Source: `Fields/MemoryBudget.cs`, `Fields/ProfileLimits.cs`, `Fields/FieldAccumulator.cs`, `Descriptor/Options.cs`, `Sketches/HyperLogLog.cs`, `Sketches/GreenwaldKhanna.cs`.*
+
+Dates need one more step. A date written `3/4/2026` has not yet been read as day-month or month-day, and the two readings put the same dates in a different order. So when the cap is crossed, the field starts one summary for each reading that is still possible, over the date as read that way. When a later date rules a reading out, that summary is dropped, and the one that is left gives the quantiles.
+
+```mermaid
+flowchart TD
+    V["Dates held so far, as parsed parts<br/><small>FieldAccumulator.AddTemporalValue</small>"] --> C{"More dates than the cap?"}
+    C -- "no" --> E["Read them under the field's order and sort<br/>Exact quantiles"]
+    C -- "yes" --> S["One summary for each reading still possible<br/>(day-month and month-day), fed in file order<br/><small>FieldAccumulator.StartTemporalSketches</small>"]
+    S --> N["Each later date goes to every summary still possible<br/><small>FieldAccumulator.AddToSketches</small>"]
+    N --> R{"Does a date rule a reading out?"}
+    R -- "yes" --> D["Drop that summary"] --> N
+    R -- "no" --> W["The field's final order picks the summary<br/>that is written<br/><small>FieldAccumulator.BuildTemporal</small>"]
+```
+
+*Source: `Fields/FieldAccumulator.cs`, `Fields/TemporalMath.cs`, `Sketches/GreenwaldKhanna.cs`.*
+
+Memory is also **accounted for**, so that a leak shows up in a test. Every field accumulator can say how many bytes it holds (the exact-value buffers, the distinct set, the shape masks, the top values, the sketches). While the file streams, the delimited pass adds these up every 1,024 rows, together with the row classes and the header sample, and keeps the peak. The ceiling for the process is that peak plus a fixed 64 MiB for the runtime and the read buffers. Two tests profile a generated stream in a fresh process and check that the process never used more than the ceiling: one on a 256 MB stream in the normal test run, and one on a 4 GB stream that is run by hand. The ceiling is only a check, and squalify never stops or slows down because of it.
+
+```mermaid
+flowchart TD
+    A["Each field accumulator estimates the bytes it holds<br/><small>FieldAccumulator.EstimatedBytes</small>"] --> Sum["The pass adds them up every 1,024 rows,<br/>with row classes and the header sample, and keeps the peak<br/><small>DelimitedPass.EstimatedBytes, MemoryTrace</small>"]
+    Sum --> Ce["Ceiling = peak estimate + 64 MiB for the runtime and read buffers<br/><small>MemoryBudget.CeilingBytes</small>"]
+    Ce --> T{"Test: did the process peak above the ceiling?<br/><small>MemoryBoundTests</small>"}
+    T -- "no" --> Ok["The accounting holds"]
+    T -- "yes" --> Leak["Something holds memory the accounting does not know about"]
+```
+
+*Source: `Fields/MemoryBudget.cs`, `Fields/MemoryTrace.cs`, `Fields/FieldAccumulator.cs`, `Fields/ChunkedBuffer.cs`, `Delimited/DelimitedPass.cs`; `../../tests/squalify.Tests/MemoryBoundTests.cs`.*
 
 ## 6. What is always included, and what needs `--include-values`
 
@@ -357,6 +390,8 @@ flowchart LR
 ```
 
 *Source: `Determinism/Ordinal.cs`, `Determinism/DetMath.cs`, `Determinism/XxHash64.cs`, `Descriptor/CountMap.cs`, `Json/DescriptorWriter.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.*
+
+Sketches are part of this guarantee: the sketches' hashes, their registers and their summaries use only integers and the same additions, multiplications and divisions, and a golden test pins their output on all three systems.
 
 Logarithms are the one place where platforms can disagree: the system math library may differ by one bit between operating systems. squalify therefore computes them itself, from additions, multiplications and divisions only, which every CPU rounds identically. A reference table made with an arbitrary-precision tool pins the result bit for bit. Hashing uses squalify's own copy of xxHash64, checked against published test vectors.
 
