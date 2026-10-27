@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime;
+using System.Text;
 using squalor.squalify;
 
 namespace squalor.squalify.Tests;
@@ -25,7 +27,8 @@ internal static class MemoryProbe
     /// <param name="Seconds">The duration of the profile.</param>
     /// <param name="Approximate">The number of fields with an approximate distinct count.</param>
     /// <param name="Fields">The number of fields.</param>
-    public sealed record Result(long PeakWorkingSet, long Baseline, long EstimatedBytes, long CeilingBytes, double Seconds, int Approximate, int Fields);
+    /// <param name="Diagnostics">Runtime and GC figures from the child at its start, at the baseline and at the end, one line each, for a failure message.</param>
+    public sealed record Result(long PeakWorkingSet, long Baseline, long EstimatedBytes, long CeilingBytes, double Seconds, int Approximate, int Fields, string Diagnostics = "");
 
     /// <summary>The entry point: runs the probe when asked to, and does nothing otherwise.</summary>
     /// <param name="args">The command line.</param>
@@ -42,8 +45,11 @@ internal static class MemoryProbe
 
         // The baseline: a small profile of the same shape, so that the runtime, the JIT code of the pipeline and the
         // read buffers are in the peak before the large profile starts. The peak working set only ever grows.
+        var diagnostics = new StringBuilder();
+        diagnostics.AppendLine(Snapshot("start"));
         Profiler.Profile(new SyntheticCsvSource(1_000, columns), ProfileOptions.Create(false, []), ProfileLimits.Default);
         var baseline = PeakWorkingSet();
+        diagnostics.AppendLine(Snapshot("baseline"));
         var source = new SyntheticCsvSource(SyntheticCsvSource.RowsFor(bytes, columns), columns);
         var trace = new MemoryTrace();
         var clock = Stopwatch.StartNew();
@@ -55,7 +61,52 @@ internal static class MemoryProbe
             string.Create(
                 CultureInfo.InvariantCulture,
                 $"peak={PeakWorkingSet()} baseline={baseline} estimated={trace.PeakEstimatedBytes} ceiling={trace.CeilingBytes} seconds={clock.Elapsed.TotalSeconds:F1} approximate={approximate} fields={fields.Count}"));
+        diagnostics.AppendLine(Snapshot("end"));
+        Console.Out.Write(diagnostics.ToString());
         return 0;
+    }
+
+    // One line of runtime and GC figures, for the message of a failing memory test. The GC figures are those of the
+    // last collection (GetGCMemoryInfo), the others are current. Nothing here is asserted: it shows where the working
+    // set of a process went when the growth over the baseline is not squalify's data.
+    private static string Snapshot(string label)
+    {
+        var info = GC.GetGCMemoryInfo();
+        using var process = Process.GetCurrentProcess();
+        var line = new StringBuilder("diag ").Append(label).Append(':');
+        void Add(string name, object? value) => line.Append(' ').Append(name).Append('=').Append(Convert.ToString(value, CultureInfo.InvariantCulture));
+        Add("workingSet", process.WorkingSet64);
+        Add("peakWorkingSet", PeakWorkingSet());
+        Add("privateMemory", process.PrivateMemorySize64); // 0 where the OS does not report it (macOS)
+        Add("totalAllocated", GC.GetTotalAllocatedBytes(false));
+        Add("gcIndex", info.Index);
+        Add("gcHeap", info.HeapSizeBytes);
+        Add("gcFragmented", info.FragmentedBytes);
+        Add("gcCommitted", info.TotalCommittedBytes);
+        Add("gcPromoted", info.PromotedBytes);
+        for (var g = 0; g < info.GenerationInfo.Length; g++)
+        {
+            var generation = info.GenerationInfo[g];
+            // Generations 0 to 2, then the large object heap (3) and the pinned object heap (4).
+            var name = g switch { 3 => "loh", 4 => "poh", _ => "gen" + g.ToString(CultureInfo.InvariantCulture) };
+            Add(name + "After", generation.SizeAfterBytes);
+            Add(name + "FragAfter", generation.FragmentationAfterBytes);
+        }
+
+        for (var g = 0; g < 3; g++)
+        {
+            Add("collections" + g.ToString(CultureInfo.InvariantCulture), GC.CollectionCount(g));
+        }
+
+        Add("availableMemory", info.TotalAvailableMemoryBytes);
+        Add("memoryLoad", info.MemoryLoadBytes);
+        Add("serverGC", GCSettings.IsServerGC);
+        Add("latencyMode", GCSettings.LatencyMode);
+        Add("processors", Environment.ProcessorCount);
+        Add("gen0Size", AppContext.GetData("System.GC.Gen0Size") ?? AppContext.GetData("GCgen0size") ?? Environment.GetEnvironmentVariable("DOTNET_GCgen0size") ?? "unset");
+        Add("conserveMemory", AppContext.GetData("System.GC.ConserveMemory") ?? Environment.GetEnvironmentVariable("DOTNET_GCConserveMemory") ?? "unset");
+        Add("concurrentGC", AppContext.GetData("System.GC.Concurrent") ?? "default");
+        return line.ToString();
     }
 
     // The peak working set of this process. Process.PeakWorkingSet64 is 0 on macOS, where the kernel's maximum resident
@@ -108,7 +159,8 @@ internal static class MemoryProbe
         }
 
         Assert.True(process.ExitCode == 0, $"The memory probe failed with {process.ExitCode}: {error.Result}");
-        var fields = output.Result.Trim().Split(' ').Select(static p => p.Split('=')).ToDictionary(static p => p[0], static p => p[1]);
+        var lines = output.Result.Trim().Split('\n', StringSplitOptions.TrimEntries);
+        var fields = lines[0].Split(' ').Select(static p => p.Split('=')).ToDictionary(static p => p[0], static p => p[1]);
         return new Result(
             long.Parse(fields["peak"], CultureInfo.InvariantCulture),
             long.Parse(fields["baseline"], CultureInfo.InvariantCulture),
@@ -116,7 +168,8 @@ internal static class MemoryProbe
             long.Parse(fields["ceiling"], CultureInfo.InvariantCulture),
             double.Parse(fields["seconds"], CultureInfo.InvariantCulture),
             int.Parse(fields["approximate"], CultureInfo.InvariantCulture),
-            int.Parse(fields["fields"], CultureInfo.InvariantCulture));
+            int.Parse(fields["fields"], CultureInfo.InvariantCulture),
+            string.Join('\n', lines.Skip(1)));
     }
 
     private static string HostPath()
