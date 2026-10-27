@@ -148,7 +148,7 @@ public sealed class FieldProfilingTests
         Assert.Equal(5.0, stats.Mean!.Value, 12);
         Assert.Equal(Math.Sqrt(32.0 / 7.0), stats.Stddev!.Value, 12);
         Assert.False(stats.Approximate);
-        Assert.Null(stats.Quantiles.RankError);
+        Assert.Null(stats.RankError);
 
         // 1..100 in a scrambled order: ceil(p * n) - 1 is the zero-based index into the sorted values.
         var hundred = Build(Accumulate(Enumerable.Range(0, 100).Select(static i => (((i * 37) % 100) + 1).ToString(CultureInfo.InvariantCulture))));
@@ -193,7 +193,7 @@ public sealed class FieldProfilingTests
         var field = Build(Accumulate(["1", "2", "3", "4"], caps: DefaultCaps with { Quantile = 3 }));
         var stats = field.Numeric!;
         Assert.True(stats.Approximate);
-        Assert.Equal(0.001, stats.Quantiles.RankError);
+        Assert.Equal(0.001, stats.RankError);
         Assert.Equal(DescriptorNumber.Int(1), stats.Min);
         Assert.Equal(DescriptorNumber.Int(4), stats.Max);
         Assert.Equal(2.5, stats.Mean!.Value, 12);

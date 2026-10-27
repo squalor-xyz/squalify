@@ -1503,6 +1503,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "d348250b-3f55-4c12-9fd3-56a66fa38510",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27, fix round 2), verbatim: \"Next to quantiles (Recommended)\" (option text: \"`numeric.rankError` and `temporal.rankError`, siblings of `quantiles` and `approximate`. The quantiles object holds only percentiles.\").",
+          "created_at": "2026-10-27T20:36:56Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {
