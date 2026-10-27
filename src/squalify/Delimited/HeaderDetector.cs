@@ -22,6 +22,9 @@ internal sealed class SampleRecord
     /// <summary>True when the record is a comment line.</summary>
     public required bool IsComment { get; init; }
 
+    /// <summary>The record's text up to the raw cap (all of it for a line that may be preamble of a later block); null when not kept.</summary>
+    public string? Raw { get; init; }
+
     /// <summary>The number of fields.</summary>
     public int FieldCount => Cells.Length;
 
@@ -225,6 +228,59 @@ internal static class HeaderDetector
         }
 
         return new HeaderDecision { HeaderIndex = header, UnitsIndex = units, Assumed = assumed, Relaxed = relaxed, Evidence = evidence };
+    }
+
+    /// <summary>
+    /// Whether the first record of a block candidate's sample is a header line: its fields are all non-blank and distinct,
+    /// and in some typed column (the types are the strict join of the records below it, a units row left out) its value
+    /// fails the type. This is the eligibility test of <see cref="Detect"/> applied to the first record only, so a stray
+    /// row in the middle of a run can never open a block. The votes must be set (see <see cref="Classify"/>).
+    /// </summary>
+    /// <param name="records">The sample: the first records of the candidate run.</param>
+    /// <param name="k">The field count of the table.</param>
+    /// <param name="unitsRow">True when the record after the header is a units row.</param>
+    /// <returns>True when the sample opens with a header.</returns>
+    public static bool OpensWithHeader(IReadOnlyList<SampleRecord> records, int k, out bool unitsRow)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        unitsRow = false;
+        if (records.Count == 0 || records[0].IsComment || records[0].FieldCount != k)
+        {
+            return false;
+        }
+
+        var types = JoinFrom(records, 1, k);
+        if (records.Count > 1 && records[1] is { IsComment: false } next && next.FieldCount == k)
+        {
+            var afterUnits = JoinFrom(records, 2, k);
+            if (IsUnitsRow(next, afterUnits, k))
+            {
+                unitsRow = true;
+                types = afterUnits;
+            }
+        }
+
+        return Evaluate(records[0], types, k).Eligible;
+    }
+
+    // The column types over the participating records from `start` on.
+    private static ValueVote[] JoinFrom(IReadOnlyList<SampleRecord> records, int start, int k)
+    {
+        var types = new ValueVote[k];
+        for (var i = start; i < records.Count; i++)
+        {
+            if (!Participates(records[i], k))
+            {
+                continue;
+            }
+
+            for (var c = 0; c < k; c++)
+            {
+                types[c] = TypeLattice.Join(types[c], records[i].Votes[c]);
+            }
+        }
+
+        return types;
     }
 
     /// <summary>

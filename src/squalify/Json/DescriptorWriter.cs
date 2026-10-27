@@ -268,13 +268,13 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteString("kind", v.Kind);
         OptionalNumber(w, "index", v.Index);
-        OptionalString(w, "label", v.Label);
         Pair(w, "lines", v.FirstLine, v.LastLine);
         Pair(w, "bytes", v.StartByte, v.EndByte);
         Optional(w, "lineKinds", v.LineKinds, WriteMap);
         OptionalStrings(w, "keys", v.Keys);
         OptionalStrings(w, "values", v.Values);
         OptionalList(w, "rows", v.Rows, Write);
+        OptionalList(w, "regions", v.Regions, Write);
         w.WriteEndObject();
     }
 

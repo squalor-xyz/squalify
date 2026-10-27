@@ -49,7 +49,7 @@ A complete program is in [Examples](examples.md#use-the-library-to-pick-an-impor
 
 | Family | Today | What is described |
 |---|---|---|
-| Delimited text | Fully profiled | CSV, TSV, `;`, `\|` or whitespace separated. Delimiter, quoting, padding and decimal separator; preamble, annotation rows (such as limits), header, units row, data and footer regions; row classes; per-field profiles (type, nulls and null tokens, statistics, shapes, units from header names). |
+| Delimited text | Fully profiled | CSV, TSV, `;`, `\|` or whitespace separated. Delimiter, quoting, padding and decimal separator; preamble, annotation rows (such as limits), header, units row, data and footer regions; repeated header-and-table blocks (one `block` region each, see [descriptor.md](descriptor.md#several-blocks)); row classes; per-field profiles (type, nulls and null tokens, statistics, shapes, units from header names). |
 | Plain text | Generic profile | Encoding, line endings, line kinds, longest line. |
 | Binary | Generic profile | Named magic (gzip, zip, pdf, sqlite, hdf5, `parquet` and others), byte histogram, entropy. Nothing is decompressed or unpacked. |
 | Empty | Generic profile | A zero-length file has family `empty`. |
@@ -57,7 +57,7 @@ A complete program is in [Examples](examples.md#use-the-library-to-pick-an-impor
 | Key=value / INI | Planned | Profiled as text for now. |
 | STDF V4 | Planned | Profiled as binary, with the `stdf-le` or `stdf-be` magic hint, for now. |
 
-Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint. Also planned: sketches for columns past the exact caps (see [Limits](#limits-and-large-files)), repeated blocks, and the `kind` label beyond `text`, `binary` and `empty`. Malformed content is described, not rejected: problems become `issues` and the descriptor is still written. The issue codes are listed in [descriptor.md](descriptor.md#issues).
+Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint. Also planned: sketches for columns past the exact caps (see [Limits](#limits-and-large-files)), and the `kind` label beyond `text`, `binary` and `empty`. Malformed content is described, not rejected: problems become `issues` and the descriptor is still written. The issue codes are listed in [descriptor.md](descriptor.md#issues).
 
 ## Values policy
 

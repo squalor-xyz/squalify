@@ -1608,7 +1608,7 @@
       "id": "sq-13",
       "title": "squalify must describe files with repeated header and data blocks",
       "short_title": "Repeated blocks",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-05"
@@ -1668,9 +1668,23 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "76b90330-4009-45cb-9e1e-5cc03b653177",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27, review round), verbatim answers: block guard: \"Contrast and a real gap (Recommended)\" (option text: \"The candidate header must fail at least half the typed columns (real headers fail almost all), AND the gap before it must contain at least one non-data line (text, key=value, comment). Otherwise the rows are ragged rows of one table, as on main.\"). Repeat rule: \"Yes, exact repeat starts a block (Recommended)\" (option text: \"A later record equal to block 0's header starts a block; lines before it in the gap become that block's preamble or annotation. Safe: a data row almost never equals the header exactly. Extends your 'its values fail' rule.\"). Heterogeneous: \"Prefix of matching blocks (Recommended)\" (option text: \"Keep the single read; profile the leading blocks that share block 0's header and flag the rest in heterogeneousBlocks.\"), amending the spec's \"only block 1\". Fingerprint: \"Bump to 2 in v0.2.0 (Recommended)\" (option text: \"One bump covers every v0.2.0 slice that moves hashes; done in whichever lands last before the release.\"). Orchestrator: blocks:true in structure accepted (architect agrees); heterogeneousBlocks lists header lines, not names (architect and reviewer agree).",
+          "created_at": "2026-10-27T20:48:54Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-27T20:07:51Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -1689,7 +1703,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Status (v0.1.0).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, fingerprints and detect-rule hints, and the values tier. Still to come: the Touchstone, key=value and STDF profilers, sketches past the exact caps, repeated blocks and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Status (v0.1.0).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Still to come: the Touchstone, key=value and STDF profilers, sketches past the exact caps and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -105,10 +105,26 @@ flowchart TD
     R2 --> R3["Units row (optional): MHz, dBm<br/><small>text opt-in</small>"]
     R3 --> R4["Data rows<br/><small>the steady run of k fields</small>"]
     R4 --> R5["Footer (optional)"]
-    R4 -. "same header again" .-> R6["Repeated blocks<br/><small>one per site or sweep</small>"]
+    R4 -. "a new header and table follow" .-> R6["Next block: its own preamble, header and data<br/><small>block region; see below</small>"]
 ```
 
-*Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`; `Delimited/BlockDetector.cs` (planned).*
+*Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`, `Descriptor/Layout.cs`.*
+
+Lab exports often repeat a header and a table per site, temperature or sweep. A **block** is one such header and table. The field-count runs from the structure pass show where a later run of at least 5 rows with the table's field count follows rows with another field count, and squalify takes that run for a new block only when its first row is a header: names filled and different, with a value that disagrees with a column type below it (the same test as for the first header). Otherwise the odd rows are ragged rows of one table, so one bad row cannot split a table. The rows between the last row of a block and the next header are the next block's preamble, not ragged rows. While a run is being decided its rows are held, a bounded number of them, and are then either processed as the table's own rows or turned into the new block.
+
+```mermaid
+flowchart TD
+    Runs["Field counts as runs, from the structure pass<br/><small>FieldCountRle</small>"] --> Cand["Candidates: a later run of 5 or more rows<br/>after rows with another field count<br/><small>BlockDetector.Candidates</small>"]
+    Cand --> Held["Rows of the gap and the first 100 of the run are held<br/><small>DelimitedPass, PendingBlock</small>"]
+    Held --> Q{"Is the first row of the run a header?<br/>names filled and different, one value<br/>disagrees with a column type<br/><small>HeaderDetector.OpensWithHeader</small>"}
+    Q -- "no" --> Rag["The odd rows are ragged rows of one table<br/><small>raggedRows</small>"]
+    Q -- "yes" --> Blk["A new block: the held rows before the header are its preamble<br/><small>block region, dialect.blocks</small>"]
+    Blk --> Same{"Same header text as the first block?<br/><small>DelimitedPass.StartBlock</small>"}
+    Same -- "yes" --> Agg["Rows join the same fields and row classes,<br/>with no switch counted at the boundary<br/><small>RowClassAccumulator.Break</small>"]
+    Same -- "no" --> Het["This and later blocks are not profiled;<br/>their header lines are listed<br/><small>heterogeneousBlocks</small>"]
+```
+
+*Source: `Delimited/BlockDetector.cs`, `Delimited/DelimitedPass.cs`, `Delimited/HeaderDetector.cs`, `Delimited/FieldCountRle.cs`, `Fields/RowClassAccumulator.cs`.* The file is read once, so aggregation stops at the first block whose header differs from the first block's: the blocks before it are one table, and it and the blocks after it are not profiled, but their regions are still in the layout. With more than one block, `layout.regions` holds a `block` region per block, each with its own regions inside, and `dialect.blocks` is the count. A block region has only its index, its lines and its regions: squalify does not name a block, so a consumer reads the file for that. The fingerprint says that there are several blocks, never how many, so 3 blocks and 5 give the same hash.
 
 squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer. Every data row is read a second time and handed to the field accumulators, one per column, so the descriptor says what each field holds; section 5 shows what they keep.
 
@@ -269,7 +285,7 @@ flowchart TD
 
 *Source: `Fingerprint/Projection.cs`, `Fingerprint/DelimitedFingerprint.cs`, `Determinism/Ordinal.cs`.*
 
-Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys today. The other families will add theirs when their profilers arrive.
+Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys today (for a file with several blocks, those of the first block, plus the fact that there are several). The other families will add theirs when their profilers arrive.
 
 ```mermaid
 flowchart TD
@@ -376,7 +392,7 @@ flowchart TD
 
 *Source: `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`, `Descriptor/Table.cs`.*
 
-A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
+A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. When a file has several blocks with the same header, the switch count restarts at each block, so a boundary is never a switch. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
 
 ## 11. Writing the descriptor
 

@@ -4,7 +4,8 @@ namespace squalor.squalify;
 /// <summary>What the scoring pass of the delimited profiler keeps for the profile pass.</summary>
 /// <param name="Selection">The delimiter choice.</param>
 /// <param name="Counter">The line counts of the whole file.</param>
-internal sealed record DelimitedStructure(DialectSelection Selection, LineCounter Counter);
+/// <param name="BlockCandidates">The places inside the winner's data run where a later block may start, from its field-count runs.</param>
+internal sealed record DelimitedStructure(DialectSelection Selection, LineCounter Counter, IReadOnlyList<BlockCandidate> BlockCandidates);
 
 /// <summary>
 /// The profiler for delimited text. Pass 1 (scoring) runs a quote-aware tokenizer for every delimiter candidate at the
@@ -44,7 +45,11 @@ internal sealed class DelimitedProfiler : IFormatProfiler
         if (selection.Best is { } best)
         {
             var reason = "delimiter " + DelimiterCandidates.Word(best.Kind) + "; " + best.Reason;
-            return new FormatScore(selection.ProfilerScore, reason, new DelimitedStructure(selection, counter));
+
+            // Only the winner's run-length encoding is read for blocks; what the pass keeps is the short list of candidates.
+            var winner = tallies.First(t => t.Tokenizer.Kind == best.Kind).Rle;
+            var candidates = BlockDetector.Candidates(winner.Runs, best.K, best.RunFirstLine, best.RunLastLine, limits.HeaderSample);
+            return new FormatScore(selection.ProfilerScore, reason, new DelimitedStructure(selection, counter, candidates));
         }
 
         if (selection.TooIrregular is { } irregular)
@@ -71,7 +76,7 @@ internal sealed class DelimitedProfiler : IFormatProfiler
             throw new InvalidOperationException("The delimited profiler needs the structure from its own scoring pass.");
         }
 
-        var pass = new DelimitedPass(chosen, context);
+        var pass = new DelimitedPass(chosen, context, structure.BlockCandidates);
         var tokenizer = new RecordTokenizer(
             chosen.Kind,
             pass,

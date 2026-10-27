@@ -110,20 +110,7 @@ internal static class ValuesPolicy
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         var gate = Gate(descriptor.Options);
-        var regions = descriptor.Layout.Regions;
-        for (var r = 0; r < regions.Count; r++)
-        {
-            var region = regions[r];
-            VerifyAligned(gate, RegionValues, region.Keys, region.Values, "layout.regions[" + Index(r) + "].values");
-            for (var i = 0; region.Rows is not null && i < region.Rows.Count; i++)
-            {
-                var row = region.Rows[i];
-                if (HasValue(row.Values))
-                {
-                    Require(gate, AnnotationRowValues, row.Label, "layout.regions[" + Index(r) + "].rows[" + Index(i) + "].values");
-                }
-            }
-        }
+        VerifyRegions(gate, descriptor.Layout.Regions, "layout");
 
         var sections = descriptor.Sections;
         for (var s = 0; sections is not null && s < sections.Count; s++)
@@ -172,6 +159,30 @@ internal static class ValuesPolicy
         }
     }
 
+    // The regions of a layout or of a block, with the path of the region list for the message (a block holds child regions).
+    private static void VerifyRegions(ValuesGate gate, IReadOnlyList<Region> regions, string parent)
+    {
+        for (var r = 0; r < regions.Count; r++)
+        {
+            var region = regions[r];
+            var path = parent + ".regions[" + Index(r) + "]";
+            VerifyAligned(gate, RegionValues, region.Keys, region.Values, path + ".values");
+            for (var i = 0; region.Rows is not null && i < region.Rows.Count; i++)
+            {
+                var row = region.Rows[i];
+                if (HasValue(row.Values))
+                {
+                    Require(gate, AnnotationRowValues, row.Label, path + ".rows[" + Index(i) + "].values");
+                }
+            }
+
+            if (region.Regions is not null)
+            {
+                VerifyRegions(gate, region.Regions, path);
+            }
+        }
+    }
+
     /// <summary>
     /// The names of <c>includeValuesFor</c> that match no member of the descriptor: no preamble key, annotation label,
     /// key=value key (a section's) or field name. Names are matched case-folded (ASCII), whole.
@@ -188,7 +199,7 @@ internal static class ValuesPolicy
         }
 
         var present = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var region in descriptor.Layout.Regions)
+        foreach (var region in RegionTree.All(descriptor.Layout))
         {
             AddAll(present, region.Keys);
             foreach (var row in region.Rows ?? [])

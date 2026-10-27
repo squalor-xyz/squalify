@@ -6,7 +6,7 @@ squalify profiles one data file and writes a **descriptor**: a versioned JSON do
 
 Other tools read the descriptor to decide what to do with the file: recognize a known file type, pick an import route, or draft a loader config. squalify only describes the file; it never converts or matches it.
 
-> **Status: early (0.1.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled. Every other file gets the generic text or binary profile. Touchstone, key=value and STDF profilers, sketches for very large columns, repeated blocks and the `kind` label are still to come. The descriptor schema is a **draft** until the v1 schema freeze; before 1.0 a minor version may change it.
+> **Status: early (0.1.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled. Every other file gets the generic text or binary profile. Touchstone, key=value and STDF profilers, sketches for very large columns and the `kind` label are still to come. The descriptor schema is a **draft** until the v1 schema freeze; before 1.0 a minor version may change it.
 
 ## Install
 
