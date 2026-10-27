@@ -15,12 +15,16 @@ internal readonly record struct FieldCaps(long Distinct, long Quantile, long Sha
 /// </summary>
 internal static class MemoryBudget
 {
-    /// <summary>The fixed allowance for the runtime and the I/O buffers.</summary>
+    /// <summary>
+    /// The fixed allowance for the I/O buffers and headroom, on top of the accumulators' estimate. It is measured as
+    /// growth over a small-profile baseline, so the fixed cost of the runtime is not in it.
+    /// </summary>
     public const long AllowanceBytes = 64L * 1024 * 1024;
 
     /// <summary>
-    /// The peak working set a profile may reach: the sum of the accumulators' estimated bytes plus
-    /// <see cref="AllowanceBytes"/>. It is a check on the accounting, not a limit the profiler enforces.
+    /// The growth of the peak working set over a baseline that a profile may reach: the peak sum of the accumulators'
+    /// estimated bytes plus <see cref="AllowanceBytes"/>. It is a check on the accounting, not a limit the profiler
+    /// enforces.
     /// </summary>
     /// <param name="estimatedBytes">The peak sum of the accumulators' estimated bytes.</param>
     /// <returns>The ceiling.</returns>
@@ -41,7 +45,7 @@ internal static class MemoryBudget
             Math.Min(nominal.DistinctPerField, nominal.Budget.DistinctValues / fields),
             Math.Min(nominal.QuantilePerField, nominal.Budget.QuantileValues / fields),
             nominal.ShapesPerField,
-            nominal.Budget.ShapeChars / fields);
+            Math.Min(nominal.ShapeCharsPerField, nominal.Budget.ShapeChars / fields));
     }
 
     /// <summary>The limits of a descriptor, with the effective per-field caps of a table.</summary>
@@ -51,6 +55,6 @@ internal static class MemoryBudget
     public static Limits Record(Limits nominal, FieldCaps caps)
     {
         ArgumentNullException.ThrowIfNull(nominal);
-        return nominal with { DistinctPerField = caps.Distinct, QuantilePerField = caps.Quantile };
+        return nominal with { DistinctPerField = caps.Distinct, QuantilePerField = caps.Quantile, ShapeCharsPerField = caps.ShapeChars };
     }
 }

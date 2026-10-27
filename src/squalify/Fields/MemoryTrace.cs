@@ -14,6 +14,9 @@ internal sealed class MemoryTrace
     /// <summary>The ceiling for the peak working set: the peak estimate plus the fixed allowance.</summary>
     public long CeilingBytes => MemoryBudget.CeilingBytes(PeakEstimatedBytes);
 
+    /// <summary>Called with each sample, so that a test can compare the estimate with the live heap at that moment. Null in a normal run.</summary>
+    public Action<long>? Observer { get; init; }
+
     /// <summary>Records a sample of the sum of estimated bytes.</summary>
     /// <param name="estimatedBytes">The sum now.</param>
     public void Sample(long estimatedBytes)
@@ -22,5 +25,7 @@ internal sealed class MemoryTrace
         {
             PeakEstimatedBytes = estimatedBytes;
         }
+
+        Observer?.Invoke(estimatedBytes);
     }
 }

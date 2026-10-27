@@ -127,6 +127,7 @@ public static class DescriptorWriter
         w.WriteNumber("distinctPerField", v.DistinctPerField);
         w.WriteNumber("quantilePerField", v.QuantilePerField);
         w.WriteNumber("shapesPerField", v.ShapesPerField);
+        w.WriteNumber("shapeCharsPerField", v.ShapeCharsPerField);
         w.WriteNumber("regions", v.Regions);
         w.WriteNumber("headerSample", v.HeaderSample);
         w.WriteNumber("runawayQuote", v.RunawayQuote);
@@ -405,7 +406,7 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteNumber("value", v.Value);
         w.WriteBoolean("approximate", v.Approximate);
-        OptionalDouble(w, "errorBound", v.ErrorBound);
+        OptionalDouble(w, "relativeStdError", v.RelativeStdError);
         w.WriteEndObject();
     }
 
@@ -435,7 +436,6 @@ public static class DescriptorWriter
         w.WritePropertyName("quantiles");
         WriteQuantiles(w, v.Quantiles, static (inner, value) => Number(inner, value));
         w.WriteBoolean("approximate", v.Approximate);
-        OptionalDouble(w, "errorBound", v.ErrorBound);
         w.WriteEndObject();
     }
 
@@ -453,7 +453,6 @@ public static class DescriptorWriter
             v.Quantiles,
             static (writer, quantiles) => WriteQuantiles(writer, quantiles, static (inner, text) => inner.WriteStringValue(text)));
         NullableBoolean(w, "approximate", v.Approximate);
-        OptionalDouble(w, "errorBound", v.ErrorBound);
         w.WriteEndObject();
     }
 
@@ -474,6 +473,7 @@ public static class DescriptorWriter
         writeValue(w, q.P95);
         w.WritePropertyName("p99");
         writeValue(w, q.P99);
+        OptionalDouble(w, "rankError", q.RankError);
         w.WriteEndObject();
     }
 

@@ -136,8 +136,10 @@ internal sealed class FieldAccumulator
     /// An estimate of the memory this accumulator holds, in bytes, for <see cref="MemoryBudget.CeilingBytes(long)"/>. It
     /// counts the exact-value buffers by their chunks (<see cref="ChunkedBuffer{T}"/>), a hash set at three times its entries
     /// (it holds the old and the new table while it grows), the shape mask text, the top-k counters with their value
-    /// text, the sketches, and a fixed share for the object and its small arrays. It is an upper-bound estimate, not a
-    /// measurement, and it moves while values stream, so the pass samples it and keeps the peak.
+    /// text, the sketches, and a fixed share for the object and its small arrays. It is an estimate, not a bound and
+    /// not a measurement: measured against the live heap after a forced collection it comes out within about 3 percent
+    /// plus a constant 0.4 MB of state that belongs to the pass, not to a field. It moves while values stream, so the
+    /// pass samples it and keeps the peak.
     /// </summary>
     public long EstimatedBytes
     {
@@ -345,7 +347,7 @@ internal sealed class FieldAccumulator
             NullsExcludingAllNullRows: nullsExcludingAllNullRows,
             NullTokens: CountMap.FromOrdinal(_nullTokens),
             Flags: new FieldFlags(_leadingZero, _commaDecimalLike, _padded),
-            Distinct: _hll is { } hll ? new DistinctInfo(hll.Estimate(), true, HyperLogLog.ErrorBound) : new DistinctInfo(_distinct?.Count ?? 0, false),
+            Distinct: _hll is { } hll ? new DistinctInfo(Math.Max(hll.Estimate(), _caps.Distinct + 1), true, HyperLogLog.RelativeStdError) : new DistinctInfo(_distinct?.Count ?? 0, false),
             Length: _nonNull == 0 ? null : new LengthStats(_lengthMin, _lengthMax, _lengthSum / (double)_nonNull),
             Shapes: BuildShapes(),
             Monotonic: MonotonicOf(type),
@@ -714,7 +716,7 @@ internal sealed class FieldAccumulator
             var sketched = integer
                 ? PickSketch(sketch, static key => DescriptorNumber.Int(key))
                 : PickSketch(sketch, static key => DescriptorNumber.Real(GreenwaldKhanna.DoubleOfKey(key)));
-            return new NumericStats(min, max, mean, stddev, sketched, true, GreenwaldKhanna.Epsilon);
+            return new NumericStats(min, max, mean, stddev, sketched, true);
         }
 
         Quantiles<DescriptorNumber> quantiles;
@@ -758,7 +760,7 @@ internal sealed class FieldAccumulator
             picked[i] = convert(sketch.Query(Math.Max(rank, 1)));
         }
 
-        return new Quantiles<T>(picked[0], picked[1], picked[2], picked[3], picked[4], picked[5], picked[6]);
+        return new Quantiles<T>(picked[0], picked[1], picked[2], picked[3], picked[4], picked[5], picked[6], GreenwaldKhanna.Epsilon);
     }
 
     private void CountOrders(DateOrders orders)
@@ -943,7 +945,7 @@ internal sealed class FieldAccumulator
         var max = TemporalMath.Iso(_slotMax[slot], type);
         if (_slotSketch[slot] is { } sketch)
         {
-            return new TemporalStats(orders, false, clock, min, max, PickSketch(sketch, key => TemporalMath.Iso(key, type)), true, GreenwaldKhanna.Epsilon);
+            return new TemporalStats(orders, false, clock, min, max, PickSketch(sketch, key => TemporalMath.Iso(key, type)), true);
         }
 
         var order = SlotOrders[slot];

@@ -96,7 +96,10 @@ public sealed class MemoryAccountingTests
         // The budget is divided by the field count like the distinct and quantile budgets.
         var nominal = Limits.Default;
         Assert.Equal(16_000_000 / 2000, MemoryBudget.Effective(nominal, 2000).ShapeChars);
-        Assert.Equal(16_000_000, MemoryBudget.Effective(nominal, 1).ShapeChars);
+        Assert.Equal(53_312, MemoryBudget.Effective(nominal, 1).ShapeChars);
+        Assert.Equal(53_312, MemoryBudget.Effective(nominal, 300).ShapeChars);
+        Assert.Equal(53_156, MemoryBudget.Effective(nominal, 301).ShapeChars);
+        Assert.Equal(8_000, MemoryBudget.Record(nominal, MemoryBudget.Effective(nominal, 2000)).ShapeCharsPerField);
 
         // Masks "9", "a", "A" use 3 characters; "9{2}" (4 characters) would reach 7, over a budget of 6.
         var accumulator = new FieldAccumulator(new FieldCaps(1_000, 1_000, 64, 6));
@@ -234,5 +237,20 @@ public sealed class MemoryAccountingTests
         {
             Assert.Equal(a.Query(rank), b.Query(rank));
         }
+    }
+
+    [Fact]
+    public void Gk_SummaryHoldsAboutThirtyKilobytes()
+    {
+        // The merge works in a rented array and the summary trims its own after each merge: it held 124 KB before.
+        var sketch = new GreenwaldKhanna();
+        var state = 7UL;
+        for (var i = 0; i < 1_000_000; i++)
+        {
+            state = (state * 6364136223846793005UL) + 1442695040888963407UL;
+            sketch.Add((long)(state >> 30));
+        }
+
+        Assert.True(sketch.EstimatedBytes < 40_000, $"{sketch.EstimatedBytes} bytes");
     }
 }

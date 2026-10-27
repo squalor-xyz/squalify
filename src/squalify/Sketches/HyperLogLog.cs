@@ -16,13 +16,21 @@ namespace squalor.squalify;
 /// <para>
 /// The estimate is the raw harmonic-mean estimate <c>alpha * m^2 / sum(2^-M[j])</c>; the powers of two come from
 /// <see cref="Math.ScaleB(double, int)"/> (exact), the sum runs in register order, and every operation is an IEEE
-/// <c>+ - * /</c>, so the result is the same on every platform. While the raw estimate is at most <c>2.5 m</c> and some
-/// register is still empty, linear counting is used instead: <c>m * ln(m / V)</c> with <c>V</c> the number of empty
-/// registers, through <see cref="DetMath.Ln(double)"/>. The result is rounded to a whole number, half to even. The
-/// 64-bit hash needs no large-range correction. The empirical bias correction of HyperLogLog++ is not applied, so
-/// the estimate has a small positive bias just above the switch to the raw estimate, inside the standard error.
+/// <c>+ - * /</c>, so the result is the same on every platform. While the raw estimate is at most <c>3.5 m</c> (about
+/// 57,000 values) and some register is still empty, linear counting is used instead: <c>m * ln(m / V)</c> with
+/// <c>V</c> the number of empty registers, through <see cref="DetMath.Ln(double)"/>. The result is rounded to a whole
+/// number, half to even. The 64-bit hash needs no large-range correction.
 /// </para>
-/// <para>The relative standard error is 1.04 / sqrt(m), about 0.8125 percent; see <see cref="ErrorBound"/>.</para>
+/// <para>
+/// The raw estimate runs several percent high just above <c>2.5 m</c>, where HyperLogLog++ corrects it with empirical
+/// bias tables that are not implemented here. Linear counting stays accurate further than the textbook switch point
+/// (its standard error at <c>3.5 m</c> is about 1 percent), and the two estimators meet at about 57,000 values, so
+/// switching there instead keeps the worst-case error near 1.4 percent (measured over 30,000 to 120,000 values) without any table.
+/// </para>
+/// <para>
+/// <see cref="RelativeStdError"/> is the relative standard error of the raw estimate, 1.04 / sqrt(m), about 0.8125 percent;
+/// it is a one-sigma figure for large counts, and the worst case in the range just above the switch is somewhat higher.
+/// </para>
 /// </remarks>
 internal sealed class HyperLogLog
 {
@@ -33,6 +41,9 @@ internal sealed class HyperLogLog
     public const int RegisterCount = 1 << Precision;
 
     // The constant of the harmonic mean for m >= 128.
+    // The raw estimate is replaced by linear counting up to this multiple of m.
+    private const double LinearCountingLimit = 3.5;
+
     private const double Alpha = 0.7213 / (1.0 + (1.079 / RegisterCount));
 
     // 2^-rank for every rank a register can hold (at most 64 - 14 + 1 = 51).
@@ -42,7 +53,7 @@ internal sealed class HyperLogLog
     private int _empty = RegisterCount;
 
     /// <summary>The relative standard error of an estimate, <c>1.04 / sqrt(m)</c>. The square root of 2^14 is exactly 128.</summary>
-    public static double ErrorBound => 1.04 / Math.Sqrt(RegisterCount);
+    public static double RelativeStdError => 1.04 / Math.Sqrt(RegisterCount);
 
     /// <summary>The number of registers that have not seen a value yet.</summary>
     public int EmptyRegisters => _empty;
@@ -83,7 +94,7 @@ internal sealed class HyperLogLog
 
         const double M = RegisterCount;
         var estimate = Alpha * M * M / sum;
-        if (estimate <= 2.5 * M && _empty > 0)
+        if (estimate <= LinearCountingLimit * M && _empty > 0)
         {
             estimate = M * DetMath.Ln(M / _empty);
         }

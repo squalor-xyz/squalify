@@ -7,8 +7,9 @@ namespace squalor.squalify.Tests;
 
 /// <summary>
 /// The entry point of the test assembly. The memory tests profile a generated stream in a fresh child process (this
-/// assembly run as <c>dotnet squalify.Tests.dll --memory-probe BYTES COLUMNS</c>), because the peak working set of a
-/// process cannot be reset, and the test host holds memory that has nothing to do with the profile. A normal test run
+/// assembly run as <c>dotnet squalify.Tests.dll --memory-probe BYTES COLUMNS</c>, with the default runtime settings),
+/// because the peak working set of a process cannot be reset, and the test host holds memory that has nothing to do
+/// with the profile. A normal test run
 /// never calls <see cref="Main"/>: the test host loads the assembly directly.
 /// </summary>
 internal static class MemoryProbe
@@ -17,13 +18,14 @@ internal static class MemoryProbe
     public const string Switch = "--memory-probe";
 
     /// <summary>The result of one probe run, as the child writes it.</summary>
-    /// <param name="PeakWorkingSet">The peak working set of the child, in bytes.</param>
+    /// <param name="PeakWorkingSet">The peak working set of the child after the large profile, in bytes.</param>
+    /// <param name="Baseline">The peak working set of the same child after a small profile, before the large one: the runtime, the loaded pipeline and a little data.</param>
     /// <param name="EstimatedBytes">The peak of the accumulators' estimated bytes.</param>
     /// <param name="CeilingBytes">The ceiling for the peak working set.</param>
     /// <param name="Seconds">The duration of the profile.</param>
     /// <param name="Approximate">The number of fields with an approximate distinct count.</param>
     /// <param name="Fields">The number of fields.</param>
-    public sealed record Result(long PeakWorkingSet, long EstimatedBytes, long CeilingBytes, double Seconds, int Approximate, int Fields);
+    public sealed record Result(long PeakWorkingSet, long Baseline, long EstimatedBytes, long CeilingBytes, double Seconds, int Approximate, int Fields);
 
     /// <summary>The entry point: runs the probe when asked to, and does nothing otherwise.</summary>
     /// <param name="args">The command line.</param>
@@ -37,6 +39,11 @@ internal static class MemoryProbe
 
         var bytes = long.Parse(args[1], CultureInfo.InvariantCulture);
         var columns = int.Parse(args[2], CultureInfo.InvariantCulture);
+
+        // The baseline: a small profile of the same shape, so that the runtime, the JIT code of the pipeline and the
+        // read buffers are in the peak before the large profile starts. The peak working set only ever grows.
+        Profiler.Profile(new SyntheticCsvSource(1_000, columns), ProfileOptions.Create(false, []), ProfileLimits.Default);
+        var baseline = PeakWorkingSet();
         var source = new SyntheticCsvSource(SyntheticCsvSource.RowsFor(bytes, columns), columns);
         var trace = new MemoryTrace();
         var clock = Stopwatch.StartNew();
@@ -47,7 +54,7 @@ internal static class MemoryProbe
         Console.Out.WriteLine(
             string.Create(
                 CultureInfo.InvariantCulture,
-                $"peak={PeakWorkingSet()} estimated={trace.PeakEstimatedBytes} ceiling={trace.CeilingBytes} seconds={clock.Elapsed.TotalSeconds:F1} approximate={approximate} fields={fields.Count}"));
+                $"peak={PeakWorkingSet()} baseline={baseline} estimated={trace.PeakEstimatedBytes} ceiling={trace.CeilingBytes} seconds={clock.Elapsed.TotalSeconds:F1} approximate={approximate} fields={fields.Count}"));
         return 0;
     }
 
@@ -87,10 +94,6 @@ internal static class MemoryProbe
             RedirectStandardError = true,
         };
 
-        // Tiered compilation keeps tier-0 code and profiling data of the hot loops resident: about 5 to 9 MB more than
-        // optimized code only, on top of the data, which is what the ceiling accounts for. The probe measures the
-        // accumulators, so it runs without tiering (see "Bounded memory and sketches" in docs/design.md).
-        start.Environment["DOTNET_TieredCompilation"] = "0";
         start.ArgumentList.Add(typeof(MemoryProbe).Assembly.Location);
         start.ArgumentList.Add(Switch);
         start.ArgumentList.Add(bytes.ToString(CultureInfo.InvariantCulture));
@@ -108,6 +111,7 @@ internal static class MemoryProbe
         var fields = output.Result.Trim().Split(' ').Select(static p => p.Split('=')).ToDictionary(static p => p[0], static p => p[1]);
         return new Result(
             long.Parse(fields["peak"], CultureInfo.InvariantCulture),
+            long.Parse(fields["baseline"], CultureInfo.InvariantCulture),
             long.Parse(fields["estimated"], CultureInfo.InvariantCulture),
             long.Parse(fields["ceiling"], CultureInfo.InvariantCulture),
             double.Parse(fields["seconds"], CultureInfo.InvariantCulture),
