@@ -28,7 +28,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `table` | `rows`, `fieldCount`, `rowClasses` (sq-17), `fields` |
 | `table.rowClasses` | `count`, `transitions`, `allNullRows`, `truncated`, `classes` |
 | `table.fields[]` | `index`, `name`, `nameHex` (only when the name contains U+FFFD), `nameParts`, `type`, `dominant`, `typeVotes`, `patterns`, `count`, `nulls`, `nullsExcludingAllNullRows`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `sourceType`, `unit`, `top`, `text` |
-| `fields[].nameParts` | `base`, `unit` (null when none), `convention` |
+| `fields[].nameParts` | `base`, `unit` (null when none), `convention`, `unknownUnit` |
 | `fields[].distinct` | `value`, then `approximate`, `errorBound`, `exceeds` (each only when applicable) |
 | `fields[].numeric` | `min`, `max`, `mean`, `stddev`, `quantiles` (`p01`, `p05`, `p25`, `p50`, `p75`, `p95`, `p99`), `approximate` |
 | `fields[].temporal` | `orders`, `ambiguous`, `clock`, `min`, `max`, `quantiles` (same keys as numeric); the last three are `null` when ambiguous |
@@ -76,7 +76,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
   "budget": { "quantileValues": 10000000, "distinctValues": 2000000 }, "nullTokens": 1, "unitTable": 1 }
 ```
 
-`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `headerSample` is the number of records of a delimited data run that are scored as header candidates. `runawayQuote` is the longest open quoted field, in characters, before a delimiter candidate is disqualified, and `fieldCountRuns` is the most field-count runs a candidate may have before it is disqualified as too irregular (see [`format.dialect`](#formatdialect-by-family)). `nullTokens` and `unitTable` are versions of fixed built-in tables. `nullTokens` is the version of the null vocabulary: version 1 is `""`, `NA`, `NA.`, `N/A`, `null`, `NaN` and `-`, matched ASCII case-insensitively after trimming U+0009 to U+000D, U+0020 and U+00A0 from both ends (a fixed set; other space characters, such as U+2028 and U+3000, are not trimmed). The vocabulary is never learned from the data; any change to it bumps this version. See [Value classification and types](design.md#value-classification-and-types).
+`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `headerSample` is the number of records of a delimited data run that are scored as header candidates. `runawayQuote` is the longest open quoted field, in characters, before a delimiter candidate is disqualified, and `fieldCountRuns` is the most field-count runs a candidate may have before it is disqualified as too irregular (see [`format.dialect`](#formatdialect-by-family)). `nullTokens` and `unitTable` are versions of fixed built-in tables. `unitTable` is the version of the table of known units (see [`layout.headerConvention`](#layoutheaderconvention)): version 1 is the units V, A, W, Hz, s, Ohm, F and H (each with the SI prefixes f, p, n, u, m, k, M and G, where u is also spelled with U+00B5 or U+03BC), the units dB, dBm, dBc, %, C, degree-sign C, K, degree-sign alone and `deg`, and the spelled-out aliases listed there. Any change to the table bumps the version. `nullTokens` is the version of the null vocabulary: version 1 is `""`, `NA`, `NA.`, `N/A`, `null`, `NaN` and `-`, matched ASCII case-insensitively after trimming U+0009 to U+000D, U+0020 and U+00A0 from both ends (a fixed set; other space characters, such as U+2028 and U+3000, are not trimmed). The vocabulary is never learned from the data; any change to it bumps this version. See [Value classification and types](design.md#value-classification-and-types).
 
 `charsetTolerance` sets how many invalid UTF-8 sequences a file may hold and still keep its `ascii` or `utf-8` charset (see [`encoding`](#encoding)). The number allowed for a file is `min(invalidSequences, ceil(size / perBytes))`: at most 8 per file and at most 1 per 64 KiB, and a file shorter than 64 KiB tolerates one. For example, a 100-byte file tolerates 1, a 65,537-byte file 2, and any file of 8 × 64 KiB or more 8.
 
@@ -162,8 +162,8 @@ Until the slices that own them land, these members hold fixed interim values (or
 
 - `kind` follows the byte-pass class: `empty` (`K12`), `binary` (`K11`) or `text` (`K09`), with confidence 1. sq-15 replaces it with the rule table.
 - `fingerprint` has `version` 0. `structure`, `layout` and `typed` are the SHA-256 of the compact JSON `{"family":"<family>"}`, and `names` is the SHA-256 of `[]`. sq-06 replaces these with the real projections and `version` 1.
-- `table.fields[]` of a delimited file (sq-04) holds real values for `index`, `name`, `nameHex`, `type` (the strict join of the votes), `dominant` (the plurality vote, a tie going to the narrower type, with its share of the non-null votes; `empty` with share 0 when there are none), `typeVotes`, `count` (non-null plus null cells of records with the header's field count), `nulls`, `nullsExcludingAllNullRows` and `unit` (values tier). Every other member is written as `null` until the slice that computes it lands (sq-05 for the statistics, sq-14 for `nameParts`): `nameParts`, `patterns`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `sourceType`, `top` and `text`. A consumer must read `null` as "not computed", not as "none found". `unit` is `null` without `--include-values` or when the units cell is null.
-- `hints` carries `extension` (lower case, with the dot, or `null`), `magic` (the magic name or `null`) and `fileNameShape` (the shape mask of the file name); every other member is `null`, and `stableLines` is `[]`. sq-06 adds the rest, and the structured `magic`.
+- `table.fields[]` of a delimited file (sq-04) holds real values for `index`, `name`, `nameHex`, `type` (the strict join of the votes), `dominant` (the plurality vote, a tie going to the narrower type, with its share of the non-null votes; `empty` with share 0 when there are none), `typeVotes`, `count` (non-null plus null cells of records with the header's field count), `nulls`, `nullsExcludingAllNullRows` and `unit` (values tier). Every other member is written as `null` until the slice that computes it lands (sq-05 for the statistics): `patterns`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `sourceType`, `top` and `text`. `nameParts` is computed (sq-14); see [`table.fields[]`](#tablefields). A consumer must read `null` as "not computed", not as "none found". `unit` is `null` without `--include-values` or when the units cell is null.
+- `hints` carries `extension` (lower case, with the dot, or `null`), `magic` (the magic name or `null`), `fileNameShape` (the shape mask of the file name) and `headerConvention` (the dominant convention of a delimited table with a header, sq-14); every other member is `null`, and `stableLines` is `[]`. sq-06 adds the rest, and the structured `magic`.
 
 ## `layout.regions[]`
 
@@ -188,8 +188,25 @@ Until the slices that own them land, these members hold fixed interim values (or
 ## `layout.headerConvention`
 
 ```json
-{ "dominant": "nameParenUnit", "share": 0.769, "counts": { "nameParenUnit": 10, "none": 3 } }
+{ "dominant": "nameParenUnit", "share": 0.8461538461538461, "counts": { "nameParenUnit": 11, "none": 2 } }
 ```
+
+Written for a delimited table that has a header (sq-14), and omitted otherwise. It reports how the header names carry units. Every header name is parsed against these conventions, in this order, and the first match wins (see [design.md](design.md#header-unit-conventions)):
+
+| Convention | Rule | Example |
+|---|---|---|
+| `nameParenUnit` | The name ends with `)`, the last `(` lies after the first character, and the text inside is not empty. The base name and the unit are trimmed and neither is empty. The unit text is taken as written; it need not be in the unit table | `I_Total(A)` |
+| `nameBracketUnit` | The same rule with `[` and `]`, except that unit text of only ASCII digits is not a unit (an array index, as in the trace columns `Trace[0]` to `Trace[n]`); such a name falls through to the next rules | `Pout[dBm]`; `Trace[0]` is `none` |
+| `nameUnderscoreUnit` | The last `_` is neither the first nor the last character, and the text after it, trimmed, is in the unit table. The text before it, trimmed, is the base | `VCC_V`, `ICC_A`; `I_Total` is not one |
+| `unitsRow` | The file has a units row, the name matched none of the three above, and the units cell of that column has a value (an empty or null cell leaves the name `none`) | `Freq` over a units row holding `MHz` |
+| `none` | Anything else; the base is the whole name | `SN`, `I_Total` |
+
+Parsing mirrors DataBall's `HeaderParser`, except that the bracket form and `unitsRow` are squalify's own. Names are the trimmed header text (U+0009 to U+000D, U+0020 and U+00A0 are trimmed from both ends). Matching never uses the Unicode tables or the current culture.
+
+- `counts` has an entry for each convention that occurs, keyed ordinally. `share` is the count of the `dominant` convention over the number of header names. The `dominant` convention is the most common one; a tie goes to the earlier convention in the order of the table above, so `none` loses every tie. With no header names the dominant is `none` and the share is 0 (a table with no header omits the object, so this does not occur in a descriptor).
+- The unit table, version 1 (`limits.unitTable`), is matched case-sensitively and exactly, except for the aliases. Base units: `V`, `A`, `W`, `Hz`, `s`, `Ohm`, `F`, `H`, `dB`, `dBm`, `dBc`, `%`, `C`, `K`, `Ω` (U+03A9, the Greek capital omega), the ohm sign (U+2126), `°C` (U+00B0 then `C`), and the angle units `°` (U+00B0 alone) and `deg`, which take no prefix. The prefixes `f`, `p`, `n`, `u`, `µ` (U+00B5), `μ` (U+03BC), `m`, `k`, `M` and `G` combine with `V`, `A`, `W`, `Hz`, `s`, `Ohm`, `Ω`, `F`, `H`. Aliases, matched with ASCII letters folded to lower case: `amps`, `amp`, `ampere`, `amperes`, `volt`, `volts`, `sec`, `second`, `seconds`, `degC`, `celsius`, `ohm` (the only alias that takes a prefix, and the prefix stays case-sensitive: `mohm` is milli, `Mohm` is mega), `ohms` (no prefix), `watt`, `watts`, `pct`, `percent`. There is no `id` unit.
+- Everything in `layout.headerConvention` and `fields[].nameParts` comes from header names, so it is always included. See [`table.fields[]`](#tablefields) for `nameParts`.
+- With the evidence entry `unit` / `headerConvention` (see [`evidence[]`](#evidence)) and the hint `hints.headerConvention`, which repeats `dominant`.
 
 ## `table.rowClasses`
 
@@ -206,7 +223,7 @@ Records are grouped by their set of non-null fields (sq-17). `fields` are inclus
 {
   "index": 7,
   "name": "Frequency(MHz)",
-  "nameParts": { "base": "Frequency", "unit": "MHz", "convention": "nameParenUnit" },
+  "nameParts": { "base": "Frequency", "unit": "MHz", "convention": "nameParenUnit", "unknownUnit": false },
   "type": "float",
   "dominant": { "type": "float", "share": 1 },
   "typeVotes": { "float": 9998, "int": 2 },
@@ -236,12 +253,13 @@ Records are grouped by their set of non-null fields (sq-17). `fields` are inclus
 - `length` is null for a field that has no non-null values. `temporal.clock` is `12h` or `24h` for fields that carry a time of day and null for `date` fields.
 - `statsWithheld` is `"constant"` when every non-null value of the field is equal and values are not opted in for it; `numeric` and `temporal` are then null.
 - `name` is the trimmed header text; it is `null` when the table has no header (later slices refer to the field as `#<index>`), and `""` for a blank header name (with the issue `emptyHeaderName`).
+- `nameParts` splits the trimmed `name` into `base`, `unit` and `convention` (see [`layout.headerConvention`](#layoutheaderconvention)). `unit` is the unit text as written in the name (`degC`, `dBm`), with no case change, or `null` when the name carries none. `unknownUnit` is `true` when `unit` is not in the unit table, as for `Date(date)` or `RowID(id)`, and `false` otherwise. It is written for every field of a table with a header. It is `null` when the table has no header (`name` is `null` too), so a headerless table has no convention. For `unitsRow` the member `unit` is `null`: the text of the units row is a value, so it lives only in `fields[].unit` (values tier), while the convention is always shown. A trailing space in the header is trimmed before parsing, so `RowID(id) ` and `RowID(id)` give the same `nameParts`; a near miss such as `RowID(ID)` or `rowid(id)` keeps its own text in `base` and `unit`, and is flagged the same way.
 - `nameHex` (present only when the name contains U+FFFD) is the hex (lower case) of the original bytes of the field as written, trimmed, quotes included.
 - `patterns` gives the counts of matched date, datetime and time patterns, keyed by pattern; it is null for fields with no such value. A pattern is the order-neutral layout of a value: `yyyy` for a 4-digit year, `nn` or `n` for a 1–2 digit day or month, with the separator kept (`n/n/yyyy` for `6/5/2026`, whichever order it is; the orders are in `temporal.orders`); `HH`/`H` (24-hour) or `hh`/`h` (12-hour) for the hour with `:mm`, `:ss`, `.f+` (a fraction of any length) and `tt` (an `AM`/`PM` marker, preceded by a space when the value has one); `Z`, `zz` (`+hh`), `zzzz` (`+hhmm`) or `zzz` (`+hh:mm`) for a zone offset; and a literal `T` or space between date and time. For example `yyyy-nn-nn`, `nn/n/yyyy hh:mm:ss tt` and `yyyy-nn-nnTHH:mm:ssZ`. The classifier (sq-16) produces one pattern per value; filling the map is sq-05.
 - `nullTokens` counts null values by token. The classifier reports which vocabulary entry matched each null; the spelling of the keys is set by sq-05, which fills the map.
 - `distinct` past the cap, before sq-11: `{ "value": null, "exceeds": 10000 }`. From sq-11: `{ "value": n, "approximate": true, "errorBound": 0.0081 }`.
 - `sourceType` is the native type for Parquet (for example `DECIMAL(10,2)`).
-- `unit` is the unit from a units row. **Values tier.** Units parsed from header names are in `nameParts` and are always included.
+- `unit` is the unit from a units row. **Values tier.** Units parsed from header names are in `nameParts` and are always included. With a units row, a field whose name carries no unit has the convention `unitsRow` when its units cell has a value, and `none` otherwise; `unit` is `null` either way unless values are opted in.
 - `top` (`{ "items": [{ value, count }], "approximate": false }`, plus `maxError` when approximate) and `text` (`{ min, max }`, lexical) are **values tier**. The `{ items, approximate, maxError? }` shape of `top` is the pinned draft shape; sq-12 records it in the schema changelog.
 - `monotonic` is one of `increasing`, `decreasing`, `nonDecreasing`, `nonIncreasing` or `none`; it is null for an ambiguous temporal field.
 - Shapes are sorted by count descending, then by mask (ordinal). Past the cap, the rest go into `{ "mask": "other", "count": n }`.
@@ -348,7 +366,7 @@ The delimited profiler writes these:
   { "value": ";", "score": 0, "reason": "k=1; no run" } ] }
 ```
 
-**Order of entries.** Entries are sorted by stage in pipeline order (`encoding`, `format`, `dialect`, `header`, then the stages that later slices add), and within a stage by `topic`, ordinally. A stage that is not in the list ranks after the known ones, so every new stage must be added to `Profiler.StageOrder` and listed here.
+**Order of entries.** Entries are sorted by stage in pipeline order (`encoding`, `format`, `dialect`, `header`, `unit`, then the stages that later slices add), and within a stage by `topic`, ordinally. A stage that is not in the list ranks after the known ones, so every new stage must be added to `Profiler.StageOrder` and listed here.
 
 **Order of `candidates`.** The order is never insertion order. Each topic documents its own key, and a topic with a fixed set of candidates uses a fixed table. A later slice documents its topics here when it adds them.
 
@@ -361,6 +379,7 @@ The delimited profiler writes these:
 | `dialect` / `delimiter` (delimited text files, when the profiler wins, or when it declined a file as too irregular) | The five delimiter candidates as `value`: `,`, a tab, `;`, `|`, `whitespace`. `score` is the candidate's dialect score (0 for a disqualified one); `chosen` is the winner, `null` when none is viable. The reason is `k={k}; {inRun}/{total} records; clean={c}; run lines {a}-{b}`, with `; {n} quoted fields` always appended and `; {n} literal quotes` appended when the candidate saw any; `k={k}; no run` (with the same quoted-fields and literal-quotes suffixes); `disqualified: runaway quote opened at line {n}`; or `disqualified: too irregular, more than {limit} field-count runs by line {n}` | Candidate order: `,`, tab, `;`, `|`, `whitespace` |
 | `dialect` / `decimalSeparator` (delimited) | `,` and `.`; the chosen one scores 1. The reasons carry the counts of comma-decimal and dot-decimal cells in the header sample | `value`, ordinally |
 | `header` / `candidates` (delimited) | Every eligible record of the header sample, with `value` = its 1-based line and `score` = its header score; the chosen record too when it is not eligible (relaxed or assumed); then one entry with `value` `summary` and score 0. The reason of a record is `eligible; nonEmpty=..; nonNumeric=..; unique=..; contrast=..`, `relaxed: blank or repeated names; ...` or `assumed: all-string table; ...`. The reason of the summary counts only: `sampled={n}; eligible={e}; ineligible={i} (comment line={a}, field count={b}, blank or repeated names={c}, fits every typed column={d})`. `chosen` is the header line, `null` when there is no header | Records by line, ascending (numerically); `summary` last |
+| `unit` / `headerConvention` (delimited tables with a header) | The five conventions as `value`, always all five: `nameParenUnit`, `nameBracketUnit`, `nameUnderscoreUnit`, `unitsRow`, `none`. `score` is the share of header names with that convention (count over number of names); `chosen` is the `dominant` convention. The reason is `{n} of {m} headers` | Fixed order as listed, which is also the tie-break order of the dominant convention |
 
 Reasons are fixed templates filled with value-free numbers (counts and offsets), never data values.
 
@@ -383,4 +402,4 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.
 - Consumers must ignore unknown keys within a major version.
 - `fingerprint.version` changes whenever a projection changes. Hashes from different versions cannot be compared.
-- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages) do not bump `schemaVersion`, which stays `1.0`.
+- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`.

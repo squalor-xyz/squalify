@@ -218,7 +218,8 @@
         "nameParts": {
           "base": "Frequency",
           "unit": "MHz",
-          "convention": "nameParenUnit"
+          "convention": "nameParenUnit",
+          "unknownUnit": false
         },
         "type": "float",
         "dominant": {
@@ -299,7 +300,8 @@
         "nameParts": {
           "base": "Start",
           "unit": null,
-          "convention": "none"
+          "convention": "none",
+          "unknownUnit": false
         },
         "type": "datetime",
         "dominant": {
@@ -370,7 +372,8 @@
         "nameParts": {
           "base": "Lot�",
           "unit": null,
-          "convention": "none"
+          "convention": "none",
+          "unknownUnit": false
         },
         "type": "string",
         "dominant": {
@@ -438,7 +441,8 @@
         "nameParts": {
           "base": "Date",
           "unit": null,
-          "convention": "none"
+          "convention": "none",
+          "unknownUnit": false
         },
         "type": "date",
         "dominant": {

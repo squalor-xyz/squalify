@@ -205,10 +205,11 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         var hex = ReadNameHex(source, names, nameSpans);
+        var conventions = hasHeader ? HeaderConventionParser.Analyze(names!, UnitsCellsWithValue()) : null;
         var fields = new List<FieldProfile>();
         for (var c = 0; c < _k; c++)
         {
-            fields.Add(BuildField(c, names[c], hex[c]));
+            fields.Add(BuildField(c, names[c], hex[c]) with { NameParts = conventions?.Parts[c] });
         }
 
         if (_ragged > 0)
@@ -247,13 +248,35 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             evidence.Add(_decision.Evidence);
         }
 
+        if (conventions is not null)
+        {
+            evidence.Add(conventions.Evidence);
+        }
+
         return new FormatProfile(
             dialect,
-            new LayoutSection(regions, MaxLineLength: counter.MaxLineLength),
+            new LayoutSection(regions, HeaderConvention: conventions?.Info, MaxLineLength: counter.MaxLineLength),
             new LineEndings(counter.Crlf, counter.Lf, counter.Cr),
             issues,
             evidence,
             Table: table);
+    }
+
+    // Per column, whether the units row has a value in it; null when the file has no units row.
+    private bool[]? UnitsCellsWithValue()
+    {
+        if (_unitsRecord is not { } units)
+        {
+            return null;
+        }
+
+        var has = new bool[_k];
+        for (var c = 0; c < _k; c++)
+        {
+            has[c] = c < units.FieldCount && units.Votes[c] != ValueVote.Null;
+        }
+
+        return has;
     }
 
     private static string AsciiFold(string text)
