@@ -2395,7 +2395,7 @@
       "id": "sq-26",
       "title": "NuGet package for library consumers",
       "short_title": "NuGet package for library consumers",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-25"
@@ -2413,10 +2413,7 @@
           "stale_after": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-27T16:32:09Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
