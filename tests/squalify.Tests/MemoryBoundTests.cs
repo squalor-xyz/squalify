@@ -13,6 +13,7 @@ public sealed class MemoryBoundTests(ITestOutputHelper output)
     private const int Columns = 12;
 
     [Fact]
+    [Trait("Category", "Large")]
     public void MemoryAccounting_UnderBudget_256MbStream()
     {
         var result = MemoryProbe.RunChild(256L * 1024 * 1024, Columns, TimeSpan.FromMinutes(10));

@@ -1514,6 +1514,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "4b0ad683-46a0-4605-98fc-e8ca20eca7fb",
+          "kind": "",
+          "text": "**2026-10-27** — Owner (2026-10-27), verbatim, on the flaky Windows process-memory check: \"i think measuring all of this is too much -- it's probably fine\". Orchestrator: the 256 MB process-growth test moved to Category=Large (run by hand) like the 4 GB one; Accounting_LiveHeapStaysWithinTheEstimate stays in CI.",
+          "created_at": "2026-10-27T20:59:51Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {
