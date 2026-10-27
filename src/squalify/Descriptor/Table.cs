@@ -41,7 +41,7 @@ public sealed record FieldRange(long First, long Last);
 /// <summary>One entry of <c>table.fields[]</c>. Members that the schema always writes are written as null when they do not apply.</summary>
 /// <param name="Index">Column index.</param>
 /// <param name="Name">The header name, trimmed; null when the table has no header.</param>
-/// <param name="NameParts">Name split into base and unit; null until the header-unit conventions are parsed (sq-14).</param>
+/// <param name="NameParts">Name split into base and unit; null when the table has no header.</param>
 /// <param name="Type">The field type.</param>
 /// <param name="Dominant">The dominant vote.</param>
 /// <param name="TypeVotes">Type votes.</param>
@@ -96,8 +96,9 @@ public sealed record FieldProfile(
 /// <summary>A header name split into base and unit.</summary>
 /// <param name="Base">The name without the unit.</param>
 /// <param name="Unit">The unit, or null when none was parsed.</param>
-/// <param name="Convention">The header-unit convention.</param>
-public sealed record NameParts(string Base, string? Unit, string Convention);
+/// <param name="Convention">The header-unit convention: <c>nameParenUnit</c>, <c>nameBracketUnit</c>, <c>nameUnderscoreUnit</c>, <c>unitsRow</c> or <c>none</c>.</param>
+/// <param name="UnknownUnit">True when the name carries unit text that is not in the unit table.</param>
+public sealed record NameParts(string Base, string? Unit, string Convention, bool UnknownUnit = false);
 
 /// <summary>The dominant type vote.</summary>
 /// <param name="Type">The type with the most votes.</param>

@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Five slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Six slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -29,13 +29,13 @@ Every file goes through the same steps. A step that reads the file reads all of 
 ```mermaid
 flowchart TD
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
-    B --> C["3. Read the structure:<br/>regions, header, records<br/><small>IFormatProfiler</small>"]
+    B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
     C --> D["4. Profile every field:<br/>types and statistics<br/><small>FieldAccumulator</small>"]
-    D --> E["5. Summarize: fingerprints, hints,<br/>unit conventions, kind label<br/><small>Projection, HeaderConventionParser,<br/>KindRules, hints builder</small>"]
+    D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, KindRules, hints builder</small>"]
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`; `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now, step 4 is limited to the type votes that the delimited profile counts (the other field statistics come later), and the fingerprint and kind label hold fixed placeholder values until their slices land. For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/`, `Fingerprint/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is limited to the type votes that the delimited profile counts (the other field statistics come later), and the fingerprint and kind label hold fixed placeholder values until their slices land. For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
 
 ## 3. Choosing a format
 
@@ -196,22 +196,49 @@ flowchart LR
 
 *Source: `Fingerprint/Projection.cs` (planned).*
 
-## 8. Kind label and unit conventions
+## 8. Header-unit conventions and the kind label
 
-After profiling, two small rule sets read the finished descriptor. They never read the file.
+Lab exports carry units in many custom ways: `I_Total(A)`, `Pout[dBm]`, `VCC_V`, a units row under the header, or not at all. squalify reports which way each column name does it, and which way the file does it most. It reads the header names only, never the values, so the result is always included in the descriptor.
 
-- **Header-unit conventions.** Every column name is checked for how it carries a unit: `I_Total(A)`, `Pout[dBm]`, `VCC_V`, a units row, or none. The most common convention is reported.
-- **Kind label.** A fixed, ordered list of rules suggests a generic label, such as `labSweepTable`, `stdfTestLog` or `touchstoneNetwork`. The first rule that matches wins, and every rule's result is kept as evidence.
+Each header name is tried against a short list, in this order, and the first match wins. The patterns and the unit table follow DataBall's header parser, so a consumer can map the conventions directly. The one addition is the bracket form, and digits alone in brackets (`Trace[0]`) are an array index, not a unit.
+
+```mermaid
+flowchart TD
+    N["One header name, trimmed<br/><small>HeaderConventionParser.Parse</small>"] --> P{"Ends with (text) after a name?<br/>Pout(dBm)"}
+    P -- "yes" --> Pp["Paren convention: base name + unit text<br/><small>nameParenUnit</small>"]
+    P -- "no" --> B{"Ends with [text] after a name,<br/>text not only digits?<br/>Pout[dBm]"}
+    B -- "yes" --> Bb["Bracket convention<br/><small>nameBracketUnit</small>"]
+    B -- "no" --> U{"Last _ is followed by a unit<br/>from the fixed table?<br/>VCC_V"}
+    U -- "yes" --> Uu["Underscore convention<br/><small>nameUnderscoreUnit, UnitTable.IsKnown</small>"]
+    U -- "no" --> Nn["Plain name, no unit<br/><small>none</small>"]
+    Pp -.-> Fl["Unit text not in the table:<br/>flag unknownUnit, as in Date(date)<br/><small>NameParts.UnknownUnit</small>"]
+    Bb -.-> Fl
+```
+
+*Source: `Units/HeaderConventionParser.cs`, `Units/UnitTable.cs`.* The parenthesis and bracket forms accept any unit text and flag the ones the table does not know, so `RowID(id)` is split into the base `RowID` and the unit `id`, with the flag. The underscore form needs a known unit, so `I_Total` stays a plain name. The table is fixed and versioned (`limits.unitTable`): V, A, W, Hz, s, Ohm, F, H, dB, dBm, dBc, %, C, K and the angle units `°` and `deg`, with the SI prefixes f to G on the first eight. Matching is case-sensitive, except for a short list of spelled-out aliases such as `ohm` and `degC`. When the file has a units row, every name without a unit of its own gets the convention `unitsRow`, but only when its units cell has a value; the units text itself is a value and stays opt-in.
+
+The file then gets one summary: how many names use each convention, and the most common one. A tie goes to the earlier convention in the list above, with `none` last, so a file with as many unit names as plain names counts as using the unit convention. A table with no header has no names, so it gets no convention.
 
 ```mermaid
 flowchart LR
-    D["Finished descriptor"] --> U["Header-unit conventions<br/><small>HeaderConventionParser</small>"]
-    D --> K["Ordered kind rules<br/><small>KindRules</small>"]
-    U --> K
+    A["Every header name<br/><small>DelimitedPass.Build</small>"] --> C["Count names per convention<br/><small>HeaderConventionParser.Analyze</small>"]
+    C --> D["Most common wins;<br/>a tie goes to the earlier convention<br/><small>nameParenUnit first, none last</small>"]
+    D --> L["layout.headerConvention:<br/>dominant, share, counts<br/><small>HeaderConventionInfo</small>"]
+    D --> H["hints.headerConvention<br/><small>Hints</small>"]
+    D --> E["Evidence: one score per convention<br/><small>stage unit</small>"]
+```
+
+*Source: `Units/HeaderConventionParser.cs`, `Delimited/DelimitedPass.cs`, `Profiler.cs`.*
+
+A second rule set, the **kind label**, is still planned. It will read the finished descriptor (never the file) and suggest a generic label such as `labSweepTable`, `stdfTestLog` or `touchstoneNetwork`. The first rule in a fixed, ordered list that matches wins, and every rule's result is kept as evidence.
+
+```mermaid
+flowchart LR
+    D["Finished descriptor<br/><small>including headerConvention</small>"] --> K["Ordered kind rules<br/><small>KindRules</small>"]
     K --> L["kind: labSweepTable<br/><small>+ evidence per rule</small>"]
 ```
 
-*Source: `Units/`, `Kind/` (planned).*
+*Source: `Kind/` (planned).*
 
 ## 9. Why the output never changes
 

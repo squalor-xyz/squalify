@@ -94,6 +94,14 @@
         ]
       }
     ],
+    "headerConvention": {
+      "dominant": "nameParenUnit",
+      "share": 0.6666666666666666,
+      "counts": {
+        "nameParenUnit": 2,
+        "none": 1
+      }
+    },
     "maxLineLength": 25
   },
   "table": {
@@ -106,7 +114,12 @@
       {
         "index": 0,
         "name": "Pout(dBm)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Pout",
+          "unit": "dBm",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -138,7 +151,12 @@
       {
         "index": 1,
         "name": "Gain(dB)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Gain",
+          "unit": "dB",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -170,7 +188,12 @@
       {
         "index": 2,
         "name": "Status",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Status",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
         "type": "string",
         "dominant": {
           "type": "string",
@@ -218,7 +241,7 @@
     "fieldCount": null,
     "dataStartLine": null,
     "delimiter": null,
-    "headerConvention": null,
+    "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{7}-a{9}-a{4}.a{3}"
@@ -354,6 +377,38 @@
           "value": "summary",
           "score": 0,
           "reason": "sampled=141; eligible=1; ineligible=140 (comment line=0, field count=0, blank or repeated names=120, fits every typed column=20)"
+        }
+      ]
+    },
+    {
+      "stage": "unit",
+      "topic": "headerConvention",
+      "chosen": "nameParenUnit",
+      "candidates": [
+        {
+          "value": "nameParenUnit",
+          "score": 0.6666666666666666,
+          "reason": "2 of 3 headers"
+        },
+        {
+          "value": "nameBracketUnit",
+          "score": 0,
+          "reason": "0 of 3 headers"
+        },
+        {
+          "value": "nameUnderscoreUnit",
+          "score": 0,
+          "reason": "0 of 3 headers"
+        },
+        {
+          "value": "unitsRow",
+          "score": 0,
+          "reason": "0 of 3 headers"
+        },
+        {
+          "value": "none",
+          "score": 0.3333333333333333,
+          "reason": "1 of 3 headers"
         }
       ]
     }

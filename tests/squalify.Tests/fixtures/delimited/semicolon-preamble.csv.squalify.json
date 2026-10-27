@@ -113,6 +113,14 @@
         ]
       }
     ],
+    "headerConvention": {
+      "dominant": "nameParenUnit",
+      "share": 0.6666666666666666,
+      "counts": {
+        "nameParenUnit": 2,
+        "none": 1
+      }
+    },
     "maxLineLength": 21
   },
   "table": {
@@ -125,7 +133,12 @@
       {
         "index": 0,
         "name": "Site",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Site",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
         "type": "int",
         "dominant": {
           "type": "int",
@@ -157,7 +170,12 @@
       {
         "index": 1,
         "name": "Vth(V)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Vth",
+          "unit": "V",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -189,7 +207,12 @@
       {
         "index": 2,
         "name": "Idsat(uA)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Idsat",
+          "unit": "uA",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -237,7 +260,7 @@
     "fieldCount": null,
     "dataStartLine": null,
     "delimiter": null,
-    "headerConvention": null,
+    "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{9}-a{8}.a{3}"
@@ -373,6 +396,38 @@
           "value": "summary",
           "score": 0,
           "reason": "sampled=9; eligible=1; ineligible=8 (comment line=0, field count=0, blank or repeated names=0, fits every typed column=8)"
+        }
+      ]
+    },
+    {
+      "stage": "unit",
+      "topic": "headerConvention",
+      "chosen": "nameParenUnit",
+      "candidates": [
+        {
+          "value": "nameParenUnit",
+          "score": 0.6666666666666666,
+          "reason": "2 of 3 headers"
+        },
+        {
+          "value": "nameBracketUnit",
+          "score": 0,
+          "reason": "0 of 3 headers"
+        },
+        {
+          "value": "nameUnderscoreUnit",
+          "score": 0,
+          "reason": "0 of 3 headers"
+        },
+        {
+          "value": "unitsRow",
+          "score": 0,
+          "reason": "0 of 3 headers"
+        },
+        {
+          "value": "none",
+          "score": 0.3333333333333333,
+          "reason": "1 of 3 headers"
         }
       ]
     }

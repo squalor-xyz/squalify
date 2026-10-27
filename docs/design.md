@@ -117,7 +117,7 @@ The profiler is `DelimitedProfiler` (`src/squalify/Delimited/DelimitedProfiler.c
   - **Units row** (owner decision 2026-10-27). The record after the header is a units row when every non-null field fails its column's type, is at most 16 characters and sits in a column whose type is not `string`, and at least one field is non-null. Null cells (blank, or a token of the null vocabulary) are neutral, so a unitless column may be blank; an all-null record (an ATE separator row) is never a units row. The units region is always detected; the unit text (`fields[].unit`) is values tier.
 - **Keys and labels** are normalized: trimmed, with a trailing `:` or `=` removed. A field name containing U+FFFD also carries `nameHex`, the hex of the bytes of the field as written (trimmed, quotes included), read from the source once after the scan.
 - **Regions.** Regions tile the file: a region starts at the first record of its kind and ends on the line before the next region starts; a blank line belongs to the region before it (leading blank lines to the preamble, trailing ones to the last region). The first region starts at byte 0, a BOM included, and the last ends at the end of the file. Byte ranges are byte offsets in the file's own charset. `lineKinds` counts records (a record with a quoted line break counts once). Footer: the non-blank records after the run.
-- **Type votes.** For this slice every data record with the header's field count is classified, and each field gets `typeVotes`, `type` (the strict join), `dominant`, `count`, `nulls` and `nullsExcludingAllNullRows`. The other statistics are sq-05's, and `nameParts` is sq-14's: they are written as `null` until those slices compute them (see [descriptor.md](descriptor.md#interim-members)). Ragged records are counted but not typed.
+- **Type votes.** For this slice every data record with the header's field count is classified, and each field gets `typeVotes`, `type` (the strict join), `dominant`, `count`, `nulls` and `nullsExcludingAllNullRows`. The other statistics are sq-05's: they are written as `null` until that slice computes them (see [descriptor.md](descriptor.md#interim-members)). `nameParts` comes from the header names (see [Header-unit conventions](#header-unit-conventions)). Ragged records are counted but not typed.
 - **No record-length cap.** Every record is profiled, however long. `layout.maxLineLength` reports the longest line in characters (UTF-16 code units, as for the text profile). Memory stays bounded by the per-field runaway-quote limit and the field accumulators' caps.
 - **Repeated blocks** (sq-13). Two or more data runs with the same k, each at least 5 records long, are profiled as blocks. If every block's header is identical, the fields are aggregated across blocks. Otherwise only the first block is profiled and the issue `heterogeneousBlocks` is recorded. Until then `format.dialect.blocks` is 1.
 - **Row classes** (sq-17). Data records are grouped by which fields are non-null. Some exports interleave measurement, setup, error and all-null separator rows, switching thousands of times, which contiguous regions cannot express. `table.rowClasses` reports each class (count, field ranges, first and last line, a stable ID), the number of class transitions and the all-null record count. Each field also reports its nulls excluding all-null records.
@@ -241,7 +241,7 @@ A field's `type` is the join over all its non-null votes (the strict rule). Vote
 
 ## Header-unit conventions
 
-Each header name is parsed against a fixed set of conventions:
+Each header name is parsed against a fixed set of conventions, in this order, and the first match wins:
 
 | Convention | Example |
 |---|---|
@@ -251,15 +251,36 @@ Each header name is parsed against a fixed set of conventions:
 | `unitsRow` | a units row under the header |
 | `none` | |
 
-The unit table is fixed and versioned (`limits.unitTable`). It contains these base units, combined with the SI prefixes f, p, n, u/µ, m, k, M and G:
+`HeaderConventionParser` (`src/squalify/Units/`) does this, and `UnitTable` holds the known units. Each field gets `nameParts { base, unit, convention, unknownUnit }`, and the file gets `layout.headerConvention { dominant, share, counts }`, the `headerConvention` hint and the evidence entry `unit` / `headerConvention`. They come from header names, so they are always included. A table with no header has no names, so its fields have `nameParts: null` and the file has no convention.
 
-- V, A, W
-- Hz, s
-- Ohm/Ω, F, H
-- dB, dBm, dBc
-- %, C/degC/°C, K
+- **Patterns mirror DataBall's `HeaderParser`.** The parenthesis form and the underscore form are DataBall's: the last `(` and the final `)`, or the last `_`, with the name part and the unit trimmed and not empty. The underscore form applies only when the suffix is a known unit; DataBall's rule. The bracket form is squalify's own and has the same shape as the parenthesis form.
+- **Parenthesis and bracket accept any unit text.** As in DataBall, `Date(date)` is split. The one exception is bracket text of only ASCII digits, such as `Trace[0]` or `S21[1]`: that is an array index, not a unit, so the name falls through to the underscore and `none` rules. A name such as `Pout(dBm)[1]` therefore ends in a digit-only bracket and is `none`, with the whole name as its base. squalify adds the flag `unknownUnit` when the unit text is not in the table, so a consumer can tell `Pout(dBm)` from `Date(date)` or `RowID(id)` and keep its own meaning for the latter. The unit text is kept as written.
+- **A units row** gives the convention `unitsRow` to every name that has no unit of its own, but only when that column's units cell has a value; an empty or null cell leaves the name `none`. The units text is a value: it is `fields[].unit` (values tier) and never appears in `nameParts`.
+- **The dominant convention** is the one with the most names. A tie goes to the earlier one in the order above, so `none` loses every tie. `share` is its count over the number of names. With no names at all, the dominant is `none` and the share is 0.
+- **Determinism.** The table is matched ordinally. The matching never uses the Unicode tables (no `char.IsLetter`, no case mapping) or the culture; the aliases are matched with ASCII letters folded.
 
-This matches DataBall's `HeaderParser` patterns, so a consumer can map conventions directly.
+### The unit table, version 1
+
+The table is fixed and versioned (`limits.unitTable`). It contains these base units, combined with the SI prefixes f, p, n, u (also U+00B5 and U+03BC), m, k, M and G where the unit takes a prefix:
+
+- V, A, W (take prefixes)
+- Hz, s (take prefixes)
+- Ohm, the omega sign U+03A9 and the ohm sign U+2126, F, H (take prefixes)
+- dB, dBm, dBc (no prefix)
+- %, C (also degree-sign C), K (no prefix)
+- the angle units degree sign U+00B0 alone, and `deg` (no prefix)
+
+Matching is case-sensitive, apart from an alias list matched with ASCII letters folded: `amp`, `amps`, `ampere`, `amperes`, `volt`, `volts`, `sec`, `second`, `seconds`, `degC`, `celsius`, `ohm` (which takes a prefix), `ohms`, `watt`, `watts`, `pct` and `percent`. When an alias folds case, the SI prefix stays case-sensitive, so `mohm` is milli-ohm and `Mohm` is mega-ohm. Only `ohm` takes a prefix; `ohms` is an alias without one, so `kohms` is not a unit. The full list is in [descriptor.md](descriptor.md#layoutheaderconvention).
+
+### Differences from DataBall
+
+The table is not DataBall's table, and squalify does not read DataBall's configuration:
+
+- DataBall matches units case-insensitively (`ICC_a` and `X_HZ` split there); squalify is case-sensitive, because `m` and `M` are different prefixes.
+- DataBall knows `id` and `ID` as a unit (an integer type); squalify does not, so `RowID(id)` carries `unknownUnit` and `Row_id` stays a plain name.
+- squalify has the prefixes, dBc, K, F and H, which DataBall's built-in table lacks (DataBall lists kHz, MHz, GHz and ms by name).
+- DataBall trims all Unicode white space around the name and the unit; squalify trims U+0009 to U+000D, U+0020 and U+00A0, as the value classifier does.
+- DataBall's patterns come from its configuration; squalify's are fixed.
 
 ## Structural fingerprint
 

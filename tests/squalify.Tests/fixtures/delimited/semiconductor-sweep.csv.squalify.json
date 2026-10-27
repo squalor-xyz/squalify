@@ -94,6 +94,14 @@
         ]
       }
     ],
+    "headerConvention": {
+      "dominant": "nameParenUnit",
+      "share": 0.8461538461538461,
+      "counts": {
+        "nameParenUnit": 11,
+        "none": 2
+      }
+    },
     "maxLineLength": 132
   },
   "table": {
@@ -106,7 +114,12 @@
       {
         "index": 0,
         "name": "stimulusGrp(id)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "stimulusGrp",
+          "unit": "id",
+          "convention": "nameParenUnit",
+          "unknownUnit": true
+        },
         "type": "int",
         "dominant": {
           "type": "int",
@@ -138,7 +151,12 @@
       {
         "index": 1,
         "name": "sweep(id)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "sweep",
+          "unit": "id",
+          "convention": "nameParenUnit",
+          "unknownUnit": true
+        },
         "type": "int",
         "dominant": {
           "type": "int",
@@ -170,7 +188,12 @@
       {
         "index": 2,
         "name": "SN",
-        "nameParts": null,
+        "nameParts": {
+          "base": "SN",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
         "type": "string",
         "dominant": {
           "type": "string",
@@ -202,7 +225,12 @@
       {
         "index": 3,
         "name": "Date(date)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Date",
+          "unit": "date",
+          "convention": "nameParenUnit",
+          "unknownUnit": true
+        },
         "type": "date",
         "dominant": {
           "type": "date",
@@ -234,7 +262,12 @@
       {
         "index": 4,
         "name": "Teststand",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Teststand",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
         "type": "string",
         "dominant": {
           "type": "string",
@@ -266,7 +299,12 @@
       {
         "index": 5,
         "name": "Temp(degC)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Temp",
+          "unit": "degC",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -298,7 +336,12 @@
       {
         "index": 6,
         "name": "Vcc(V)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Vcc",
+          "unit": "V",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -330,7 +373,12 @@
       {
         "index": 7,
         "name": "Frequency(MHz)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Frequency",
+          "unit": "MHz",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "int",
         "dominant": {
           "type": "int",
@@ -362,7 +410,12 @@
       {
         "index": 8,
         "name": "Pout(dBm)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Pout",
+          "unit": "dBm",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "int",
         "dominant": {
           "type": "int",
@@ -394,7 +447,12 @@
       {
         "index": 9,
         "name": "Pin(dBm)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Pin",
+          "unit": "dBm",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -427,7 +485,12 @@
       {
         "index": 10,
         "name": "Gain(dB)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Gain",
+          "unit": "dB",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -460,7 +523,12 @@
       {
         "index": 11,
         "name": "I_Total(A)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "I_Total",
+          "unit": "A",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -493,7 +561,12 @@
       {
         "index": 12,
         "name": "EVM(dB)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "EVM",
+          "unit": "dB",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -542,7 +615,7 @@
     "fieldCount": null,
     "dataStartLine": null,
     "delimiter": null,
-    "headerConvention": null,
+    "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{13}-a{5}.a{3}"
@@ -683,6 +756,38 @@
           "value": "summary",
           "score": 0,
           "reason": "sampled=82; eligible=2; ineligible=80 (comment line=0, field count=0, blank or repeated names=13, fits every typed column=67)"
+        }
+      ]
+    },
+    {
+      "stage": "unit",
+      "topic": "headerConvention",
+      "chosen": "nameParenUnit",
+      "candidates": [
+        {
+          "value": "nameParenUnit",
+          "score": 0.8461538461538461,
+          "reason": "11 of 13 headers"
+        },
+        {
+          "value": "nameBracketUnit",
+          "score": 0,
+          "reason": "0 of 13 headers"
+        },
+        {
+          "value": "nameUnderscoreUnit",
+          "score": 0,
+          "reason": "0 of 13 headers"
+        },
+        {
+          "value": "unitsRow",
+          "score": 0,
+          "reason": "0 of 13 headers"
+        },
+        {
+          "value": "none",
+          "score": 0.15384615384615385,
+          "reason": "2 of 13 headers"
         }
       ]
     }

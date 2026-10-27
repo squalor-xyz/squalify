@@ -360,6 +360,7 @@ public static class DescriptorWriter
                 writer.WriteString("base", parts.Base);
                 writer.WriteString("unit", parts.Unit);
                 writer.WriteString("convention", parts.Convention);
+                writer.WriteBoolean("unknownUnit", parts.UnknownUnit);
                 writer.WriteEndObject();
             });
         w.WriteString("type", v.Type);

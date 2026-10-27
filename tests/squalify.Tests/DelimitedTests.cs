@@ -181,8 +181,12 @@ public sealed class DelimitedTests
         var without = ProfileFixture("lab/sweep-preamble.csv");
         Assert.True(Dialect(without).UnitsRow);
         Assert.All(without.Table!.Fields, static f => Assert.Null(f.Unit));
-        var json = Encoding.UTF8.GetString(DescriptorWriter.ToBytes(without));
-        Assert.DoesNotContain("\"unit\": \"dBm\"", json, StringComparison.Ordinal);
+        // nameParts.unit carries the unit parsed from a header name such as Pout(dBm); only fields[].unit is the units row.
+        using var written = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(without));
+        foreach (var field in written.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray())
+        {
+            Assert.Equal(System.Text.Json.JsonValueKind.Null, field.GetProperty("unit").ValueKind);
+        }
 
         var with = ProfileFixture("lab/sweep-preamble.csv", includeValues: true);
         Assert.Equal(new[] { "MHz", "dBm", "dB" }, with.Table!.Fields.Select(static f => f.Unit).ToArray());
@@ -337,12 +341,12 @@ public sealed class DelimitedTests
         using var json = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(d));
         foreach (var field in json.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray())
         {
-            foreach (var member in new[] { "nameParts", "patterns", "nullTokens", "flags", "distinct", "numeric", "temporal", "statsWithheld", "length", "shapes", "monotonic", "constant", "unique", "sourceType", "top", "text" })
+            foreach (var member in new[] { "patterns", "nullTokens", "flags", "distinct", "numeric", "temporal", "statsWithheld", "length", "shapes", "monotonic", "constant", "unique", "sourceType", "top", "text" })
             {
                 Assert.Equal(System.Text.Json.JsonValueKind.Null, field.GetProperty(member).ValueKind);
             }
 
-            foreach (var member in new[] { "index", "name", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "unit" })
+            foreach (var member in new[] { "index", "name", "nameParts", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "unit" })
             {
                 Assert.True(field.TryGetProperty(member, out _), member);
             }
@@ -544,7 +548,18 @@ public sealed class DelimitedTests
         Assert.All(RegionOf(without, "annotation").Rows!, static r => Assert.Null(r.Values));
         var json = Encoding.UTF8.GetString(DescriptorWriter.ToBytes(without));
         Assert.DoesNotContain("3.600000000000", json, StringComparison.Ordinal);
-        Assert.DoesNotContain("\"mA\"", json, StringComparison.Ordinal);
+        // The unit "mA" is also parsed from the header name Icc(mA), which is always included, so check the cells by member.
+        using var written = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(without));
+        foreach (var region in written.RootElement.GetProperty("layout").GetProperty("regions").EnumerateArray())
+        {
+            if (region.TryGetProperty("rows", out var annotationRows))
+            {
+                foreach (var row in annotationRows.EnumerateArray())
+                {
+                    Assert.False(row.TryGetProperty("values", out _));
+                }
+            }
+        }
 
         var with = ProfileFixture("delimited/padded-annotated.csv", includeValues: true);
         var rows = RegionOf(with, "annotation").Rows!;
@@ -1099,7 +1114,7 @@ public sealed class DelimitedTests
     {
         var d = ProfileFixture("lab/sweep-preamble.csv");
         Assert.Equal(
-            new[] { "encoding/charset", "encoding/class", "format/family", "dialect/decimalSeparator", "dialect/delimiter", "header/candidates" },
+            new[] { "encoding/charset", "encoding/class", "format/family", "dialect/decimalSeparator", "dialect/delimiter", "header/candidates", "unit/headerConvention" },
             d.Evidence.Select(static e => e.Stage + "/" + e.Topic).ToArray());
     }
 
