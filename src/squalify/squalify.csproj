@@ -7,11 +7,13 @@
     <Description>Profiles one data file into a deterministic JSON descriptor: encoding, format, layout, fields, statistics and structural fingerprint. The library behind the squalify CLI.</Description>
     <PackageTags>squalify;profiling;descriptor;csv;data-profiling</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>squalify-512.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="squalify.Tests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\squalify-512.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 </Project>

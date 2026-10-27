@@ -2,7 +2,7 @@
 
 Status: draft. The schema is frozen by sq-12, which also publishes `schema/descriptor-v1.schema.json`. Until then, fields may change without a version bump (sq-05 made `table.fields[]` normative without one).
 
-A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and from sq-02 on that order is normative: `DescriptorWriter` (`src/squalify/Json/DescriptorWriter.cs`) writes every object with explicit keys in this order, and golden files pin it. The determinism rules are in [design.md](design.md#determinism-rules). Members marked **values tier** appear only with `--include-values` (see [Values tier](#values-tier)).
+A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and from sq-02 on that order is normative: `DescriptorWriter` (`src/squalify/Json/DescriptorWriter.cs`) writes every object with explicit keys in this order, and golden files pin it. The determinism rules are in [design.md](design.md#determinism-rules). Members marked **values tier** appear only with `--include-values`, or for a named member with `--include-values-for` (see [Values tier](#values-tier)).
 
 The JSON examples below are compacted onto fewer lines to be readable. The real output has one array element or object member per line (see [Canonical form](#canonical-form)).
 
