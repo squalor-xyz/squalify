@@ -354,3 +354,10 @@
 {"when": "2026-10-27T18:34:14Z", "item": "sq-31", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:39:45Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "From sq-31: the kind rule order in this spec lists parquetTa", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:43:27Z", "item": "sq-31", "action": "status", "from": "started", "to": "done", "note": "Gate PASS at 0c24dd6: 876 library + 18 CLI tests (x3, plus GITHUB_ACTIONS=true), format clean, goldens lose only removed keys, 25/25 diagrams. Reviewer later notes: kind rule IDs renumber in sq-15; public record signatures changed pre-v0.1.0.", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:03:59Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-31,sq-09,sq-10,sq-11,sq-13,sq-14,sq-15,sq-17,sq-18,sq-20→sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-15,sq-17,sq-18,sq-20"}
+{"when": "2026-10-27T19:04:00Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"yes sq-12 can drop d", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:13:50Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-15,sq-17,sq-18,sq-20→sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-20"}
+{"when": "2026-10-27T19:13:50Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"Drop sq-15 from sq-1", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:13:51Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27): sq-12 no longer depends on sq-1", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:13:51Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"64 MB (Recommended)\"", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:13:51Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "Orchestrator (2026-10-27): per the sq-06 K8 note, hints.nonN", "by": "Jon Robbins"}
