@@ -23,14 +23,14 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-26 items · — 21 · done 4 · later 1
+26 items · — 20 · done 4 · later 1 · started 1
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | — |
 | 2 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | — |
 | 3 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | — |
-| 4 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | — |
+| 4 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | started |
 | 5 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | — |
 | 6 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | — |
 | 7 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | — |

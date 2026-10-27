@@ -244,3 +244,6 @@
 {"when": "2026-10-27T10:55:53Z", "item": "sq-04", "action": "note", "from": "", "to": "", "note": "**2026-10-27** — From sq-16 architect: define the dot-decima", "by": "Jon Robbins"}
 {"when": "2026-10-27T10:55:53Z", "item": "sq-19", "action": "note", "from": "", "to": "", "note": "**2026-10-27** — From sq-16 review: `TryDate`/`TryTime` buil", "by": "Jon Robbins"}
 {"when": "2026-10-27T10:55:53Z", "item": "sq-25", "action": "note", "from": "", "to": "", "note": "**2026-10-27** — From sq-16 review: `-NaN`, `+NaN`, `Infinit", "by": "Jon Robbins"}
+{"when": "2026-10-27T13:30:31Z", "item": "sq-18", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27): the manual corpus run uses data", "by": "Jon Robbins"}
+{"when": "2026-10-27T13:30:56Z", "item": "sq-18", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
+{"when": "2026-10-27T13:58:01Z", "item": "sq-18", "action": "edit", "from": "", "to": "", "note": "Files"}

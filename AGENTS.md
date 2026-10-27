@@ -64,6 +64,8 @@ Run all three before handing off a change.
 - Mutation-check new tests: break the product code, confirm the test goes red for the right reason, then revert.
 - Every supported format has golden-descriptor tests. Determinism tests profile the same fixture twice, and under a different culture, and compare the bytes.
 - No GB-scale fixtures in CI. Large-file behavior is tested with generated streams.
+- Real samples never enter the repository; findings from them are written up generically under `docs/reviews/`.
+- The private-corpus check (`scripts/corpus-check.sh <dir>`, `Category=Corpus`) profiles a directory outside the repository; CI excludes it with `Category!=Corpus`.
 
 ## Tracking (slicer)
 
