@@ -2,7 +2,7 @@
   "id": "sq-13",
   "title": "squalify must describe files with repeated header and data blocks",
   "lead": [
-    "Detects multi-table files: two or more data runs with the same k, each at least 5 records long, separated by records with a different field count. Each block gets `block` regions (with an index) that hold its own preamble, header and data.\n- If every block's header is identical, the fields are profiled across all blocks.\n- Otherwise only the first block's fields are profiled, the issue `heterogeneousBlocks` is raised, and the other blocks' headers are listed."
+    "Detects multi-table files: two or more data runs of the same width, each at least 5 records long. A later run starts a new block when one of its first 5 records exactly repeats block 0's header (records before it become the block's annotation, the gap its preamble), or when its first record is a header that fails at least half the typed columns and the gap before it holds a non-data line (comment, key=value, one-field line). Each block is a `block` region with `index` (no label) holding its own preamble, annotation, header and data. The file is read once: the leading blocks that share block 0's header are profiled together; at the first block with a different header profiling stops and the issue `heterogeneousBlocks` lists the remaining blocks' header lines. `fingerprint.version` is 2."
   ],
   "depends_note": null,
   "findings_note": "",
