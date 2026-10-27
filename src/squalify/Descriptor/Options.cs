@@ -3,17 +3,17 @@ namespace squalor.squalify;
 
 /// <summary>The <c>options</c> section: the options that affect output.</summary>
 /// <param name="IncludeValues">True when literal values are included.</param>
-/// <param name="IncludeValuesFor">Allow-listed names; the caller sorts them ordinally (<see cref="Create"/> does).</param>
+/// <param name="IncludeValuesFor">Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</param>
 public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor)
 {
-    /// <summary>Creates options with the allow-list sorted ordinally.</summary>
+    /// <summary>Creates options with the allow-list as a sorted set: sorted ordinally, exact duplicates dropped.</summary>
     /// <param name="includeValues">True to include all literal values.</param>
     /// <param name="includeValuesFor">Allow-listed names, in any order.</param>
     /// <returns>The options.</returns>
     public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor)
     {
         ArgumentNullException.ThrowIfNull(includeValuesFor);
-        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor));
+        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)));
     }
 }
 

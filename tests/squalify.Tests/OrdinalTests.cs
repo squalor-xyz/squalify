@@ -99,4 +99,11 @@ public class OrdinalTests
         var options = ProfileOptions.Create(false, ["b", "B", "a"]);
         Assert.Equal(["B", "a", "b"], options.IncludeValuesFor);
     }
+
+    [Fact]
+    public void ProfileOptions_Create_DropsExactDuplicates_ButKeepsNamesThatDifferInCase()
+    {
+        var options = ProfileOptions.Create(false, ["b", "a", "b", "B", "a"]);
+        Assert.Equal(["B", "a", "b"], options.IncludeValuesFor);
+    }
 }

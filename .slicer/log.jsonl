@@ -340,3 +340,4 @@
 {"when": "2026-10-27T18:19:08Z", "item": "sq-29", "action": "note", "from": "", "to": "", "note": "Later (review R8): actions/checkout, setup-dotnet, upload-ar", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:20:44Z", "item": "sq-29", "action": "status", "from": "started", "to": "done", "note": "Gate PASS. Release workflow (build, publish via trusted publishing, GitHub release), CLI package squalor.squalify.Cli, symbols, absolute README links, tag-equals-Version check, docs/release.md. Not yet run on GitHub; first run is the v0.1.0 tag after sq-07 and sq-08.", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:20:50Z", "item": "sq-29", "action": "note", "from": "", "to": "", "note": "Review R3 replaced the spec Files layout: the build job has ", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:26:03Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-27 (review R4): \"Drop duplicates (Rec", "by": "Jon Robbins"}
