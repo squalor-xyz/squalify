@@ -367,10 +367,10 @@
     ]
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "version": 1,
+    "structure": "sha256:b46df5e149cb6645f6bffc6c4fa358210cd47381b5a66c4220ba7b13e63f111c",
+    "layout": "sha256:45a06a580c74b8486535d804c725635b8707251c514d0c7bdbad0fcdb75c81ea",
+    "typed": "sha256:bfeeb26724b193e58e32b7697e690ce9171274886f4e26b04ec4107d3c172b1f",
     "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
   },
   "hints": {
@@ -379,10 +379,18 @@
     "stableLines": [],
     "headerFields": null,
     "headerPrefix": null,
-    "nonNullFields": null,
-    "fieldCount": null,
-    "dataStartLine": null,
-    "delimiter": null,
+    "nonNullFields": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "fieldCount": {
+      "min": 4,
+      "max": 4
+    },
+    "dataStartLine": 1,
+    "delimiter": "\t",
     "headerConvention": null,
     "parquetColumns": null,
     "stdf": null,

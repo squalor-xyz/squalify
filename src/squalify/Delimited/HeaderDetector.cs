@@ -7,6 +7,9 @@ internal sealed class SampleRecord
     /// <summary>The 1-based line where the record starts.</summary>
     public required long Line { get; init; }
 
+    /// <summary>The 1-based line where the record ends (later than <see cref="Line"/> when a quoted field holds a line break).</summary>
+    public long EndLine { get; init; }
+
     /// <summary>The byte offset where the record starts.</summary>
     public required long StartByte { get; init; }
 
@@ -357,7 +360,7 @@ internal static class HeaderDetector
                 nonBlank++;
             }
 
-            seen.Add(AsciiFold(text));
+            seen.Add(Ordinal.AsciiFold(text));
             var vote = record.Votes[c];
             if (vote is not (ValueVote.Int or ValueVote.Float))
             {
@@ -381,20 +384,6 @@ internal static class HeaderDetector
         var score = nonEmptyShare * nonNumericShare * uniqueShare * (0.5 + (0.5 * contrast));
         var eligible = nonBlank == k && seen.Count == k && fails > 0;
         return new Detail(true, eligible, score, nonEmptyShare, nonNumericShare, uniqueShare, contrast, fails);
-    }
-
-    private static string AsciiFold(ReadOnlySpan<char> text)
-    {
-        var chars = text.ToArray();
-        for (var i = 0; i < chars.Length; i++)
-        {
-            if (chars[i] is >= 'A' and <= 'Z')
-            {
-                chars[i] = (char)(chars[i] + ('a' - 'A'));
-            }
-        }
-
-        return new string(chars);
     }
 
     private readonly record struct Detail(

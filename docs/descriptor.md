@@ -14,7 +14,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 - **Text.** Printable characters in the Basic Multilingual Plane are written literally (`µA`, `Ω`, `é`; a U+FFFD that is already in the text is written literally too). The writer uses `JavaScriptEncoder.UnsafeRelaxedJsonEscaping`, so these are escaped: `\"`, `\\`, the short forms `\b \f \n \r \t`, and `\uXXXX` with upper-case hex for other control characters (including U+007F), for BMP code points that the runtime's Unicode tables leave unassigned (for example U+0378, written `\u0378`), and for a few invisible or non-character code points (for example U+0085, U+00A0, U+2028, U+FEFF). Characters outside the BMP are written as surrogate pairs: U+1F600 becomes the 12 characters `\uD83D\uDE00`. A lone UTF-16 surrogate cannot occur in text decoded from bytes; if one reaches the writer it is written as the escape `\uFFFD`. The set of unassigned code points comes from the .NET runtime, so a runtime major upgrade can change this output; that is an output-affecting change (see [design.md](design.md#determinism-rules)). A test pins the behavior.
 - **Numbers.** A count or offset is an integer. A double is written in the shortest form that parses back to the same double (.NET `"R"`, invariant culture), for example `0.1`, `1700`, `1E-07` or `1.5E+300`. `-0` is written as `0`. NaN, `Infinity` and `-Infinity` have no JSON number form and are written as the strings `"NaN"`, `"Infinity"` and `"-Infinity"`. Statistics of `int` fields (`min`, `max`, quantiles) are integers; the others are doubles.
 - **Key order.** The order of the tables and examples in this document. Where a member is not in an example, its place is listed under [Key order of nested objects](#key-order-of-nested-objects).
-- **Collections.** Producers must build every collection sorted by the documented key, and the writer never sorts. Maps (`typeVotes`, `nullTokens`, `lineKinds`, `headerConvention.counts`, `patterns`) are ordered by key, ordinally (UTF-16 code unit order); `valuesPerLine` is ordered by its integer key, ascending. Arrays keep the order documented where they are described (`issues` by code, `shapes` by count then mask, `includeValuesFor` ordinally, and so on). `stdf.records` is ordered by `typ`, then `sub`, ascending. The Parquet dialect's `kvKeys`, `rowGroups.compression` and `rowGroups.encodings` are ordered ordinally. Evidence `candidates` are never in insertion order; see [`evidence[]`](#evidence). An array whose order is not yet documented (for example `stdf.tests` and `hints.stableLines`) gets one from the slice that first produces it, in that slice's change to this document.
+- **Collections.** Producers must build every collection sorted by the documented key, and the writer never sorts. Maps (`typeVotes`, `nullTokens`, `lineKinds`, `headerConvention.counts`, `patterns`) are ordered by key, ordinally (UTF-16 code unit order); `valuesPerLine` is ordered by its integer key, ascending. Arrays keep the order documented where they are described (`issues` by code, `shapes` by count then mask, `includeValuesFor` ordinally, and so on). `stdf.records` is ordered by `typ`, then `sub`, ascending. The Parquet dialect's `kvKeys`, `rowGroups.compression` and `rowGroups.encodings` are ordered ordinally. Evidence `candidates` are never in insertion order; see [`evidence[]`](#evidence). `hints.stableLines` is ordered by `line` ascending, then by `regex`, ordinally. An array whose order is not yet documented (for example `stdf.tests`) gets one from the slice that first produces it, in that slice's change to this document.
 - **Aligned values lists.** A values-tier list that lines up with another list (`regions[].values` with `keys`, `sections[].values` with `keys`, `rows[].values` with the row's cells) has one entry per aligned item. An entry that is not opted in (for example by `--include-values-for`) is `null`.
 - **Optional versus null.** A member documented as "when tabular", "keyValue", "when binary", "stdf" and the like is omitted when it does not apply. Members that appear in the examples with the value `null` (for example `fields[].numeric`, `fields[].top`, `hints.magic`, `format.dialect`) are always written, as `null` when they do not apply. Within a values-tier member (`top`, `text`, `unit`, `regions[].values`) the rule of that member applies: a values-tier member that the schema always writes is `null` without `--include-values`. Members written only in some cases are listed below (`nameHex`, `index`, `label`, `lineKinds`, `keys`, `values`, `rows`, `headerConvention`, `maxLineLength`, `rowClasses`, `distinct.approximate`, `distinct.errorBound`, `distinct.exceeds`, `numeric.exceeds`, `temporal.exceeds`, `top.maxError`, `firstLines`, `offsets`, `sections[].values`, `annotation.rows[].values`). `binary.blocks` and `binary.segments` are also written only in some cases: they are omitted until sq-10 adds them.
 
@@ -38,6 +38,9 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `stdf.records[]` | `name`, `typ`, `sub`, `count` |
 | `stdf.tests[]` | `testNum`, `kind`, `name`, `occurrences` |
 | `hints` | as in the example; every member is always written, `null` when it does not apply (`stableLines` is `[]`) |
+| `hints.magic` | `name`, `offset`, `hex` |
+| `hints.stableLines[]` | `line`, `regex` |
+| `hints.fieldCount` | `min`, `max` |
 | `hints.stdf` | `cpuType`, `version` |
 | `issues[]` | `code`, `count`, then `firstLines` or `offsets` (one of them, when the issue has locations) |
 | `evidence[]` | `stage`, `topic`, `chosen`, `candidates`; each candidate is `value`, `score`, `reason` |
@@ -161,9 +164,8 @@ A file that the delimited profiler claims has its regions in file order, and `la
 Until the slices that own them land, these members hold fixed interim values (or `null`), so that every file yields a valid descriptor:
 
 - `kind` follows the byte-pass class: `empty` (`K12`), `binary` (`K11`) or `text` (`K09`), with confidence 1. sq-15 replaces it with the rule table.
-- `fingerprint` has `version` 0. `structure`, `layout` and `typed` are the SHA-256 of the compact JSON `{"family":"<family>"}`, and `names` is the SHA-256 of `[]`. sq-06 replaces these with the real projections and `version` 1.
 - `table.fields[]` of a delimited file holds real values for every member except those of later slices: `sourceType` (Parquet) is `null` for text, and `top` and `text` (values tier) are `null` until sq-07; `nameParts` is computed from the header by sq-14 (it is `null` only for a table with no header). A consumer must read `null` in those members as "not computed". See [`table.fields[]`](#tablefields) for the rest; `unit` is `null` without `--include-values` or when the units cell is null.
-- `hints` carries `extension` (lower case, with the dot, or `null`), `magic` (the magic name or `null`), `fileNameShape` (the shape mask of the file name) and `headerConvention` (the dominant convention of a delimited table with a header, sq-14); every other member is `null`, and `stableLines` is `[]`. sq-06 adds the rest, and the structured `magic`.
+- `hints.parquetColumns` and `hints.stdf` are `null` until sq-08 and sq-10 add the Parquet and STDF profilers; every other `hints` member is computed (see [`hints`](#hints)).
 
 ## `layout.regions[]`
 
@@ -347,6 +349,44 @@ Distinct counting, `unique` and the text comparison of `constant` compare a 64-b
 { "version": 1, "structure": "sha256:…", "layout": "sha256:…", "typed": "sha256:…", "names": "sha256:…" }
 ```
 
+`version` is 1. It changes whenever a projection changes, and hashes of different versions cannot be compared. Each hash is `sha256:` and 64 lower-case hex digits: the SHA-256 of the UTF-8 bytes of a compact JSON projection (no white space, members in the order below, no BOM). The projections hold no data values, so the hashes are the same with and without `--include-values`, and for two files that differ only in their values.
+
+**Projection text.** The projection is written by its own minimal writer, not by the descriptor writer: `"` and `\` are escaped, a character below U+0020 is written as `\u00xx` with lower-case hex, a lone surrogate is written as `\ufffd`, and every other character is written as it is. No Unicode table is consulted, so a runtime upgrade cannot change a hash.
+
+**Case folding** in every projection is ASCII only: `A` to `Z` become `a` to `z`, and every other character (`É`, `İ`) is kept as it is. The folding never uses the runtime's Unicode tables or the current culture.
+
+| Hash | Projection |
+|---|---|
+| `structure` | `{"family", <family members>, "charsetFamily", "regions"}`. No names |
+| `layout` | `{"family", <family members>, "charsetFamily", "regions", "headerConvention", "fields"}` |
+| `typed` | The `layout` members, then the family's typed members, then `"types"` |
+| `names` | A JSON array of names |
+
+- `family` is `format.family`.
+- `charsetFamily` is `"latin1"` for the charset `latin-1`, `"unicode"` for every other charset (`ascii`, `utf-8`, `utf-16le`, and so on), and `null` when `encoding.charset` is `null`.
+- `regions` is the array of the `layout.regions[].kind` values, in file order. Line numbers, byte ranges and labels are not part of it.
+- `headerConvention` is `layout.headerConvention.dominant`. When the object is absent (the file has no header, or is not a table) the projection writes JSON `null`. The convention `none` is the string `"none"`, so an absent convention and `none` hash differently. Header names that carry indexes, such as `Trace[0]` to `Trace[n]`, are not collapsed: files with a different number of indexed columns have different `layout`, `typed` and `names` hashes.
+- `fields` has one entry per `table.fields[]`, in column order: the name, case-folded, or `#<index>` (the decimal column index) when the field is unnamed (no header, or an empty name) or its name is excluded (below). It is `[]` when there is no table. The placeholder `#<index>` can collide with a real name: an unnamed field at index `i` and a header named `#i` at index `i` have the same `layout` and `typed`, and differ only in `names`, which lists the real name and omits the unnamed field. This is accepted.
+- `types` has the `fields[].type` of each field, in column order.
+- `names` is the sorted (ordinal), de-duplicated, case-folded field names, plus the names that a family adds. Unnamed and excluded fields are left out, not replaced by a placeholder, so a reordered column set has the same `names`.
+
+**Delimited family members** (from `DelimitedFingerprint`, through `IFingerprintContributor`):
+
+| Projection | Members, after `family` |
+|---|---|
+| `structure` | `"dialect": {"delimiter", "quote", "hasHeader", "unitsRow", "decimalSeparator", "constantLineLength"}`, then `"preambleKind"` |
+| `layout`, `typed` | `"dialect": {"delimiter", "quote", "hasHeader", "unitsRow"}`, then `"preambleKeys"` |
+
+`delimiter` is `format.dialect.delimiter` (`","`, a tab, `";"`, `"|"` or `"whitespace"`), `quote` is the quote character or `null`, and `constantLineLength` is `format.dialect.padding.constantLineLength`. `preambleKind` is the most common line kind of the preamble region (`lineKinds`, not counting `blank`); a tie goes to the kind whose name sorts first, and it is `null` when there is no preamble or it has no line of another kind. `preambleKeys` is the preamble region's `keys`, in file order, case-folded.
+
+**Names that are left out.** A header name or a preamble key that holds a control character (U+0000 to U+001F, U+007F to U+009F) or U+FFFD is excluded: a field name is projected as `#<index>` and left out of `names`, and a preamble key is left out of `preambleKeys`. Such bytes may differ from file to file and would make every sibling file unique. The issue `nameExcludedFromFingerprint` counts them (see [`issues[]`](#issues)). The names themselves stay in `table.fields[].name`, `layout.regions[].keys` and `hints`.
+
+Example: the file `a,b` / `1,2` / `3,4` has the `layout` projection
+
+```text
+{"family":"delimited","dialect":{"delimiter":",","quote":"\"","hasHeader":true,"unitsRow":false},"preambleKeys":[],"charsetFamily":"unicode","regions":["header","data"],"headerConvention":"none","fields":["a","b"]}
+```
+
 The projections are defined in [design.md](design.md#structural-fingerprint). Fingerprint equality is not a family test.
 
 ## `hints`
@@ -355,7 +395,7 @@ The projections are defined in [design.md](design.md#structural-fingerprint). Fi
 {
   "extension": ".csv",
   "magic": null,
-  "stableLines": [{ "line": 0, "regex": "^Lot\\s*[=:]" }],
+  "stableLines": [{ "line": 0, "regex": "^\\s*Lot\\s*[=:]" }],
   "headerFields": ["Site", "Vth", "Idsat"],
   "headerPrefix": ["Site", "Vth", "Idsat"],
   "nonNullFields": [0, 1],
@@ -369,11 +409,38 @@ The projections are defined in [design.md](design.md#structural-fingerprint). Fi
 }
 ```
 
-- `nonNullFields` lists the indexes of fields with no nulls in this file. It is an observation, not a requirement of the type.
+Every member is always written, as `null` when it does not apply (`stableLines` is `[]`). A hint is a neutral fact that a consumer can turn into a match rule; the vocabulary mirrors DataBall's conditions (`extension`, `headerExact`, `headerContainsAll`, `lineMatches`, `columnCount`, `parquetColumns`).
 
-- `stableLines[].line` is 0-based, matching DataBall's `lineMatches`.
-- Regexes escape only `\.^$|?*+()[]{}`, so they compile under both .NET and ECMAScript.
-- Regexes for comment and text lines are **values tier**. The full-header regex and the header-prefix regex are always emitted.
+| Member | Meaning |
+|---|---|
+| `extension` | The file extension with its dot, ASCII-lower-cased (only `A` to `Z` change), or `null` when the name has none |
+| `magic` | `{ "name": "gzip", "offset": 0, "hex": "1f8b" }`, or `null` when no binary magic matched. `offset` is the 0-based byte offset where the bytes lie and `hex` is those bytes in lower-case hex: the first start-anchored byte string of the matched magic. A magic that also needs bytes at the end of the file (Parquet) lists only the start-anchored part |
+| `stableLines` | See below |
+| `headerFields` | The header names, trimmed, in column order (`table.fields[].name`); `null` when the file has no header or is not a table. Always included |
+| `headerPrefix` | The first 5 header names, or all of them when there are fewer; `null` when `headerFields` is |
+| `nonNullFields` | The indexes of the fields that have no null value outside the all-null rows (`fields[].nullsExcludingAllNullRows` is 0) and that have at least one value (`fields[].count` is greater than `fields[].nulls`), ascending. A field that is null only in separator rows (see [`table.rowClasses`](#tablerowclasses)) is listed; a table whose every row is a separator lists nothing; `[]` when none; `null` when the file is not a table. An observation about this file, not a requirement of the type |
+| `fieldCount` | `{ min, max }`, the same as `table.fieldCount`; `null` for a file that is not a table |
+| `dataStartLine` | The 1-based line where the data region starts; `null` when there is none. Note that `stableLines[].line` is 0-based |
+| `delimiter` | `format.dialect.delimiter` of a delimited table, else `null` |
+| `headerConvention` | `layout.headerConvention.dominant`, or `null` (sq-14) |
+| `parquetColumns` | Parquet column names; `null` until sq-08 |
+| `stdf` | `{ cpuType, version }`; `null` until sq-10 |
+| `fileNameShape` | The shape mask of `file.name`, by the rules of [`fields[].shapes`](#tablefields) (ASCII classes only; `{` and `}` are `?`) |
+
+**`stableLines`.** Each entry is `{ "line", "regex" }`: `line` is 0-based, matching DataBall's `lineMatches`, and `regex` is anchored. Entries are ordered by `line` ascending, then by `regex`, ordinally. A delimited table gives these, for lines that are one physical line each:
+
+| Line | Regex | Tier |
+|---|---|---|
+| The header line | `^<escaped line>$`, whatever the line length: the physical line as written, quotes and padding included | always |
+| The header line, as a prefix | `^` then the first 5 names (all when there are fewer), each as ` *"?<escaped name>"? *` (the quote only when the dialect has a quote character) and joined by the escaped delimiter; for the `whitespace` delimiter, `^\s*`, the names as `"?<name>"?` joined by `\s+`, and `\s*` | always |
+| A preamble line of kind `keyValue` | `^\s*<escaped key>\s*[=:]`; the key is the normalized key of `layout.regions[].keys` (the value is never part of it) | always |
+| A preamble line of kind `comment` or `text` | `^<escaped line>$` | values tier: only with `--include-values` |
+
+- A regex escapes only the characters `\ . ^ $ | ? * + ( ) [ ] { }`, each with a backslash. Besides escaped literals it uses only `^`, `$`, `\s`, `*`, `+`, `?` and the class `[=:]`, so it compiles under both .NET (the default options) and ECMAScript (`RegexOptions.ECMAScript`). `\s` is the one construct whose meaning differs: the default matches all Unicode white space, and the ECMAScript option only ASCII white space. Real JavaScript's `\s` is Unicode and broader than .NET's ECMAScript option, so a regex kept here still matches there; the two-engine filter is conservative and may drop a regex that JavaScript would match.
+- A regex is emitted only when it matches its own source line under both the .NET default and `RegexOptions.ECMAScript`. A key that was trimmed of a non-ASCII space (`\s` does not match it under the ECMAScript option), or a quoted key, may not match; its line then has no entry.
+- A record that spans more than one physical line (a quoted field with a line break) has no entry, and neither has a `keyDelimValue` line.
+- A regex whose text contains U+FFFD or a control character other than tab (U+0000 to U+0008, U+000A to U+001F, U+007F to U+009F) is left out: a stray byte may differ from file to file, and the line gets no entry. `headerFields` and `headerPrefix` still list the names as they are.
+- Header names and preamble keys are always included (see [Values tier](#values-tier)), so the header regexes and key regexes always are; the values of the key lines never are.
 
 ## `issues[]`
 
@@ -383,6 +450,7 @@ Issues are sorted by `code`, ordinally. Each has a `count` and, for some, locati
 |---|---|---|---|
 | `invalidUtf8` | The charset is `ascii` or `utf-8` and the file holds invalid UTF-8 sequences (within the tolerance). Not written for `latin-1`, where nothing is lost; `encoding.invalidBytes` still counts them. | Invalid sequences | `offsets`: byte offsets where the first 10 start, ascending |
 | `mixedLineEndings` | More than one of CRLF, lone LF and lone CR occurs. | Line endings that are not the dominant kind (most frequent; a tie goes to CRLF, then LF, then CR) | `firstLines`: the first 10 lines, ascending, that end with a non-dominant kind |
+| `nameExcludedFromFingerprint` | A header name or a preamble key holds a control character (U+0000 to U+001F, U+007F to U+009F) or U+FFFD, so the fingerprint projections leave it out (see [`fingerprint`](#fingerprint)). Written by every family that has such names. | Names and keys left out | none |
 
 The delimited profiler writes these:
 
@@ -431,6 +499,7 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 | `numeric` and `temporal` of constant fields | values tier |
 | `fields[].top`, `fields[].text`, `fields[].unit` (units row) | values tier |
 | `stableLines` for comment and text lines | values tier |
+| `fingerprint` (the projections hold no values), `hints.stableLines` for the header and for `keyValue` keys | always |
 
 `--include-values-for <name>` opts in the values tier for the named preamble keys, annotation labels, key=value keys and fields only.
 
@@ -443,7 +512,7 @@ A downstream consumer (prism) matches delimited lab exports against its own decl
 ### Preconditions
 
 - Everything below is for `format.family` `delimited`. For any other family `table` is absent, and a file with a header and no data row is not claimed as delimited.
-- Every count is over the whole file. squalify reads all of it, so a consumer that describes a prefix of its own has `ReachedEndOfFile` true and `BytesExamined` equal to `file.size`.
+- Every count is over the whole file. squalify reads all of it, so a consumer that compares against its own prefix-based description treats the squalify counts as whole-file counts (end of file reached, every byte of `file.size` examined).
 - Pin `schemaVersion` (major), `limits.nullTokens` and `limits.unitTable`: the last two version the tables that decide every null and every header unit (see [`limits`](#limits)). A change to the null vocabulary or the unit table bumps only `limits.nullTokens` or `limits.unitTable`, not `schemaVersion`, so a consumer pins the table versions alongside `schemaVersion`.
 - **Known limitation, ragged run start.** A ragged record among the first data records can end the data run before the header, so `format.dialect.hasHeader` is `false` and names are `null` (a test pins today's behaviour). The slice sq-27, "Ragged run start", tracks it; until then a consumer that needs a header rejects such a file.
 - **Known limitation, header-less comma files.** A header-less comma CSV with a multi-word first column and an integer last column can be read as whitespace-delimited (reported by the sq-04 architect probe; no test pins it). A file with a header is unaffected.
@@ -570,4 +639,4 @@ Not in the subset: statistics (`numeric`, `distinct`, `top` and the like), `enco
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.
 - Consumers must ignore unknown keys within a major version.
 - `fingerprint.version` changes whenever a projection changes. Hashes from different versions cannot be compared.
-- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`.
+- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`.

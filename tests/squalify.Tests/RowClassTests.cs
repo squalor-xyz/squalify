@@ -275,8 +275,10 @@ public sealed class RowClassTests
             accumulator.Add(masks[r % 3], r + 8);
         }
 
+        // The bound is under one byte per row: any per-row allocation is at least 30,000 bytes, while JIT tier-up on
+        // this thread during the loop can allocate a few KB once, which made a 1 KiB bound flaky.
         var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.True(allocated < 1_024, "allocated " + allocated.ToString(CultureInfo.InvariantCulture) + " bytes for 30000 rows");
+        Assert.True(allocated < 30_000, "allocated " + allocated.ToString(CultureInfo.InvariantCulture) + " bytes for 30000 rows");
         var info = accumulator.Build();
         Assert.Equal(3, info.Count);
         Assert.Equal(10_002, info.AllNullRows);

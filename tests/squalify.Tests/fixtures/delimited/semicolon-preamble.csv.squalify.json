@@ -357,22 +357,54 @@
     ]
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    "version": 1,
+    "structure": "sha256:58547ab7e0bfaa21caacdb3e7e43f9d33f0b4d0488fecb22c9a339883b8b8bd1",
+    "layout": "sha256:50d17c0dc4ec1b6b3637d1a7e668e40b375de1755f4f8b7a742d4ab855210081",
+    "typed": "sha256:cc473f326e2e87f41610d8f39f4bdc56b1f1bfccb2682da0ede6f3eac5e0573d",
+    "names": "sha256:dcb0c7636a1140b807ebfca4a4e7ec2a4170666f35b6e20e0da997b9d763e1da"
   },
   "hints": {
     "extension": ".csv",
     "magic": null,
-    "stableLines": [],
-    "headerFields": null,
-    "headerPrefix": null,
-    "nonNullFields": null,
-    "fieldCount": null,
-    "dataStartLine": null,
-    "delimiter": null,
+    "stableLines": [
+      {
+        "line": 0,
+        "regex": "^\\s*Lot\\s*[=:]"
+      },
+      {
+        "line": 1,
+        "regex": "^\\s*Date\\s*[=:]"
+      },
+      {
+        "line": 3,
+        "regex": "^ *\"?Site\"? *; *\"?Vth\\(V\\)\"? *; *\"?Idsat\\(uA\\)\"? *"
+      },
+      {
+        "line": 3,
+        "regex": "^Site;Vth\\(V\\);Idsat\\(uA\\)$"
+      }
+    ],
+    "headerFields": [
+      "Site",
+      "Vth(V)",
+      "Idsat(uA)"
+    ],
+    "headerPrefix": [
+      "Site",
+      "Vth(V)",
+      "Idsat(uA)"
+    ],
+    "nonNullFields": [
+      0,
+      1,
+      2
+    ],
+    "fieldCount": {
+      "min": 3,
+      "max": 3
+    },
+    "dataStartLine": 5,
+    "delimiter": ";",
     "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,

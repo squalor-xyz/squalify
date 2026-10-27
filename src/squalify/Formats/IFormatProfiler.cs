@@ -14,6 +14,7 @@ internal sealed record ProfileContext(ProfileOptions Options, Limits Limits);
 /// <param name="Evidence">Evidence entries, in any order; the caller sorts by stage and topic.</param>
 /// <param name="Table">The table section, for tabular files.</param>
 /// <param name="Binary">The binary section, for binary files.</param>
+/// <param name="StableLines">The lines, with their text, that the hint builder may turn into stable-line regexes; null for none.</param>
 /// <param name="EffectiveLimits">
 /// The limits with the per-field caps that the profiler used after the global budget, or null when the profiler
 /// profiles no fields.
@@ -26,6 +27,7 @@ internal sealed record FormatProfile(
     IReadOnlyList<Evidence> Evidence,
     TableSection? Table = null,
     BinarySection? Binary = null,
+    IReadOnlyList<StableLineSource>? StableLines = null,
     Limits? EffectiveLimits = null);
 
 /// <summary>

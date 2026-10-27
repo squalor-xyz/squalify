@@ -352,22 +352,44 @@
     ]
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
-    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    "version": 1,
+    "structure": "sha256:cbf546d81150b067d39eb659084f3cf59f7c3b872249f1e12718bd243bd0c900",
+    "layout": "sha256:c9ba637ef969250b94b89d1ab9e848518f6a675336ead75f2b19256af9efef04",
+    "typed": "sha256:1a122425eb112cedaddb3ca11a11780af2284fb37f365d013907b4e55934403b",
+    "names": "sha256:bb267b879ac0c551bd2cc475f54359b9f2b7ec05585cba54a0bc9c3317e81fca"
   },
   "hints": {
     "extension": ".csv",
     "magic": null,
-    "stableLines": [],
-    "headerFields": null,
-    "headerPrefix": null,
-    "nonNullFields": null,
-    "fieldCount": null,
-    "dataStartLine": null,
-    "delimiter": null,
+    "stableLines": [
+      {
+        "line": 0,
+        "regex": "^ *\"?Pout\\(dBm\\)\"? *, *\"?Gain\\(dB\\)\"? *, *\"?Status\"? *"
+      },
+      {
+        "line": 0,
+        "regex": "^Pout\\(dBm\\),Gain\\(dB\\),Status$"
+      }
+    ],
+    "headerFields": [
+      "Pout(dBm)",
+      "Gain(dB)",
+      "Status"
+    ],
+    "headerPrefix": [
+      "Pout(dBm)",
+      "Gain(dB)",
+      "Status"
+    ],
+    "nonNullFields": [
+      2
+    ],
+    "fieldCount": {
+      "min": 3,
+      "max": 3
+    },
+    "dataStartLine": 2,
+    "delimiter": ",",
     "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,

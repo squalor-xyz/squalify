@@ -823,7 +823,7 @@
       "id": "sq-06",
       "title": "squalify must emit structural fingerprints and neutral detect-rule hints",
       "short_title": "Fingerprints and hints",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-05"
@@ -959,7 +959,7 @@
         "importance": 3,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -1280,6 +1280,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "2452994c-c113-4e35-95c4-2dd16d19d985",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-06 architect (K6): Fingerprint.ProjectionInput has no binary/STDF member; add one and extend From() so the STDF contributor (record types, endianness, test catalog, test names) can be fed. Test names must go through IsExcluded.",
+          "created_at": "2026-10-27T16:14:11Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1451,6 +1462,28 @@
           "kind": "",
           "text": "**2026-10-27** — **2026-10-27** — From sq-16 review: `TryDate`/`TryTime` build pattern strings per value (concatenation, StringBuilder). Intern or cache the small pattern set before throughput work.",
           "created_at": "2026-10-27T10:55:53Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "02bb6d84-576c-4ace-9b36-f1d74e7d480e",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-06 review (J5): Text/LineReader buffers whole physical lines (including keyValue preamble lines whose values are never written) with no length limit, so a very long preamble or header line is held twice (text and regex). Consider a cap with documented omission.",
+          "created_at": "2026-10-27T16:08:04Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "160d2c5b-1b06-4953-9dae-7dc249d19e22",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-06 architect (K7): reads per delimited file are ByteSniffer (full), TextScanner scoring (full), DelimitedPass (full), LineReader (re-decode from byte 0 to the last wanted line) and NameHex (prefix, only with U+FFFD). Worst cases are unbounded (long preamble, giant header line). DelimitedPass already gets byte offsets via IPhysicalLineSink.Line, so one seek-based head read, or capturing the header window during the pass, can serve LineReader and NameHex.",
+          "created_at": "2026-10-27T16:14:11Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -1781,6 +1814,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "bbc67cee-7f7a-4afc-a7dc-aeee20c19f1e",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-06 architect (K8): sq-06 already emits nonNullFields as ascending field indexes, so amend this spec's line about it. Wide headers are now written three times (table.fields names, hints.headerFields, the full-header regex): a compactness topic here.",
+          "created_at": "2026-10-27T16:14:11Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1908,6 +1952,17 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-25 review: (L7) put the rule 'adding a value to a closed set (enum) is a minor change' into the versioning policy, which today covers only keys; (L8) ConsumerSubsetTests reads docs/descriptor.md via Golden.SourceFixturesRoot (CallerFilePath) with no fallback - breaks if ContinuousIntegrationBuild/PathMap or a packed test run is added; copy the doc to test output or accept.",
           "created_at": "2026-10-27T16:19:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "8313d160-5243-4aea-820c-d28e166e7a42",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-06 gate: the writer goldens full-delimited and full-binary-stdf (built from TestModels) carry placeholder hashes (sha256:aa/bb) rather than 64-hex; switch to well-formed values if a schema validator is added.",
+          "created_at": "2026-10-27T16:24:39Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",

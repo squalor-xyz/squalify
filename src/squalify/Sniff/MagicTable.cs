@@ -53,15 +53,38 @@ internal static class MagicTable
     /// <returns>The magic name, or null.</returns>
     public static string? Match(ReadOnlySpan<byte> head, ReadOnlySpan<byte> tail, long length)
     {
+        return Find(head, tail, length)?.Name;
+    }
+
+    /// <summary>Finds the first entry that matches.</summary>
+    /// <param name="head">The first bytes of the file (at most <see cref="HeadLength"/>).</param>
+    /// <param name="tail">The last bytes of the file (at most <see cref="TailLength"/>).</param>
+    /// <param name="length">The file length.</param>
+    /// <returns>The entry, or null.</returns>
+    public static MagicEntry? Find(ReadOnlySpan<byte> head, ReadOnlySpan<byte> tail, long length)
+    {
         foreach (var entry in Entries)
         {
             if (Matches(entry, head, tail, length))
             {
-                return entry.Name;
+                return entry;
             }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The hint for a matched entry: its name, and the offset and lower-case hex of its first clause that is anchored
+    /// at the start of the file (the condition a consumer can test from the head of a file).
+    /// </summary>
+    /// <param name="entry">The matched entry.</param>
+    /// <returns>The hint.</returns>
+    public static MagicHint Describe(MagicEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        var clause = entry.Clauses.First(static c => !c.FromEnd);
+        return new MagicHint(entry.Name, clause.Offset, Convert.ToHexStringLower(clause.Bytes));
     }
 
     private static MagicClause Head(int offset, ReadOnlySpan<byte> bytes)
