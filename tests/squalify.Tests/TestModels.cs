@@ -19,7 +19,7 @@ internal static class TestModels
             Kind: new KindLabel("empty", "K13", 1.0),
             Layout: new LayoutSection(Array.Empty<Region>()),
             Fingerprint: new Fingerprint(1, "sha256:aa", "sha256:bb", "sha256:cc", "sha256:dd"),
-            Hints: new Hints(null, null, Array.Empty<StableLine>(), null, null, null, null, null, null, null, null, null, "a{1}"),
+            Hints: new Hints(null, null, Array.Empty<StableLine>(), null, null, null, null, null, null, null, null, "a{1}"),
             Issues: Array.Empty<Issue>(),
             Evidence: Array.Empty<Evidence>(),
             Table: fields is null ? null : new TableSection(1, new MinMax(1, 1), fields));
@@ -147,7 +147,6 @@ internal static class TestModels
             Unique: false,
             NameHex: "4c6f74ff",
             StatsWithheld: "constant",
-            SourceType: "VARCHAR",
             Top: new TopValues([new TopValue("ABC1", 9990), new TopValue("ABC2", 10)], true, 3),
             Text: new TextStats("ABC1", "ABC2"));
 
@@ -229,7 +228,6 @@ internal static class TestModels
                 ",",
                 "nameParenUnit",
                 null,
-                null,
                 "a{3}9{2}.a{3}"),
             Issues:
             [
@@ -286,7 +284,6 @@ internal static class TestModels
                 null,
                 null,
                 null,
-                ["a", "b"],
                 new StdfHints(2, "V4"),
                 "a{3}.a{4}"),
             Issues: [new Issue("truncated", 1, Offsets: [65530])],

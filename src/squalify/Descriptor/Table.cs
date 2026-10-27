@@ -61,7 +61,6 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="Numeric">Numeric statistics.</param>
 /// <param name="Temporal">Temporal statistics.</param>
 /// <param name="StatsWithheld"><c>constant</c> when statistics are withheld.</param>
-/// <param name="SourceType">The native type for Parquet.</param>
 /// <param name="Unit">The unit from a units row. Values tier.</param>
 /// <param name="Top">Most common values. Values tier.</param>
 /// <param name="Text">Lexical minimum and maximum. Values tier.</param>
@@ -88,7 +87,6 @@ public sealed record FieldProfile(
     [property: ValueBearing] NumericStats? Numeric = null,
     [property: ValueBearing] TemporalStats? Temporal = null,
     string? StatsWithheld = null,
-    string? SourceType = null,
     [property: ValueBearing] string? Unit = null,
     [property: ValueBearing] TopValues? Top = null,
     [property: ValueBearing] TextStats? Text = null);

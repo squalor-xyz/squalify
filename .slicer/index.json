@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 31,
+  "next_id": 32,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -1099,7 +1099,7 @@
       "id": "sq-08",
       "title": "squalify must profile Parquet files through DuckDB",
       "short_title": "Parquet profiler",
-      "status": "open",
+      "status": "parked",
       "has_slice": true,
       "depends_on": [
         "sq-05"
@@ -1154,6 +1154,17 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-26 review (P7): the Package consumer test restores with <clear/> plus the local feed only; once the library references DuckDB.NET.Data.Full the restore fails. Add the outer restore's global-packages folder as a second offline source, or pre-seed the isolated packages folder.",
           "created_at": "2026-10-27T17:13:12Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "385c182f-2a25-40fd-9d70-937dce039a46",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision 2026-10-27, verbatim: \"Drop Parquet from v1\" (\"No Parquet support for now; revisit if a consumer needs it. Remove the parquet format from v1 goals.\"), after \"duckdb inside seems like it adds a lot of bloat/heavy deps on an otherwise lightweight library\". If revived, the managed option is Parquet.Net 6.1.0 (MIT, no native code, the same pin as prism) instead of DuckDB.NET.Data.Full (110 MB native bindings).",
+          "created_at": "2026-10-27T18:33:41Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -1708,7 +1719,7 @@
       "has_slice": true,
       "depends_on": [
         "sq-06",
-        "sq-08",
+        "sq-31",
         "sq-09",
         "sq-10",
         "sq-13",
@@ -1775,6 +1786,28 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-14 architect (B2): headerConvention counts RowID(id) and Date(date) as nameParenUnit; for 'has units' (K06 measurementTable) count fields with unknownUnit=false rather than reading dominant alone.",
           "created_at": "2026-10-27T15:24:29Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "69545cb7-845c-4fd6-a6ac-ce36541d6501",
+          "kind": "",
+          "text": "**2026-10-27** — sq-08 (Parquet) parked: Parquet dropped from v1 (owner, 2026-10-27). Dependency replaced by sq-31; kind rules must not include Parquet kinds.",
+          "created_at": "2026-10-27T18:33:47Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "3d98fae9-33dd-49e4-a292-1a395234ae78",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-31: the kind rule order in this spec lists parquetTable (rule 3). Parquet is not in v1 (owner, 2026-10-27): drop parquetTable from the rules and renumber; docs/design.md already dropped it.",
+          "created_at": "2026-10-27T18:39:45Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -1902,7 +1935,7 @@
       "depends_on": [
         "sq-06",
         "sq-07",
-        "sq-08",
+        "sq-31",
         "sq-09",
         "sq-10",
         "sq-11",
@@ -2018,6 +2051,17 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-26 gate: the pack test does not assert that README.md and lib/net10.0/squalor.squalify.xml are in the nupkg or that the license expression is set; add before publishing.",
           "created_at": "2026-10-27T17:26:39Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "30cfce57-60c6-4c71-9d59-3e0f99456452",
+          "kind": "",
+          "text": "**2026-10-27** — sq-08 (Parquet) parked: Parquet dropped from v1 (owner, 2026-10-27). Dependency replaced by sq-31, which removes the Parquet members before the freeze.",
+          "created_at": "2026-10-27T18:33:47Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -2644,10 +2688,41 @@
         "effort": 1,
         "attempts": 0
       }
+    },
+    {
+      "id": "sq-31",
+      "title": "squalify v1 must not include Parquet or its DuckDB dependency",
+      "short_title": "Drop Parquet from v1",
+      "status": "started",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-27T18:34:14Z"
+      },
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "drop-parquet-v1",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 1,
+        "attempts": 1
+      }
     }
   ],
   "epilogue": "",
-  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks), Parquet (through DuckDB.NET), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
+  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
   "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a user library of known types. The built-in `kind` label is in scope.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.\n- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.",
   "catalog": {
     "next_id": 1,

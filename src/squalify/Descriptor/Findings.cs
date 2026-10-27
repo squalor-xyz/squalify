@@ -41,7 +41,6 @@ public sealed record Candidate(string Value, double Score, string Reason);
 /// <param name="DataStartLine">The 1-based line where data starts, or null.</param>
 /// <param name="Delimiter">The delimiter, or null.</param>
 /// <param name="HeaderConvention">The dominant header-unit convention, or null.</param>
-/// <param name="ParquetColumns">Parquet column names, or null.</param>
 /// <param name="Stdf">STDF hints, or null.</param>
 /// <param name="FileNameShape">The shape mask of the file name.</param>
 public sealed record Hints(
@@ -55,7 +54,6 @@ public sealed record Hints(
     long? DataStartLine,
     string? Delimiter,
     string? HeaderConvention,
-    IReadOnlyList<string>? ParquetColumns,
     StdfHints? Stdf,
     string FileNameShape);
 

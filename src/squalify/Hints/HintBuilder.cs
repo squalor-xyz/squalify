@@ -55,7 +55,6 @@ internal static class HintBuilder
             DataStartLine: dataStart,
             Delimiter: delimited?.Delimiter,
             HeaderConvention: layout.HeaderConvention?.Dominant,
-            ParquetColumns: null,
             Stdf: null,
             FileNameShape: FileNameShape.Of(fileName));
     }

@@ -198,7 +198,6 @@
         "monotonic": "nonDecreasing",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -266,7 +265,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -319,7 +317,6 @@
         "monotonic": null,
         "constant": true,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -391,7 +388,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -444,7 +440,6 @@
         "monotonic": null,
         "constant": true,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -516,7 +511,6 @@
         "monotonic": "nonDecreasing",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -584,7 +578,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -652,7 +645,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -724,7 +716,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -833,7 +824,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -918,7 +908,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -1007,7 +996,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -1096,7 +1084,6 @@
         "monotonic": "none",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -1167,7 +1154,6 @@
     "dataStartLine": 2,
     "delimiter": ",",
     "headerConvention": "nameParenUnit",
-    "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{13}-a{5}.a{3}"
   },

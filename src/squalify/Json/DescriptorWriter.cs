@@ -225,22 +225,6 @@ public static class DescriptorWriter
                 w.WriteBoolean("hasSections", k.HasSections);
                 w.WriteEndObject();
                 break;
-            case ParquetDialect p:
-                w.WriteStartObject();
-                w.WriteNumber("formatVersion", p.FormatVersion);
-                w.WriteString("createdBy", p.CreatedBy);
-                w.WriteNumber("numRows", p.NumRows);
-                w.WritePropertyName("rowGroups");
-                w.WriteStartObject();
-                w.WriteNumber("count", p.RowGroups.Count);
-                w.WritePropertyName("rows");
-                Write(w, p.RowGroups.Rows);
-                Strings(w, "compression", p.RowGroups.Compression);
-                Strings(w, "encodings", p.RowGroups.Encodings);
-                w.WriteEndObject();
-                Strings(w, "kvKeys", p.KvKeys);
-                w.WriteEndObject();
-                break;
             case StdfDialect s:
                 w.WriteStartObject();
                 w.WriteNumber("cpuType", s.CpuType);
@@ -409,7 +393,6 @@ public static class DescriptorWriter
         w.WriteString("monotonic", v.Monotonic);
         NullableBoolean(w, "constant", v.Constant);
         NullableBoolean(w, "unique", v.Unique);
-        w.WriteString("sourceType", v.SourceType);
         w.WriteString("unit", v.Unit);
         Nullable(w, "top", v.Top, Write);
         Nullable(w, "text", v.Text, Write);
@@ -653,7 +636,6 @@ public static class DescriptorWriter
         NullableNumber(w, "dataStartLine", v.DataStartLine);
         w.WriteString("delimiter", v.Delimiter);
         w.WriteString("headerConvention", v.HeaderConvention);
-        NullableStrings(w, "parquetColumns", v.ParquetColumns);
         Nullable(
             w,
             "stdf",

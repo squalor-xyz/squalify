@@ -289,7 +289,6 @@
         "monotonic": "nonDecreasing",
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": "MHz",
         "top": null,
         "text": null
@@ -360,7 +359,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -414,7 +412,6 @@
         "monotonic": "none",
         "constant": true,
         "unique": false,
-        "sourceType": "VARCHAR",
         "unit": null,
         "top": {
           "items": [
@@ -489,7 +486,6 @@
         "monotonic": null,
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -530,7 +526,6 @@
     "dataStartLine": 9,
     "delimiter": ",",
     "headerConvention": "nameParenUnit",
-    "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{3}9{2}.a{3}"
   },

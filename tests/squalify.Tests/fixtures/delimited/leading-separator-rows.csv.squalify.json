@@ -215,7 +215,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -285,7 +284,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -344,7 +342,6 @@
         "monotonic": null,
         "constant": false,
         "unique": false,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -391,7 +388,6 @@
     "dataStartLine": 2,
     "delimiter": ",",
     "headerConvention": "nameParenUnit",
-    "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{7}-a{9}-a{4}.a{3}"
   },

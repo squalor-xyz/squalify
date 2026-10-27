@@ -14,7 +14,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 - **Text.** Printable characters in the Basic Multilingual Plane are written literally (`µA`, `Ω`, `é`; a U+FFFD that is already in the text is written literally too). The writer uses `JavaScriptEncoder.UnsafeRelaxedJsonEscaping`, so these are escaped: `\"`, `\\`, the short forms `\b \f \n \r \t`, and `\uXXXX` with upper-case hex for other control characters (including U+007F), for BMP code points that the runtime's Unicode tables leave unassigned (for example U+0378, written `\u0378`), and for a few invisible or non-character code points (for example U+0085, U+00A0, U+2028, U+FEFF). Characters outside the BMP are written as surrogate pairs: U+1F600 becomes the 12 characters `\uD83D\uDE00`. A lone UTF-16 surrogate cannot occur in text decoded from bytes; if one reaches the writer it is written as the escape `\uFFFD`. The set of unassigned code points comes from the .NET runtime, so a runtime major upgrade can change this output; that is an output-affecting change (see [design.md](design.md#determinism-rules)). A test pins the behavior.
 - **Numbers.** A count or offset is an integer. A double is written in the shortest form that parses back to the same double (.NET `"R"`, invariant culture), for example `0.1`, `1700`, `1E-07` or `1.5E+300`. `-0` is written as `0`. NaN, `Infinity` and `-Infinity` have no JSON number form and are written as the strings `"NaN"`, `"Infinity"` and `"-Infinity"`. Statistics of `int` fields (`min`, `max`, quantiles) are integers; the others are doubles.
 - **Key order.** The order of the tables and examples in this document. Where a member is not in an example, its place is listed under [Key order of nested objects](#key-order-of-nested-objects).
-- **Collections.** Producers must build every collection sorted by the documented key, and the writer never sorts. Maps (`typeVotes`, `nullTokens`, `lineKinds`, `headerConvention.counts`, `patterns`) are ordered by key, ordinally (UTF-16 code unit order); `valuesPerLine` is ordered by its integer key, ascending. Arrays keep the order documented where they are described (`issues` by code, `shapes` by count then mask, `includeValuesFor` ordinally, and so on). `stdf.records` is ordered by `typ`, then `sub`, ascending. The Parquet dialect's `kvKeys`, `rowGroups.compression` and `rowGroups.encodings` are ordered ordinally. Evidence `candidates` are never in insertion order; see [`evidence[]`](#evidence). `hints.stableLines` is ordered by `line` ascending, then by `regex`, ordinally. An array whose order is not yet documented (for example `stdf.tests`) gets one from the slice that first produces it, in that slice's change to this document.
+- **Collections.** Producers must build every collection sorted by the documented key, and the writer never sorts. Maps (`typeVotes`, `nullTokens`, `lineKinds`, `headerConvention.counts`, `patterns`) are ordered by key, ordinally (UTF-16 code unit order); `valuesPerLine` is ordered by its integer key, ascending. Arrays keep the order documented where they are described (`issues` by code, `shapes` by count then mask, `includeValuesFor` ordinally, and so on). `stdf.records` is ordered by `typ`, then `sub`, ascending. Evidence `candidates` are never in insertion order; see [`evidence[]`](#evidence). `hints.stableLines` is ordered by `line` ascending, then by `regex`, ordinally. An array whose order is not yet documented (for example `stdf.tests`) gets one from the slice that first produces it, in that slice's change to this document.
 - **Aligned values lists.** A values-tier list that lines up with another list (`regions[].values` with `keys`, `sections[].values` with `keys`, `rows[].values` with the row's cells) has one entry per aligned item. An entry that is not opted in (for example by `--include-values-for`) is `null`.
 - **Optional versus null.** A member documented as "when tabular", "keyValue", "when binary", "stdf" and the like is omitted when it does not apply. Members that appear in the examples with the value `null` (for example `fields[].numeric`, `fields[].top`, `hints.magic`, `format.dialect`) are always written, as `null` when they do not apply. Within a values-tier member (`top`, `text`, `unit`, `regions[].values`) the rule of that member applies: a values-tier member that the schema always writes is `null` without `--include-values`. Members written only in some cases are listed below (`nameHex`, `index`, `label`, `lineKinds`, `keys`, `values`, `rows`, `headerConvention`, `maxLineLength`, `rowClasses`, `distinct.approximate`, `distinct.errorBound`, `distinct.exceeds`, `numeric.exceeds`, `temporal.exceeds`, `top.maxError`, `firstLines`, `offsets`, `sections[].values`, `annotation.rows[].values`). `binary.blocks` and `binary.segments` are also written only in some cases: they are omitted until sq-10 adds them.
 
@@ -27,7 +27,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `layout.regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
 | `table` | `rows`, `fieldCount`, `rowClasses`, `fields` |
 | `table.rowClasses` | `count`, `transitions`, `allNullRows`, `truncated`, `classes` |
-| `table.fields[]` | `index`, `name`, `nameHex` (only when the name contains U+FFFD), `nameParts`, `type`, `dominant`, `typeVotes`, `patterns`, `count`, `nulls`, `nullsExcludingAllNullRows`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `sourceType`, `unit`, `top`, `text` |
+| `table.fields[]` | `index`, `name`, `nameHex` (only when the name contains U+FFFD), `nameParts`, `type`, `dominant`, `typeVotes`, `patterns`, `count`, `nulls`, `nullsExcludingAllNullRows`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `unit`, `top`, `text` |
 | `fields[].nameParts` | `base`, `unit` (null when none), `convention`, `unknownUnit` |
 | `fields[].distinct` | `value`, then `approximate`, `errorBound`, `exceeds` (each only when applicable) |
 | `fields[].numeric` | `min`, `max`, `mean`, `stddev` (`null` for fewer than two values), `quantiles` (`p01`, `p05`, `p25`, `p50`, `p75`, `p95`, `p99`; `null` past the cap), `approximate` (`null` past the cap), `exceeds` (only past the cap) |
@@ -57,7 +57,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `limits` | object | yes | Caps and table versions in effect. See below. |
 | `file` | object | yes | `name` (not a path), `size` (bytes), `sha256` |
 | `encoding` | object | yes | `kind` (`empty`/`text`/`binary`), `charset`, `bom`, `lineEndings {crlf, lf, cr}`, `invalidBytes`, `controlBytes` |
-| `format` | object | yes | `family` (`delimited`, `parquet`, `touchstone`, `keyValue`, `stdf`, `text`, `binary`, `empty`), `dialect` (family-specific), `score` (the winning profiler's score; 1 for `empty`) |
+| `format` | object | yes | `family` (`delimited`, `touchstone`, `keyValue`, `stdf`, `text`, `binary`, `empty`), `dialect` (family-specific), `score` (the winning profiler's score; 1 for `empty`) |
 | `kind` | object | yes | `label`, `ruleId`, `confidence` (sq-15) |
 | `layout` | object | yes | `regions[]`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
 | `table` | object | when tabular | `rows`, `fieldCount {min, max}`, `rowClasses`, `fields[]` |
@@ -101,7 +101,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 The byte pass (pass 0) decides `kind` from whole-file counts, with these rules in order:
 
 1. A zero-length file is `empty`.
-2. A named binary magic is `binary`. The magic table, in matching order (the first match wins), is: `parquet` (`PAR1` at the start and at the end), `stdf-le` (`02 00 00 0A`), `stdf-be` (`00 02 00 0A`), `gzip` (`1F 8B`), `zip` (`PK\x03\x04` or `PK\x05\x06`), `xz`, `bzip2` (`BZh`), `zstd`, `7z`, `tar` (`ustar` at offset 257), `ole2`, `pdf` (`%PDF-`), `png`, `sqlite`, `hdf5`, `duckdb` (`DUCK` at offset 8, the check DataBall uses to recognize a `.ball` file), `arrow` (`ARROW1`) and `netcdf` (`CDF\x01` or `CDF\x02`). Compressed and archive files are described as binary with their magic name; nothing is decompressed.
+2. A named binary magic is `binary`. Parquet is not in v1, so a Parquet file is described like any other unsupported binary: the byte profile and the `parquet` magic below. The magic table, in matching order (the first match wins), is: `parquet` (`PAR1` at the start and at the end), `stdf-le` (`02 00 00 0A`), `stdf-be` (`00 02 00 0A`), `gzip` (`1F 8B`), `zip` (`PK\x03\x04` or `PK\x05\x06`), `xz`, `bzip2` (`BZh`), `zstd`, `7z`, `tar` (`ustar` at offset 257), `ole2`, `pdf` (`%PDF-`), `png`, `sqlite`, `hdf5`, `duckdb` (`DUCK` at offset 8, the check DataBall uses to recognize a `.ball` file), `arrow` (`ARROW1`) and `netcdf` (`CDF\x01` or `CDF\x02`). Compressed and archive files are described as binary with their magic name; nothing is decompressed.
 3. A UTF-16 or UTF-32 BOM is `text` with that charset.
 4. A NUL-parity pattern is UTF-16 text without a BOM: NUL bytes are at least 30% of the file, and at least 90% of them are at odd offsets (`utf-16le`) or at least 90% at even offsets (`utf-16be`).
 5. Any other NUL byte, or control bytes above 5% of the file, is `binary`.
@@ -164,8 +164,8 @@ A file that the delimited profiler claims has its regions in file order, and `la
 Until the slices that own them land, these members hold fixed interim values (or `null`), so that every file yields a valid descriptor:
 
 - `kind` follows the byte-pass class: `empty` (`K12`), `binary` (`K11`) or `text` (`K09`), with confidence 1. sq-15 replaces it with the rule table.
-- `table.fields[]` of a delimited file holds real values for every member except those of later slices: `sourceType` (Parquet) is `null` for text, and `top` and `text` (values tier) are `null` unless values are opted in for the field (see [Values tier](#values-tier)); `nameParts` is computed from the header by sq-14 (it is `null` only for a table with no header). A consumer must read `null` in those members as "not computed". See [`table.fields[]`](#tablefields) for the rest; `unit` is `null` unless values are opted in for the field (`--include-values`, or its name in `--include-values-for`), and when the units cell is null.
-- `hints.parquetColumns` and `hints.stdf` are `null` until sq-08 and sq-10 add the Parquet and STDF profilers; every other `hints` member is computed (see [`hints`](#hints)).
+- `table.fields[]` of a delimited file holds real values for every member except those of later slices: `top` and `text` (values tier) are `null` unless values are opted in for the field (see [Values tier](#values-tier)); `nameParts` is computed from the header by sq-14 (it is `null` only for a table with no header). A consumer must read `null` in those members as "not computed". See [`table.fields[]`](#tablefields) for the rest; `unit` is `null` unless values are opted in for the field (`--include-values`, or its name in `--include-values-for`), and when the units cell is null.
+- `hints.stdf` is `null` until sq-10 adds the STDF profiler; every other `hints` member is computed (see [`hints`](#hints)).
 
 ## `layout.regions[]`
 
@@ -257,7 +257,6 @@ From sq-05 this section is normative for delimited files. The members are comput
   "monotonic": "nonDecreasing",
   "constant": false,
   "unique": false,
-  "sourceType": null,
   "unit": null,
   "top": null,
   "text": null
@@ -296,7 +295,6 @@ A temporal field, for example:
 - `name` is the trimmed header text; it is `null` when the table has no header (later slices refer to the field as `#<index>`), and `""` for a blank header name (with the issue `emptyHeaderName`).
 - `nameParts` splits the trimmed `name` into `base`, `unit` and `convention` (see [`layout.headerConvention`](#layoutheaderconvention)). `unit` is the unit text as written in the name (`degC`, `dBm`), with no case change, or `null` when the name carries none. `unknownUnit` is `true` when `unit` is not in the unit table, as for `Date(date)` or `RowID(id)`, and `false` otherwise. It is written for every field of a table with a header. It is `null` when the table has no header (`name` is `null` too), so a headerless table has no convention. For `unitsRow` the member `unit` is `null`: the text of the units row is a value, so it lives only in `fields[].unit` (values tier), while the convention is always shown. A trailing space in the header is trimmed before parsing, so `RowID(id) ` and `RowID(id)` give the same `nameParts`; a near miss such as `RowID(ID)` or `rowid(id)` keeps its own text in `base` and `unit`, and is flagged the same way.
 - `nameHex` (present only when the name contains U+FFFD) is the hex (lower case) of the original bytes of the field as written, trimmed, quotes included.
-- `sourceType` is the native type for Parquet (for example `DECIMAL(10,2)`).
 - `unit` is the unit from a units row. **Values tier.** Units parsed from header names are in `nameParts` and are always included. With a units row, a field whose name carries no unit has the convention `unitsRow` when its units cell has a value, and `none` otherwise; `unit` is `null` either way unless values are opted in.
 - `top` (`{ "items": [{ value, count }], "approximate": false }`, plus `maxError` when approximate) and `text` (`{ min, max }`, lexical) are **values tier**. The `{ items, approximate, maxError? }` shape of `top` is the pinned draft shape; sq-12 records it in the schema changelog.
   - `top.items` lists at most 10 values of any type, as the trimmed text of the file (not normalized: `1` and `1.0` are two values), ordered by `count` descending, then `value` ordinally. A field with no non-null value has `items: []`.
@@ -312,7 +310,6 @@ Distinct counting, `unique` and the text comparison of `constant` compare a 64-b
 | delimited | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `decimalSeparator`, `padding {trim, paddedShare, constantLineLength, lineLength}`, `blocks` |
 | touchstone | `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords[]`, `valuesPerLine {n: count}`, `noise` |
 | keyValue | `separator` (`=` or `:`), `hasSections` |
-| parquet | `formatVersion`, `createdBy`, `numRows`, `rowGroups {count, rows {min, max}, compression[], encodings[]}`, `kvKeys[]` (KV values are values tier) |
 | stdf | `cpuType`, `endianness`, `version` |
 
 ### delimited
@@ -406,13 +403,12 @@ The projections are defined in [design.md](design.md#structural-fingerprint). Fi
   "dataStartLine": 8,
   "delimiter": ",",
   "headerConvention": "nameParenUnit",
-  "parquetColumns": null,
   "stdf": null,
   "fileNameShape": "a{5}_9{3}.a{3}"
 }
 ```
 
-Every member is always written, as `null` when it does not apply (`stableLines` is `[]`). A hint is a neutral fact that a consumer can turn into a match rule; the vocabulary mirrors DataBall's conditions (`extension`, `headerExact`, `headerContainsAll`, `lineMatches`, `columnCount`, `parquetColumns`).
+Every member is always written, as `null` when it does not apply (`stableLines` is `[]`). A hint is a neutral fact that a consumer can turn into a match rule; the vocabulary mirrors DataBall's conditions (`extension`, `headerExact`, `headerContainsAll`, `lineMatches`, `columnCount`).
 
 | Member | Meaning |
 |---|---|
@@ -426,7 +422,6 @@ Every member is always written, as `null` when it does not apply (`stableLines` 
 | `dataStartLine` | The 1-based line where the data region starts; `null` when there is none. Note that `stableLines[].line` is 0-based |
 | `delimiter` | `format.dialect.delimiter` of a delimited table, else `null` |
 | `headerConvention` | `layout.headerConvention.dominant`, or `null` (sq-14) |
-| `parquetColumns` | Parquet column names; `null` until sq-08 |
 | `stdf` | `{ cpuType, version }`; `null` until sq-10 |
 | `fileNameShape` | The shape mask of `file.name`, by the rules of [`fields[].shapes`](#tablefields) (ASCII classes only; `{` and `}` are `?`) |
 
@@ -454,7 +449,7 @@ Issues are sorted by `code`, ordinally. Each has a `count` and, for some, locati
 | `invalidUtf8` | The charset is `ascii` or `utf-8` and the file holds invalid UTF-8 sequences (within the tolerance). Not written for `latin-1`, where nothing is lost; `encoding.invalidBytes` still counts them. | Invalid sequences | `offsets`: byte offsets where the first 10 start, ascending |
 | `mixedLineEndings` | More than one of CRLF, lone LF and lone CR occurs. | Line endings that are not the dominant kind (most frequent; a tie goes to CRLF, then LF, then CR) | `firstLines`: the first 10 lines, ascending, that end with a non-dominant kind |
 | `nameExcludedFromFingerprint` | A header name or a preamble key holds a control character (U+0000 to U+001F, U+007F to U+009F) or U+FFFD, so the fingerprint projections leave it out (see [`fingerprint`](#fingerprint)). Written by every family that has such names. | Names and keys left out | none |
-| `includeValuesForUnmatched` | A name in `options.includeValuesFor` matches no preamble key, annotation label, key=value key (a section's or a Parquet file's) or field name, under ASCII case folding. Written by every family, whether or not `includeValues` is set. | Unmatched names, without duplicates | `names`: the unmatched names as given on the command line, sorted ordinally. They come from the command line, not from the data, so they are not values tier |
+| `includeValuesForUnmatched` | A name in `options.includeValuesFor` matches no preamble key, annotation label, key=value key (a section's) or field name, under ASCII case folding. Written by every family, whether or not `includeValues` is set. | Unmatched names, without duplicates | `names`: the unmatched names as given on the command line, sorted ordinally. They come from the command line, not from the data, so they are not values tier |
 
 The delimited profiler writes these:
 
@@ -482,7 +477,7 @@ The delimited profiler writes these:
 |---|---|---|
 | `encoding` / `class` | `binary`, `empty`, `text`; the chosen one scores 1, the others 0 | `value`, ordinally |
 | `encoding` / `charset` (text files only) | Rule 3 or 4: only the charset that the rule implies. Rule 6: `ascii`, `latin-1`, `utf-8`; the chosen one scores 1, the others 0. The reason of the chosen candidate carries the invalid-sequence count and the tolerance when they matter | `value`, ordinally |
-| `format` / `family` | Every registered profiler: its family as `value`, its score and its reason. `chosen` is the family with the highest score, a tie going to the earlier family; for a zero-length file it is `empty`, which no profiler claims, and every candidate scores 0 | Registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary` (only registered profilers appear; at present `delimited`, `text` and `binary`) |
+| `format` / `family` | Every registered profiler: its family as `value`, its score and its reason. `chosen` is the family with the highest score, a tie going to the earlier family; for a zero-length file it is `empty`, which no profiler claims, and every candidate scores 0 | Registry order: `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary` (only registered profilers appear; at present `delimited`, `text` and `binary`) |
 
 | `dialect` / `delimiter` (delimited text files, when the profiler wins, or when it declined a file as too irregular) | The five delimiter candidates as `value`: `,`, a tab, `;`, `|`, `whitespace`. `score` is the candidate's dialect score (0 for a disqualified one); `chosen` is the winner, `null` when none is viable. The reason is `k={k}; {inRun}/{total} records; clean={c}; run lines {a}-{b}`, with `; {n} non-k records skipped in the start window` appended when the start window of the data run skipped any records with another field count (ragged records and comment lines), `; {n} quoted fields` always appended and `; {n} literal quotes` appended when the candidate saw any; `k={k}; no run` (with the same quoted-fields and literal-quotes suffixes); `disqualified: runaway quote opened at line {n}`; or `disqualified: too irregular, more than {limit} field-count runs by line {n}` | Candidate order: `,`, tab, `;`, `|`, `whitespace` |
 | `dialect` / `decimalSeparator` (delimited) | `,` and `.`; the chosen one scores 1. The reasons carry the counts of comma-decimal and dot-decimal cells in the header sample | `value`, ordinally |
@@ -496,10 +491,10 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 
 | Member | Tier |
 |---|---|
-| Header names, preamble keys, annotation labels, section names and keys, Parquet column names and KV keys, STDF test names | always |
+| Header names, preamble keys, annotation labels, section names and keys, STDF test names | always |
 | Numeric and temporal statistics, counts, types, shapes, lengths | always, except statistics of constant fields |
 | `nameParts` and `headerConvention` | always |
-| Region `values` (preamble and annotation), key=value values, Parquet KV values, comment text | values tier |
+| Region `values` (preamble and annotation), key=value values, comment text | values tier |
 | `numeric` and `temporal` of constant fields | values tier |
 | `fields[].top`, `fields[].text`, `fields[].unit` (units row) | values tier |
 | `stableLines` for comment and text lines | values tier |
@@ -507,7 +502,7 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 
 Normative rules:
 
-- **One list.** `ValuesPolicy` (`src/squalify/ValuesPolicy.cs`) is the single list of value-bearing members: `layout.regions[].values` (preamble, owner: the key), `layout.regions[].rows[].values` (annotation cells, owner: the label), `sections[].values` (owner: the key), `table.fields[].unit`, `top`, `text`, the `numeric` and `temporal` members of a field whose `constant` is `true` (owner: the field name), and `hints.stableLines` entries built from a comment or text line (no owner). Parquet key-value values and comment text join the list when their members join the model. Every such model member carries a `[ValueBearing]` mark and a test compares the marks with the list.
+- **One list.** `ValuesPolicy` (`src/squalify/ValuesPolicy.cs`) is the single list of value-bearing members: `layout.regions[].values` (preamble, owner: the key), `layout.regions[].rows[].values` (annotation cells, owner: the label), `sections[].values` (owner: the key), `table.fields[].unit`, `top`, `text`, the `numeric` and `temporal` members of a field whose `constant` is `true` (owner: the field name), and `hints.stableLines` entries built from a comment or text line (no owner). Comment text joins the list when its member joins the model. Every such model member carries a `[ValueBearing]` mark and a test compares the marks with the list.
 - **`--include-values`** opts in every member. **`--include-values-for <name>`** (repeatable; `options.includeValuesFor`, a sorted set: ordinal order, exact duplicates dropped, names that differ in case kept) opts in the members whose owner has that name: a preamble key, an annotation label, a key=value key or a field name. The name is compared whole and with ASCII case folding (`A` to `Z` only); there is no prefix or substring match and no Unicode folding. A name that matches several members, for example a preamble key and a field, opens all of them. A stable-line regex of a comment or text line has no owner, so only `--include-values` opens it. A name that matches nothing gives the issue [`includeValuesForUnmatched`](#issues).
 - **Aligned lists.** The entry for an owner that is not opted in is `null`; an annotation row's `values` is absent unless its label is opted in.
 - **Never held, never written.** A profiler asks the policy before it collects a value, so a value that may not be written is not kept in memory, and `DescriptorWriter` checks every descriptor against the policy before it writes. A value-bearing member whose owner is not opted in makes the writer throw `InvalidOperationException`, with the member's path and no value in the message. That is a bug in the producer, not a user error, and it is not wrapped in `SqualifyException`.
@@ -649,4 +644,4 @@ Not in the subset: statistics (`numeric`, `distinct`, `top` and the like), `enco
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.
 - Consumers must ignore unknown keys within a major version.
 - `fingerprint.version` changes whenever a projection changes. Hashes from different versions cannot be compared.
-- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`. The members that sq-07 adds or fills do not bump it either: `fields[].top` and `fields[].text` (now computed, behind the values tier), the issue `includeValuesForUnmatched` and `issues[].names`.
+- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`. The members that sq-07 adds or fills do not bump it either: `fields[].top` and `fields[].text` (now computed, behind the values tier), the issue `includeValuesForUnmatched` and `issues[].names`. sq-31 removes the Parquet-only members before the freeze, again without a bump: `fields[].sourceType`, `hints.parquetColumns`, the `parquet` dialect (with `kvKeys`) and the `parquet` family. Parquet is not in v1; adding it later would be an additive change.

@@ -347,7 +347,6 @@
     "dataStartLine": null,
     "delimiter": null,
     "headerConvention": null,
-    "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{6}.a{2}"
   },

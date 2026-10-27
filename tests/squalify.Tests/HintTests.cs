@@ -247,7 +247,6 @@ public sealed class HintTests
         Assert.Equal(3, h.DataStartLine);
         Assert.Equal(",", h.Delimiter);
         Assert.Equal("none", h.HeaderConvention);
-        Assert.Null(h.ParquetColumns);
         Assert.Null(h.Stdf);
     }
 

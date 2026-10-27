@@ -310,18 +310,6 @@ public class DescriptorWriterTests
         var keyValue = Text(TestModels.Minimal() with { Format = new FormatSection("keyValue", new KeyValueDialect("=", true), 0.6) });
         Assert.Contains("    \"dialect\": {\n      \"separator\": \"=\",\n      \"hasSections\": true\n    },", keyValue);
 
-        var parquet = Text(
-            TestModels.Minimal() with
-            {
-                Format = new FormatSection(
-                    "parquet",
-                    new ParquetDialect(2, "parquet-cpp", 100, new RowGroupInfo(2, new MinMax(40, 60), ["SNAPPY"], ["PLAIN", "RLE"]), ["writer"]),
-                    1.0),
-            });
-        Assert.Contains(
-            "    \"dialect\": {\n      \"formatVersion\": 2,\n      \"createdBy\": \"parquet-cpp\",\n      \"numRows\": 100,\n      \"rowGroups\": {\n        \"count\": 2,\n        \"rows\": {\n          \"min\": 40,\n          \"max\": 60\n        },\n        \"compression\": [\n          \"SNAPPY\"\n        ],\n        \"encodings\": [\n          \"PLAIN\",\n          \"RLE\"\n        ]\n      },\n      \"kvKeys\": [\n        \"writer\"\n      ]\n    },",
-            parquet);
-
         var noDialect = Text(TestModels.Minimal());
         Assert.Contains("    \"dialect\": null,", noDialect);
     }

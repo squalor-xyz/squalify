@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. sq-07 added the values tier: the most common values and the text minimum and maximum of a field (`TopK`), the `--include-values-for` allow-list with its `includeValuesForUnmatched` issue, and `ValuesPolicy`, the one list of value-bearing members that decides what is collected and that the writer checks before it writes. sq-25 documented and tested the consumer subset of the descriptor (`docs/descriptor.md`, "Consumer subset"); it changes no code and no diagram. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. sq-07 added the values tier: the most common values and the text minimum and maximum of a field (`TopK`), the `--include-values-for` allow-list with its `includeValuesForUnmatched` issue, and `ValuesPolicy`, the one list of value-bearing members that decides what is collected and that the writer checks before it writes. sq-25 documented and tested the consumer subset of the descriptor (`docs/descriptor.md`, "Consumer subset"); it changes no code and no diagram. sq-31 dropped Parquet from v1 (owner decision): a Parquet file is profiled as binary with a `parquet` magic hint, and the Parquet-only descriptor members are gone. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -8,19 +8,18 @@ Each diagram shows one idea. Labels are in plain language, with the code name in
 
 ## 1. The pieces
 
-The `squalify` command is a thin shell around the library. Each kind of file has its own profiler. DuckDB is used only to read Parquet. The descriptor is the only thing that leaves the tool.
+The `squalify` command is a thin shell around the library. Each kind of file has its own profiler. The library uses only the .NET libraries; the command adds a command-line parser. The descriptor is the only thing that leaves the tool.
 
 ```mermaid
 flowchart LR
     CLI["squalify command<br/><small>squalify.Cli</small>"] --> Lib
     Host["Your app"] --> Lib
-    Lib["Profiler library<br/><small>Profiler.Profile</small>"] --> Profilers["Format profilers<br/><small>delimited, parquet, touchstone,<br/>keyValue, stdf, text, binary</small>"]
-    Profilers -. "Parquet only" .-> DuckDB[("DuckDB<br/><small>DuckDB.NET</small>")]
+    Lib["Profiler library<br/><small>Profiler.Profile</small>"] --> Profilers["Format profilers<br/><small>delimited, touchstone,<br/>keyValue, stdf, text, binary</small>"]
     Lib --> Out["Descriptor JSON"]
     Out --> Consumers["DataBall and other tools"]
 ```
 
-*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`, `Delimited/DelimitedProfiler.cs`; the other profilers (Parquet, Touchstone, key=value, STDF) under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. The `delimited`, `text` and `binary` profilers exist so far, so every file is described as a delimited table, text, binary or empty; the other profilers in the diagram are planned. A directory is an error.
+*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`, `Delimited/DelimitedProfiler.cs`; the other profilers (Touchstone, key=value, STDF) under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. The `delimited`, `text` and `binary` profilers exist so far, so every file is described as a delimited table, text, binary or empty; the other profilers in the diagram are planned. A directory is an error.
 
 ## 2. One profile run
 
@@ -43,13 +42,12 @@ Every profiler looks at the file and gives a score from 0 to 1. The highest scor
 
 ```mermaid
 flowchart LR
-    S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P1["Parquet: magic at both ends → 1.0"]
-    S --> P2["STDF: FAR record at start → 1.0"]
+    S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF: FAR record at start → 1.0"]
     S --> P3["Touchstone: extension + option line → 0.9"]
     S --> P4["Key=value document → up to 0.6"]
     S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score<br/><small>DelimitedProfiler</small>"]
-    S --> P6["Plain text / other binary → 0.1–0.2"]
-    P1 & P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
+    S --> P6["Plain text / other binary (a Parquet file included) → 0.1–0.2"]
+    P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
     W --> Ev["All scores go to evidence"]
 ```
 
@@ -277,13 +275,13 @@ Each kind of file adds its own part to the projection through one small interfac
 flowchart TD
     P["Projection<br/><small>Projection</small>"] --> R["Find the family's contributor<br/><small>FingerprintContributors.For</small>"]
     R --> DC["Delimited: dialect,<br/>preamble keys and line kind<br/><small>DelimitedFingerprint</small>"]
-    R -. "later slices" .-> OC["Parquet, Touchstone, key=value, STDF<br/><small>(planned)</small>"]
+    R -. "later slices" .-> OC["Touchstone, key=value, STDF<br/><small>(planned)</small>"]
     DC --> M["Members written right after the family name<br/><small>FingerprintContribution</small>"]
     OC -.-> M
     M --> H["Hash of the compact JSON text<br/><small>SHA-256</small>"]
 ```
 
-*Source: `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`. The Parquet, Touchstone, key=value and STDF contributors are (planned).*
+*Source: `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`. The Touchstone, key=value and STDF contributors are (planned).*
 
 The **hints** are facts a consumer can turn into match rules: the extension, the named magic bytes with their offset, the header names, the first five names, the columns that had no empty values outside blank separator rows, the delimiter, and the file-name shape. The most useful are the **stable lines**: a regex for the header line, a looser one for just its first five names, and one for each `key=value` line in the preamble. Each regex is built from the real text of the line, so it matches the file as written, including quotes and padding. A comment or free-text line is data, so its regex is written only with `--include-values`, and a line with a stray unreadable byte or a control character gets no regex.
 

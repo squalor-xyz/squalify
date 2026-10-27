@@ -2,7 +2,7 @@
 namespace squalor.squalify;
 
 /// <summary>The <c>format</c> section.</summary>
-/// <param name="Family"><c>delimited</c>, <c>parquet</c>, <c>touchstone</c>, <c>keyValue</c>, <c>stdf</c>, <c>text</c>, <c>binary</c> or <c>empty</c>.</param>
+/// <param name="Family"><c>delimited</c>, <c>touchstone</c>, <c>keyValue</c>, <c>stdf</c>, <c>text</c>, <c>binary</c> or <c>empty</c>.</param>
 /// <param name="Dialect">The family-specific dialect, or null for families without one.</param>
 /// <param name="Score">The winning profiler's score.</param>
 public sealed record FormatSection(string Family, Dialect? Dialect, double Score);
@@ -68,26 +68,6 @@ public sealed record TouchstoneDialect(
 /// <param name="Separator"><c>=</c> or <c>:</c>.</param>
 /// <param name="HasSections">True when <c>[section]</c> headers are present.</param>
 public sealed record KeyValueDialect(string Separator, bool HasSections) : Dialect;
-
-/// <summary>Dialect of a Parquet file.</summary>
-/// <param name="FormatVersion">The Parquet format version.</param>
-/// <param name="CreatedBy">The writer string, or null when absent.</param>
-/// <param name="NumRows">Total rows.</param>
-/// <param name="RowGroups">Row-group summary.</param>
-/// <param name="KvKeys">Key-value metadata keys; the caller sorts ordinally.</param>
-public sealed record ParquetDialect(
-    long FormatVersion,
-    string? CreatedBy,
-    long NumRows,
-    RowGroupInfo RowGroups,
-    IReadOnlyList<string> KvKeys) : Dialect;
-
-/// <summary>Row-group summary of a Parquet file.</summary>
-/// <param name="Count">Number of row groups.</param>
-/// <param name="Rows">Rows per group.</param>
-/// <param name="Compression">Compression codecs; the caller sorts ordinally.</param>
-/// <param name="Encodings">Encodings; the caller sorts ordinally.</param>
-public sealed record RowGroupInfo(long Count, MinMax Rows, IReadOnlyList<string> Compression, IReadOnlyList<string> Encodings);
 
 /// <summary>Dialect of an STDF file.</summary>
 /// <param name="CpuType">The CPU_TYPE byte of the FAR record.</param>

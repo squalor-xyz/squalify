@@ -428,10 +428,6 @@
     "dataStartLine": null,
     "delimiter": null,
     "headerConvention": null,
-    "parquetColumns": [
-      "a",
-      "b"
-    ],
     "stdf": {
       "cpuType": 2,
       "version": "V4"
