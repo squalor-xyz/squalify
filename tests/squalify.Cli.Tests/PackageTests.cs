@@ -125,6 +125,30 @@ public sealed class PackageTests(PackageFeed feed)
     }
 
     [Fact]
+    public void Package_Library_HasEmbeddedIcon()
+    {
+        Assert.True(feed.PackExitCode == 0, $"dotnet pack exited with {feed.PackExitCode}.\n{feed.PackLog}");
+        Assert.True(feed.CliPackExitCode == 0, $"dotnet pack exited with {feed.CliPackExitCode}.\n{feed.CliPackLog}");
+
+        var expected = File.ReadAllBytes(Path.Combine(DotNetTool.RepositoryRoot(), "assets", "squalify-512.png"));
+        foreach (var (nupkg, packageId) in new[] { (feed.NupkgPath(ToolInfo.Version), PackageFeed.PackageId), (feed.CliNupkgPath(ToolInfo.Version), PackageFeed.CliPackageId) })
+        {
+            var nuspec = ReadNuspec(nupkg, packageId);
+            var ns = nuspec.Name.Namespace;
+            Assert.Equal("squalify-512.png", MetadataField(nuspec, "icon"));
+            Assert.Null(nuspec.Element(ns + "metadata")?.Element(ns + "iconUrl"));
+
+            using var archive = ZipFile.OpenRead(nupkg);
+            var entry = archive.GetEntry("squalify-512.png");
+            Assert.True(entry is not null, $"{Path.GetFileName(nupkg)} has no squalify-512.png at the package root.");
+            using var stream = entry.Open();
+            using var memory = new MemoryStream();
+            stream.CopyTo(memory);
+            Assert.True(expected.AsSpan().SequenceEqual(memory.ToArray()), $"The icon in {Path.GetFileName(nupkg)} differs in bytes from assets/squalify-512.png.");
+        }
+    }
+
+    [Fact]
     public void Package_Readme_HasNoRelativeLinks()
     {
         // nuget.org renders the README outside the repository, so a relative target would not resolve there.

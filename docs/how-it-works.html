@@ -360,49 +360,18 @@ div.option img {
 <body>
 <h1 id="how-squalify-works">How squalify works</h1>
 <blockquote>
-<p><strong>Design stage.</strong> This page describes the agreed design
-(spec pass, 2026-10-13, amended after the sample-data review the same
-day). These slices have landed. sq-01 added the CLI shell,
-<code>ToolInfo</code> and <code>SqualifyException</code>. sq-02 added
-the descriptor model, the canonical JSON writer and the determinism kit
-(<code>DetMath</code>, <code>XxHash64</code>, <code>Ordinal</code>) and
-the golden-file test harness. sq-03 added the byte pass, the format
-registry and the generic text and binary profiles, so
-<code>squalify profile</code> now works on any file. sq-16 added the
-value classifier (<code>ValueClassifier</code>), which classifies one
-value as empty, true/false, a number, a date or time, or text. sq-04
-added the delimited-text profiler: delimiter and quoting, preamble,
-annotation, header, units, data and footer regions, padding, the decimal
-separator and per-field type votes. sq-05 added the field accumulators
-(<code>FieldAccumulator</code>), which turn those votes into full field
-profiles: the type, null tokens, number and date statistics, lengths,
-shape masks and the constant and unique flags, in bounded memory. sq-14
-added the header-unit conventions (<code>HeaderConventionParser</code>,
-<code>UnitTable</code>): each header name is split into a base name and
-a unit, and the file reports its dominant convention. sq-17 added the
-row classes (<code>RowClassAccumulator</code>): the data rows are
-grouped by which columns are filled in, so a table that mixes
-measurement, setup, error and empty separator rows says so. sq-06 added
-the fingerprints (<code>Projection</code>,
-<code>IFingerprintContributor</code>): four hashes of a value-free
-projection of the descriptor, and the detect-rule hints
-(<code>HintBuilder</code>, <code>PortableRegex</code>): the extension, a
-structured magic, the header names and regexes that match the stable
-lines of the file. sq-07 added the values tier: the most common values
-and the text minimum and maximum of a field (<code>TopK</code>), the
-<code>--include-values-for</code> allow-list with its
-<code>includeValuesForUnmatched</code> issue, and
-<code>ValuesPolicy</code>, the one list of value-bearing members that
-decides what is collected and that the writer checks before it writes.
-sq-25 documented and tested the consumer subset of the descriptor
-(<code>docs/descriptor.md</code>, “Consumer subset”); it changes no code
-and no diagram. sq-31 dropped Parquet from v1 (owner decision): a
-Parquet file is profiled as binary with a <code>parquet</code> magic
-hint, and the Parquet-only descriptor members are gone. Every source
-file that does not exist yet is marked <em>(planned)</em>. When an
-architectural review or a slice changes how squalify works, this page
-and its diagrams are updated in the same change (see “Docs” in
-<code>AGENTS.md</code>).</p>
+<p><strong>Status (v0.1.0).</strong> Built: the CLI and library shell,
+the descriptor model and canonical writer with its determinism kit, the
+byte pass, format choice, the generic text and binary profiles, the
+value classifier, the delimited-text profiler, field profiles,
+header-unit conventions, row classes, fingerprints and detect-rule
+hints, and the values tier. Still to come: the Touchstone, key=value and
+STDF profilers, sketches past the exact caps, repeated blocks and the
+kind label; their source files are marked <em>(planned)</em>. Parquet is
+not in v1: a Parquet file is profiled as binary with a
+<code>parquet</code> magic hint. When an architectural review or a slice
+changes how squalify works, this page and its diagrams are updated in
+the same change (see “Docs” in <code>AGENTS.md</code>).</p>
 </blockquote>
 <p>squalify reads one data file and writes a
 <strong>descriptor</strong>: a JSON summary of what the file is and what
@@ -537,9 +506,9 @@ under it. A header with a blank or repeated name is still taken when
 nothing else qualifies, with an issue. A table made only of text takes
 its first row as the header and says so in the evidence. A first data
 row that is all <code>NULL</code> is never taken for a units row, so the
-interleaved separator rows of an ATE export do no harm. A comment
-line (<code>#</code>, <code>!</code>, <code>//</code>) is free text: it
-is never a header, an annotation row or a label, wherever it sits. The
+interleaved separator rows of an ATE export do no harm. A comment line
+(<code>#</code>, <code>!</code>, <code>//</code>) is free text: it is
+never a header, an annotation row or a label, wherever it sits. The
 evidence lists the eligible candidates and the winner, and one summary
 line that counts the rest by reason.</p>
 <p>With the dialect and header known, the file falls into regions, each

@@ -2,9 +2,34 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 32,
+  "next_id": 38,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
-  "passes": [],
+  "passes": [
+    {
+      "key": "v0.1.1",
+      "heading": "",
+      "intro": "",
+      "outro": ""
+    },
+    {
+      "key": "v0.2.0",
+      "heading": "",
+      "intro": "",
+      "outro": ""
+    },
+    {
+      "key": "v1.0.0",
+      "heading": "",
+      "intro": "",
+      "outro": ""
+    },
+    {
+      "key": "v1.x",
+      "heading": "",
+      "intro": "",
+      "outro": ""
+    }
+  ],
   "items": [
     {
       "id": "sq-01",
@@ -1262,7 +1287,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v1.x",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -1350,7 +1375,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v1.x",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -1485,7 +1510,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v0.2.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -1584,7 +1609,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v1.0.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -1646,6 +1671,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "c4b54c93-a0f7-4dbe-a0c6-ff034d93b73a",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27), verbatim answers: block rule \"New block only with its own header (Recommended)\" (option text: \"A new block starts only where the run that follows is at least 5 records long and opens with a header line its values fail. Otherwise the odd rows are ragged rows of one table. This stops one bad row from splitting a table.\"). Block label: \"Drop label; index only (Recommended)\" (option text: \"A block region has only `index` (plus its lines and child regions). Consumers read the file to name blocks. Nothing leaks, and there is no schema member to freeze.\"). Ordering: \"Parallel, sq-34 lands first (Recommended)\": sq-13 merges main after sq-34 lands, before its last fix round, and builds on sq-34 (replaced lead rule, ragged rows reported). Orchestrator: test 3 (goldens unchanged) holds for single-table fixtures; any existing golden that changes must be listed with the reason (H5 row-class break at block boundaries).",
+          "created_at": "2026-10-27T20:06:53Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1661,7 +1697,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v0.2.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -1864,7 +1900,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v1.x",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -1877,7 +1913,7 @@
       "id": "sq-20",
       "title": "squalify must keep descriptors compact for wide files",
       "short_title": "Compact evidence",
-      "status": "open",
+      "status": "retired",
       "has_slice": true,
       "depends_on": [
         "sq-05",
@@ -1966,7 +2002,7 @@
         "key": "",
         "pass": "",
         "group": "",
-        "reason": "",
+        "reason": "Owner decision (2026-10-27), verbatim: \"Retire, refile on fields (Recommended)\". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.",
         "importance": 2,
         "urgency": 2,
         "effort": 2,
@@ -1988,7 +2024,7 @@
         "sq-14",
         "sq-17",
         "sq-18",
-        "sq-20"
+        "sq-32"
       ],
       "note_records": [
         {
@@ -2133,6 +2169,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "65ec747c-f266-4de8-8129-fcb43c7af373",
+          "kind": "",
+          "text": "**2026-10-27** — sq-20 retired (2026-10-27); sq-32 (compact field profiles) replaces it as a freeze dependency.",
+          "created_at": "2026-10-27T19:27:44Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -2149,7 +2196,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v1.0.0",
         "group": "",
         "reason": "",
         "importance": 3,
@@ -2204,7 +2251,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "",
+        "pass": "v1.x",
         "group": "",
         "reason": "",
         "importance": 1,
@@ -2259,7 +2306,7 @@
         "parent": "",
         "cites": [],
         "key": "sq02-arch-runtime-escaping",
-        "pass": "",
+        "pass": "v0.2.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -2314,7 +2361,7 @@
         "parent": "",
         "cites": [],
         "key": "sq02-arch-nits",
-        "pass": "",
+        "pass": "v1.x",
         "group": "",
         "reason": "",
         "importance": 1,
@@ -2346,7 +2393,7 @@
         "parent": "",
         "cites": [],
         "key": "sq03-review-utf16-invalid",
-        "pass": "",
+        "pass": "v0.2.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -2637,7 +2684,7 @@
       "id": "sq-28",
       "title": "squalify must skip only multi-field ragged records in the run-start window",
       "short_title": "Ragged skip by field count",
-      "status": "open",
+      "status": "retired",
       "has_slice": false,
       "depends_on": [
         "sq-27"
@@ -2656,9 +2703,9 @@
         "parent": "",
         "cites": [],
         "key": "sq27-review-option-c",
-        "pass": "",
+        "pass": "v1.x",
         "group": "",
-        "reason": "",
+        "reason": "Owner decision (2026-10-27), verbatim: \"Fold into sq-34\". Scope moved to sq-34.",
         "importance": 1,
         "urgency": 1,
         "effort": 1,
@@ -2731,7 +2778,7 @@
       "id": "sq-30",
       "title": "squalify must have its own mark as the package icon and README image",
       "short_title": "Package icon",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
@@ -2746,13 +2793,13 @@
         "parent": "",
         "cites": [],
         "key": "package-icon",
-        "pass": "",
-        "group": "v0.2.0",
+        "pass": "v0.1.1",
+        "group": "",
         "reason": "",
         "importance": 1,
         "urgency": 1,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -2781,6 +2828,222 @@
         "urgency": 3,
         "effort": 1,
         "attempts": 1
+      }
+    },
+    {
+      "id": "sq-32",
+      "title": "Compact field profiles",
+      "short_title": "Compact field profiles",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-11"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v0.2.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-33",
+      "title": "squalify must have getting-started, user, example and developer docs",
+      "short_title": "User and developer docs",
+      "status": "done",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v0.1.1",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 2,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "sq-34",
+      "title": "Claim degenerate delimited tables",
+      "short_title": "Claim degenerate delimited tables",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "795cefdb-fd71-4ac3-9fb3-98002a0e39c0",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27), verbatim answers: pass \"sq-34 in v0.2.0\". Ragged lead: \"Replace the lead rule\" (option text: \"Always keep the start and report early ragged rows. Simpler, but some files that now have a preamble would get a different header and data start.\"). Header-only: \"Delimited, rows 0, all empty (Recommended)\" (option text: \"family delimited, a header region, no data region, table.rows 0, every field typed empty, plus an issue (e.g. noDataRows) so consumers can tell.\"). One column: \"Only with a clear header (Recommended)\" (option text: \"Claim as delimited with k=1 (delimiter null or the file's own) only when the first line is a header the column's values fail (e.g. text header over numbers). Otherwise it stays text, so prose and logs are not called tables.\"). sq-28: \"Fold into sq-34\" (sq-28 retired; its scope, \"squalify must skip only multi-field ragged records in the run-start window\", is now part of this slice).",
+          "created_at": "2026-10-27T19:48:21Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "1d318566-5446-4a9a-b421-cd5485fd0fc0",
+          "kind": "",
+          "text": "**2026-10-27** — Orchestrator (2026-10-27): replacing the lead rule changes the sq-04 run-start design in docs/design.md (RunStartMinLeadRecords, \"a ragged record among the first two data records still moves the start past it\"). The implementer must update design.md, descriptor.md (new issue, header-only shape) and how-it-works, list every golden that changes with the reason, and give a real-sample sanity table (aggregates only) of files whose family, header line or data start moved. Fill the Implement section at slice start.",
+          "created_at": "2026-10-27T19:48:22Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "a94d1dac-0cd5-4fce-91ed-3589872f9124",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"Parallel, sq-34 lands first (Recommended)\". sq-13 runs alongside and rebases onto this slice; keep the lead-rule change self-contained in the run-start code so sq-13 can build on it.",
+          "created_at": "2026-10-27T20:06:54Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "delimited-claim-degenerate",
+        "pass": "v0.2.0",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-35",
+      "title": "Byte-limited profiling",
+      "short_title": "Byte-limited profiling",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "profile-byte-limit",
+        "pass": "v0.2.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-36",
+      "title": "Exact null spellings",
+      "short_title": "Exact null spellings",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "null-token-exact-spellings",
+        "pass": "v0.2.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-37",
+      "title": "Raw header names",
+      "short_title": "Raw header names",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "raw-header-names",
+        "pass": "v0.2.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
       }
     }
   ],
