@@ -5,7 +5,7 @@ namespace squalor.squalify;
 
 /// <summary>
 /// Groups data records into row classes by which of their fields are non-null, in file order and in bounded memory. It
-/// is format-agnostic: a profiler gives it one null mask per record (<see cref="Add"/>), so Parquet can feed it later.
+/// is format-agnostic: a profiler gives it one null mask per record (<see cref="Add"/>).
 /// It also counts the all-null records and, per field, the nulls outside them, so those facts have one source. See
 /// <c>docs/design.md</c>, "Row classes".
 /// </summary>

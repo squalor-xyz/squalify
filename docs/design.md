@@ -14,11 +14,11 @@ squalify reads one data file and writes a descriptor. Consumers use the descript
 | Kind label | A generic `kind` label from a fixed, built-in rule set, with evidence (sq-15). |
 | Stack | .NET 10, standalone. No reference to DataBall. |
 | Names | Namespace `squalor.squalify`, CLI `squalify`, slicer ids `sq-NN`. |
-| v1 formats | Delimited text (with preambles, units rows and repeated blocks), Parquet, Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk plus a generic byte profile). |
+| v1 formats | Delimited text (with preambles, units rows and repeated blocks), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk plus a generic byte profile). Parquet is not in v1 (owner decision, 2026-10-27): a Parquet file is profiled as binary, with the `parquet` magic hint. It can be added later if a consumer needs it. |
 | Compressed and archive files | Described as binary with a named magic. No decompression in v1. |
 | Read depth | A full streaming scan with bounded memory. |
 | Values | Opt-in through `--include-values`. See [Values tier](#values-tier). |
-| Dependencies | DuckDB.NET.Data.Full 1.5.5 (Parquet) and System.CommandLine 2.0.11 (CLI). Tests: Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3, xunit.runner.visualstudio 3.1.5. |
+| Dependencies | System.CommandLine 2.0.11 (CLI) only. Tests: Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3, xunit.runner.visualstudio 3.1.5. |
 | Determinism | The same bytes and the same tool version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network. |
 | Exit codes | 0 for success; 1 for any error (the same as DataBall's CLI). |
 
@@ -62,11 +62,11 @@ Each pass streams the file once with bounded memory.
   The sniffer reads 64 KiB buffers and keeps up to 3 trailing bytes of an incomplete UTF-8 sequence for the next buffer, so a character that straddles a buffer boundary is not counted as invalid. It also keeps the first 512 and last 16 bytes for the magic table. `SniffResult` (`src/squalify/Sniff/SniffResult.cs`) holds the counted facts and applies the rules; `MagicTable` (`src/squalify/Sniff/MagicTable.cs`) is the ordered table of named magics, which [descriptor.md](descriptor.md#encoding) lists. A UTF-8 BOM is valid UTF-8, so a BOM plus ASCII text is `utf-8` with `bom: "utf-8"`.
 - **Pass 1, structure (text profilers).** Tokenizes and classifies records and lines, keeping only bounded summaries. The delimited profiler runs this pass while it scores the file (see [Choosing a format](#choosing-a-format)), so a file is not scanned twice for the choice.
 - **Pass 2, fields (text profilers).** Parses the chosen data region and feeds the field accumulators. For delimited text it re-reads the whole file with the chosen dialect, builds the regions and the header, and feeds every data record to the field accumulators (see [Field profiling](#field-profiling)).
-- Parquet reads its metadata and then streams rows. STDF walks record headers in one pass.
+- STDF walks record headers in one pass.
 
 ### Choosing a format
 
-Each `IFormatProfiler` scores the file between 0 and 1. The highest score wins. Ties break by registry order: `parquet`, `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary`. Every registered profiler's score and reason goes into the evidence trail (stage `format`, topic `family`), with the candidates in registry order. `FormatRegistry` (`src/squalify/Formats/FormatRegistry.cs`) sorts whatever it is given into that order, and rejects an unknown or repeated family. A zero-length file is `empty` by rule 1, before any score counts: no profiler claims it, `format.score` is 1, and every candidate scores 0. The `delimited`, `text` and `binary` profilers are registered so far; each later format slice registers its own.
+Each `IFormatProfiler` scores the file between 0 and 1. The highest score wins. Ties break by registry order: `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary`. Every registered profiler's score and reason goes into the evidence trail (stage `format`, topic `family`), with the candidates in registry order. `FormatRegistry` (`src/squalify/Formats/FormatRegistry.cs`) sorts whatever it is given into that order, and rejects an unknown or repeated family. A zero-length file is `empty` by rule 1, before any score counts: no profiler claims it, `format.score` is 1, and every candidate scores 0. The `delimited`, `text` and `binary` profilers are registered so far; each later format slice registers its own.
 
 - **The interface.** `Score(IProfileSource source, SniffResult sniff, ProfileContext context)` returns a `FormatScore`: the score, the reason, and optionally an opaque `State`, `NotChosenIssues` and `NotChosenEvidence`. Scoring gets the source because the byte-pass result keeps no file head, and a delimited table can only be scored by reading the whole file (a whole-file tokenizer pass; see [Delimited text](#delimited-text)). `Profile(source, sniff, context, score)` receives the winner's own `FormatScore`, so the structure that scoring found (`State`) is not computed again. The text and binary profilers score from the sniff result alone and ignore the source.
 - **The fallback.** A profiler may decline a file that looks a little like its family and say why. The delimited profiler scores 0 when no candidate delimiter is viable; when at least one candidate was disqualified (a runaway quote, or too many field-count runs), it also returns the issue `tooIrregular` and the dialect evidence in `NotChosenIssues` and `NotChosenEvidence`. `FormatRegistry.Detect` carries these from every profiler that did not win into the `FormatChoice`, and `Profiler` writes them to the descriptor. The generic text profile then describes the file, and `tooIrregular` records why it is not a table. A winner's own `NotChosenIssues` are never written.
@@ -74,7 +74,7 @@ Each `IFormatProfiler` scores the file between 0 and 1. The highest score wins. 
 
 | Profiler | Score |
 |---|---|
-| parquet, stdf | 1.0 when the magic is confirmed |
+| stdf | 1.0 when the magic is confirmed |
 | touchstone | 0.9 for extension plus content; 0.7 for content only |
 | keyValue | up to 0.6 |
 | delimited | 0.3 + 0.4 × the best candidate's score (at most 0.7); 0 when no candidate is viable |
@@ -155,14 +155,6 @@ These are whole files of `key=value` or `key: value` lines, with optional `[sect
   - **Test catalog.** For each test, squalify records TEST_NUM, the kind (P, M or F) and the first non-empty TEST_TXT or TEST_NAM, taken from PTR, MPR, FTR and TSR. Test names behave like column headers, so they are always included, up to `limits.stdfTests` (10,000).
   - Result values are never decoded.
 
-## Parquet
-
-DuckDB.NET runs on an in-memory connection with `threads=1` and `preserve_insertion_order=true`.
-
-- **Metadata.** squalify reads `parquet_file_metadata`, `parquet_schema`, `parquet_metadata` (aggregated in row-group order) and `parquet_kv_metadata`. KV keys are always included; KV values only with `--include-values`.
-- **Rows.** Rows stream into the same field accumulators as text, so the statistics match the text profile.
-- **Nested columns.** These report only count, nulls and `sourceType`.
-
 ## Fields
 
 ### Value classification and types
@@ -192,11 +184,11 @@ The type lattice:
 - `empty` < `time`
 - Any other join is `string`.
 
-A field's `type` is the join over all its non-null votes (the strict rule), with one addition: date values with no date order in common join the field to `string` (see [Field profiling](#field-profiling)). The lattice and the join live in `Fields/TypeLattice.cs` (`TypeLattice.Join`, `TypeLattice.TypeName`), apart from any format, because the delimited layer and Parquet both use them (through `FieldAccumulator`); `TypeLattice.VotesMap` builds the `typeVotes` map for the field accumulators and for the annotation rows. Votes are always reported, together with the dominant type and its share. A plurality tie goes to the earlier type in the order `bool`, `int`, `float`, `date`, `datetime`, `time`, `string` (see [Field profiling](#field-profiling)).
+A field's `type` is the join over all its non-null votes (the strict rule), with one addition: date values with no date order in common join the field to `string` (see [Field profiling](#field-profiling)). The lattice and the join live in `Fields/TypeLattice.cs` (`TypeLattice.Join`, `TypeLattice.TypeName`), apart from any format, because they belong to no one format (the delimited layer uses them through `FieldAccumulator`); `TypeLattice.VotesMap` builds the `typeVotes` map for the field accumulators and for the annotation rows. Votes are always reported, together with the dominant type and its share. A plurality tie goes to the earlier type in the order `bool`, `int`, `float`, `date`, `datetime`, `time`, `string` (see [Field profiling](#field-profiling)).
 
 ### Field profiling
 
-`FieldAccumulator` (`src/squalify/Fields/FieldAccumulator.cs`, sq-05) profiles one field. It receives the field's values in file order and keeps bounded summaries; the delimited pass owns one per column and feeds it every data record's cells (`DelimitedPass.ProcessData`). It is format-agnostic: `AddText` takes raw text and classifies it with `ValueClassifier`, and `AddInt64`, `AddDouble`, `AddBool`, `AddTemporal` and `AddNull` take typed values, so Parquet (sq-08) reuses it and the statistics match the text profile. A typed value is turned into the same `ValueClass` and text that the classifier would have produced, so every path ends in one `AddValue`. The header and the units row are not fed to it.
+`FieldAccumulator` (`src/squalify/Fields/FieldAccumulator.cs`, sq-05) profiles one field. It receives the field's values in file order and keeps bounded summaries; the delimited pass owns one per column and feeds it every data record's cells (`DelimitedPass.ProcessData`). It is format-agnostic: `AddText` takes raw text and classifies it with `ValueClassifier`, and `AddInt64`, `AddDouble`, `AddBool`, `AddTemporal` and `AddNull` take typed values, so a profiler of another format can reuse it and the statistics match the text profile. A typed value is turned into the same `ValueClass` and text that the classifier would have produced, so every path ends in one `AddValue`. The header and the units row are not fed to it.
 
 What it computes for a field, over the trimmed non-null values unless said otherwise:
 
@@ -222,7 +214,7 @@ What it computes for a field, over the trimmed non-null values unless said other
 
 ### Row classes
 
-`RowClassAccumulator` (`src/squalify/Fields/RowClassAccumulator.cs`, sq-17) groups data records by which fields are non-null. It is format-agnostic: a profiler calls `Add(mask, line)` once per record in file order with a null mask (a `ReadOnlySpan<bool>`, true for a null field), so Parquet (sq-08) can feed it too. The delimited pass builds the mask from the field accumulators' own null decision (`AddText` returns the vote; a null vote is a null), reuses one mask array, and skips ragged records, which have no mask.
+`RowClassAccumulator` (`src/squalify/Fields/RowClassAccumulator.cs`, sq-17) groups data records by which fields are non-null. It is format-agnostic: a profiler calls `Add(mask, line)` once per record in file order with a null mask (a `ReadOnlySpan<bool>`, true for a null field), so a profiler of another format can feed it too. The delimited pass builds the mask from the field accumulators' own null decision (`AddText` returns the vote; a null vote is a null), reuses one mask array, and skips ragged records, which have no mask.
 
 - **Class id.** `rc:` plus the 16 lowercase hex digits of `XxHash64` (seed 0) over the UTF-8 decimal ascending non-null indexes joined by commas (`1,10`; empty for an all-null record). The line, the record order and the file are not inputs, so the id is stable under reordering; it depends on column order. Classes are keyed by the 64-bit hash (collision probability 2^-64), so memory per class does not depend on the field count beyond its range list.
 - **No per-record allocation.** A record whose mask equals the previous one is counted after one vectorized comparison and no hashing. A record of another mask is encoded into a buffer that is allocated once (11 bytes per field), then hashed and looked up in a dictionary; only a new class allocates. A test checks 30,000 records of 2,000 fields allocate under 1 KiB.
@@ -254,7 +246,7 @@ What it computes for a field, over the trimmed non-null values unless said other
 
 | Always included | Only with `--include-values` |
 |---|---|
-| Header names, preamble keys, annotation labels, section names and keys, Parquet column names and KV keys, STDF test names | Preamble values, annotation-row cells, key=value values, Parquet KV values, comment text |
+| Header names, preamble keys, annotation labels, section names and keys, STDF test names | Preamble values, annotation-row cells, key=value values, comment text |
 | Counts, nulls, types, votes, shapes, lengths | Top-k values, lexical (string) min/max |
 | Numeric and temporal min/max/mean/stddev/quantiles, except for constant fields | Units-row text (field `unit` from a units row); statistics of constant fields |
 | Header-unit convention and units parsed from header names | Value-bearing `stableLines` regexes (comment and text lines) |
@@ -338,7 +330,6 @@ There are four SHA-256 hashes, each written as `sha256:<hex>`. Each is computed 
 **The family seam.** Each format family adds its part through `IFingerprintContributor`. A contributor returns a `FingerprintContribution`: members for the `structure` projection, members for `layout` (which `typed` includes), further members for `typed` only, names for the `names` list, and the count of names it left out. The projection writes these members right after `family`. `FingerprintContributors` lists the contributors; a family without one adds nothing. The delimited family exists; the other contributions come with their slices:
 
 - **Delimited:** the dialect, the dominant preamble line kind (structure) and the preamble keys (layout). Field names and types are the same for every tabular family, so the core projection takes them from `table.fields[]`.
-- **Parquet (sq-08):** column names with repetition. The typed hash adds the physical and logical types.
 - **Touchstone (sq-09):** version, ports, parameter, format, matrix and noise.
 - **keyValue (sq-09):** sections and keys.
 - **STDF (sq-10):**
@@ -360,7 +351,7 @@ Hints are neutral facts that a consumer can turn into match rules. The members a
 - `fileNameShape`: the shape mask of the file name, by the same rules as the field shapes.
 - `fieldCount`, `dataStartLine`, `delimiter`.
 - `headerConvention`, which repeats the dominant convention of the layout.
-- `parquetColumns` (sq-08) and `stdf { cpuType, version }` (sq-10).
+- `stdf { cpuType, version }` (sq-10).
 
 **How a stable line is made.** The delimited pass notes the lines that may become stable lines: the header line, the preamble `keyValue` lines, and (only with `--include-values`) the preamble comment and text lines. After the pass, `LineReader` reads those physical lines from the start of the file in one streaming read that stops at the last one, and `HintBuilder` builds each regex with `PortableRegex`. Reading the physical line, rather than rebuilding it from the parsed cells, keeps quotes and padding, so the regex matches the file as written. A record that spans several lines is skipped.
 
@@ -374,7 +365,7 @@ A fixed, ordered rule table runs over the finished descriptor only, never the fi
 
 The labels are:
 
-- `stdfTestLog`, `touchstoneNetwork`, `parquetTable`, `keyValueDocument`
+- `stdfTestLog`, `touchstoneNetwork`, `keyValueDocument`
 - `labSweepTable`, `measurementTable`, `genericTable`
 - `textLog`, `text`
 - `archive`, `binary`, `empty`

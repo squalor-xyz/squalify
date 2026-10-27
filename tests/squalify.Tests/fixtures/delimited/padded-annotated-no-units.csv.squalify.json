@@ -278,7 +278,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -346,7 +345,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -416,7 +414,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -484,7 +481,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -552,7 +548,6 @@
         "monotonic": "increasing",
         "constant": false,
         "unique": true,
-        "sourceType": null,
         "unit": null,
         "top": null,
         "text": null
@@ -626,7 +621,6 @@
     "dataStartLine": 10,
     "delimiter": ",",
     "headerConvention": "nameParenUnit",
-    "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{6}-a{9}-a{2}-a{5}.a{3}"
   },

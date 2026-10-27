@@ -341,8 +341,7 @@ public sealed class DelimitedTests
         using var json = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(d));
         foreach (var field in json.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray())
         {
-            // sourceType is Parquet's. top is values tier and the flag is on, so it is there; text is only for string fields.
-            Assert.Equal(System.Text.Json.JsonValueKind.Null, field.GetProperty("sourceType").ValueKind);
+            // top is values tier and the flag is on, so it is there; text is only for string fields.
             Assert.Equal(System.Text.Json.JsonValueKind.Object, field.GetProperty("top").ValueKind);
             Assert.Equal(
                 field.GetProperty("type").GetString() == "string" ? System.Text.Json.JsonValueKind.Object : System.Text.Json.JsonValueKind.Null,

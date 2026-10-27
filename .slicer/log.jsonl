@@ -342,3 +342,14 @@
 {"when": "2026-10-27T18:20:50Z", "item": "sq-29", "action": "note", "from": "", "to": "", "note": "Review R3 replaced the spec Files layout: the build job has ", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:26:03Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-27 (review R4): \"Drop duplicates (Rec", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:32:41Z", "item": "sq-07", "action": "status", "from": "started", "to": "done", "note": "Gate PASS. ValuesPolicy (gate at accumulator construction, guard in DescriptorWriter), TopK (exact then Space-Saving 1000 counters), lexical text min/max, --include-values-for with includeValuesForUnmatched (issues[].names), duplicate names dropped. Real samples byte-identical without flags.", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:33:40Z", "item": "sq-31", "action": "add", "from": "", "to": "open", "note": "squalify v1 must not include Parquet or its DuckDB dependency"}
+{"when": "2026-10-27T18:33:41Z", "item": "sq-31", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-27T18:33:41Z", "item": "sq-08", "action": "note", "from": "", "to": "", "note": "Owner decision 2026-10-27, verbatim: \"Drop Parquet from v1\" ", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:33:41Z", "item": "sq-08", "action": "status", "from": "open", "to": "parked", "note": "Parquet dropped from v1 (owner, 2026-10-27); see note."}
+{"when": "2026-10-27T18:33:47Z", "item": "sq-15", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-08,sq-09,sq-10,sq-13,sq-14→sq-06,sq-31,sq-09,sq-10,sq-13,sq-14"}
+{"when": "2026-10-27T18:33:47Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-08,sq-09,sq-10,sq-11,sq-13,sq-14,sq-15,sq-17,sq-18,sq-20→sq-06,sq-07,sq-31,sq-09,sq-10,sq-11,sq-13,sq-14,sq-15,sq-17,sq-18,sq-20"}
+{"when": "2026-10-27T18:33:47Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "sq-08 (Parquet) parked: Parquet dropped from v1 (owner, 2026", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:33:47Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "sq-08 (Parquet) parked: Parquet dropped from v1 (owner, 2026", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:33:51Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-27T18:34:14Z", "item": "sq-31", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:39:45Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "From sq-31: the kind rule order in this spec lists parquetTa", "by": "Jon Robbins"}

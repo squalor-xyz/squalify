@@ -77,7 +77,7 @@ internal static class ValuesPolicy
         AllowListable: false,
         When: "the regex carries a data value (StableLine.CarriesValue)");
 
-    /// <summary>Every value-bearing member. Parquet key-value values and comment text join this list when their members join the model.</summary>
+    /// <summary>Every value-bearing member. Comment text joins this list when its member joins the model.</summary>
     public static IReadOnlyList<ValueMember> Members { get; } =
     [
         RegionValues,
@@ -174,7 +174,7 @@ internal static class ValuesPolicy
 
     /// <summary>
     /// The names of <c>includeValuesFor</c> that match no member of the descriptor: no preamble key, annotation label,
-    /// key=value key (a section's, or a Parquet file's) or field name. Names are matched case-folded (ASCII), whole.
+    /// key=value key (a section's) or field name. Names are matched case-folded (ASCII), whole.
     /// </summary>
     /// <param name="descriptor">The descriptor.</param>
     /// <returns>The unmatched names as given, without duplicates, sorted ordinally.</returns>
@@ -205,11 +205,6 @@ internal static class ValuesPolicy
         foreach (var field in descriptor.Table?.Fields ?? [])
         {
             AddFolded(present, field.Name);
-        }
-
-        if (descriptor.Format.Dialect is ParquetDialect parquet)
-        {
-            AddAll(present, parquet.KvKeys);
         }
 
         return Ordinal.Sorted(wanted.Where(name => !present.Contains(Ordinal.AsciiFold(name))).Distinct(StringComparer.Ordinal));

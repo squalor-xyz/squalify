@@ -48,7 +48,7 @@ internal sealed class FormatRegistry
 
     /// <summary>The fixed registry order, used to break ties and to order the evidence candidates.</summary>
     public static IReadOnlyList<string> Order { get; } =
-        ["parquet", "stdf", "touchstone", "keyValue", "delimited", "text", "binary"];
+        ["stdf", "touchstone", "keyValue", "delimited", "text", "binary"];
 
     /// <summary>The registry of this tool version: delimited, text and binary.</summary>
     public static FormatRegistry Default { get; } = new FormatRegistry([new DelimitedProfiler(), new GenericTextProfiler(), new GenericBinaryProfiler()]);

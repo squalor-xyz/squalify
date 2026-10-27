@@ -42,16 +42,16 @@ public class FormatRegistryTests
     [Fact]
     public void Detect_EvidenceListsEveryProfilerScore_InRegistryOrder()
     {
-        // Given out of order on purpose: the registry order is parquet, stdf, touchstone, keyValue, delimited, text, binary.
-        var registry = new FormatRegistry([new FakeProfiler("text", 0.1), new FakeProfiler("parquet", 0.0), new FakeProfiler("binary", 0.1), new FakeProfiler("delimited", 0.4), new FakeProfiler("keyValue", 0.2)]);
+        // Given out of order on purpose: the registry order is stdf, touchstone, keyValue, delimited, text, binary.
+        var registry = new FormatRegistry([new FakeProfiler("text", 0.1), new FakeProfiler("stdf", 0.0), new FakeProfiler("binary", 0.1), new FakeProfiler("delimited", 0.4), new FakeProfiler("keyValue", 0.2)]);
         var choice = registry.Detect(Source, SniffText(), Context);
 
         Assert.Equal("format", choice.Evidence.Stage);
         Assert.Equal("family", choice.Evidence.Topic);
         Assert.Equal("delimited", choice.Evidence.Chosen);
-        Assert.Equal(new[] { "parquet", "keyValue", "delimited", "text", "binary" }, choice.Evidence.Candidates.Select(static c => c.Value).ToArray());
+        Assert.Equal(new[] { "stdf", "keyValue", "delimited", "text", "binary" }, choice.Evidence.Candidates.Select(static c => c.Value).ToArray());
         Assert.Equal(new[] { 0.0, 0.2, 0.4, 0.1, 0.1 }, choice.Evidence.Candidates.Select(static c => c.Score).ToArray());
-        Assert.Equal("fake parquet", choice.Evidence.Candidates[0].Reason);
+        Assert.Equal("fake stdf", choice.Evidence.Candidates[0].Reason);
         Assert.Equal("delimited", choice.Family);
         Assert.Equal(0.4, choice.Score);
     }
@@ -66,7 +66,7 @@ public class FormatRegistryTests
     [Fact]
     public void Detect_HigherScoreBeatsEarlierPosition()
     {
-        var registry = new FormatRegistry([new FakeProfiler("parquet", 0.2), new FakeProfiler("binary", 0.3)]);
+        var registry = new FormatRegistry([new FakeProfiler("stdf", 0.2), new FakeProfiler("binary", 0.3)]);
         Assert.Equal("binary", registry.Detect(Source, SniffText(), Context).Family);
     }
 
@@ -80,7 +80,7 @@ public class FormatRegistryTests
     [Fact]
     public void Registry_Order_IsTheDocumentedOne()
     {
-        Assert.Equal(new[] { "parquet", "stdf", "touchstone", "keyValue", "delimited", "text", "binary" }, FormatRegistry.Order.ToArray());
+        Assert.Equal(new[] { "stdf", "touchstone", "keyValue", "delimited", "text", "binary" }, FormatRegistry.Order.ToArray());
     }
 
     [Fact]

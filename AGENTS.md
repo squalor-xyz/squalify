@@ -31,11 +31,11 @@ Run all three before handing off a change.
 
 - Every source file starts with `// SPDX-License-Identifier: Apache-2.0`. The namespace is `squalor.squalify` (with `.Cli` for the tool).
 - Nullable is on. Public members carry XML doc comments.
-- Public failures surface as `SqualifyException`. Wrap lower-level exceptions instead of leaking IO or DuckDB types.
+- Public failures surface as `SqualifyException`. Wrap lower-level exceptions instead of leaking IO types.
 - **Determinism is a hard rule.** Output must not depend on the current time, culture, machine, path, thread scheduling, hash-seed randomization or dictionary enumeration order. Format numbers with the invariant culture and shortest round-trip formatting, and sort every collection by a documented key. See `docs/design.md`.
 - No ML, no LLM calls, no network access.
 - Literal data values appear in a descriptor only under `--include-values`.
-- Prefer the BCL and in-repo code. Ask the owner before adding any package. Approved dependencies: DuckDB.NET.Data.Full 1.5.5 (Parquet), System.CommandLine 2.0.11 (CLI), and in the test projects only Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3 and xunit.runner.visualstudio 3.1.5.
+- Prefer the BCL and in-repo code. Ask the owner before adding any package. Approved dependencies: System.CommandLine 2.0.11 (CLI), and in the test projects only Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3 and xunit.runner.visualstudio 3.1.5.
 - Output-affecting math uses only IEEE `+ - * /` and `Math.Sqrt`. Logarithms go through `DetMath`, and sketch hashing through the in-repo `XxHash64`. Never use `Math.Log`, `Exp` or `Pow`, or `string.GetHashCode`, in output paths.
 - A descriptor schema change updates `docs/descriptor.md` and bumps `schemaVersion` according to the policy there, in the same commit.
 - README and `docs/` change in the same commit as the behavior they describe.
