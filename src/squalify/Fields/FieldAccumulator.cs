@@ -716,7 +716,7 @@ internal sealed class FieldAccumulator
             var sketched = integer
                 ? PickSketch(sketch, static key => DescriptorNumber.Int(key))
                 : PickSketch(sketch, static key => DescriptorNumber.Real(GreenwaldKhanna.DoubleOfKey(key)));
-            return new NumericStats(min, max, mean, stddev, sketched, true);
+            return new NumericStats(min, max, mean, stddev, sketched, true, GreenwaldKhanna.Epsilon);
         }
 
         Quantiles<DescriptorNumber> quantiles;
@@ -760,7 +760,7 @@ internal sealed class FieldAccumulator
             picked[i] = convert(sketch.Query(Math.Max(rank, 1)));
         }
 
-        return new Quantiles<T>(picked[0], picked[1], picked[2], picked[3], picked[4], picked[5], picked[6], GreenwaldKhanna.Epsilon);
+        return new Quantiles<T>(picked[0], picked[1], picked[2], picked[3], picked[4], picked[5], picked[6]);
     }
 
     private void CountOrders(DateOrders orders)
@@ -945,7 +945,7 @@ internal sealed class FieldAccumulator
         var max = TemporalMath.Iso(_slotMax[slot], type);
         if (_slotSketch[slot] is { } sketch)
         {
-            return new TemporalStats(orders, false, clock, min, max, PickSketch(sketch, key => TemporalMath.Iso(key, type)), true);
+            return new TemporalStats(orders, false, clock, min, max, PickSketch(sketch, key => TemporalMath.Iso(key, type)), true, GreenwaldKhanna.Epsilon);
         }
 
         var order = SlotOrders[slot];

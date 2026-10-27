@@ -176,10 +176,10 @@
             "p50": 100065109,
             "p75": 100097499,
             "p95": 100123505,
-            "p99": 100128742,
-            "rankError": 0.001
+            "p99": 100128742
           },
-          "approximate": true
+          "approximate": true,
+          "rankError": 0.001
         },
         "temporal": null,
         "statsWithheld": null,
@@ -245,10 +245,10 @@
             "p50": 551018,
             "p75": 775817,
             "p95": 955893,
-            "p99": 991966,
-            "rankError": 0.001
+            "p99": 991966
           },
-          "approximate": true
+          "approximate": true,
+          "rankError": 0.001
         },
         "temporal": null,
         "statsWithheld": null,
@@ -314,10 +314,10 @@
             "p50": 547.978,
             "p75": 774.0039,
             "p95": 955.5318,
-            "p99": 991.4257,
-            "rankError": 0.001
+            "p99": 991.4257
           },
-          "approximate": true
+          "approximate": true,
+          "rankError": 0.001
         },
         "temporal": null,
         "statsWithheld": null,
@@ -388,10 +388,10 @@
             "p50": "2010-01-01",
             "p75": "2014-12-29",
             "p95": "2019-01-05",
-            "p99": "2019-10-23",
-            "rankError": 0.001
+            "p99": "2019-10-23"
           },
-          "approximate": true
+          "approximate": true,
+          "rankError": 0.001
         },
         "statsWithheld": null,
         "length": {
@@ -565,10 +565,10 @@
             "p50": "12:01:00",
             "p75": "18:04:38",
             "p95": "22:47:25",
-            "p99": "23:43:56",
-            "rankError": 0.001
+            "p99": "23:43:56"
           },
-          "approximate": true
+          "approximate": true,
+          "rankError": 0.001
         },
         "statsWithheld": null,
         "length": {
@@ -632,10 +632,10 @@
             "p50": 550,
             "p75": 776,
             "p95": 955,
-            "p99": 990,
-            "rankError": 0.001
+            "p99": 990
           },
-          "approximate": true
+          "approximate": true,
+          "rankError": 0.001
         },
         "temporal": null,
         "statsWithheld": null,

@@ -65,7 +65,7 @@ public sealed class CapCrossingTests
         {
             var stats = field.Numeric!;
             Assert.Equal(approximate, stats.Approximate);
-            Assert.Equal(approximate, stats.Quantiles.RankError is not null);
+            Assert.Equal(approximate, stats.RankError is not null);
             Assert.Equal(DescriptorNumber.Int(1000 + (((50 * count) + 99) / 100) - 1), stats.Quantiles.P50);
             Assert.Equal(DescriptorNumber.Int(1000), stats.Quantiles.P01);
             Assert.Equal(DescriptorNumber.Int(1000 + (((99 * count) + 99) / 100) - 1), stats.Quantiles.P99);
@@ -80,7 +80,7 @@ public sealed class CapCrossingTests
         {
             var stats = field.Temporal!;
             Assert.Equal(approximate, stats.Approximate);
-            Assert.Equal(approximate, stats.Quantiles!.RankError is not null);
+            Assert.Equal(approximate, stats.RankError is not null);
             Assert.Equal("2020-01-01", stats.Quantiles!.P01);
         }
         else if (kind == "dateAmbiguous")
@@ -221,9 +221,9 @@ public sealed class CapCrossingTests
         Assert.Equal(40, fields[0].Distinct!.Value);
         Assert.Equal(5, fields[3].Distinct!.Value);
         Assert.True(fields[1].Numeric!.Approximate);
-        Assert.Equal(0.001, fields[1].Numeric!.Quantiles.RankError);
+        Assert.Equal(0.001, fields[1].Numeric!.RankError);
         Assert.True(fields[2].Temporal!.Approximate);
-        Assert.Equal(0.001, fields[2].Temporal!.Quantiles!.RankError);
+        Assert.Equal(0.001, fields[2].Temporal!.RankError);
 
         using var json = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
         var written = json.RootElement.GetProperty("table").GetProperty("fields");
@@ -233,13 +233,15 @@ public sealed class CapCrossingTests
         Assert.False(distinct.TryGetProperty("exceeds", out _));
         var numeric = written[1].GetProperty("numeric");
         Assert.True(numeric.GetProperty("approximate").GetBoolean());
-        Assert.Equal(0.001, numeric.GetProperty("quantiles").GetProperty("rankError").GetDouble());
+        Assert.Equal(0.001, numeric.GetProperty("rankError").GetDouble());
+        Assert.False(numeric.GetProperty("quantiles").TryGetProperty("rankError", out _));
+        Assert.Equal(7, numeric.GetProperty("quantiles").EnumerateObject().Count());
         Assert.False(numeric.TryGetProperty("errorBound", out _));
         Assert.Equal(JsonValueKind.Object, numeric.GetProperty("quantiles").ValueKind);
         Assert.False(numeric.TryGetProperty("exceeds", out _));
         var temporal = written[2].GetProperty("temporal");
         Assert.True(temporal.GetProperty("approximate").GetBoolean());
-        Assert.Equal(0.001, temporal.GetProperty("quantiles").GetProperty("rankError").GetDouble());
+        Assert.Equal(0.001, temporal.GetProperty("rankError").GetDouble());
         Assert.False(temporal.TryGetProperty("exceeds", out _));
 
         // Under the caps nothing is flagged, and there is no error bound to write.
@@ -249,6 +251,6 @@ public sealed class CapCrossingTests
         Assert.False(exactField.GetProperty("distinct").GetProperty("approximate").GetBoolean());
         Assert.False(exactField.GetProperty("distinct").TryGetProperty("relativeStdError", out _));
         Assert.False(exactField.GetProperty("numeric").GetProperty("approximate").GetBoolean());
-        Assert.False(exactField.GetProperty("numeric").GetProperty("quantiles").TryGetProperty("rankError", out _));
+        Assert.False(exactField.GetProperty("numeric").TryGetProperty("rankError", out _));
     }
 }
