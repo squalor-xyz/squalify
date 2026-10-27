@@ -57,30 +57,28 @@ public sealed class PackageTests(PackageFeed feed)
         File.WriteAllText(Path.Combine(consumer, "consumer.csproj"), ConsumerProject(ToolInfo.Version), new UTF8Encoding(false));
         File.WriteAllText(Path.Combine(consumer, "Program.cs"), ConsumerProgram, new UTF8Encoding(false));
         WriteNuGetConfig(consumer, feed.FolderPath);
+        // The consumer builds with the SDK that the repository pins.
+        File.Copy(Path.Combine(DotNetTool.RepositoryRoot(), "global.json"), Path.Combine(consumer, "global.json"));
 
-        // NuGet trusts a cached package of the same version and does not look at the feed. The cached copy of this
-        // package id is removed before the restore, and again afterwards.
-        DeleteCachedPackage();
-        try
-        {
-            var restore = DotNetTool.Run(consumer, "restore", "consumer.csproj", "--configfile", "NuGet.Config");
-            Assert.True(restore.ExitCode == 0, $"dotnet restore exited with {restore.ExitCode}.\n{restore.Log}");
+        // The restore extracts into a packages folder of this test's own. It never reads or writes the user's NuGet
+        // cache, so a copy of this version left there by an earlier run cannot stand in for the feed.
+        var packages = Path.Combine(work.Path, "packages");
+        var restore = DotNetTool.Run(consumer, "restore", "consumer.csproj", "--configfile", "NuGet.Config", "--packages", packages);
+        Assert.True(restore.ExitCode == 0, $"dotnet restore exited with {restore.ExitCode}.\n{restore.Log}");
 
-            var build = DotNetTool.Run(consumer, "build", "consumer.csproj", "--configuration", "Release", "--no-restore", "-p:UseSharedCompilation=false");
-            Assert.True(build.ExitCode == 0, $"dotnet build exited with {build.ExitCode}.\n{build.Log}");
+        var packaged = Path.Combine(packages, PackageFeed.PackageId, ToolInfo.Version, "lib", "net10.0", $"{PackageFeed.PackageId}.dll");
+        Assert.True(File.Exists(packaged), $"The restore did not extract the packaged library to {packaged}.");
 
-            var dll = Path.Combine(consumer, "bin", "Release", "net10.0", "consumer.dll");
-            var run = DotNetTool.Run(consumer, dll, input);
-            Assert.True(run.ExitCode == 0, $"The consumer exited with {run.ExitCode}.\n{run.Log}");
+        var build = DotNetTool.Run(consumer, "build", "consumer.csproj", "--configuration", "Release", "--no-restore", "-p:UseSharedCompilation=false");
+        Assert.True(build.ExitCode == 0, $"dotnet build exited with {build.ExitCode}.\n{build.Log}");
 
-            Assert.Equal(Encoding.UTF8.GetString(expected), Encoding.UTF8.GetString(run.Stdout));
-            Assert.True(expected.AsSpan().SequenceEqual(run.Stdout), "The consumer's descriptor differs from the CLI's in bytes.");
-            Assert.Equal(ToolInfo.Version, ToolVersion(run.Stdout));
-        }
-        finally
-        {
-            DeleteCachedPackage();
-        }
+        var dll = Path.Combine(consumer, "bin", "Release", "net10.0", "consumer.dll");
+        var run = DotNetTool.Run(consumer, dll, input);
+        Assert.True(run.ExitCode == 0, $"The consumer exited with {run.ExitCode}.\n{run.Log}");
+
+        Assert.Equal(Encoding.UTF8.GetString(expected), Encoding.UTF8.GetString(run.Stdout));
+        Assert.True(expected.AsSpan().SequenceEqual(run.Stdout), "The consumer's descriptor differs from the CLI's in bytes.");
+        Assert.Equal(ToolInfo.Version, ToolVersion(run.Stdout));
     }
 
     /// <summary>Writes the synthetic lab-style table that both the CLI and the consumer profile.</summary>
@@ -162,15 +160,5 @@ public sealed class PackageTests(PackageFeed feed)
                     new XElement("clear"),
                     new XElement("add", new XAttribute("key", "local"), new XAttribute("value", feedFolder)))));
         document.Save(Path.Combine(folder, "NuGet.Config"));
-    }
-
-    /// <summary>Removes this package id from the NuGet global packages folder, so the next restore reads the feed.</summary>
-    private static void DeleteCachedPackage()
-    {
-        var configured = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-        var packages = string.IsNullOrEmpty(configured)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages")
-            : configured;
-        TempFolder.DeleteTree(Path.Combine(packages, PackageFeed.PackageId));
     }
 }
