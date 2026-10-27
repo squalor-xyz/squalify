@@ -2,8 +2,16 @@
   <PropertyGroup>
     <AssemblyName>squalor.squalify</AssemblyName>
     <RootNamespace>squalor.squalify</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>squalor.squalify</PackageId>
+    <Description>Profiles one data file into a deterministic JSON descriptor: encoding, format, layout, fields, statistics and structural fingerprint. The library behind the squalify CLI.</Description>
+    <PackageTags>squalify;profiling;descriptor;csv;data-profiling</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="squalify.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

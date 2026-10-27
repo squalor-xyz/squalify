@@ -18,7 +18,7 @@
     },
     {
       "heading": "Files",
-      "body": "- the library project (package metadata: id, version, license Apache-2.0, readme), `Directory.Build.props` if versioning lives there, README (how to reference the package)"
+      "body": "- the library project (package metadata: id, version, license Apache-2.0, readme), `Directory.Build.props` if versioning lives there, README (how to reference the package)\n\n- Owner decisions (2026-10-27, setup): package id `squalor.squalify` (the assembly and namespace); the package version is the version `tool.version` reports in descriptors (one string, from Directory.Build.props, first package 0.1.0 while the schema is a draft before sq-12); publish nowhere: the package is built and tested from a local folder feed only, and publishing is a separate owner step.\n\n- Owner decision (2026-10-27): CI runs the Package-category tests as one step on every OS.\n\n- Owner decision (2026-10-27, review): keep the CLI tool package (`squalify.Cli.csproj` already has IsPackable and PackAsTool), so `dotnet pack squalify.sln` gives two packages: the library `squalor.squalify` and the `squalify` .NET tool. The pack test packs the library project explicitly. Both stay unpublished."
     },
     {
       "heading": "Failing tests",
