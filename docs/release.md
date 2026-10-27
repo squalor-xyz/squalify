@@ -4,7 +4,7 @@ squalify publishes two packages to nuget.org from a version tag: `squalor.squali
 
 ## Cut a release
 
-1. Bump `<Version>` in `Directory.Build.props` to the new version, for example `0.1.1` or `0.2.0-rc.1`.
+1. Bump `<Version>` in `Directory.Build.props` to the new version, for example `0.1.1` or `0.2.0-rc.1`. The golden descriptors record the tool version, so re-record them (`SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release`) and check that the diff changes only `"version"` lines. If the guides show `squalify --version` output, update it too.
 2. Commit the bump to `main` and wait for CI to pass.
 3. Tag that commit `v<Version>` and push the tag:
 
