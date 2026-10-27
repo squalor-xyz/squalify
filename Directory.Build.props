@@ -16,8 +16,8 @@
     <!-- Symbol packages (snupkg) for every packable project. Only projects that set IsPackable pack at all. -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <!-- Normalizes source paths in CI builds. Local builds keep their local paths. -->
-    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <!-- ContinuousIntegrationBuild is passed only to the release pack steps (release.yml). Setting it for every
+         CI build maps source paths to /_/, which breaks the tests that locate fixtures through CallerFilePath. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile Condition="'$(MSBuildProjectName)' == 'squalify'">true</GenerateDocumentationFile>
   </PropertyGroup>
