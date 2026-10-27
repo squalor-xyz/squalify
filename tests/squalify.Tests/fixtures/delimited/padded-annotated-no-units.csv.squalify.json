@@ -158,6 +158,14 @@
         ]
       }
     ],
+    "headerConvention": {
+      "dominant": "nameParenUnit",
+      "share": 0.8,
+      "counts": {
+        "nameParenUnit": 4,
+        "none": 1
+      }
+    },
     "maxLineLength": 74
   },
   "table": {
@@ -170,7 +178,12 @@
       {
         "index": 0,
         "name": "Site",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Site",
+          "unit": null,
+          "convention": "none",
+          "unknownUnit": false
+        },
         "type": "int",
         "dominant": {
           "type": "int",
@@ -237,7 +250,12 @@
       {
         "index": 1,
         "name": "Pout(dBm)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Pout",
+          "unit": "dBm",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -300,7 +318,12 @@
       {
         "index": 2,
         "name": "Gain(dB)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Gain",
+          "unit": "dB",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -365,7 +388,12 @@
       {
         "index": 3,
         "name": "Icc(mA)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Icc",
+          "unit": "mA",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -428,7 +456,12 @@
       {
         "index": 4,
         "name": "Vcc(V)",
-        "nameParts": null,
+        "nameParts": {
+          "base": "Vcc",
+          "unit": "V",
+          "convention": "nameParenUnit",
+          "unknownUnit": false
+        },
         "type": "float",
         "dominant": {
           "type": "float",
@@ -507,7 +540,7 @@
     "fieldCount": null,
     "dataStartLine": null,
     "delimiter": null,
-    "headerConvention": null,
+    "headerConvention": "nameParenUnit",
     "parquetColumns": null,
     "stdf": null,
     "fileNameShape": "a{6}-a{9}-a{2}-a{5}.a{3}"
@@ -656,6 +689,38 @@
           "value": "summary",
           "score": 0,
           "reason": "sampled=14; eligible=2; ineligible=12 (comment line=0, field count=1, blank or repeated names=1, fits every typed column=10)"
+        }
+      ]
+    },
+    {
+      "stage": "unit",
+      "topic": "headerConvention",
+      "chosen": "nameParenUnit",
+      "candidates": [
+        {
+          "value": "nameParenUnit",
+          "score": 0.8,
+          "reason": "4 of 5 headers"
+        },
+        {
+          "value": "nameBracketUnit",
+          "score": 0,
+          "reason": "0 of 5 headers"
+        },
+        {
+          "value": "nameUnderscoreUnit",
+          "score": 0,
+          "reason": "0 of 5 headers"
+        },
+        {
+          "value": "unitsRow",
+          "score": 0,
+          "reason": "0 of 5 headers"
+        },
+        {
+          "value": "none",
+          "score": 0.2,
+          "reason": "1 of 5 headers"
         }
       ]
     }
