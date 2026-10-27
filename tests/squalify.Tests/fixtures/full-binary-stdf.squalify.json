@@ -15,6 +15,7 @@
     "distinctPerField": 10000,
     "quantilePerField": 100000,
     "shapesPerField": 64,
+    "shapeCharsPerField": 53312,
     "regions": 1000,
     "headerSample": 1000,
     "runawayQuote": 65536,

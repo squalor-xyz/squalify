@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Status (v0.1.0).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, fingerprints and detect-rule hints, and the values tier. Still to come: the Touchstone, key=value and STDF profilers, sketches past the exact caps, repeated blocks and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Status (v0.1.x).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, and memory accounting with a tested ceiling. Still to come: the Touchstone, key=value and STDF profilers, repeated blocks and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -183,7 +183,7 @@ Every value of a field is also reduced to a **shape mask**: `9` for a digit, `A`
 
 Some facts about a field are cheap to keep exactly, and some are not. Counts, the minimum and maximum, the mean and the spread take constant memory. The distinct count and the quantiles need the values themselves, so they are exact only up to a cap (10,000 distinct values and 100,000 values per field). A global budget keeps wide files bounded: each field gets the smaller of its cap and its share of the budget, so a file of 2,000 columns gets 5,000 quantile values and 1,000 distinct values per column, and `limits` in the descriptor records the caps in effect. The budget also covers the text of the shape masks, because a few adversarial values could otherwise make 2,000 columns hold hundreds of megabytes of masks.
 
-Past a cap a **sketch** takes over: a small, fixed-size summary that answers the same question with a known error, and the descriptor says so (`approximate: true` and `errorBound`). The distinct count becomes a HyperLogLog estimate, whose error is about 0.8 percent. The quantiles become a Greenwald-Khanna summary, whose rank error is at most 0.1 percent of the number of values. When the cap is crossed, the values already held are poured into the sketch in file order and freed. Both sketches use no randomness: HyperLogLog hashes with squalify's own xxHash64 and gives the same answer for the same set of values in any order, and Greenwald-Khanna depends only on the values and their order, so the descriptor is still the same on every machine.
+Past a cap a **sketch** takes over: a small, fixed-size summary that answers the same question with a known error, and the descriptor says so (`approximate: true`, with `relativeStdError` for a distinct count and `rankError` for quantiles). The distinct count becomes a HyperLogLog estimate, whose typical error is about 0.8 percent (1.4 percent at worst). The quantiles become a Greenwald-Khanna summary, whose rank error is at most 0.1 percent of the number of values. Each sketch has a fixed size, about 16 KiB for the distinct count and about 28 KB for the quantiles of a field, and a wide table pays that for every column, so the sketches are part of the memory bound. When the cap is crossed, the values already held are poured into the sketch in file order and freed. Both sketches use no randomness: HyperLogLog hashes with squalify's own xxHash64 and gives the same answer for the same set of values in any order, and Greenwald-Khanna depends only on the values and their order, so the descriptor is still the same on every machine.
 
 ```mermaid
 flowchart TD
@@ -191,9 +191,9 @@ flowchart TD
     P --> X{"More values than the cap?"}
     X -- "no" --> Exact["Exact distinct count and quantiles<br/><small>approximate: false</small>"]
     X -- "yes" --> Move["Pour the values held so far into a sketch, in file order, and free them<br/><small>FieldAccumulator.AddDistinct,<br/>FieldAccumulator.StartNumericSketch</small>"]
-    Move --> Hll["Distinct count: HyperLogLog, 16 KiB, error about 0.8%<br/><small>HyperLogLog</small>"]
+    Move --> Hll["Distinct count: HyperLogLog, 16 KiB, error about 0.8% (1.4% at worst)<br/><small>HyperLogLog</small>"]
     Move --> Gk["Quantiles: Greenwald-Khanna, error at most 0.1% of the values<br/><small>GreenwaldKhanna</small>"]
-    Hll --> Ap["Marked approximate, with the error bound<br/>(min, max, mean and spread are not affected)<br/><small>approximate, errorBound</small>"]
+    Hll --> Ap["Marked approximate, with the error<br/>(min, max, mean and spread are not affected)<br/><small>approximate, relativeStdError, rankError</small>"]
     Gk --> Ap
 ```
 
@@ -205,7 +205,7 @@ Dates need one more step. A date written `3/4/2026` has not yet been read as day
 flowchart TD
     V["Dates held so far, as parsed parts<br/><small>FieldAccumulator.AddTemporalValue</small>"] --> C{"More dates than the cap?"}
     C -- "no" --> E["Read them under the field's order and sort<br/>Exact quantiles"]
-    C -- "yes" --> S["One summary for each reading still possible<br/>(day-month and month-day), fed in file order<br/><small>FieldAccumulator.StartTemporalSketches</small>"]
+    C -- "yes" --> S["One summary for each order still possible<br/>(two while day-month and month-day both fit), fed in file order<br/><small>FieldAccumulator.StartTemporalSketches</small>"]
     S --> N["Each later date goes to every summary still possible<br/><small>FieldAccumulator.AddToSketches</small>"]
     N --> R{"Does a date rule a reading out?"}
     R -- "yes" --> D["Drop that summary"] --> N
@@ -214,13 +214,14 @@ flowchart TD
 
 *Source: `Fields/FieldAccumulator.cs`, `Fields/TemporalMath.cs`, `Sketches/GreenwaldKhanna.cs`.*
 
-Memory is also **accounted for**, so that a leak shows up in a test. Every field accumulator can say how many bytes it holds (the exact-value buffers, the distinct set, the shape masks, the top values, the sketches). While the file streams, the delimited pass adds these up every 1,024 rows, together with the row classes and the header sample, and keeps the peak. The ceiling for the process is that peak plus a fixed 64 MiB for the runtime and the read buffers. Two tests profile a generated stream in a fresh process and check that the process never used more than the ceiling: one on a 256 MB stream in the normal test run, and one on a 4 GB stream that is run by hand. The ceiling is only a check, and squalify never stops or slows down because of it.
+Memory is also **accounted for**, so that a leak shows up in a test. Every field accumulator can estimate how many bytes it holds (the exact-value buffers, the distinct set, the shape masks, the top values, the sketches). While the file streams, the delimited pass adds these up every 1,024 rows, together with the row classes and the header sample, and keeps the peak. The ceiling is that peak plus a fixed 64 MiB for the read buffers and some headroom. The runtime itself is not budgeted: a test measures how much the process grows over a baseline, which is the peak of the same process after it profiled a small file. Two tests profile a generated stream in a fresh process with the default runtime settings and check that the growth never exceeds the ceiling: one on a 256 MB stream in the normal test run, and one on a 4 GB stream that is run by hand. A third test forces a collection at sampled points and checks that the live heap stays close to the estimate. The ceiling is only a check, and squalify never stops or slows down because of it.
 
 ```mermaid
 flowchart TD
     A["Each field accumulator estimates the bytes it holds<br/><small>FieldAccumulator.EstimatedBytes</small>"] --> Sum["The pass adds them up every 1,024 rows,<br/>with row classes and the header sample, and keeps the peak<br/><small>DelimitedPass.EstimatedBytes, MemoryTrace</small>"]
-    Sum --> Ce["Ceiling = peak estimate + 64 MiB for the runtime and read buffers<br/><small>MemoryBudget.CeilingBytes</small>"]
-    Ce --> T{"Test: did the process peak above the ceiling?<br/><small>MemoryBoundTests</small>"}
+    Sum --> Ce["Ceiling = peak estimate + 64 MiB for read buffers and headroom<br/><small>MemoryBudget.CeilingBytes</small>"]
+    Base["Baseline: the peak of the same process<br/>after profiling a small file<br/><small>MemoryProbe</small>"] --> T
+    Ce --> T{"Test: did the process grow over its baseline<br/>by more than the ceiling?<br/><small>MemoryBoundTests</small>"}
     T -- "no" --> Ok["The accounting holds"]
     T -- "yes" --> Leak["Something holds memory the accounting does not know about"]
 ```

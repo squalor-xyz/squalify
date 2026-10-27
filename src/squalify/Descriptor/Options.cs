@@ -21,6 +21,7 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 /// <param name="DistinctPerField">Effective cap on exact distinct values per field: min(cap, budget / field count).</param>
 /// <param name="QuantilePerField">Effective cap on exact quantile values per field: min(cap, budget / field count).</param>
 /// <param name="ShapesPerField">Cap on shape masks per field.</param>
+/// <param name="ShapeCharsPerField">Effective cap on characters of shape mask text per field: min(cap, budget / field count).</param>
 /// <param name="Regions">Cap on regions.</param>
 /// <param name="HeaderSample">Number of records sampled for header detection.</param>
 /// <param name="RunawayQuote">Longest open quoted field, in characters, before a delimited candidate is disqualified.</param>
@@ -35,6 +36,7 @@ public sealed record Limits(
     long DistinctPerField,
     long QuantilePerField,
     long ShapesPerField,
+    long ShapeCharsPerField,
     long Regions,
     long HeaderSample,
     long RunawayQuote,
@@ -51,6 +53,7 @@ public sealed record Limits(
         DistinctPerField: ProfileLimits.Default.DistinctPerField,
         QuantilePerField: ProfileLimits.Default.QuantilePerField,
         ShapesPerField: ProfileLimits.Default.ShapesPerField,
+        ShapeCharsPerField: ProfileLimits.Default.ShapeCharsPerField,
         Regions: 1_000,
         HeaderSample: 1_000,
         RunawayQuote: 65_536,
@@ -71,5 +74,5 @@ public sealed record CharsetTolerance(long InvalidSequences, long PerBytes);
 /// <summary>The global budget of exact values.</summary>
 /// <param name="QuantileValues">Total exact quantile values.</param>
 /// <param name="DistinctValues">Total exact distinct values.</param>
-/// <param name="ShapeChars">Total characters of shape mask text; a field keeps at most this divided by the field count.</param>
+/// <param name="ShapeChars">Total characters of shape mask text; a field keeps at most this divided by the field count (see <c>ShapeCharsPerField</c>).</param>
 public sealed record Budget(long QuantileValues, long DistinctValues, long ShapeChars);

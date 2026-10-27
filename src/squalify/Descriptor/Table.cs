@@ -112,25 +112,23 @@ public sealed record FieldFlags(long LeadingZero, long CommaDecimalLike, long Pa
 /// <summary>A distinct count, exact or from a HyperLogLog sketch.</summary>
 /// <param name="Value">The count.</param>
 /// <param name="Approximate">False when the count is exact, true when it comes from the sketch.</param>
-/// <param name="ErrorBound">The relative standard error of a sketched count (1.04 / sqrt(m)); written only when <paramref name="Approximate"/> is true.</param>
-public sealed record DistinctInfo(long Value, bool Approximate, double? ErrorBound = null);
+/// <param name="RelativeStdError">The relative standard error (one sigma) of a sketched count, 1.04 / sqrt(m); written only when <paramref name="Approximate"/> is true.</param>
+public sealed record DistinctInfo(long Value, bool Approximate, double? RelativeStdError = null);
 
 /// <summary>Numeric statistics of an <c>int</c> or <c>float</c> field.</summary>
 /// <param name="Min">Minimum.</param>
 /// <param name="Max">Maximum.</param>
 /// <param name="Mean">Mean; null when the running computation overflowed to a non-finite value.</param>
 /// <param name="Stddev">Sample standard deviation; null for fewer than two values or when the computation overflowed.</param>
-/// <param name="Quantiles">Quantiles: exact up to the cap, from a Greenwald-Khanna sketch past it.</param>
+/// <param name="Quantiles">Quantiles: exact up to the cap, from a Greenwald-Khanna sketch past it (then with <see cref="Quantiles{T}.RankError"/>).</param>
 /// <param name="Approximate">True when the quantiles come from a sketch, false when they are exact.</param>
-/// <param name="ErrorBound">The rank error of a sketched quantile as a fraction of the value count (epsilon); written only when <paramref name="Approximate"/> is true.</param>
 public sealed record NumericStats(
     DescriptorNumber Min,
     DescriptorNumber Max,
     double? Mean,
     double? Stddev,
     Quantiles<DescriptorNumber> Quantiles,
-    bool Approximate,
-    double? ErrorBound = null);
+    bool Approximate);
 
 /// <summary>The fixed quantile set p01, p05, p25, p50, p75, p95 and p99.</summary>
 /// <typeparam name="T">The value type.</typeparam>
@@ -141,7 +139,8 @@ public sealed record NumericStats(
 /// <param name="P75">The 75th percentile.</param>
 /// <param name="P95">The 95th percentile.</param>
 /// <param name="P99">The 99th percentile.</param>
-public sealed record Quantiles<T>(T P01, T P05, T P25, T P50, T P75, T P95, T P99);
+/// <param name="RankError">The worst-case rank error of a sketched quantile as a fraction of the value count (epsilon); null, and not written, when the quantiles are exact.</param>
+public sealed record Quantiles<T>(T P01, T P05, T P25, T P50, T P75, T P95, T P99, double? RankError = null);
 
 /// <summary>Temporal statistics of a <c>date</c>, <c>datetime</c> or <c>time</c> field.</summary>
 /// <param name="Orders">Possible field orders, such as <c>YMD</c>.</param>
@@ -151,7 +150,6 @@ public sealed record Quantiles<T>(T P01, T P05, T P25, T P50, T P75, T P95, T P9
 /// <param name="Max">Maximum as ISO 8601, or null when ambiguous.</param>
 /// <param name="Quantiles">Quantiles as ISO 8601, or null when ambiguous.</param>
 /// <param name="Approximate">True when the quantiles come from a sketch, false when they are exact, null when there are none.</param>
-/// <param name="ErrorBound">The rank error of a sketched quantile as a fraction of the value count (epsilon); written only when <paramref name="Approximate"/> is true.</param>
 public sealed record TemporalStats(
     IReadOnlyList<string> Orders,
     bool Ambiguous,
@@ -159,8 +157,7 @@ public sealed record TemporalStats(
     string? Min,
     string? Max,
     Quantiles<string>? Quantiles,
-    bool? Approximate = null,
-    double? ErrorBound = null);
+    bool? Approximate = null);
 
 /// <summary>Length statistics, in characters.</summary>
 /// <param name="Min">Shortest value.</param>

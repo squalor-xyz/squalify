@@ -57,7 +57,7 @@ public sealed class CapCrossingTests
         // Distinct: exact at the cap, a sketch one past it. Linear counting of so few values is exact.
         Assert.Equal(approximate, field.Distinct!.Approximate);
         Assert.Equal(count, field.Distinct.Value);
-        Assert.Equal(approximate, field.Distinct.ErrorBound is not null);
+        Assert.Equal(approximate, field.Distinct.RelativeStdError is not null);
 
         // Quantiles of the typed fields. A sketch that has seen only 51 values has compressed nothing, so its
         // quantiles are the exact lower nearest ranks.
@@ -65,7 +65,7 @@ public sealed class CapCrossingTests
         {
             var stats = field.Numeric!;
             Assert.Equal(approximate, stats.Approximate);
-            Assert.Equal(approximate, stats.ErrorBound is not null);
+            Assert.Equal(approximate, stats.Quantiles.RankError is not null);
             Assert.Equal(DescriptorNumber.Int(1000 + (((50 * count) + 99) / 100) - 1), stats.Quantiles.P50);
             Assert.Equal(DescriptorNumber.Int(1000), stats.Quantiles.P01);
             Assert.Equal(DescriptorNumber.Int(1000 + (((99 * count) + 99) / 100) - 1), stats.Quantiles.P99);
@@ -80,7 +80,7 @@ public sealed class CapCrossingTests
         {
             var stats = field.Temporal!;
             Assert.Equal(approximate, stats.Approximate);
-            Assert.Equal(approximate, stats.ErrorBound is not null);
+            Assert.Equal(approximate, stats.Quantiles!.RankError is not null);
             Assert.Equal("2020-01-01", stats.Quantiles!.P01);
         }
         else if (kind == "dateAmbiguous")
@@ -94,6 +94,47 @@ public sealed class CapCrossingTests
             Assert.Null(field.Numeric);
             Assert.Null(field.Temporal);
         }
+    }
+
+    public static TheoryData<long> RealCapCounts() => new() { 9_999, 10_000, 10_001, 99_999, 100_000, 100_001 };
+
+    [Theory]
+    [MemberData(nameof(RealCapCounts))]
+    public void CapCrossing_Boundary_AtTheRealCaps(long count)
+    {
+        // The caps of this tool version: 10,000 distinct values and 100,000 quantile values.
+        var accumulator = new FieldAccumulator(new FieldCaps(10_000, 100_000, 64, ProfileLimits.MaxShapeChars));
+        for (long i = 0; i < count; i++)
+        {
+            accumulator.AddText((1000 + i).ToString(CultureInfo.InvariantCulture));
+        }
+
+        var field = accumulator.Build(0, "f", null, 0);
+        Assert.Equal(count > 10_000, field.Distinct!.Approximate);
+        Assert.Equal(count > 100_000, field.Numeric!.Approximate);
+        if (count <= 10_000)
+        {
+            Assert.Equal(count, field.Distinct.Value);
+        }
+        else
+        {
+            // Never below the cap plus one, which the exact set already proved; within three sigma of the truth.
+            Assert.True(field.Distinct.Value >= 10_001, $"{field.Distinct.Value}");
+            Assert.True(Math.Abs(field.Distinct.Value - count) <= count * 3 * HyperLogLog.RelativeStdError, $"{field.Distinct.Value} for {count}");
+        }
+    }
+
+    [Fact]
+    public void CapCrossing_SketchedDistinct_IsNeverBelowThePastCapFloor()
+    {
+        // Eleven distinct values past a cap of ten: whatever the sketch says, at least eleven are known.
+        var accumulator = new FieldAccumulator(new FieldCaps(10, 1_000, 64, 1_000));
+        for (var i = 0; i < 11; i++)
+        {
+            accumulator.AddText("v" + i.ToString(CultureInfo.InvariantCulture));
+        }
+
+        Assert.True(accumulator.Build(0, "f", null, 0).Distinct!.Value >= 11);
     }
 
     [Fact]
@@ -155,7 +196,7 @@ public sealed class CapCrossingTests
     }
 
     [Fact]
-    public void Approximate_FlaggedWithErrorBound()
+    public void Approximate_FlaggedWithItsError()
     {
         var limits = ProfileLimits.Default with { DistinctPerField = 3, QuantilePerField = 3 };
         var builder = new StringBuilder("id,n,d,s\n");
@@ -174,30 +215,31 @@ public sealed class CapCrossingTests
         foreach (var field in fields)
         {
             Assert.True(field.Distinct!.Approximate, field.Name);
-            Assert.Equal(1.04 / 128.0, field.Distinct.ErrorBound);
+            Assert.Equal(1.04 / 128.0, field.Distinct.RelativeStdError);
         }
 
         Assert.Equal(40, fields[0].Distinct!.Value);
         Assert.Equal(5, fields[3].Distinct!.Value);
         Assert.True(fields[1].Numeric!.Approximate);
-        Assert.Equal(0.001, fields[1].Numeric!.ErrorBound);
+        Assert.Equal(0.001, fields[1].Numeric!.Quantiles.RankError);
         Assert.True(fields[2].Temporal!.Approximate);
-        Assert.Equal(0.001, fields[2].Temporal!.ErrorBound);
+        Assert.Equal(0.001, fields[2].Temporal!.Quantiles!.RankError);
 
         using var json = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
         var written = json.RootElement.GetProperty("table").GetProperty("fields");
         var distinct = written[1].GetProperty("distinct");
         Assert.True(distinct.GetProperty("approximate").GetBoolean());
-        Assert.Equal(0.008125, distinct.GetProperty("errorBound").GetDouble());
+        Assert.Equal(0.008125, distinct.GetProperty("relativeStdError").GetDouble());
         Assert.False(distinct.TryGetProperty("exceeds", out _));
         var numeric = written[1].GetProperty("numeric");
         Assert.True(numeric.GetProperty("approximate").GetBoolean());
-        Assert.Equal(0.001, numeric.GetProperty("errorBound").GetDouble());
+        Assert.Equal(0.001, numeric.GetProperty("quantiles").GetProperty("rankError").GetDouble());
+        Assert.False(numeric.TryGetProperty("errorBound", out _));
         Assert.Equal(JsonValueKind.Object, numeric.GetProperty("quantiles").ValueKind);
         Assert.False(numeric.TryGetProperty("exceeds", out _));
         var temporal = written[2].GetProperty("temporal");
         Assert.True(temporal.GetProperty("approximate").GetBoolean());
-        Assert.Equal(0.001, temporal.GetProperty("errorBound").GetDouble());
+        Assert.Equal(0.001, temporal.GetProperty("quantiles").GetProperty("rankError").GetDouble());
         Assert.False(temporal.TryGetProperty("exceeds", out _));
 
         // Under the caps nothing is flagged, and there is no error bound to write.
@@ -205,8 +247,8 @@ public sealed class CapCrossingTests
         using var exactJson = JsonDocument.Parse(DescriptorWriter.ToBytes(exact));
         var exactField = exactJson.RootElement.GetProperty("table").GetProperty("fields")[1];
         Assert.False(exactField.GetProperty("distinct").GetProperty("approximate").GetBoolean());
-        Assert.False(exactField.GetProperty("distinct").TryGetProperty("errorBound", out _));
+        Assert.False(exactField.GetProperty("distinct").TryGetProperty("relativeStdError", out _));
         Assert.False(exactField.GetProperty("numeric").GetProperty("approximate").GetBoolean());
-        Assert.False(exactField.GetProperty("numeric").TryGetProperty("errorBound", out _));
+        Assert.False(exactField.GetProperty("numeric").GetProperty("quantiles").TryGetProperty("rankError", out _));
     }
 }

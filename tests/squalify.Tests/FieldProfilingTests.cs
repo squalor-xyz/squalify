@@ -148,7 +148,7 @@ public sealed class FieldProfilingTests
         Assert.Equal(5.0, stats.Mean!.Value, 12);
         Assert.Equal(Math.Sqrt(32.0 / 7.0), stats.Stddev!.Value, 12);
         Assert.False(stats.Approximate);
-        Assert.Null(stats.ErrorBound);
+        Assert.Null(stats.Quantiles.RankError);
 
         // 1..100 in a scrambled order: ceil(p * n) - 1 is the zero-based index into the sorted values.
         var hundred = Build(Accumulate(Enumerable.Range(0, 100).Select(static i => (((i * 37) % 100) + 1).ToString(CultureInfo.InvariantCulture))));
@@ -193,7 +193,7 @@ public sealed class FieldProfilingTests
         var field = Build(Accumulate(["1", "2", "3", "4"], caps: DefaultCaps with { Quantile = 3 }));
         var stats = field.Numeric!;
         Assert.True(stats.Approximate);
-        Assert.Equal(0.001, stats.ErrorBound);
+        Assert.Equal(0.001, stats.Quantiles.RankError);
         Assert.Equal(DescriptorNumber.Int(1), stats.Min);
         Assert.Equal(DescriptorNumber.Int(4), stats.Max);
         Assert.Equal(2.5, stats.Mean!.Value, 12);
@@ -421,20 +421,20 @@ public sealed class FieldProfilingTests
         var exact = atCap.Table!.Fields[1].Distinct!;
         Assert.Equal(3, exact.Value);
         Assert.False(exact.Approximate);
-        Assert.Null(exact.ErrorBound);
+        Assert.Null(exact.RelativeStdError);
         Assert.False(atCap.Table.Fields[1].Unique);
 
         var past = ProfileText(Column("a", "b", "c", "d", "a"), limits: limits).Table!.Fields[1];
         Assert.Equal(4, past.Distinct!.Value);
         Assert.True(past.Distinct.Approximate);
-        Assert.Equal(1.04 / 128.0, past.Distinct.ErrorBound);
+        Assert.Equal(1.04 / 128.0, past.Distinct.RelativeStdError);
         Assert.Null(past.Unique);
 
         using var json = JsonDocument.Parse(DescriptorWriter.ToBytes(ProfileText(Column("a", "b", "c", "d", "a"), limits: limits)));
         var distinct = json.RootElement.GetProperty("table").GetProperty("fields")[1].GetProperty("distinct");
         Assert.Equal(4, distinct.GetProperty("value").GetInt64());
         Assert.True(distinct.GetProperty("approximate").GetBoolean());
-        Assert.Equal(0.008125, distinct.GetProperty("errorBound").GetDouble());
+        Assert.Equal(0.008125, distinct.GetProperty("relativeStdError").GetDouble());
         Assert.False(distinct.TryGetProperty("exceeds", out _));
     }
 
@@ -477,11 +477,11 @@ public sealed class FieldProfilingTests
     public void MemoryBudget_PerFieldCaps_AreMinOfCapAndBudgetOverFields()
     {
         var nominal = Limits.Default;
-        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 5_333_333), MemoryBudget.Effective(nominal, 3));
-        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 160_000), MemoryBudget.Effective(nominal, 100));
-        Assert.Equal(new FieldCaps(10_000, 99_009, 64, 158_415), MemoryBudget.Effective(nominal, 101));
+        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 53_312), MemoryBudget.Effective(nominal, 3));
+        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 53_312), MemoryBudget.Effective(nominal, 100));
+        Assert.Equal(new FieldCaps(10_000, 99_009, 64, 53_312), MemoryBudget.Effective(nominal, 101));
         Assert.Equal(new FieldCaps(1_000, 5_000, 64, 8_000), MemoryBudget.Effective(nominal, 2000));
-        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 16_000_000), MemoryBudget.Effective(nominal, 0));
+        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 53_312), MemoryBudget.Effective(nominal, 0));
 
         var small = ProfileLimits.Default with { Budget = new Budget(8, 4, 16_000_000) };
         var d = ProfileText("a,b\n1,x\n2,y\n3,z\n4,w\n5,v\n", limits: small);

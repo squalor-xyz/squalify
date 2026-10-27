@@ -49,7 +49,31 @@ public sealed class SketchTests
         }
 
         // The error bound the descriptor reports is one standard error, 1.04 / sqrt(m) with m = 2^14.
-        Assert.Equal(1.04 / 128.0, HyperLogLog.ErrorBound);
+        Assert.Equal(1.04 / 128.0, HyperLogLog.RelativeStdError);
+    }
+
+    [Fact]
+    public void Hll_ErrorNearTheSwitchToTheRawEstimate_StaysUnder1p5Percent()
+    {
+        // The raw estimate alone runs about 2.8 percent high at 41,000 values. Linear counting up to 3.5 m (57,344
+        // values) keeps the whole range from 30,000 to 120,000 values inside 1.5 percent; the worst case measured is
+        // 1.4 percent, near 56,500 values.
+        var hll = new HyperLogLog();
+        double worst = 0;
+        for (long i = 1; i <= 120_000; i++)
+        {
+            hll.Add(HashOf(i));
+            if (i >= 30_000 && i % 500 == 0)
+            {
+                worst = Math.Max(worst, Math.Abs(hll.Estimate() - i) / (double)i);
+            }
+        }
+
+        Assert.True(worst <= 0.015, $"worst relative error {worst:G4}");
+
+        // Pinned at 41,000 values, where the raw estimate alone was 2.8 percent off.
+        var at41k = Filled(LongRange(1, 41_000));
+        Assert.True(Math.Abs(at41k.Estimate() - 41_000) <= 41_000 * 0.01, $"estimate {at41k.Estimate()}");
     }
 
     [Fact]
