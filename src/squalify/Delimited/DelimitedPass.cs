@@ -34,6 +34,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     // The run.
     private readonly List<SampleRecord> _sample = [];
+    private long _sampleBytes;
     private bool _decided;
     private char _decimal = '.';
     private HeaderDecision? _decision;
@@ -152,6 +153,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         var comment = LineClassifier.IsComment(record.Raw ?? string.Empty);
         if (!_decided)
         {
+            _sampleBytes += SampleBytes(record.Cells);
             _sample.Add(new SampleRecord
             {
                 Line = record.StartLine,
@@ -185,6 +187,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             Decide();
         }
 
+        SampleMemory();
         var counter = structure.Counter;
         var issues = new List<Issue>();
         if (counter.MixedLineEndings() is { } mixed)
@@ -393,6 +396,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private void Decide()
     {
         _decided = true;
+        SampleMemory();
         long commaLike = 0;
         long dotLike = 0;
         foreach (var record in _sample)
@@ -476,6 +480,43 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         _sample.Clear();
+        _sampleBytes = 0;
+        SampleMemory();
+    }
+
+    // The header sample holds the cell texts, their spans and (once decided) a vote and a null token for each cell.
+    private static long SampleBytes(IReadOnlyList<string> cells)
+    {
+        long bytes = 160;
+        foreach (var cell in cells)
+        {
+            bytes += 22 + (2L * cell.Length) + 8 + 16 + 12;
+        }
+
+        return bytes;
+    }
+
+    /// <summary>
+    /// An estimate of the memory held while the file streams: the field accumulators, the row classes, the header
+    /// sample and a fixed share for the lists of lines and keys; see <see cref="MemoryBudget.CeilingBytes(long)"/>.
+    /// </summary>
+    internal long EstimatedBytes
+    {
+        get
+        {
+            var bytes = 65_536 + _sampleBytes + _rowClasses.EstimatedBytes + (_preambleKeys.Count * 100L) + (_k * 16L);
+            foreach (var accumulator in _accumulators)
+            {
+                bytes += accumulator.EstimatedBytes;
+            }
+
+            return bytes;
+        }
+    }
+
+    private void SampleMemory()
+    {
+        _context.Trace?.Sample(EstimatedBytes);
     }
 
     private void AddComment(long line)
@@ -516,6 +557,10 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         _rowClasses.Add(_nullMask, line);
+        if ((_rows & 1023) == 0)
+        {
+            SampleMemory();
+        }
     }
 
     private AnnotationRowSource BuildAnnotation(SampleRecord record)

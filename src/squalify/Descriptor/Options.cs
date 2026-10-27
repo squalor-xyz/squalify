@@ -71,4 +71,5 @@ public sealed record CharsetTolerance(long InvalidSequences, long PerBytes);
 /// <summary>The global budget of exact values.</summary>
 /// <param name="QuantileValues">Total exact quantile values.</param>
 /// <param name="DistinctValues">Total exact distinct values.</param>
-public sealed record Budget(long QuantileValues, long DistinctValues);
+/// <param name="ShapeChars">Total characters of shape mask text; a field keeps at most this divided by the field count.</param>
+public sealed record Budget(long QuantileValues, long DistinctValues, long ShapeChars);

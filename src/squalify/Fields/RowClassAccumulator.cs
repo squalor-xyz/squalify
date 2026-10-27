@@ -62,6 +62,25 @@ internal sealed class RowClassAccumulator
         _nullsOutsideAllNull = new long[fieldCount];
     }
 
+    /// <summary>
+    /// An estimate of the memory held, in bytes: the encode buffer and the per-field arrays, which are allocated once,
+    /// and the classes kept (at most <c>maxClasses</c>), each with its field ranges.
+    /// </summary>
+    public long EstimatedBytes
+    {
+        get
+        {
+            long bytes = 256 + _encoded.Length + _previous.Length + (_nullIndexes.Length * 4L) + (_nullsOutsideAllNull.Length * 8L);
+            bytes += _slots.Count * 48L;
+            foreach (var state in _classes)
+            {
+                bytes += 200 + (state.Fields.Length * 16L);
+            }
+
+            return bytes;
+        }
+    }
+
     /// <summary>Adds one record.</summary>
     /// <param name="isNull">One entry per field, true when the field is null. The span is read, not kept.</param>
     /// <param name="line">The 1-based line of the record in the file (a row number for a format without lines); it only bounds the class's first and last line.</param>

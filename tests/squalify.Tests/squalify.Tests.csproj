@@ -3,6 +3,8 @@
     <RootNamespace>squalor.squalify.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- MemoryProbe.Main is the entry point: the memory tests run this assembly in a child process. -->
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

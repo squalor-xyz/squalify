@@ -361,3 +361,5 @@
 {"when": "2026-10-27T19:13:51Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27): sq-12 no longer depends on sq-1", "by": "Jon Robbins"}
 {"when": "2026-10-27T19:13:51Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"64 MB (Recommended)\"", "by": "Jon Robbins"}
 {"when": "2026-10-27T19:13:51Z", "item": "sq-20", "action": "note", "from": "", "to": "", "note": "Orchestrator (2026-10-27): per the sq-06 K8 note, hints.nonN", "by": "Jon Robbins"}
+{"when": "2026-10-27T19:15:06Z", "item": "sq-11", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
+{"when": "2026-10-27T20:10:09Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"Budget data over a m", "by": "Jon Robbins"}

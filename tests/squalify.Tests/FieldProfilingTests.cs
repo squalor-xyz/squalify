@@ -22,7 +22,7 @@ public sealed class FieldProfilingTests
         ["string"] = "abc",
     };
 
-    private static readonly FieldCaps DefaultCaps = new(10_000, 100_000, 64);
+    private static readonly FieldCaps DefaultCaps = new(10_000, 100_000, 64, 1_000_000);
 
     public static TheoryData<string, string> AllPairs()
     {
@@ -148,7 +148,7 @@ public sealed class FieldProfilingTests
         Assert.Equal(5.0, stats.Mean!.Value, 12);
         Assert.Equal(Math.Sqrt(32.0 / 7.0), stats.Stddev!.Value, 12);
         Assert.False(stats.Approximate);
-        Assert.Null(stats.Exceeds);
+        Assert.Null(stats.ErrorBound);
 
         // 1..100 in a scrambled order: ceil(p * n) - 1 is the zero-based index into the sorted values.
         var hundred = Build(Accumulate(Enumerable.Range(0, 100).Select(static i => (((i * 37) % 100) + 1).ToString(CultureInfo.InvariantCulture))));
@@ -188,19 +188,21 @@ public sealed class FieldProfilingTests
     }
 
     [Fact]
-    public void NumericStats_QuantilesPastTheCap_AreReportedAsExceeded()
+    public void NumericStats_QuantilesPastTheCap_AreSketched()
     {
         var field = Build(Accumulate(["1", "2", "3", "4"], caps: DefaultCaps with { Quantile = 3 }));
         var stats = field.Numeric!;
-        Assert.Null(stats.Quantiles);
-        Assert.Null(stats.Approximate);
-        Assert.Equal(3, stats.Exceeds);
+        Assert.True(stats.Approximate);
+        Assert.Equal(0.001, stats.ErrorBound);
         Assert.Equal(DescriptorNumber.Int(1), stats.Min);
         Assert.Equal(DescriptorNumber.Int(4), stats.Max);
         Assert.Equal(2.5, stats.Mean!.Value, 12);
 
+        // A sketch of four values has compressed nothing: the quantiles are the exact nearest ranks.
+        Assert.Equal(new long[] { 1, 1, 1, 2, 3, 4, 4 }, Ints(stats.Quantiles));
+
         var atTheCap = Build(Accumulate(["1", "2", "3"], caps: DefaultCaps with { Quantile = 3 }));
-        Assert.NotNull(atTheCap.Numeric!.Quantiles);
+        Assert.False(atTheCap.Numeric!.Approximate);
     }
 
     [Fact]
@@ -411,7 +413,7 @@ public sealed class FieldProfilingTests
     }
 
     [Fact]
-    public void Distinct_ExactUpToCap_ThenExceeds()
+    public void Distinct_ExactUpToCap_ThenSketched()
     {
         var limits = ProfileLimits.Default with { DistinctPerField = 3 };
         var atCap = ProfileText(Column("a", "b", "c", "a", "b", "NA"), limits: limits);
@@ -419,20 +421,21 @@ public sealed class FieldProfilingTests
         var exact = atCap.Table!.Fields[1].Distinct!;
         Assert.Equal(3, exact.Value);
         Assert.False(exact.Approximate);
-        Assert.Null(exact.Exceeds);
+        Assert.Null(exact.ErrorBound);
         Assert.False(atCap.Table.Fields[1].Unique);
 
         var past = ProfileText(Column("a", "b", "c", "d", "a"), limits: limits).Table!.Fields[1];
-        Assert.Null(past.Distinct!.Value);
-        Assert.Null(past.Distinct.Approximate);
-        Assert.Equal(3, past.Distinct.Exceeds);
+        Assert.Equal(4, past.Distinct!.Value);
+        Assert.True(past.Distinct.Approximate);
+        Assert.Equal(1.04 / 128.0, past.Distinct.ErrorBound);
         Assert.Null(past.Unique);
 
         using var json = JsonDocument.Parse(DescriptorWriter.ToBytes(ProfileText(Column("a", "b", "c", "d", "a"), limits: limits)));
         var distinct = json.RootElement.GetProperty("table").GetProperty("fields")[1].GetProperty("distinct");
-        Assert.Equal(JsonValueKind.Null, distinct.GetProperty("value").ValueKind);
-        Assert.Equal(3, distinct.GetProperty("exceeds").GetInt64());
-        Assert.False(distinct.TryGetProperty("approximate", out _));
+        Assert.Equal(4, distinct.GetProperty("value").GetInt64());
+        Assert.True(distinct.GetProperty("approximate").GetBoolean());
+        Assert.Equal(0.008125, distinct.GetProperty("errorBound").GetDouble());
+        Assert.False(distinct.TryGetProperty("exceeds", out _));
     }
 
     [Fact]
@@ -463,7 +466,7 @@ public sealed class FieldProfilingTests
         Assert.Equal(10_000_000 / Columns, d.Limits.QuantilePerField);
         Assert.Equal(2_000_000 / Columns, d.Limits.DistinctPerField);
         Assert.Equal(64, d.Limits.ShapesPerField);
-        Assert.Equal(new Budget(10_000_000, 2_000_000), d.Limits.Budget);
+        Assert.Equal(new Budget(10_000_000, 2_000_000, 16_000_000), d.Limits.Budget);
         Assert.Equal(ValueClassifier.NullVocabularyVersion, d.Limits.NullTokens);
 
         // A narrow file keeps the caps of the tool.
@@ -474,18 +477,18 @@ public sealed class FieldProfilingTests
     public void MemoryBudget_PerFieldCaps_AreMinOfCapAndBudgetOverFields()
     {
         var nominal = Limits.Default;
-        Assert.Equal(new FieldCaps(10_000, 100_000, 64), MemoryBudget.Effective(nominal, 3));
-        Assert.Equal(new FieldCaps(10_000, 100_000, 64), MemoryBudget.Effective(nominal, 100));
-        Assert.Equal(new FieldCaps(10_000, 99_009, 64), MemoryBudget.Effective(nominal, 101));
-        Assert.Equal(new FieldCaps(1_000, 5_000, 64), MemoryBudget.Effective(nominal, 2000));
-        Assert.Equal(new FieldCaps(10_000, 100_000, 64), MemoryBudget.Effective(nominal, 0));
+        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 5_333_333), MemoryBudget.Effective(nominal, 3));
+        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 160_000), MemoryBudget.Effective(nominal, 100));
+        Assert.Equal(new FieldCaps(10_000, 99_009, 64, 158_415), MemoryBudget.Effective(nominal, 101));
+        Assert.Equal(new FieldCaps(1_000, 5_000, 64, 8_000), MemoryBudget.Effective(nominal, 2000));
+        Assert.Equal(new FieldCaps(10_000, 100_000, 64, 16_000_000), MemoryBudget.Effective(nominal, 0));
 
-        var small = ProfileLimits.Default with { Budget = new Budget(8, 4) };
+        var small = ProfileLimits.Default with { Budget = new Budget(8, 4, 16_000_000) };
         var d = ProfileText("a,b\n1,x\n2,y\n3,z\n4,w\n5,v\n", limits: small);
         Assert.Equal(4, d.Limits.QuantilePerField);
         Assert.Equal(2, d.Limits.DistinctPerField);
-        Assert.Equal(4, d.Table!.Fields[0].Numeric!.Exceeds);
-        Assert.Equal(2, d.Table.Fields[0].Distinct!.Exceeds);
+        Assert.True(d.Table!.Fields[0].Numeric!.Approximate);
+        Assert.True(d.Table.Fields[0].Distinct!.Approximate);
     }
 
     [Fact]
