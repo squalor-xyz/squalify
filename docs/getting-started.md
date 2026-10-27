@@ -22,7 +22,7 @@ squalify --version
 ```
 
 ```text
-0.1.0
+0.1.1
 ```
 
 Your version may be newer. If the shell says `squalify: command not found`, add `~/.dotnet/tools` to your `PATH` and open a new shell. Update later with `dotnet tool update -g squalor.squalify.Cli`.
