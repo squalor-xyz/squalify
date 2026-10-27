@@ -2,7 +2,7 @@
 
 squalify profiles a data file and writes a **descriptor**. The descriptor is a versioned JSON document that summarizes the file's encoding, format, layout, fields, statistics and structural fingerprint, along with the evidence behind each of those inferences.
 
-Other tools read the descriptor to decide what to do with the file. Examples: classifying it as a known file type, picking the right transform or import route, or drafting a [DataBall](../../DataBall/) file type. squalify itself only describes the file. It suggests a generic `kind` label (for example `labSweepTable` or `stdfTestLog`) from a fixed set of built-in rules, and it reports how header names carry units (for example `Vcc(V)` or `ICC_A`).
+Other tools read the descriptor to decide what to do with the file. Examples: classifying it as a known file type, picking the right transform or import route, or drafting a [DataBall](https://github.com/squalor-xyz/DataBall) file type. squalify itself only describes the file. It suggests a generic `kind` label (for example `labSweepTable` or `stdfTestLog`) from a fixed set of built-in rules, and it reports how header names carry units (for example `Vcc(V)` or `ICC_A`).
 
 > Status: early build. The solution skeleton, the descriptor model, the canonical JSON writer (with its determinism kit), the byte pass, the value classifier, the generic profiles and the delimited-text profiler exist. `squalify profile <file>` already writes a valid descriptor for any file (file hash, encoding, text, binary or empty, line endings, byte statistics for binary files). For a delimited table it also finds the delimiter and quoting, the preamble, annotation rows, header, units row, data and footer regions (with line and byte ranges), the padding and decimal separator, and a profile of every field: its type with the votes, null tokens, numeric and date statistics (exact up to fixed caps), lengths, shape masks, monotonicity and the constant and unique flags. Every file gets four structural fingerprints (hashes of a value-free projection) and the detect-rule hints: the extension, the structured magic, and for a delimited table the header names, a header-prefix, the columns without nulls, and portable regexes for the header and preamble lines. A directory is an error. The other format profilers (Parquet, Touchstone, key=value, STDF), the sketches that replace the exact distinct counts and quantiles past their caps and the kind label are still to come; until then those descriptor sections hold fixed placeholder values (the Parquet and STDF hints are null). The roadmap lives in slicer (`slicer goals`, `slicer list`).
 
@@ -36,9 +36,18 @@ var descriptor = Profiler.Profile("data.csv", ProfileOptions.Create(includeValue
 var bytes = DescriptorWriter.ToBytes(descriptor);
 ```
 
-**Version policy.** The package version is the version the tool reports: `squalify --version`, `ToolInfo.Version`, and `tool.version` in every descriptor. All three come from `<Version>` in `Directory.Build.props`, so one string names each build. The first package is 0.1.0, while the descriptor schema is still a draft.
+**Version policy.** The package version is the version the tool reports: `squalify --version`, `ToolInfo.Version`, and `tool.version` in every descriptor. All three come from the build's `Version`: `<Version>` in `Directory.Build.props`, which the release workflow overrides with the tag, so one string names each build. The first package is 0.1.0, while the descriptor schema is still a draft.
 
-**Not published yet.** The CLI also packs as the `squalify` .NET tool, and both packages are unpublished. Build the library package and reference it from a local folder feed:
+**Install.** Both packages are published to nuget.org from release tags starting with v0.1.0, which is not released yet ([`docs/release.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md)):
+
+```bash
+dotnet add package squalor.squalify          # the library
+dotnet tool install -g squalor.squalify.Cli  # the CLI; the command is `squalify`
+```
+
+**Stability.** Versions before 1.0 may change the descriptor schema in a minor version until the schema freeze (sq-12).
+
+To build the packages yourself, pack into a local folder feed:
 
 ```bash
 dotnet pack src/squalify/squalify.csproj -c Release -o ./nupkg
@@ -62,13 +71,13 @@ DataBall picks a handler from a bounded 64 KiB `FileProbe`, and its file types d
 
 ## Docs
 
-- [`docs/how-it-works.md`](docs/how-it-works.md): diagrams of how a profile run works ([PDF](docs/how-it-works.pdf)).
-- [`docs/design.md`](docs/design.md): architecture, pipeline, determinism rules and memory bounds.
-- [`docs/descriptor.md`](docs/descriptor.md): descriptor schema v1 (draft).
-- [`docs/reviews/`](docs/reviews/): generic reviews of real sample data and what they changed.
-- [`profiler-idea.md`](profiler-idea.md): the original idea prompt.
-- [`AGENTS.md`](AGENTS.md): how to work on this repo.
+- [`docs/how-it-works.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md): diagrams of how a profile run works ([PDF](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.pdf)).
+- [`docs/design.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/design.md): architecture, pipeline, determinism rules and memory bounds.
+- [`docs/descriptor.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md): descriptor schema v1 (draft).
+- [`docs/reviews/`](https://github.com/squalor-xyz/squalify/tree/main/docs/reviews): generic reviews of real sample data and what they changed.
+- [`profiler-idea.md`](https://github.com/squalor-xyz/squalify/blob/main/profiler-idea.md): the original idea prompt.
+- [`AGENTS.md`](https://github.com/squalor-xyz/squalify/blob/main/AGENTS.md): how to work on this repo.
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/squalor-xyz/squalify/blob/main/LICENSE).
