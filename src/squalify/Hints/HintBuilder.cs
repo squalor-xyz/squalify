@@ -39,7 +39,8 @@ internal static class HintBuilder
         long? dataStart = null;
         if (table is not null)
         {
-            nonNull = table.Fields.Where(static f => f.Nulls == 0 && f.Count > 0).Select(static f => f.Index).ToArray();
+            // A field qualifies when it has no null outside the all-null (separator) rows, and at least one value.
+            nonNull = table.Fields.Where(static f => f.NullsExcludingAllNullRows == 0 && f.Count > f.Nulls).Select(static f => f.Index).ToArray();
             dataStart = layout.Regions.FirstOrDefault(static r => r.Kind == "data")?.FirstLine;
         }
 
@@ -57,6 +58,21 @@ internal static class HintBuilder
             ParquetColumns: null,
             Stdf: null,
             FileNameShape: FileNameShape.Of(fileName));
+    }
+
+    // A regex with U+FFFD (a stray byte) or a control character other than tab (C0, DEL, C1) would differ from file to file
+    // or cannot be matched reliably, so the line gets no entry. headerFields still lists the names.
+    private static bool HasStrayCharacter(string text)
+    {
+        foreach (var c in text)
+        {
+            if (c == '\uFFFD' || (c < ' ' && c != '\t') || (c >= '\u007F' && c <= '\u009F'))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Each line offered gives its regexes; a regex enters only when it matches its own line under both engines (a
@@ -92,7 +108,7 @@ internal static class HintBuilder
 
     private static void Add(List<StableLine> result, StableLineSource source, string regex)
     {
-        if (PortableRegex.MatchesBoth(regex, source.Text))
+        if (!HasStrayCharacter(regex) && PortableRegex.MatchesBoth(regex, source.Text))
         {
             result.Add(new StableLine(source.Line - 1, regex));
         }

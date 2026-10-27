@@ -292,6 +292,41 @@ public sealed class FingerprintTests
         Assert.Null(FingerprintContributors.For("text"));
     }
 
+    private sealed class FakeContributor(params string[] names) : IFingerprintContributor
+    {
+        public string Family => "text";
+
+        public FingerprintContribution Contribute(ProjectionInput input)
+        {
+            return new FingerprintContribution(null, null, null, names, 0);
+        }
+    }
+
+    [Fact]
+    public void Fingerprint_ContributorNames_GetTheSameHygiene()
+    {
+        var input = ProjectionInput.From(Profile("hello world\n", name: "a.txt"));
+        var contributor = new FakeContributor("Good", "Ba\u0001d", "\uFFFD", "OK", "good", "x\u0085y");
+        Assert.Equal("[\"good\",\"ok\"]", Text(Projection.Names(input, contributor)));
+        var result = Projection.Compute(input, contributor);
+        Assert.Equal(3, result.Excluded);
+        Assert.Equal(Sha("[\"good\",\"ok\"]"), result.Fingerprint.Names);
+    }
+
+    [Fact]
+    public void Fingerprint_UnnamedFieldAndFieldNamedHashIndex_ShareLayoutButNotNames()
+    {
+        var headerless = Profiler.Profile(new BytesSource("t.tsv", TestBytes.Ascii("1\t2\n3\t4\n5\t6\n")), Options());
+        var named = Profile("a,#1\n1,2\n3,4\n5,6\n");
+        Assert.Contains("\"fields\":[\"#0\",\"#1\"]", Text(Projection.Layout(ProjectionInput.From(headerless))), StringComparison.Ordinal);
+        Assert.Contains("\"fields\":[\"a\",\"#1\"]", Text(Projection.Layout(ProjectionInput.From(named))), StringComparison.Ordinal);
+        var asIndex = Profile("\"#0\",\"#1\"\n1,2\n3,4\n5,6\n");
+        Assert.Contains("\"fields\":[\"#0\",\"#1\"]", Text(Projection.Layout(ProjectionInput.From(asIndex))), StringComparison.Ordinal);
+        Assert.Equal("[]", Text(Projection.Names(ProjectionInput.From(headerless))));
+        Assert.Equal("[\"#0\",\"#1\"]", Text(Projection.Names(ProjectionInput.From(asIndex))));
+        Assert.NotEqual(headerless.Fingerprint.Names, asIndex.Fingerprint.Names);
+    }
+
     [Fact]
     public void Ordinal_AsciiFold_FoldsOnlyAsciiLetters()
     {

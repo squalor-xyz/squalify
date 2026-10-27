@@ -12,7 +12,6 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 {
     private const int MaxListedLines = 10;
     private const int CommentPrefix = 16;
-    private const int VoteKinds = 8;
 
     private readonly CandidateResult _dialect;
     private readonly ProfileContext _context;
@@ -48,8 +47,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     // Data statistics.
     private FieldAccumulator[] _accumulators = [];
     private readonly FieldCaps _caps;
-    private readonly ValueVote[] _kinds;
-    private readonly long[] _nullsOutsideAllNull;
+    private readonly bool[] _nullMask;
+    private readonly RowClassAccumulator _rowClasses;
     private long _rows;
     private long _minFields = long.MaxValue;
     private long _maxFields;
@@ -77,11 +76,11 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _runLastLine = dialect.RunLastLine;
         _delimiterChar = DelimiterCandidates.Char(dialect.Kind);
         _caps = MemoryBudget.Effective(context.Limits, _k);
-        _kinds = new ValueVote[_k];
-        _nullsOutsideAllNull = new long[_k];
+        _nullMask = new bool[_k];
+        _rowClasses = new RowClassAccumulator(_k, context.Limits.RowClasses);
         foreach (var name in context.Options.IncludeValuesFor)
         {
-            _allowed.Add(AsciiFold(name));
+            _allowed.Add(Ordinal.AsciiFold(name));
         }
     }
 
@@ -250,7 +249,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         var table = new TableSection(
             _rows,
             _rows == 0 ? new MinMax(_k, _k) : new MinMax(_minFields, _maxFields),
-            fields);
+            fields,
+            _rowClasses.Build());
         var evidence = new List<Evidence> { structure.Selection.Evidence };
         if (_decimalEvidence is not null)
         {
@@ -323,20 +323,6 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         return has;
     }
 
-    private static string AsciiFold(string text)
-    {
-        var chars = text.ToCharArray();
-        for (var i = 0; i < chars.Length; i++)
-        {
-            if (chars[i] is >= 'A' and <= 'Z')
-            {
-                chars[i] = (char)(chars[i] + ('a' - 'A'));
-            }
-        }
-
-        return new string(chars);
-    }
-
     private static bool IsTrim(char c)
     {
         return ValueClassifier.TrimChars.Contains(c, StringComparison.Ordinal);
@@ -344,7 +330,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     private bool Allows(string? name)
     {
-        return _context.Options.IncludeValues || (name is not null && _allowed.Contains(AsciiFold(name)));
+        return _context.Options.IncludeValues || (name is not null && _allowed.Contains(Ordinal.AsciiFold(name)));
     }
 
     private void AddPreamble(RecordInfo record)
@@ -526,27 +512,13 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             return;
         }
 
-        var allNull = true;
+        // The null decision is the field accumulator's; the row-class accumulator sees the whole record's mask.
         for (var c = 0; c < _k; c++)
         {
-            var vote = _accumulators[c].AddText(cells[c]);
-            _kinds[c] = vote;
-            if (vote != ValueVote.Null)
-            {
-                allNull = false;
-            }
+            _nullMask[c] = _accumulators[c].AddText(cells[c]) == ValueVote.Null;
         }
 
-        if (!allNull)
-        {
-            for (var c = 0; c < _k; c++)
-            {
-                if (_kinds[c] == ValueVote.Null)
-                {
-                    _nullsOutsideAllNull[c]++;
-                }
-            }
-        }
+        _rowClasses.Add(_nullMask, line);
     }
 
     private AnnotationRowSource BuildAnnotation(SampleRecord record)
@@ -565,7 +537,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
         long blank = 0;
         var nullTokens = new SortedDictionary<string, long>(StringComparer.Ordinal);
-        var typeVotes = new long[VoteKinds];
+        var typeVotes = new long[TypeLattice.VoteKinds];
         var joined = ValueVote.Null;
         for (var c = first; c < record.FieldCount; c++)
         {
@@ -598,24 +570,10 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             label,
             blank,
             CountMap.FromOrdinal(nullTokens.Select(static e => new KeyValuePair<string, long>(e.Key, e.Value))),
-            VotesMap(typeVotes, 0),
+            TypeLattice.VotesMap(typeVotes),
             TypeLattice.TypeName(joined),
             values);
         return new AnnotationRowSource(row, record.Line, record.StartByte);
-    }
-
-    private static CountMap VotesMap(long[] counts, int offset)
-    {
-        var entries = new List<KeyValuePair<string, long>>();
-        for (var v = (int)ValueVote.Bool; v <= (int)ValueVote.String; v++)
-        {
-            if (counts[offset + v] > 0)
-            {
-                entries.Add(new(TypeLattice.TypeName((ValueVote)v), counts[offset + v]));
-            }
-        }
-
-        return CountMap.FromOrdinal(entries);
     }
 
     private void AddHeaderIssues(List<Issue> issues, string[] names, long line)
@@ -629,7 +587,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             {
                 empty++;
             }
-            else if (!seen.Add(AsciiFold(name)))
+            else if (!seen.Add(Ordinal.AsciiFold(name)))
             {
                 repeated++;
             }
@@ -648,7 +606,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     private FieldProfile BuildField(int index, string? name, string? nameHex)
     {
-        var profile = _accumulators[index].Build(index, name, nameHex, _nullsOutsideAllNull[index], Allows(name));
+        var profile = _accumulators[index].Build(index, name, nameHex, _rowClasses.NullsExcludingAllNullRows(index), Allows(name));
         if (_unitsRecord is { } units && index < units.FieldCount && units.Votes[index] != ValueVote.Null && Allows(name))
         {
             profile = profile with { Unit = ValueClassifier.Trim(units.Cells[index]).ToString() };

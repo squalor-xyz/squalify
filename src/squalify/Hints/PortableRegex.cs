@@ -5,11 +5,14 @@ using System.Text.RegularExpressions;
 namespace squalor.squalify;
 
 /// <summary>
-/// Builds the regexes of <c>hints.stableLines</c> so that they compile and match the same under .NET and ECMAScript.
+/// Builds the regexes of <c>hints.stableLines</c> so that they compile and match under .NET and under .NET's
+/// <see cref="RegexOptions.ECMAScript"/> mode, which stands in for other engines.
 /// A literal text is escaped by putting a backslash before each of <c>\ . ^ $ | ? * + ( ) [ ] { }</c> and nothing else;
-/// the only other regex syntax used is <c>^</c>, <c>$</c>, <c>\s</c> (an ASCII white-space class in ECMAScript, so a
-/// regex that needs a non-ASCII space does not match there and is left out), <c>*</c>, <c>+</c>, <c>?</c> and the class
-/// <c>[=:]</c>. See <c>docs/design.md</c>, "Detect-rule hints".
+/// the only other regex syntax used is <c>^</c>, <c>$</c>, <c>\s</c>, <c>*</c>, <c>+</c>, <c>?</c> and the class
+/// <c>[=:]</c>. <c>\s</c> is the one construct that differs: it is ASCII-only under <see cref="RegexOptions.ECMAScript"/>,
+/// while real JavaScript's <c>\s</c> is Unicode and broader, as is the .NET default. A regex that matches under both
+/// .NET modes therefore also matches in real JavaScript, and the both-engine filter is conservative: it may drop a
+/// regex that JavaScript would match, never keep one that it would not. See <c>docs/design.md</c>, "Detect-rule hints".
 /// </summary>
 internal static class PortableRegex
 {
@@ -105,8 +108,8 @@ internal static class PortableRegex
         ArgumentNullException.ThrowIfNull(line);
         try
         {
-            return new Regex(regex, RegexOptions.CultureInvariant).IsMatch(line)
-                && new Regex(regex, RegexOptions.ECMAScript).IsMatch(line);
+            return new Regex(regex, RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout).IsMatch(line)
+                && new Regex(regex, RegexOptions.ECMAScript, Regex.InfiniteMatchTimeout).IsMatch(line);
         }
         catch (ArgumentException)
         {

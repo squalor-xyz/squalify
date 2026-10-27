@@ -68,12 +68,34 @@ internal static class Projection
         return Parts.Of(input).Names();
     }
 
+    /// <summary>The bytes of the <c>names</c> projection, with a given contributor instead of the registered one.</summary>
+    /// <param name="input">The input.</param>
+    /// <param name="contributor">The contributor.</param>
+    /// <returns>Compact canonical JSON, UTF-8.</returns>
+    internal static byte[] Names(ProjectionInput input, IFingerprintContributor? contributor)
+    {
+        return Parts.Of(input, contributor).Names();
+    }
+
+    /// <summary>Computes the fingerprint with a given contributor instead of the registered one.</summary>
+    /// <param name="input">The input.</param>
+    /// <param name="contributor">The contributor.</param>
+    /// <returns>The hashes, and the count of excluded names.</returns>
+    internal static ProjectionResult Compute(ProjectionInput input, IFingerprintContributor? contributor)
+    {
+        return Compute(Parts.Of(input, contributor));
+    }
+
     /// <summary>Computes the fingerprint.</summary>
     /// <param name="input">The input.</param>
     /// <returns>The hashes, and the count of excluded names.</returns>
     public static ProjectionResult Compute(ProjectionInput input)
     {
-        var parts = Parts.Of(input);
+        return Compute(Parts.Of(input));
+    }
+
+    private static ProjectionResult Compute(Parts parts)
+    {
         var fingerprint = new Fingerprint(
             Version,
             Hash(parts.Structure()),
@@ -115,17 +137,26 @@ internal static class Projection
         private readonly string[] _types;
         private readonly string[] _names;
 
-        private Parts(ProjectionInput input)
+        private Parts(ProjectionInput input, IFingerprintContributor? contributor)
         {
             _input = input;
-            _contribution = FingerprintContributors.For(input.Family)?.Contribute(input) ?? FingerprintContribution.None;
+            _contribution = contributor?.Contribute(input) ?? FingerprintContribution.None;
             var excluded = _contribution.Excluded;
             var fields = new List<string>();
             var types = new List<string>();
             var names = new HashSet<string>(StringComparer.Ordinal);
+
+            // A family's own names get the same hygiene as field names: excluded ones are left out and counted.
             foreach (var name in _contribution.Names)
             {
-                names.Add(Ordinal.AsciiFold(name));
+                if (IsExcluded(name))
+                {
+                    excluded++;
+                }
+                else
+                {
+                    names.Add(Ordinal.AsciiFold(name));
+                }
             }
 
             if (input.Table is { } table)
@@ -162,7 +193,13 @@ internal static class Projection
         public static Parts Of(ProjectionInput input)
         {
             ArgumentNullException.ThrowIfNull(input);
-            return new Parts(input);
+            return new Parts(input, FingerprintContributors.For(input.Family));
+        }
+
+        public static Parts Of(ProjectionInput input, IFingerprintContributor? contributor)
+        {
+            ArgumentNullException.ThrowIfNull(input);
+            return new Parts(input, contributor);
         }
 
         public byte[] Structure()

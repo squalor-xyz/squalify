@@ -27,7 +27,7 @@ internal sealed record DateOrderCounts(long Values, long Dmy, long Mdy, long Ymd
 /// </remarks>
 internal sealed class FieldAccumulator
 {
-    private const int VoteKinds = 8;
+    private const int VoteKinds = TypeLattice.VoteKinds;
     private const int Slots = 4;
     private const DateOrders AllOrders = DateOrders.YMD | DateOrders.MDY | DateOrders.DMY;
     private static readonly int[] QuantilePercents = [1, 5, 25, 50, 75, 95, 99];
@@ -256,7 +256,7 @@ internal sealed class FieldAccumulator
     /// <param name="index">The column index.</param>
     /// <param name="name">The header name, or null.</param>
     /// <param name="nameHex">The hex of the original name bytes, or null.</param>
-    /// <param name="nullsExcludingAllNullRows">Null values outside all-null rows, counted by the caller, which knows the rows.</param>
+    /// <param name="nullsExcludingAllNullRows">Null values outside all-null rows. This accumulator sees values, not rows, so the row-level owner (<see cref="RowClassAccumulator"/>) counts them and passes them in.</param>
     /// <param name="valuesAllowed">True when values are opted in for this field: statistics of a constant field are then kept.</param>
     /// <returns>The profile.</returns>
     public FieldProfile Build(long index, string? name, string? nameHex, long nullsExcludingAllNullRows, bool valuesAllowed)
@@ -292,7 +292,7 @@ internal sealed class FieldAccumulator
             NameParts: null,
             Type: TypeLattice.TypeName(type),
             Dominant: new DominantType(TypeLattice.TypeName(dominant), _nonNull > 0 ? dominantCount / (double)_nonNull : 0.0),
-            TypeVotes: VotesMap(),
+            TypeVotes: TypeLattice.VotesMap(_votes),
             Count: _nonNull + nulls,
             Nulls: nulls,
             NullsExcludingAllNullRows: nullsExcludingAllNullRows,
@@ -340,20 +340,6 @@ internal sealed class FieldAccumulator
         }
 
         return _distinctExceeded ? null : true;
-    }
-
-    private CountMap VotesMap()
-    {
-        var entries = new List<KeyValuePair<string, long>>();
-        for (var v = (int)ValueVote.Bool; v <= (int)ValueVote.String; v++)
-        {
-            if (_votes[v] > 0)
-            {
-                entries.Add(new(TypeLattice.TypeName((ValueVote)v), _votes[v]));
-            }
-        }
-
-        return CountMap.FromOrdinal(entries);
     }
 
     private void AddValue(in ValueClass cls, ReadOnlySpan<char> trimmed)

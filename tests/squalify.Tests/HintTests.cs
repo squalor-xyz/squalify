@@ -14,6 +14,11 @@ public sealed class HintTests
         return Profiler.Profile(new BytesSource(name, Encoding.UTF8.GetBytes(text)), Options(includeValues));
     }
 
+    private static Descriptor ProfileBytes(byte[] bytes)
+    {
+        return Profiler.Profile(new BytesSource("t.csv", bytes), Options());
+    }
+
     private static bool DotNet(string regex, string line) => new Regex(regex).IsMatch(line);
 
     private static bool Ecma(string regex, string line) => new Regex(regex, RegexOptions.ECMAScript).IsMatch(line);
@@ -98,7 +103,7 @@ public sealed class HintTests
     [Fact]
     public void Hints_StableLines_UnmatchableLine_IsLeftOut()
     {
-        // The key is trimmed of a no-break space, which \s matches under .NET but not under ECMAScript, so the line is not offered.
+        // The key is trimmed of a no-break space, which \s matches under the .NET default but not under .NET's RegexOptions.ECMAScript (ASCII-only \s), so the line is not offered.
         var text = "\u00A0Lot=A12\nWafer=2\nSite,Vth\n1,0.5\n2,0.6\n3,0.7\n";
         var d = Profile(text);
         AssertEveryRegexMatchesItsLine(d, text);
@@ -138,6 +143,76 @@ public sealed class HintTests
 
         var all = Profile("a,b\n1,x\n2,y\n");
         Assert.Equal([0L, 1L], all.Hints.NonNullFields!.ToArray());
+    }
+
+    [Fact]
+    public void Hints_NonNullFields_NullOnlyInSeparatorRows_IsListed()
+    {
+        // The blank-field row is a separator: it is all null, so it does not count against a column.
+        var d = Profile("a,b,c\n1,x,\n,,\n2,y,\n3,z,w\n,,\n4,q,\n");
+        Assert.Equal(2, d.Table!.RowClasses!.AllNullRows);
+        Assert.Equal([0L, 1L], d.Hints.NonNullFields!.ToArray());
+        Assert.Equal(2, d.Table.Fields[0].Nulls);
+        Assert.Equal(0, d.Table.Fields[0].NullsExcludingAllNullRows);
+    }
+
+    [Fact]
+    public void Hints_NonNullFields_NullInADataRow_IsNotListed()
+    {
+        var d = Profile("a,b,c\n1,x,1\n,,\n2,,3\n3,z,4\n");
+        Assert.Equal([0L, 2L], d.Hints.NonNullFields!.ToArray());
+    }
+
+    [Fact]
+    public void Hints_NonNullFields_EveryRowASeparator_ListsNothing()
+    {
+        var d = Profile("a,b\n,\n,\n,\n");
+        Assert.NotNull(d.Table);
+        Assert.Equal(d.Table!.Rows, d.Table.RowClasses!.AllNullRows);
+        Assert.NotNull(d.Hints.NonNullFields);
+        Assert.Empty(d.Hints.NonNullFields!);
+    }
+
+    [Fact]
+    public void Hints_StableLines_ReplacementOrControlCharacter_LeavesTheRegexOut()
+    {
+        byte[] File(params byte[] stray)
+        {
+            return TestBytes.Concat(
+                TestBytes.Ascii("Lot=A12\nLo"),
+                stray,
+                TestBytes.Ascii("t=5\nWafer=2\nSite,Vth\n1,0.5\n2,0.6\n3,0.7\n"));
+        }
+
+        foreach (var stray in new[] { new byte[] { 0xFF }, new byte[] { 0x01 }, new byte[] { 0x85 } })
+        {
+            var d = ProfileBytes(File(stray));
+            var regexes = d.Hints.StableLines.Select(static s => s.Regex).ToArray();
+            Assert.Contains("^\\s*Lot\\s*[=:]", regexes);
+            Assert.Contains("^\\s*Wafer\\s*[=:]", regexes);
+            Assert.DoesNotContain(d.Hints.StableLines, static s => s.Line == 1);
+            Assert.Equal(1 + 1 + 2, regexes.Length);
+            Assert.DoesNotContain(regexes, static r => r.Any(static c => c < ' ' || c == '\uFFFD' || (c >= '\u007F' && c <= '\u009F')));
+        }
+    }
+
+    [Fact]
+    public void Hints_StableLines_HeaderWithAStrayByte_KeepsHeaderFieldsButNoHeaderRegex()
+    {
+        var bytes = TestBytes.Concat(TestBytes.Ascii("Lot=A12\nSite,V"), [0xFF], TestBytes.Ascii("th\n1,0.5\n2,0.6\n3,0.7\n"));
+        var d = ProfileBytes(bytes);
+        Assert.Equal(["Site", "V\uFFFDth"], d.Hints.HeaderFields!.ToArray());
+        Assert.Equal(["^\\s*Lot\\s*[=:]"], d.Hints.StableLines.Select(static s => s.Regex).ToArray());
+    }
+
+    [Fact]
+    public void Hints_StableLines_TabIsNotAControlForThisRule()
+    {
+        var text = "Lot=A12\nSite\tVth\tIdsat\n1\t0.5\t3\n2\t0.6\t4\n3\t0.7\t5\n";
+        var d = Profile(text, name: "t.tsv");
+        Assert.Equal("\t", d.Hints.Delimiter);
+        Assert.Equal(3, d.Hints.StableLines.Count);
+        AssertEveryRegexMatchesItsLine(d, text);
     }
 
     // 10
@@ -299,7 +374,7 @@ public sealed class PortableRegexTests
         Assert.False(PortableRegex.MatchesBoth("^a$", "b"));
         Assert.False(PortableRegex.MatchesBoth("(", "("));
 
-        // \s matches a no-break space under .NET but not under ECMAScript.
+        // \s matches a no-break space under the .NET default but not under RegexOptions.ECMAScript, where it is ASCII-only.
         Assert.False(PortableRegex.MatchesBoth("^\\s*Lot\\s*[=:]", " Lot=1"));
         Assert.True(PortableRegex.MatchesBoth("^\\s*Lot\\s*[=:]", "  Lot = 1"));
     }

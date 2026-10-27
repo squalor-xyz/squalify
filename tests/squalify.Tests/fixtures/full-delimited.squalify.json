@@ -509,7 +509,7 @@
     "stableLines": [
       {
         "line": 0,
-        "regex": "^Lot\\s*[=:]"
+        "regex": "^\\s*Lot\\s*[=:]"
       }
     ],
     "headerFields": [
