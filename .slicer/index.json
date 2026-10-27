@@ -625,7 +625,7 @@
       "id": "sq-17",
       "title": "squalify must report row classes in delimited tables",
       "short_title": "Row classes",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-05"
@@ -728,7 +728,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -1110,6 +1110,17 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-05 architect (C4): FieldAccumulator cannot express BLOB (string with length stats only) or STRUCT/LIST/MAP (type null, count and nulls only): add AddOpaque(length) or a counts-only mode and a nullable Type; choose the native-null token for AddNull (recommend \"\"); typed paths allocate a string per value (Ordinal.Invariant, CanonicalNumber.FormatFinite, TemporalMath.Iso) - use TryFormat into a stack span at Parquet row counts.",
           "created_at": "2026-10-27T15:33:50Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "f434c665-f812-4214-bfb9-3173d82f64ba",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-17 architect (H4): only FieldAccumulator.AddText returns the vote; AddInt64/AddDouble/AddBool/AddTemporal/AddNull return void and AddDouble(NaN) silently counts a null, so a Parquet caller would repeat the null decision to build the row-class mask. Make every typed Add* return ValueVote and test the invariant nulls - nullsExcludingAllNullRows == allNullRows. firstLine/lastLine are row ordinals for Parquet.",
+          "created_at": "2026-10-27T15:59:47Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -1511,6 +1522,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "4efbbe0c-6cc5-4230-a4f1-0d1ee7ee5a1d",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-17 architect (H5): one RowClassAccumulator per pass; adjacency carries across skipped lines, firstLine/lastLine span blocks, and today a later block's same-k header becomes a data record forming a spurious all-non-null class. Add RowClassAccumulator.Break() at block boundaries, keep table.rowClasses per file, feed only block 1 for heterogeneous files; expect golden churn.",
+          "created_at": "2026-10-27T15:59:47Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1869,6 +1891,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "0d2bb49d-2657-4c9a-b330-285612398e14",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-17 gate: the writer-model fixture full-delimited.squalify.json (TestModels.FullDelimited) breaks the documented row-class invariants (short ids rc:3f9a, class counts 999 vs 10000 rows, nulls - nullsExcludingAllNullRows != allNullRows for fields 1-3). Make it consistent when the schema becomes normative.",
+          "created_at": "2026-10-27T16:02:43Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -2174,6 +2207,50 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-05 architect: constant can be true while unique is true with distinct 3 (1, 1.0, 01: owner decision, numeric constant compares parsed values). prism's column-constant is same text with NULL as a value, so the consumer subset must spell this out.",
           "created_at": "2026-10-27T15:33:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "57e19a33-ed1a-42b9-aa2f-5ac348701a06",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-17 setup: table.rowClasses.allNullRows counts records whose every field is null by squalify's null vocabulary (blank, NULL, NA, N/A, NaN, ...), while prism's separator rows are all-NULL by its reader's single token. They agree on DangerTest files; state the difference in the consumer subset.",
+          "created_at": "2026-10-27T15:44:21Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "243e2384-c95a-40d9-9261-df18a1e70aa6",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-17 review (G2): ragged records count in table.rows, belong to no row class and not to field nulls, so prism's DataRows = rows - allNullRows includes ragged rows. Invariant: rows == sum(class counts) + truncated + ragged. State it in the consumer subset.",
+          "created_at": "2026-10-27T15:55:17Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "affa7976-973b-4312-80c8-dbb409b65cad",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27): the contract documents; prism adapts. descriptor.md gets a Consumer subset section listing each member, its stability, and each difference from prism (case-insensitive nullTokens keys, NaN as null, constant over parsed values, allNullRows by vocabulary, trimmed names and DataBall grammar, ragged rows) with how prism derives its own view where possible. Where it cannot (exact-text constant, NULL vs null), prism keeps its own pass-1 checks (prism D3, D67). No new descriptor members.",
+          "created_at": "2026-10-27T15:55:56Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "ae9c385e-79b2-45a8-b6a3-bc627013a385",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-17 architect (H7): prism's D11 Constant must use its own data rows, i.e. constant && (nullsExcludingAllNullRows == 0 || nullsExcludingAllNullRows == count - allNullRows), not nulls and count.",
+          "created_at": "2026-10-27T15:59:47Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",

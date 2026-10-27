@@ -55,7 +55,7 @@ public sealed record Limits(
         HeaderSample: 1_000,
         RunawayQuote: 65_536,
         FieldCountRuns: 100_000,
-        RowClasses: 64,
+        RowClasses: ProfileLimits.Default.RowClasses,
         CharsetTolerance: new CharsetTolerance(8, 65_536),
         StdfTests: 10_000,
         Budget: ProfileLimits.Default.Budget,
