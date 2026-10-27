@@ -1,83 +1,179 @@
 # squalify
 
-squalify profiles a data file and writes a **descriptor**. The descriptor is a versioned JSON document that summarizes the file's encoding, format, layout, fields, statistics and structural fingerprint, along with the evidence behind each of those inferences.
+squalify profiles one data file and writes a **descriptor**: a versioned JSON document that says what the file is (encoding, format, dialect), how it is laid out (preamble, header, units row, data, footer), what each column holds (type, null tokens, statistics, units), what looks wrong (issues), and a structural fingerprint. Every inference carries the evidence behind it.
 
-Other tools read the descriptor to decide what to do with the file. Examples: classifying it as a known file type, picking the right transform or import route, or drafting a [DataBall](https://github.com/squalor-xyz/DataBall) file type. squalify itself only describes the file. It suggests a generic `kind` label (for example `labSweepTable` or `stdfTestLog`) from a fixed set of built-in rules, and it reports how header names carry units (for example `Vcc(V)` or `ICC_A`).
+Other tools read the descriptor to decide what to do with the file: recognize a known file type, pick an import route, or draft a loader config. squalify only describes the file; it never converts or matches it.
 
-> Status: early build. The solution skeleton, the descriptor model, the canonical JSON writer (with its determinism kit), the byte pass, the value classifier, the generic profiles and the delimited-text profiler exist. `squalify profile <file>` already writes a valid descriptor for any file (file hash, encoding, text, binary or empty, line endings, byte statistics for binary files). For a delimited table it also finds the delimiter and quoting, the preamble, annotation rows, header, units row, data and footer regions (with line and byte ranges), the padding and decimal separator, and a profile of every field: its type with the votes, null tokens, numeric and date statistics (exact up to fixed caps), lengths, shape masks, monotonicity and the constant and unique flags. Every file gets four structural fingerprints (hashes of a value-free projection) and the detect-rule hints: the extension, the structured magic, and for a delimited table the header names, a header-prefix, the columns without nulls, and portable regexes for the header and preamble lines. A directory is an error. The other format profilers (Touchstone, key=value, STDF), the sketches that replace the exact distinct counts and quantiles past their caps and the kind label are still to come; until then those descriptor sections hold fixed placeholder values (the STDF hints are null). The roadmap lives in slicer (`slicer goals`, `slicer list`).
+> **Status: v0.1.0, early.** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled. Every other file gets the generic text or binary profile. Touchstone, key=value and STDF profilers, sketches for very large columns, repeated blocks and the `kind` label are still to come. The descriptor schema is a **draft** until the v1 schema freeze; before 1.0 a minor version may change it.
 
-## Principles
+## Install
 
-- **Deterministic.** The same input bytes and the same squalify version always give the same descriptor, byte for byte. squalify uses no machine learning, no LLM and no network.
-- **Describe, don't decide.** squalify does not match files against a library of known types, propose configs or convert data. Consumers do that from the descriptor. The built-in `kind` label is a generic hint, and the evidence shows how it was chosen.
-- **Full scan, bounded memory.** squalify streams the whole file. The statistics are exact where that is affordable and come from deterministic, documented approximations beyond fixed caps. The descriptor marks every approximate value as approximate.
-- **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text, and the statistics of columns that hold one value for the whole file) appear only with `--include-values`, or for named keys and columns with `--include-values-for`. A name given to `--include-values-for` is matched whole and ASCII case-folded against preamble keys, annotation labels, key=value keys and column names, and opens every member of that name; a name that matches nothing is reported as the issue `includeValuesForUnmatched`. Column header names are always included, because matching needs them.
-- **Explainable.** Every inference (encoding, delimiter, header row, field type, format) has an evidence entry that lists the candidates considered and why the winner won.
-
-## Usage
+Both packages are on nuget.org (.NET 10):
 
 ```bash
-squalify profile data.csv                     # descriptor to stdout
+dotnet tool install -g squalor.squalify.Cli  # the CLI; the command is `squalify`
+dotnet add package squalor.squalify          # the library
+```
+
+## Quick start
+
+```bash
+squalify profile data.csv                      # descriptor to stdout
 squalify profile data.csv -o data.squalify.json
-squalify profile data.csv --include-values     # include literal values (top values, text min/max, preamble values, annotation cells, units-row text)
-squalify profile data.csv --include-values-for Program --include-values-for Lot   # values of the named keys, labels and columns only (repeatable)
-squalify profile data.csv --verbose            # print full exception details on error
+```
+
+The exit code is 0 on success and 1 on any error (a missing file, a directory, an unreadable file), with a one-line message on stderr.
+
+## What you get
+
+A lab export (`tests/squalify.Tests/fixtures/lab/sweep-preamble.csv`): a 7-line preamble (`Lot=A12`, `Wafer: 7`, ...), the header `Freq(MHz),Pout(dBm),Gain(dB)`, a units row `MHz,dBm,dB`, 20 data rows and a 2-line footer. `squalify profile sweep-preamble.csv` writes about 620 lines of JSON; the most telling parts, compacted (`...` marks cuts):
+
+```json
+"format": { "family": "delimited",
+            "dialect": { "delimiter": ",", "hasHeader": true, "unitsRow": true, "decimalSeparator": ".", ... }, ... },
+"layout": { "regions": [
+  { "kind": "preamble", "lines": [1, 7], "keys": ["Lot", "Wafer", "Temp", "Operator"], ... },
+  { "kind": "header", "lines": [8, 8], ... }, { "kind": "units", "lines": [9, 9], ... },
+  { "kind": "data", "lines": [10, 29], ... }, { "kind": "footer", "lines": [30, 31], ... } ], ... },
+"table": { "rows": 20, "fields": [ ...,
+  { "name": "Pout(dBm)", "nameParts": { "base": "Pout", "unit": "dBm", "convention": "nameParenUnit", ... },
+    "type": "float", "nulls": 0, "nullTokens": {},
+    "numeric": { "min": 10, "max": 19.5, "mean": 14.75, "quantiles": { "p50": 14.5, ... }, ... },
+    "shapes": [{ "mask": "9{2}.9", "count": 20 }], "monotonic": "increasing", "unique": true,
+    "top": null, "text": null, ... }, ... ] },
+"fingerprint": { "version": 1, "structure": "sha256:4bb113e3...", "typed": "sha256:9f8de819...", ... },
+"issues": [],
+"evidence": [ ...,
+  { "stage": "dialect", "topic": "delimiter", "chosen": ",",
+    "candidates": [{ "value": ",", "score": 0.7096774193548387, "reason": "k=3; 22/31 records; clean=1; ..." }, ...] }, ... ]
+```
+
+- **No data values by default.** Preamble keys and header names are included; `A12`, units-row text, top values and text min/max are not.
+- Region lines are 1-based and inclusive. `kind` is an interim `text`, `binary` or `empty` label until the kind rules land.
+
+Top-level sections: `file` (name, size, SHA-256), `encoding`, `format`, `kind`, `layout`, `table` (delimited) or `binary`, `fingerprint`, `hints` (inputs for detect rules), `issues` and `evidence`. The full schema is in [`docs/descriptor.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md).
+
+## Examples
+
+**A padded export with a limits block and a broken row.** `tests/squalify.Tests/fixtures/delimited/padded-annotated.csv` has `Key :,value` lines, `Upper_limit`/`Lower_limit`/`Unit` rows above the header, `NA.` for missing values and one row missing a comma:
+
+```json
+"padding": { "trim": true, "constantLineLength": true, "lineLength": 74, ... }
+{ "kind": "annotation", "lines": [6, 9], "rows": [{ "line": 6, "label": "Prog_line", "type": "int", ... }, ...] }
+{ "name": "Gain(dB)", "type": "float", "nulls": 2, "nullTokens": { "NA.": 2 }, ... }
+"issues": [{ "code": "raggedRows", "count": 1, "firstLines": [17] }]
+```
+
+A loader for this file needs: skip 10 lines, trim padding, treat `NA.` as null, expect line 17 to be short.
+
+**Opting in to values.** `--include-values` adds preamble values (`"values": ["A12", "7", "25", "jr"]`), units-row text (`"unit": "MHz"`), top values and text min/max. `--include-values-for` opens only named keys, labels and columns:
+
+```bash
+squalify profile lab-sweep.csv --include-values-for Mode
+```
+
+```json
+{ "name": "Mode", "top": { "items": [{ "value": "OFDM", "count": 5 }, { "value": "CW", "count": 3 }], ... },
+  "text": { "min": "CW", "max": "OFDM" }, ... }
+```
+
+A name that matches nothing is reported as the issue `includeValuesForUnmatched`.
+
+**Schema-drift check.** Fingerprints hash a value-free projection, so same-structure files hash the same whatever their values:
+
+```bash
+for f in monday.csv tuesday.csv wednesday.csv; do echo "$f $(squalify profile "$f" | jq -r .fingerprint.typed)"; done
+```
+
+```text
+monday.csv sha256:9f8de819f1eaca5a6436ec7e9a99f8f52dfb2cc089a841a48fe3812586742e3d
+tuesday.csv sha256:9f8de819f1eaca5a6436ec7e9a99f8f52dfb2cc089a841a48fe3812586742e3d
+wednesday.csv sha256:ab6a7325f88d25e61fb3d22251d2a93b80d36e29e9b8d0b8291796894241f283
+```
+
+`tuesday.csv` has a different lot and readings (same hash); `wednesday.csv` adds an `Icc(mA)` column (new hash). `structure` ignores names; `names` tracks only the column-name set. Compare hashes only when `fingerprint.version` matches.
+
+**Triage an unknown file** (`tests/squalify.Tests/fixtures/binary/sample.gz`, renamed; nothing is decompressed):
+
+```bash
+squalify profile mystery.bin | jq -c '{family: .format.family, magic: .hints.magic}'
+# {"family":"binary","magic":{"name":"gzip","offset":0,"hex":"1f8b"}}
+```
+
+**CI gate.** `squalify profile data.csv | jq -e '.issues == []' > /dev/null` exits non-zero when any issue is found.
+
+## Formats
+
+| Family | In 0.1.0 | What is described |
+|---|---|---|
+| Delimited text | Yes | CSV, TSV, `;`, `\|` or whitespace separated; delimiter, quoting, padding and decimal separator; preamble, annotation rows, header, units row, data and footer; row classes; per-field profiles; header-unit convention |
+| Plain text | Yes | Encoding, line endings, line kinds, longest line |
+| Binary | Yes | Named magic (gzip, zip, pdf, sqlite, hdf5, `parquet` and others), byte histogram, entropy |
+| Touchstone (`.sNp`, `.ts`) | Planned | Profiled as text for now |
+| Key=value / INI | Planned | Profiled as text for now |
+| STDF V4 | Planned | Profiled as binary, with the `stdf-le` or `stdf-be` magic hint, for now |
+
+Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint.
+
+## CLI reference
+
+```text
+squalify profile <path> [options]
+
+  -o, --output <file>          Write the descriptor to a file instead of stdout
+  --include-values             Include literal data values
+  --include-values-for <name>  Include values only for this preamble key, annotation label,
+                               key=value key or column (repeatable; whole name, ASCII case-folded)
+  --verbose                    Print full exception details on error
+
 squalify --version
 ```
 
-## Use as a library
+## Library
 
-The NuGet package `squalor.squalify` holds the profiler that the CLI uses, so a .NET program can write a descriptor in process:
+The `squalor.squalify` package holds the same profiler the CLI uses:
 
 ```csharp
 using squalor.squalify;
 
 var descriptor = Profiler.Profile("data.csv", ProfileOptions.Create(includeValues: false, includeValuesFor: []));
-var bytes = DescriptorWriter.ToBytes(descriptor);
+byte[] json = DescriptorWriter.ToBytes(descriptor);   // the exact bytes the CLI writes
+
+Console.WriteLine($"{descriptor.Format.Family} {descriptor.Fingerprint.Typed} issues={descriptor.Issues.Count}");
 ```
 
-**Version policy.** The package version is the version the tool reports: `squalify --version`, `ToolInfo.Version`, and `tool.version` in every descriptor. All three come from the build's `Version`: `<Version>` in `Directory.Build.props`, which the release workflow overrides with the tag, so one string names each build. The first package is 0.1.0, while the descriptor schema is still a draft.
+Failures (missing file, directory, unreadable file) throw `SqualifyException`. `Profiler.Profile(IProfileSource, ProfileOptions)` profiles a source other than a file path.
 
-**Install.** Both packages are published to nuget.org from release tags, starting with v0.1.0 ([`docs/release.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md)):
+## Determinism and principles
+
+- **Deterministic.** The same bytes and the same squalify version give the same descriptor, byte for byte, on any OS, CPU or culture. No machine learning, no LLM, no network.
+- **Describe, don't decide.** No matching against known types, no config proposals, no conversion. Consumers do that from the descriptor.
+- **Full scan, bounded memory.** The whole file is streamed. Statistics are exact up to fixed caps (`limits`); past a cap the descriptor says so rather than guessing.
+- **No data values by default, and explainable.** Literal values appear only with `--include-values` or `--include-values-for`; every inference has an `evidence` entry.
+
+**Versions.** The package version, `squalify --version` and `tool.version` in every descriptor are the same string. Before 1.0, and until the schema freeze, a minor version may change the descriptor schema.
+
+## Build from source
 
 ```bash
-dotnet add package squalor.squalify          # the library
-dotnet tool install -g squalor.squalify.Cli  # the CLI; the command is `squalify`
+dotnet build squalify.sln -c Release
+dotnet test squalify.sln -c Release
+dotnet run --project src/squalify.Cli -c Release -- profile <file>
+dotnet pack src/squalify/squalify.csproj -c Release -o ./nupkg   # local feed
 ```
 
-**Stability.** Versions before 1.0 may change the descriptor schema in a minor version until the schema freeze (sq-12).
-
-To build the packages yourself, pack into a local folder feed:
-
-```bash
-dotnet pack src/squalify/squalify.csproj -c Release -o ./nupkg
-dotnet add package squalor.squalify --version 0.1.0 --source ./nupkg
-```
-
-## Formats in v1
-
-| Family | Examples | What is described |
-|---|---|---|
-| Delimited text | CSV, TSV, `;` and `\|` separated, with or without a lab preamble, annotation rows above the header, a units row, padding or repeated blocks | encoding, delimiter/quoting/padding, preamble keys, annotation, header and units rows, data region, row classes, per-field profiles, header-unit convention |
-| Touchstone | `.s1p` … `.sNp`, `.ts` (v1 and v2) | option line, ports, network and noise blocks, per-parameter profiles |
-| Key=value documents | INI-style `[section]` + `key=value` files | sections, keys, value types |
-| STDF V4 | `.stdf`, `.std` | endianness, record-type counts and order, truncation, test catalog (numbers and names) |
-| Other binary | gzip, zip, unknown | named magic, byte histogram, entropy profile |
-
-Parquet is not in v1. A Parquet file is profiled as any other unsupported binary: the byte profile plus a `parquet` magic hint. It can be added later if a consumer needs it.
+Releases: [`docs/release.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md). Contributing: [`AGENTS.md`](https://github.com/squalor-xyz/squalify/blob/main/AGENTS.md).
 
 ## Relationship to DataBall
 
-DataBall picks a handler from a bounded 64 KiB `FileProbe`, and its file types declare match rules plus a config. squalify is a separate tool with no DataBall dependency: **the descriptor schema is the contract between them**. Using descriptors from DataBall (matching, or proposing file types) is DataBall's work and is tracked in DataBall's roadmap.
+squalify has no dependency on [DataBall](https://github.com/squalor-xyz/DataBall); the descriptor schema is the contract. Using descriptors in DataBall (matching files, proposing file types) is tracked in DataBall's roadmap.
 
 ## Docs
 
-- [`docs/how-it-works.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md): diagrams of how a profile run works ([PDF](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.pdf)).
-- [`docs/design.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/design.md): architecture, pipeline, determinism rules and memory bounds.
-- [`docs/descriptor.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md): descriptor schema v1 (draft).
-- [`docs/reviews/`](https://github.com/squalor-xyz/squalify/tree/main/docs/reviews): generic reviews of real sample data and what they changed.
-- [`profiler-idea.md`](https://github.com/squalor-xyz/squalify/blob/main/profiler-idea.md): the original idea prompt.
-- [`AGENTS.md`](https://github.com/squalor-xyz/squalify/blob/main/AGENTS.md): how to work on this repo.
+- [How it works](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md): diagrams of a profile run ([PDF](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.pdf)).
+- [Design](https://github.com/squalor-xyz/squalify/blob/main/docs/design.md): architecture, pipeline, determinism rules, memory bounds.
+- [Descriptor schema](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md): schema v1 (draft).
+- [Reviews](https://github.com/squalor-xyz/squalify/tree/main/docs/reviews): generic findings from real sample data.
 
 ## License
 

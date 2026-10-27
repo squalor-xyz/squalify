@@ -11,8 +11,10 @@ squalify is an Apache-2.0 .NET 10 library (`squalor.squalify`) and CLI (`squalif
 - `tests/squalify.Tests/`: xUnit for the library. Fixtures live under `tests/squalify.Tests/fixtures/`, and golden descriptors sit next to them.
 - `tests/squalify.Cli.Tests/`: xUnit for the CLI, run in-process through `CommandFactory.InvokeAsync`.
 - `docs/`: `how-it-works.md` (diagrams; `.html` and `.pdf` are committed renders of it), `design.md` (architecture) and `descriptor.md` (schema).
-- `scripts/`: `render-docs.sh` renders the committed docs (see Docs below).
+- `scripts/`: `render-docs.sh` renders the committed docs (see Docs below); `corpus-check.sh` runs the private-corpus check (see Tests).
 - `docs/release.md`: how to cut a release (tag `vX.Y.Z`; the workflow publishes to nuget.org).
+- `docs/reviews/`: generic write-ups of real-sample findings. `docs/process/relay-log.md`: lessons from slice relays.
+- `.github/workflows/`: `ci.yml` (build, test and format on Windows, macOS and Linux) and `release.yml`.
 - `.slicer/`: roadmap and slice tracking. Manage it only through the `slicer` CLI.
 
 ## Build, test, format
@@ -34,7 +36,7 @@ Run all three before handing off a change.
 - Public failures surface as `SqualifyException`. Wrap lower-level exceptions instead of leaking IO types.
 - **Determinism is a hard rule.** Output must not depend on the current time, culture, machine, path, thread scheduling, hash-seed randomization or dictionary enumeration order. Format numbers with the invariant culture and shortest round-trip formatting, and sort every collection by a documented key. See `docs/design.md`.
 - No ML, no LLM calls, no network access.
-- Literal data values appear in a descriptor only under `--include-values`.
+- Literal data values appear in a descriptor only under `--include-values` or `--include-values-for` (see `ValuesPolicy`).
 - Prefer the BCL and in-repo code. Ask the owner before adding any package. Approved dependencies: System.CommandLine 2.0.11 (CLI), and in the test projects only Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3 and xunit.runner.visualstudio 3.1.5.
 - Output-affecting math uses only IEEE `+ - * /` and `Math.Sqrt`. Logarithms go through `DetMath`, and sketch hashing through the in-repo `XxHash64`. Never use `Math.Log`, `Exp` or `Pow`, or `string.GetHashCode`, in output paths.
 - A descriptor schema change updates `docs/descriptor.md` and bumps `schemaVersion` according to the policy there, in the same commit.
@@ -63,10 +65,11 @@ Run all three before handing off a change.
 
 - Test-first for slices: write the slice's named tests, watch each one fail for the stated reason, then implement.
 - Mutation-check new tests: break the product code, confirm the test goes red for the right reason, then revert.
-- Every supported format has golden-descriptor tests. Determinism tests profile the same fixture twice, and under a different culture, and compare the bytes.
+- Every supported format has golden-descriptor tests. `SQUALIFY_UPDATE_GOLDEN=1 dotnet test ...` rewrites the goldens; review the diff before committing. Determinism tests profile the same fixture twice, and under a different culture, and compare the bytes.
 - No GB-scale fixtures in CI. Large-file behavior is tested with generated streams.
 - Real samples never enter the repository; findings from them are written up generically under `docs/reviews/`.
 - The private-corpus check (`scripts/corpus-check.sh <dir>`, `Category=Corpus`) profiles a directory outside the repository; CI excludes it with `Category!=Corpus`.
+- The `Category=Package` tests pack both NuGet packages and check them. The README ships in both packages and renders on nuget.org, so its links must be absolute URLs (`Package_Readme_HasNoRelativeLinks`).
 
 ## Tracking (slicer)
 
