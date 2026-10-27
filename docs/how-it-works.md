@@ -212,7 +212,7 @@ flowchart LR
         A4["Units parsed from header names"]
         A1 ~~~ A2 ~~~ A3 ~~~ A4
     end
-    subgraph optin["Only with --include-values"]
+    subgraph optin["Only with --include-values<br/>(or --include-values-for, for the names given)"]
         direction TB
         O1["Preamble and key=value values"]
         O2["Ten most common values and their counts,<br/>text min/max<br/><small>TopK</small>"]

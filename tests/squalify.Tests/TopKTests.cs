@@ -134,7 +134,19 @@ public sealed class TopKTests
             return top.Build();
         }
 
-        Assert.Equal(Run(), Run(), TopValuesComparer.Instance);
+        var result = Run();
+        Assert.Equal(result, Run(), TopValuesComparer.Instance);
+
+        // Pinned: every eviction was a tie, settled by lowest count and then lowest ordinal value.
+        Assert.True(result.Approximate);
+        Assert.Equal(41L, result.MaxError);
+        Assert.Equal(
+            new[]
+            {
+                ("u067", 42L), ("u081", 42L), ("u148", 42L), ("u162", 42L), ("u243", 42L), ("u324", 42L), ("u405", 42L), ("u486", 42L),
+                ("u377", 41L), ("u391", 41L),
+            },
+            result.Items.Select(static i => (i.Value, i.Count)).ToArray());
     }
 
     private sealed class TopValuesComparer : IEqualityComparer<TopValues>

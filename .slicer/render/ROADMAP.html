@@ -39,7 +39,7 @@
 - Editing, repairing or converting files.<br>
 - A dependency on DataBall. The descriptor schema is the contract.<br>
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
-<p class="summary">28 items · — 13 · done 13 · later 1 · started 1</p>
+<p class="summary">30 items · — 14 · done 14 · later 1 · started 1</p>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="started"><td>1</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">started</td></tr>
 <tr class="open"><td>2</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
@@ -56,20 +56,23 @@
 <tr class="open"><td>13</td><td>sq-23</td><td>sq-02 review nits</td><td>S</td><td>1</td><td>core</td><td>sq-02 architect nits: (1) how-it-works.md:34 small text &#x27;hints builder&#x27; is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02</td><td class="status">—</td></tr>
 <tr class="open"><td>14</td><td>sq-24</td><td>Invalid UTF-16/32 reporting</td><td>S</td><td>1</td><td>core</td><td>sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE &#x27;hello world\n&#x27; plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03</td><td class="status">—</td></tr>
 <tr class="open"><td>15</td><td>sq-28</td><td>Ragged skip by field count</td><td>S</td><td>1</td><td>core</td><td>sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with &#x27;skip only ragged records that have at least 2 fields&#x27;. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · discovered from sq-27</td><td class="status">—</td></tr>
+<tr class="group"><td></td><td colspan="7"><strong>v0.2.0</strong></td></tr>
+<tr class="open"><td>16</td><td>sq-30</td><td>Package icon</td><td>S</td><td>1</td><td></td><td>discovered from sq-29</td><td class="status">—</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="done"><td>16</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>17</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>18</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>19</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>20</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>21</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>22</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>23</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>24</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>25</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>26</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>27</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>28</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
+<tr class="done"><td>17</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>18</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>19</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>20</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>21</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>22</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>23</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>24</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>25</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>26</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>27</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>28</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>29</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
+<tr class="done"><td>30</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
 </tbody></table>
 </body></html>

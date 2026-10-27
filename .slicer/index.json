@@ -1059,6 +1059,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "90abfcb0-4be8-44b5-9366-557a57d7f742",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision 2026-10-27 (review R4): \"Drop duplicates (Recommended)\": options.includeValuesFor is a sorted set; bytes change only when a user repeats a name.",
+          "created_at": "2026-10-27T18:26:03Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {
