@@ -13,6 +13,11 @@
     <Version>0.1.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Deterministic>true</Deterministic>
+    <!-- Symbol packages (snupkg) for every packable project. Only projects that set IsPackable pack at all. -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Normalizes source paths in CI builds. Local builds keep their local paths. -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile Condition="'$(MSBuildProjectName)' == 'squalify'">true</GenerateDocumentationFile>
   </PropertyGroup>

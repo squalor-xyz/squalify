@@ -6,10 +6,16 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>squalify</ToolCommandName>
     <IsPackable>true</IsPackable>
-    <Description>Command-line tool that profiles a data file into a deterministic JSON descriptor.</Description>
+    <PackageId>squalor.squalify.Cli</PackageId>
+    <Description>Command-line tool that profiles a data file into a deterministic JSON descriptor. Install it as the squalify .NET tool.</Description>
+    <PackageTags>squalify;profiling;descriptor;csv;data-profiling;dotnet-tool</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="squalify.Cli.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.11" />
