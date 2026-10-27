@@ -1,0 +1,41 @@
+{
+  "id": "sq-38",
+  "title": "Sketches under the memory budget",
+  "lead": [
+    "Brings the per-field sketches under the memory budget. Today each field that crosses a cap holds a fixed 16 KiB HyperLogLog plus a Greenwald-Khanna summary (two for an ambiguous date field). `EstimatedBytes` counts them, but no budget limits them, so a wide table where many fields cross caps can exceed the allowance (sq-11 review: about 280 MB for 2,000 numeric fields, more for ambiguous dates)."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** HLL++ bias tables; changing the exact caps.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-27, sq-11 review), verbatim: \"Document now, file a follow-up (Recommended)\" (option text: \"Write the per-field cost into design.md now. File a slice to bring sketches under the budget, for example by loosening quantile precision as field count grows. Real wide files rarely cross caps on many fields.\")."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Sketches/GreenwaldKhanna.cs`, `HyperLogLog.cs`, `src/squalify/Fields/FieldAccumulator.cs`, `MemoryBudget`: scale sketch precision (GK epsilon, possibly HLL register count) by field count so the total fits the allowance; record the effective values in `limits` and in each field's `rankError` / `relativeStdError`.\n- `docs/design.md` (Bounded memory and sketches), `docs/descriptor.md`."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. An in-process test on a generated 2,000-column stream where every field crosses its caps: the summed `EstimatedBytes` stays within the allowance.\n2. The reported error members match the scaled precision.\n3. Goldens for narrow files are unchanged."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release` (also with `GITHUB_ACTIONS=true`)\n- `dotnet format squalify.sln --verify-no-changes`\n- `docs/how-it-works.md` updated and re-rendered if section 5 changes.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/<id>` on branch `<id>`. No agent commits."
+    }
+  ],
+  "notes": []
+}

@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 38,
+  "next_id": 39,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -1487,6 +1487,17 @@
           "kind": "",
           "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"Budget data over a measured baseline (Recommended)\" (option text: \"64 MiB caps what squalify holds, not the whole process. The test measures peak RSS minus a small-file baseline, both run in the same child with default runtime settings, and asserts the difference is at most 64 MiB. The fixed runtime cost is ignored, so this tests the default CLI and holds on any OS.\"). Large run as built (tiering off): peak 71.0 MB, ceiling 76.5 MB, 636 s.",
           "created_at": "2026-10-27T20:10:09Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "1eb5f05f-59e7-45fa-acc0-2b4167c3a6b1",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27), verbatim answers: HLL switch: \"Switch later, at 3.5m (Recommended)\" (option text: \"Keep linear counting up to about 57k, where the two estimators meet. Worst-case error drops to about 1.2%, with no bias tables. This departs from the spec's 2.5m. Adds a test near 41k that pins the error.\"). Sketch cost: \"Document now, file a follow-up (Recommended)\" (option text: \"Write the per-field cost into design.md now. File a slice to bring sketches under the budget, for example by loosening quantile precision as field count grows.\"). errorBound: \"Rename per meaning (Recommended)\" (option text: \"`distinct.relativeStdError` (0.008125, 1 sigma) and `quantiles.rankError` (0.001, worst case) for numeric and temporal.\"). Shape cap: \"Add the per-field share (Recommended)\" (option text: \"Write `limits.shapeCharsPerField` next to the other per-field caps\").",
+          "created_at": "2026-10-27T20:18:04Z",
           "attempt": 1,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -3043,6 +3054,36 @@
         "importance": 2,
         "urgency": 1,
         "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-38",
+      "title": "Sketches under the memory budget",
+      "short_title": "Sketches under the memory budget",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-11",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": null,
         "attempts": 0
       }
     }

@@ -409,3 +409,6 @@
 {"when": "2026-10-27T20:01:53Z", "item": "sq-37", "action": "set", "from": "", "to": "", "note": "pass_key -→v0.2.0"}
 {"when": "2026-10-27T20:06:53Z", "item": "sq-13", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27), verbatim answers: block rule \"", "by": "Jon Robbins"}
 {"when": "2026-10-27T20:06:54Z", "item": "sq-34", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"Parallel, sq-34 land", "by": "Jon Robbins"}
+{"when": "2026-10-27T20:18:04Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27), verbatim answers: HLL switch: ", "by": "Jon Robbins"}
+{"when": "2026-10-27T20:18:19Z", "item": "sq-38", "action": "add", "from": "", "to": "open", "note": "Sketches under the memory budget"}
+{"when": "2026-10-27T20:18:19Z", "item": "sq-38", "action": "promote", "from": "", "to": "", "note": ""}
