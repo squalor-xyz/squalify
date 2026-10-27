@@ -394,3 +394,9 @@
 {"when": "2026-10-27T19:48:21Z", "item": "sq-34", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27), verbatim answers: pass \"sq-34 ", "by": "Jon Robbins"}
 {"when": "2026-10-27T19:48:22Z", "item": "sq-34", "action": "note", "from": "", "to": "", "note": "Orchestrator (2026-10-27): replacing the lead rule changes t", "by": "Jon Robbins"}
 {"when": "2026-10-27T19:48:22Z", "item": "sq-28", "action": "retire", "from": "open", "to": "retired", "note": "Owner decision (2026-10-27), verbatim: \"Fold into sq-34\". Scope moved to sq-34."}
+{"when": "2026-10-27T19:51:12Z", "item": "sq-35", "action": "add", "from": "", "to": "open", "note": "Byte-limited profiling"}
+{"when": "2026-10-27T19:51:12Z", "item": "sq-36", "action": "add", "from": "", "to": "open", "note": "Exact null spellings"}
+{"when": "2026-10-27T19:51:12Z", "item": "sq-37", "action": "add", "from": "", "to": "open", "note": "Raw header names"}
+{"when": "2026-10-27T19:51:15Z", "item": "sq-35", "action": "set", "from": "", "to": "", "note": "pass_key"}
+{"when": "2026-10-27T19:51:15Z", "item": "sq-36", "action": "set", "from": "", "to": "", "note": "pass_key"}
+{"when": "2026-10-27T19:51:15Z", "item": "sq-37", "action": "set", "from": "", "to": "", "note": "pass_key"}
