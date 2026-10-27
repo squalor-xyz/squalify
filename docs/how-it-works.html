@@ -382,11 +382,13 @@ added the header-unit conventions (<code>HeaderConventionParser</code>,
 a unit, and the file reports its dominant convention. sq-17 added the
 row classes (<code>RowClassAccumulator</code>): the data rows are
 grouped by which columns are filled in, so a table that mixes
-measurement, setup, error and empty separator rows says so. Every source
-file that does not exist yet is marked <em>(planned)</em>. When an
-architectural review or a slice changes how squalify works, this page
-and its diagrams are updated in the same change (see “Docs” in
-<code>AGENTS.md</code>).</p>
+measurement, setup, error and empty separator rows says so. sq-25
+documented and tested the consumer subset of the descriptor
+(<code>docs/descriptor.md</code>, “Consumer subset”); it changes no code
+and no diagram. Every source file that does not exist yet is marked
+<em>(planned)</em>. When an architectural review or a slice changes how
+squalify works, this page and its diagrams are updated in the same
+change (see “Docs” in <code>AGENTS.md</code>).</p>
 </blockquote>
 <p>squalify reads one data file and writes a
 <strong>descriptor</strong>: a JSON summary of what the file is and what

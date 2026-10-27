@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 27,
+  "next_id": 28,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -1902,6 +1902,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "1fb60631-3866-48bf-9298-072147c3e6e2",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-25 review: (L7) put the rule 'adding a value to a closed set (enum) is a minor change' into the versioning policy, which today covers only keys; (L8) ConsumerSubsetTests reads docs/descriptor.md via Golden.SourceFixturesRoot (CallerFilePath) with no fallback - breaks if ContinuousIntegrationBuild/PathMap or a packed test run is added; copy the doc to test output or accept.",
+          "created_at": "2026-10-27T16:19:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -2105,7 +2116,7 @@
       "id": "sq-25",
       "title": "Consumer classification contract",
       "short_title": "Consumer classification contract",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-04",
@@ -2258,7 +2269,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-27T16:03:59Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -2277,7 +2291,7 @@
         "importance": 3,
         "urgency": 2,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -2308,6 +2322,38 @@
         "reason": "",
         "importance": 2,
         "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-27",
+      "title": "squalify must keep the header when a ragged record falls inside the data-run start window",
+      "short_title": "Ragged run start",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [
+        "sq-04"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit.",
+        "discovered_from": "sq-25",
+        "parent": "",
+        "cites": [],
+        "key": "sq25-ragged-run-start",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
         "effort": 1,
         "attempts": 0
       }
