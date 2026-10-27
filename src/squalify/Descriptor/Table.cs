@@ -5,7 +5,7 @@ namespace squalor.squalify;
 /// <param name="Rows">Number of data rows.</param>
 /// <param name="FieldCount">Minimum and maximum field count over the data rows.</param>
 /// <param name="Fields">Field profiles in column order.</param>
-/// <param name="RowClasses">Row classes, once profiled (sq-17).</param>
+/// <param name="RowClasses">Row classes of a delimited table.</param>
 public sealed record TableSection(
     long Rows,
     MinMax FieldCount,
@@ -13,7 +13,7 @@ public sealed record TableSection(
     RowClassesInfo? RowClasses = null);
 
 /// <summary>The <c>table.rowClasses</c> object.</summary>
-/// <param name="Count">Number of classes seen.</param>
+/// <param name="Count">Number of classes listed (at most <c>limits.rowClasses</c>); <c>Truncated &gt; 0</c> means more exist.</param>
 /// <param name="Transitions">Number of class transitions.</param>
 /// <param name="AllNullRows">Number of all-null rows.</param>
 /// <param name="Truncated">Records counted past the class cap.</param>

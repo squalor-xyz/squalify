@@ -360,7 +360,7 @@ internal static class HeaderDetector
                 nonBlank++;
             }
 
-            seen.Add(AsciiFold(text));
+            seen.Add(Ordinal.AsciiFold(text));
             var vote = record.Votes[c];
             if (vote is not (ValueVote.Int or ValueVote.Float))
             {
@@ -384,20 +384,6 @@ internal static class HeaderDetector
         var score = nonEmptyShare * nonNumericShare * uniqueShare * (0.5 + (0.5 * contrast));
         var eligible = nonBlank == k && seen.Count == k && fails > 0;
         return new Detail(true, eligible, score, nonEmptyShare, nonNumericShare, uniqueShare, contrast, fails);
-    }
-
-    private static string AsciiFold(ReadOnlySpan<char> text)
-    {
-        var chars = text.ToArray();
-        for (var i = 0; i < chars.Length; i++)
-        {
-            if (chars[i] is >= 'A' and <= 'Z')
-            {
-                chars[i] = (char)(chars[i] + ('a' - 'A'));
-            }
-        }
-
-        return new string(chars);
     }
 
     private readonly record struct Detail(

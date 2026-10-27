@@ -31,19 +31,31 @@ public class OrdinalTests
     }
 
     [Fact]
-    public void CaseFold_IsInvariant_UnderTurkishCulture()
+    public void AsciiFold_IsInvariant_UnderTurkishCulture()
     {
         var previous = CultureInfo.CurrentCulture;
         try
         {
             CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
-            Assert.Equal("title", Ordinal.CaseFold("TITLE"));
-            Assert.Equal("i", Ordinal.CaseFold("I"));
+            Assert.Equal("title", Ordinal.AsciiFold("TITLE"));
+            Assert.Equal("i", Ordinal.AsciiFold("I"));
+            Assert.Equal("i\u0130", Ordinal.AsciiFold("I\u0130"));
+            Assert.Equal("title", Ordinal.AsciiFold("TITLE".AsSpan()));
+            Assert.Equal("i\u0130", Ordinal.AsciiFold("I\u0130".AsSpan()));
         }
         finally
         {
             CultureInfo.CurrentCulture = previous;
         }
+    }
+
+    [Fact]
+    public void AsciiFold_SpanAndString_AgreeAndHandleEmpty()
+    {
+        const string text = "AbC-xYz 09 \u00C9\u00E9";
+        Assert.Equal(Ordinal.AsciiFold(text), Ordinal.AsciiFold(text.AsSpan()));
+        Assert.Equal("abc-xyz 09 \u00C9\u00E9", Ordinal.AsciiFold(text.AsSpan()));
+        Assert.Equal(string.Empty, Ordinal.AsciiFold(ReadOnlySpan<char>.Empty));
     }
 
     [Fact]

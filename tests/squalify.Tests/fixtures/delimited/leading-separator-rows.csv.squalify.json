@@ -110,6 +110,45 @@
       "min": 3,
       "max": 3
     },
+    "rowClasses": {
+      "count": 3,
+      "transitions": 120,
+      "allNullRows": 60,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:6021b5621680598b",
+          "count": 60,
+          "fields": [
+            [
+              2,
+              2
+            ]
+          ],
+          "firstLine": 3,
+          "lastLine": 121
+        },
+        {
+          "id": "rc:ef46db3751d8e999",
+          "count": 60,
+          "fields": [],
+          "firstLine": 2,
+          "lastLine": 120
+        },
+        {
+          "id": "rc:22dc4629eaf665af",
+          "count": 20,
+          "fields": [
+            [
+              0,
+              2
+            ]
+          ],
+          "firstLine": 122,
+          "lastLine": 141
+        }
+      ]
+    },
     "fields": [
       {
         "index": 0,
@@ -342,7 +381,9 @@
       "Gain(dB)",
       "Status"
     ],
-    "nonNullFields": [],
+    "nonNullFields": [
+      2
+    ],
     "fieldCount": {
       "min": 3,
       "max": 3

@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -24,18 +24,18 @@ flowchart LR
 
 ## 2. One profile run
 
-Every file goes through the same steps. A step that reads the file reads all of it, start to end, and keeps only bounded summaries in memory. The file can be far larger than RAM.
+Every file goes through the same steps. A step that reads the file reads all of it, start to end (the one exception is the hint step, which re-reads only the first lines, up to the header), and keeps only bounded summaries in memory. The file can be far larger than RAM.
 
 ```mermaid
 flowchart TD
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
     B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
-    C --> D["4. Profile every field:<br/>types and statistics<br/><small>FieldAccumulator</small>"]
-    D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, KindRules, hints builder</small>"]
+    C --> D["4. Profile every field:<br/>types and statistics, and group the rows<br/><small>FieldAccumulator, RowClassAccumulator</small>"]
+    D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, HintBuilder, KindRules</small>"]
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and the fingerprint and kind label hold fixed placeholder values until their slices land. The row classes are still to come. For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines.
 
 ## 3. Choosing a format
 
@@ -233,7 +233,7 @@ A matching fingerprint does not prove two files are the same kind of file. Many 
 
 ```mermaid
 flowchart LR
-    D["Finished descriptor"] --> P["Value-free projection<br/><small>Projection</small>"]
+    D["Descriptor parts:<br/>format, layout, table"] --> P["Value-free projection<br/><small>Projection</small>"]
     P --> S["structure<br/><small>format, dialect, region kinds;<br/>no names</small>"]
     P --> L["layout<br/><small>format, delimiter, regions,<br/>preamble keys, header convention,<br/>column names</small>"]
     P --> T["typed<br/><small>layout + column types</small>"]
@@ -268,7 +268,7 @@ flowchart TD
 
 *Source: `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`. The Parquet, Touchstone, key=value and STDF contributors are (planned).*
 
-The **hints** are facts a consumer can turn into match rules: the extension, the named magic bytes with their offset, the header names, the first five names, the columns that had no empty values, the delimiter, and the file-name shape. The most useful are the **stable lines**: a regex for the header line, a looser one for just its first five names, and one for each `key=value` line in the preamble. Each regex is built from the real text of the line, so it matches the file as written, including quotes and padding. A comment or free-text line is data, so its regex is written only with `--include-values`.
+The **hints** are facts a consumer can turn into match rules: the extension, the named magic bytes with their offset, the header names, the first five names, the columns that had no empty values outside blank separator rows, the delimiter, and the file-name shape. The most useful are the **stable lines**: a regex for the header line, a looser one for just its first five names, and one for each `key=value` line in the preamble. Each regex is built from the real text of the line, so it matches the file as written, including quotes and padding. A comment or free-text line is data, so its regex is written only with `--include-values`, and a line with a stray unreadable byte or a control character gets no regex.
 
 The regexes use a very small part of the regex language, so the same text works in .NET and in other engines. squalify checks every regex against its own line under two engines (the .NET default and its stricter ECMAScript mode) and keeps only the ones that match under both.
 
@@ -347,16 +347,21 @@ Logarithms are the one place where platforms can disagree: the system math libra
 
 ## 10. Row classes
 
-Some exports mix several kinds of row in one table: measurement rows, setup rows, error rows and empty separator rows, switching kind on almost every line. squalify groups rows by which columns are filled in and reports each group, how often the kind switches, and how many rows are empty. Column null counts are also given without the empty rows, so separators do not look like missing measurements.
+Some exports mix several kinds of row in one table: measurement rows, setup rows, error rows and empty separator rows, switching kind on almost every line. Regions cannot describe that, because a region is one stretch of lines. squalify groups the data rows by which columns are filled in, and reports each group, how often the kind switches, and how many rows are completely empty. Column null counts are also given without the empty rows, so separators do not look like missing measurements.
 
 ```mermaid
-flowchart LR
-    R["Each data row"] --> M["Which columns are filled<br/><small>null mask</small>"]
-    M --> G["Group rows with the same mask<br/><small>RowClassAccumulator</small>"]
-    G --> O["rowClasses: count, columns,<br/>first and last line, switches,<br/>empty rows"]
+flowchart TD
+    R["Each data row, in file order<br/><small>DelimitedPass.ProcessData</small>"] --> M["Mark which columns are empty<br/><small>null mask, one array reused</small>"]
+    M --> N["Name the group from its filled columns<br/><small>XxHash64, rc:...; a different name from the row before is a switch, counted in transitions</small>"]
+    N --> K{"One of the first<br/>64 groups?"}
+    K -- "yes" --> C["Count it: rows, first and last line<br/><small>RowClass.Count, FirstLine, LastLine</small>"]
+    K -- "no" --> T["Only count it as truncated<br/><small>truncated</small>"]
+    M -. "every column empty" .-> E["Also count an empty row, and leave it out<br/>of each column's null count<br/><small>allNullRows, nullsExcludingAllNullRows</small>"]
 ```
 
-*Source: `Fields/RowClassAccumulator.cs` (planned).*
+*Source: `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`, `Descriptor/Table.cs`.*
+
+A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
 
 ## 11. Writing the descriptor
 

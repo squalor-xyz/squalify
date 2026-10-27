@@ -8,7 +8,7 @@ namespace squalor.squalify;
 /// A minimal compact JSON writer for the fingerprint projections. It does not use the descriptor writer, whose
 /// escaping of unassigned code points follows the runtime's Unicode tables: a hash must not change with the runtime.
 /// Here a string is written as it is, except that <c>"</c> and <c>\</c> are escaped, a character below U+0020 is
-/// written as <c>\u00xx</c> (lower-case hex), and a lone surrogate is written as <c>�</c>. Everything else is
+/// written as <c>\u00xx</c> (lower-case hex), and a lone surrogate is written as U+FFFD. Everything else is
 /// literal UTF-8.
 /// </summary>
 internal sealed class ProjectionJson

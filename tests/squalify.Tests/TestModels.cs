@@ -220,7 +220,7 @@ internal static class TestModels
             Hints: new Hints(
                 ".csv",
                 null,
-                [new StableLine(0, "^Lot\\s*[=:]")],
+                [new StableLine(0, "^\\s*Lot\\s*[=:]")],
                 ["Frequency(MHz)", "Start"],
                 ["Frequency(MHz)"],
                 [0, 1],

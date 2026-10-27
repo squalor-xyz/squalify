@@ -25,7 +25,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `layout` | `regions`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
 | `layout.regions[]` | `kind`, `index` (block), `label` (block, optional), `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation) |
 | `layout.regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
-| `table` | `rows`, `fieldCount`, `rowClasses` (sq-17), `fields` |
+| `table` | `rows`, `fieldCount`, `rowClasses`, `fields` |
 | `table.rowClasses` | `count`, `transitions`, `allNullRows`, `truncated`, `classes` |
 | `table.fields[]` | `index`, `name`, `nameHex` (only when the name contains U+FFFD), `nameParts`, `type`, `dominant`, `typeVotes`, `patterns`, `count`, `nulls`, `nullsExcludingAllNullRows`, `nullTokens`, `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `sourceType`, `unit`, `top`, `text` |
 | `fields[].nameParts` | `base`, `unit` (null when none), `convention`, `unknownUnit` |
@@ -213,11 +213,22 @@ Parsing mirrors DataBall's `HeaderParser`, except that the bracket form and `uni
 ## `table.rowClasses`
 
 ```json
-{ "count": 3, "transitions": 120, "allNullRows": 40, "truncated": 0, "classes": [
-  { "id": "rc:3f9a…", "count": 900, "fields": [[0, 11]], "firstLine": 3, "lastLine": 1002 } ] }
+{ "count": 2, "transitions": 80, "allNullRows": 40, "truncated": 0, "classes": [
+  { "id": "rc:3f9a2c07d41be855", "count": 900, "fields": [[0, 11]], "firstLine": 3, "lastLine": 1002 },
+  { "id": "rc:ef46db3751d8e999", "count": 40, "fields": [], "firstLine": 4, "lastLine": 1001 } ] }
 ```
 
-Records are grouped by their set of non-null fields (sq-17). `fields` are inclusive index ranges. The `id` hashes the non-null field indexes, so it compares across files only when the column set matches. Classes are sorted by count descending, then id. Past `limits.rowClasses`, records are counted in `truncated`.
+The first id is illustrative. The second is real: it is the all-null class, the `XxHash64` of empty input (seed 0), the same in every file.
+
+Present for every delimited table (with no data row it is `{ "count": 0, "transitions": 0, "allNullRows": 0, "truncated": 0, "classes": [] }`). Data records are grouped by their set of non-null fields (sq-17), so a file that interleaves record kinds (measurement rows, setup rows, error rows and all-null separator rows) shows each kind once, however often it switches. Null is the field's null decision: a value of the null vocabulary (see [`table.fields[]`](#tablefields)). The header, units, annotation and comment lines are not data records, and a ragged record (another field count than the header's) has no null mask: it is in no class, is not an all-null record and does not count as a transition (the records on each side of it are adjacent).
+
+- **`id`** is `rc:` and 16 lowercase hex digits: the `XxHash64` (seed 0) of the class's non-null field indexes in ascending order, written as invariant decimal numbers separated by commas and encoded as UTF-8 (fields 1 and 10 hash the bytes of `1,10`; a class with no non-null field hashes no bytes). The id depends on the column order and on nothing else (not on the line, the order of the records or the file), so it compares across files only when the column set matches. Two different sets share an id with probability 2^-64, and classes are keyed by this hash.
+- **`fields`** is the non-null field indexes as inclusive ranges `[[a, b], ...]`, ascending and non-adjacent; `[]` for a class in which every field is null.
+- **`count`** is the number of records in the class. **`firstLine`** and **`lastLine`** are the 1-based file lines on which the first and the last record of the class start (as `layout.regions[].lines`; a record with a quoted line break counts at its first line).
+- **The all-null class.** A record in which every field is null is a class like the others (`fields` is `[]`), and is also counted in `allNullRows`, the number of such records. A consumer that wants the data rows takes `table.rows` minus `allNullRows`. A null here is the null vocabulary's, which is wider than a single token (`NULL`, `NA`, `N/A`, `NaN`, `-`, blank and the others).
+- **`transitions`** is the number of adjacent data records whose classes differ, over all records that have a mask, truncated ones included.
+- **`classes`** is sorted by `count` descending, then by `id` ordinally.
+- **`count`** (of the object) is the number of classes listed, at most `limits.rowClasses` (64). Past the cap the first 64 classes seen keep exact counts, including records that come after the cap was reached, and the records of every later class are counted in **`truncated`** (so `truncated > 0` means more classes exist than are listed, and the classes' `count`s plus `truncated` equal the records that have a mask).
 
 ## `table.fields[]`
 
@@ -264,7 +275,7 @@ A temporal field, for example:
 }
 ```
 
-- **Counts.** `count` is the non-null plus the null values of the data records that have the header's field count; ragged records are not typed. `nulls` counts the null values, and `nullsExcludingAllNullRows` those outside records in which every field is null. The sum of `typeVotes` is `count - nulls`.
+- **Counts.** `count` is the non-null plus the null values of the data records that have the header's field count; ragged records are not typed. `nulls` counts the null values, and `nullsExcludingAllNullRows` those outside records in which every field is null (all-null records are counted in [`table.rowClasses.allNullRows`](#tablerowclasses); so `nulls - nullsExcludingAllNullRows` equals `allNullRows` for every field). The row-level count is made once, by the `RowClassAccumulator` that decides which records are all-null, and the field profile carries it. The sum of `typeVotes` is `count - nulls`.
 - **`type`, `dominant`, `typeVotes`.** `type` is the strict join of the votes over the lattice `empty` < `bool`; `empty` < `int` < `float`; `empty` < `date` < `datetime`; `empty` < `time`; any other join is `string` (`empty` when there is no non-null value). It is also `string` when the date values share no order (see `temporal`). `dominant` is the plurality vote with its share of the non-null votes (`empty` with share 0 when there are none). A tie goes to the earlier type in the order `bool`, `int`, `float`, `date`, `datetime`, `time`, `string`: the narrower of `int` and `float` or of `date` and `datetime`, and, between types that are not comparable, `bool` before `int`, `int` before `date`, `date` before `time`. `typeVotes` counts the non-null votes by type, so it can disagree with `type`.
 - **`nullTokens`** counts the null values by **null-vocabulary entry**, not by the spelling in the file: the keys are `""` (blank and white space), `NA`, `NA.`, `N/A`, `null`, `NaN` and `-`, and `NULL`, `Null` and `null` are all counted under `null`. It is always written, `{}` when there are no nulls, and `NaN` is a key of its own, so a consumer that reads `NaN` as a number can tell it apart. Keys are ordered ordinally and the counts add up to `nulls`.
 - **`patterns`** gives the counts of matched date, datetime and time patterns, keyed by pattern; it is null for fields with no such value. A pattern is the order-neutral layout of a value: `yyyy` for a 4-digit year, `nn` or `n` for a 1–2 digit day or month, with the separator kept (`n/n/yyyy` for `6/5/2026`, whichever order it is; the orders are in `temporal.orders`); `HH`/`H` (24-hour) or `hh`/`h` (12-hour) for the hour with `:mm`, `:ss`, `.f+` (a fraction of any length) and `tt` (an `AM`/`PM` marker, preceded by a space when the value has one); `Z`, `zz` (`+hh`), `zzzz` (`+hhmm`) or `zzz` (`+hh:mm`) for a zone offset; and a literal `T` or space between date and time. For example `yyyy-nn-nn`, `nn/n/yyyy hh:mm:ss tt` and `yyyy-nn-nnTHH:mm:ssZ`.
@@ -355,7 +366,7 @@ Distinct counting, `unique` and the text comparison of `constant` compare a 64-b
 - `charsetFamily` is `"latin1"` for the charset `latin-1`, `"unicode"` for every other charset (`ascii`, `utf-8`, `utf-16le`, and so on), and `null` when `encoding.charset` is `null`.
 - `regions` is the array of the `layout.regions[].kind` values, in file order. Line numbers, byte ranges and labels are not part of it.
 - `headerConvention` is `layout.headerConvention.dominant`. When the object is absent (the file has no header, or is not a table) the projection writes JSON `null`. The convention `none` is the string `"none"`, so an absent convention and `none` hash differently. Header names that carry indexes, such as `Trace[0]` to `Trace[n]`, are not collapsed: files with a different number of indexed columns have different `layout`, `typed` and `names` hashes.
-- `fields` has one entry per `table.fields[]`, in column order: the name, case-folded, or `#<index>` (the decimal column index) when the field is unnamed (no header, or an empty name) or its name is excluded (below). It is `[]` when there is no table.
+- `fields` has one entry per `table.fields[]`, in column order: the name, case-folded, or `#<index>` (the decimal column index) when the field is unnamed (no header, or an empty name) or its name is excluded (below). It is `[]` when there is no table. The placeholder `#<index>` can collide with a real name: an unnamed field at index `i` and a header named `#i` at index `i` have the same `layout` and `typed`, and differ only in `names`, which lists the real name and omits the unnamed field. This is accepted.
 - `types` has the `fields[].type` of each field, in column order.
 - `names` is the sorted (ordinal), de-duplicated, case-folded field names, plus the names that a family adds. Unnamed and excluded fields are left out, not replaced by a placeholder, so a reordered column set has the same `names`.
 
@@ -407,7 +418,7 @@ Every member is always written, as `null` when it does not apply (`stableLines` 
 | `stableLines` | See below |
 | `headerFields` | The header names, trimmed, in column order (`table.fields[].name`); `null` when the file has no header or is not a table. Always included |
 | `headerPrefix` | The first 5 header names, or all of them when there are fewer; `null` when `headerFields` is |
-| `nonNullFields` | The indexes of the fields that have no null value in this file (`fields[].nulls` is 0 and the field has values), ascending; `[]` when none; `null` when the file is not a table. An observation about this file, not a requirement of the type |
+| `nonNullFields` | The indexes of the fields that have no null value outside the all-null rows (`fields[].nullsExcludingAllNullRows` is 0) and that have at least one value (`fields[].count` is greater than `fields[].nulls`), ascending. A field that is null only in separator rows (see [`table.rowClasses`](#tablerowclasses)) is listed; a table whose every row is a separator lists nothing; `[]` when none; `null` when the file is not a table. An observation about this file, not a requirement of the type |
 | `fieldCount` | `{ min, max }`, the same as `table.fieldCount`; `null` for a file that is not a table |
 | `dataStartLine` | The 1-based line where the data region starts; `null` when there is none. Note that `stableLines[].line` is 0-based |
 | `delimiter` | `format.dialect.delimiter` of a delimited table, else `null` |
@@ -425,9 +436,10 @@ Every member is always written, as `null` when it does not apply (`stableLines` 
 | A preamble line of kind `keyValue` | `^\s*<escaped key>\s*[=:]`; the key is the normalized key of `layout.regions[].keys` (the value is never part of it) | always |
 | A preamble line of kind `comment` or `text` | `^<escaped line>$` | values tier: only with `--include-values` |
 
-- A regex escapes only the characters `\ . ^ $ | ? * + ( ) [ ] { }`, each with a backslash. Besides escaped literals it uses only `^`, `$`, `\s`, `*`, `+`, `?` and the class `[=:]`, so it compiles under both .NET (the default options) and ECMAScript (`RegexOptions.ECMAScript`). `\s` is the one construct whose meaning differs: the default matches all Unicode white space, and the ECMAScript option only ASCII white space.
+- A regex escapes only the characters `\ . ^ $ | ? * + ( ) [ ] { }`, each with a backslash. Besides escaped literals it uses only `^`, `$`, `\s`, `*`, `+`, `?` and the class `[=:]`, so it compiles under both .NET (the default options) and ECMAScript (`RegexOptions.ECMAScript`). `\s` is the one construct whose meaning differs: the default matches all Unicode white space, and the ECMAScript option only ASCII white space. Real JavaScript's `\s` is Unicode and broader than .NET's ECMAScript option, so a regex kept here still matches there; the two-engine filter is conservative and may drop a regex that JavaScript would match.
 - A regex is emitted only when it matches its own source line under both the .NET default and `RegexOptions.ECMAScript`. A key that was trimmed of a non-ASCII space (`\s` does not match it under the ECMAScript option), or a quoted key, may not match; its line then has no entry.
 - A record that spans more than one physical line (a quoted field with a line break) has no entry, and neither has a `keyDelimValue` line.
+- A regex whose text contains U+FFFD or a control character other than tab (U+0000 to U+0008, U+000A to U+001F, U+007F to U+009F) is left out: a stray byte may differ from file to file, and the line gets no entry. `headerFields` and `headerPrefix` still list the names as they are.
 - Header names and preamble keys are always included (see [Values tier](#values-tier)), so the header regexes and key regexes always are; the values of the key lines never are.
 
 ## `issues[]`
@@ -496,4 +508,4 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.
 - Consumers must ignore unknown keys within a major version.
 - `fingerprint.version` changes whenever a projection changes. Hashes from different versions cannot be compared.
-- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`.
+- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`.

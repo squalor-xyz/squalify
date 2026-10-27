@@ -9,6 +9,27 @@ namespace squalor.squalify;
 /// </summary>
 internal static class TypeLattice
 {
+    /// <summary>The length of a vote-count array: one slot per <see cref="ValueVote"/>, indexed by its value.</summary>
+    public const int VoteKinds = 8;
+
+    /// <summary>The non-null vote counts as the descriptor's <c>typeVotes</c> map: type names, ordinal order, zero counts left out.</summary>
+    /// <param name="counts">The counts per <see cref="ValueVote"/>, indexed by its value; the null slot is ignored.</param>
+    /// <returns>The map.</returns>
+    public static CountMap VotesMap(long[] counts)
+    {
+        ArgumentNullException.ThrowIfNull(counts);
+        var entries = new List<KeyValuePair<string, long>>();
+        for (var v = (int)ValueVote.Bool; v <= (int)ValueVote.String; v++)
+        {
+            if (counts[v] > 0)
+            {
+                entries.Add(new(TypeLattice.TypeName((ValueVote)v), counts[v]));
+            }
+        }
+
+        return CountMap.FromOrdinal(entries);
+    }
+
     /// <summary>The strict join of two votes. A null vote (no vote) is the identity.</summary>
     /// <param name="a">The first type.</param>
     /// <param name="b">The second type.</param>
