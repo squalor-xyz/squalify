@@ -1,0 +1,41 @@
+{
+  "id": "sq-27",
+  "title": "squalify must keep the header when a ragged record falls inside the data-run start window",
+  "lead": [
+    "Changes the data-run start rule in `DialectSelector` so that a ragged record near the top of a table no longer pushes the run start past the header. Today the run starts at the first record that, together with the next min(5, remaining) records, has k fields; one ragged record in that window moves the start, so the header becomes an annotation or preamble row (`hasHeader` false, names null), and a small ragged table can fall back to `text`."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit.",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Found by sq-25 (owner decision 2026-10-27: fix soon, after the prism path). ATE export files are never ragged, but other lab exports can have a short or long record near the top. The header is the most useful fact about a table, so one bad record must not lose it."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Delimited/DialectSelector.cs`: the run start is the first record with k fields that is followed by min(5, remaining k-field records) further k-field records, where records with another field count (ragged) inside that window are skipped, up to 2 of them. A third non-k record inside the window fails the window, as today. Blank and comment lines are skipped as they already are. The run end is unchanged (the last record with k fields). The evidence reason template gains the number of ragged records skipped in the start window.\n- `docs/design.md` \"Delimited text\" (the run-start rule); `docs/descriptor.md` if it states the rule; `docs/how-it-works.md` section 4 if its text or a diagram states the window.\n- `docs/descriptor.md` \"Consumer subset\": remove the ragged-run-start known limitation added by sq-25, and flip `KnownLimitation_RaggedRecordAtTheStartOfTheRun_CanCutOffTheHeader` in `ConsumerSubsetTests` into a test that the header is kept."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `RunStart_RaggedRecordInsideTheWindow_KeepsTheHeader`: a 21-line table with one ragged record at data record 3 gives `hasHeader` true, the right names, and `raggedRows` counting that record.\n2. `RunStart_TwoRaggedRecordsInsideTheWindow_KeepsTheHeader`.\n3. `RunStart_ThreeNonKRecordsInsideTheWindow_FailsTheWindow`: the start moves as today.\n4. `SmallRaggedTable_IsDelimited`: a 10-record table with one ragged record is `delimited`, not `text`.\n5. `Preamble_KeyValueLines_AreNotAbsorbedIntoTheRun`: a key=value preamble above the header still yields the preamble region and the same header.\n6. All existing goldens are unchanged, unless a fixture has a ragged record inside the start window; any changed golden is reviewed in the PR."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the tests.\n2. Change the run-start rule and the evidence template.\n3. Mutation checks: set the tolerance to 0 and tests 1, 2 and 4 must go red; set it to 3 and test 3 must go red."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- If this slice changed architecture, `docs/how-it-works.md` and its diagrams are updated and `./scripts/render-docs.sh` has been re-run.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-27` on branch `sq-27`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-27: ragged run start` when the owner approves."
+    }
+  ],
+  "notes": []
+}

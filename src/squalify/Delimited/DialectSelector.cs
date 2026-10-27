@@ -74,15 +74,23 @@ internal sealed class DialectSelection
 
 /// <summary>
 /// Chooses the delimiter from the pass-1 tally of every candidate. For each candidate, k is the modal field count among
-/// records with at least two fields (a tie goes to the larger k); the data run starts at the first record that, with the
-/// next min(5, remaining) records, has k fields, and ends at the last record with k fields. The score is the share of
+/// records with at least two fields (a tie goes to the larger k); the data run starts at the first record that has k
+/// fields and has min(5, remaining) further records with k fields in its window, where up to
+/// <see cref="RunStartRaggedTolerance"/> records with another field count are skipped (only after at least
+/// <see cref="RunStartMinLeadRecords"/> records with k fields in a row); the run ends at the last record with k fields. The score is the share of
 /// non-blank records that are in the run with k fields, times the clean share. The highest score wins; ties go to the
 /// larger k, then to candidate order.
 /// </summary>
 internal static class DialectSelector
 {
-    /// <summary>A record opens a run when it and the next records, up to this many, have k fields.</summary>
+    /// <summary>A record opens a run when the next records, up to this many, have k fields (ragged ones skipped, see <see cref="RunStartRaggedTolerance"/>).</summary>
     public const int RunWindow = 5;
+
+    /// <summary>The fewest records that the start's own k-run needs before the window may skip a ragged record.</summary>
+    public const int RunStartMinLeadRecords = 3;
+
+    /// <summary>The most records with another field count that the run-start window skips; one more fails the window.</summary>
+    public const int RunStartRaggedTolerance = 2;
 
     private const double MinScore = 0.5;
     private const long MinRunRecords = 2;
@@ -199,19 +207,16 @@ internal static class DialectSelector
         }
 
         var startIndex = -1;
-        long before = 0;
+        var startSkipped = 0;
         for (var i = 0; i < runs.Count; i++)
         {
-            var run = runs[i];
-            // The run starts at the first record whose next min(5, remaining) records all have k fields. Only the
-            // first record of a k-run can be the start, and it qualifies when the run is long enough or reaches the end.
-            if (run.FieldCount == k && (run.Records >= RunWindow + 1 || before + run.Records == total))
+            // Only the first record of a k-run can be the start: if a later record of the run qualified, so would the first.
+            if (runs[i].FieldCount == k && StartWindowHolds(runs, i, k, out var skipped))
             {
                 startIndex = i;
+                startSkipped = skipped;
                 break;
             }
-
-            before += run.Records;
         }
 
         if (startIndex < 0)
@@ -258,6 +263,7 @@ internal static class DialectSelector
             + "; " + Ordinal.Invariant(inRun) + "/" + Ordinal.Invariant(total) + " records"
             + "; clean=" + CanonicalNumber.FormatFinite(cleanShare)
             + "; run lines " + Ordinal.Invariant(first.FirstLine) + "-" + Ordinal.Invariant(lastLine)
+            + SkippedSuffix(startSkipped)
             + literal;
         return new CandidateResult
         {
@@ -276,6 +282,34 @@ internal static class DialectSelector
             Reason = reason,
             Viable = inRun >= (kind == DelimiterKind.Whitespace ? MinWhitespaceRunRecords : MinRunRecords) && score >= MinScore,
         };
+    }
+
+    // Whether the first record of run `start` (a k-run) can start the data run: its window holds when the next
+    // min(5, remaining) k-field records are reached after skipping at most RunStartRaggedTolerance records with another
+    // field count. A window may skip records only when the start's own k-run has at least RunStartMinLeadRecords records:
+    // two k-field preamble lines followed by a key=value line look the same by field counts, and must stay preamble.
+    // `skipped` is the number of records skipped.
+    private static bool StartWindowHolds(IReadOnlyList<FieldCountRun> runs, int start, int k, out int skipped)
+    {
+        skipped = 0;
+        var lead = runs[start].Records;
+        var need = RunWindow - (lead - 1);
+        for (var j = start + 1; need > 0 && j < runs.Count; j++)
+        {
+            if (runs[j].FieldCount == k)
+            {
+                need -= runs[j].Records;
+                continue;
+            }
+
+            skipped += (int)Math.Min(runs[j].Records, RunStartRaggedTolerance + 1);
+            if (skipped > RunStartRaggedTolerance || lead < RunStartMinLeadRecords)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // The modal field count among records with at least two fields; a tie goes to the larger count. 0 when there is none.
@@ -302,6 +336,11 @@ internal static class DialectSelector
         }
 
         return best;
+    }
+
+    private static string SkippedSuffix(int skipped)
+    {
+        return skipped > 0 ? "; " + Ordinal.Invariant(skipped) + " non-k records skipped in the start window" : string.Empty;
     }
 
     private static string QuotedSuffix(long quotedFields)
