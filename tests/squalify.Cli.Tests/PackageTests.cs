@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace squalor.squalify.Cli.Tests;
@@ -30,11 +31,12 @@ public sealed class PackageTests(PackageFeed feed)
     {
         Assert.True(feed.PackExitCode == 0, $"dotnet pack exited with {feed.PackExitCode}.\n{feed.PackLog}");
 
-        var expectedName = Path.GetFileName(feed.NupkgPath(ToolInfo.Version));
-        var names = Directory.EnumerateFiles(feed.FolderPath).Select(file => Path.GetFileName(file)).ToArray();
-        Assert.Equal(new[] { expectedName }, names);
+        // One nupkg, plus the snupkg that carries its symbols.
+        var expectedNames = new[] { feed.NupkgPath(ToolInfo.Version), feed.SnupkgPath(ToolInfo.Version) }.Select(Path.GetFileName).Order(StringComparer.Ordinal);
+        var names = Directory.EnumerateFiles(feed.FolderPath).Select(file => Path.GetFileName(file)).Order(StringComparer.Ordinal);
+        Assert.Equal(expectedNames, names);
 
-        var nuspec = ReadNuspec(feed.NupkgPath(ToolInfo.Version));
+        var nuspec = ReadNuspec(feed.NupkgPath(ToolInfo.Version), PackageFeed.PackageId);
         Assert.Equal(PackageFeed.PackageId, MetadataField(nuspec, "id"));
         Assert.Equal(ToolInfo.Version, MetadataField(nuspec, "version"));
 
@@ -81,6 +83,61 @@ public sealed class PackageTests(PackageFeed feed)
         Assert.Equal(ToolInfo.Version, ToolVersion(run.Stdout));
     }
 
+    [Fact]
+    public void Package_CliToolId_IsPrefixed()
+    {
+        Assert.True(feed.CliPackExitCode == 0, $"dotnet pack exited with {feed.CliPackExitCode}.\n{feed.CliPackLog}");
+
+        var nupkg = feed.CliNupkgPath(ToolInfo.Version);
+        Assert.True(File.Exists(nupkg), $"The CLI pack did not write {Path.GetFileName(nupkg)}. It wrote: {string.Join(", ", Directory.EnumerateFiles(feed.CliFolderPath).Select(Path.GetFileName))}.");
+
+        var nuspec = ReadNuspec(nupkg, PackageFeed.CliPackageId);
+        Assert.Equal(PackageFeed.CliPackageId, MetadataField(nuspec, "id"));
+        Assert.Equal(ToolInfo.Version, MetadataField(nuspec, "version"));
+
+        using var archive = ZipFile.OpenRead(nupkg);
+        var settings = archive.Entries.Single(entry => entry.Name == "DotnetToolSettings.xml");
+        using var stream = settings.Open();
+        var commands = XDocument.Load(stream).Descendants("Command").Select(command => (string?)command.Attribute("Name")).ToArray();
+        Assert.Equal(new[] { "squalify" }, commands);
+    }
+
+    [Fact]
+    public void Package_Library_HasSymbolsAndReadme()
+    {
+        Assert.True(feed.PackExitCode == 0, $"dotnet pack exited with {feed.PackExitCode}.\n{feed.PackLog}");
+        Assert.True(File.Exists(feed.SnupkgPath(ToolInfo.Version)), $"The feed has no {Path.GetFileName(feed.SnupkgPath(ToolInfo.Version))}.");
+
+        var nupkg = feed.NupkgPath(ToolInfo.Version);
+        using (var archive = ZipFile.OpenRead(nupkg))
+        {
+            Assert.Contains(archive.Entries, entry => entry.FullName == "README.md");
+        }
+
+        var nuspec = ReadNuspec(nupkg, PackageFeed.PackageId);
+        var ns = nuspec.Name.Namespace;
+        var metadata = nuspec.Element(ns + "metadata")!;
+        Assert.Equal("README.md", MetadataField(nuspec, "readme"));
+        var license = metadata.Element(ns + "license");
+        Assert.Equal("expression", (string?)license?.Attribute("type"));
+        Assert.Equal("Apache-2.0", license?.Value);
+        Assert.Equal("https://github.com/squalor-xyz/squalify", (string?)metadata.Element(ns + "repository")?.Attribute("url"));
+    }
+
+    [Fact]
+    public void Package_Readme_HasNoRelativeLinks()
+    {
+        // nuget.org renders the README outside the repository, so a relative target would not resolve there.
+        var text = File.ReadAllText(Path.Combine(DotNetTool.RepositoryRoot(), "README.md"));
+        text = Regex.Replace(text, @"^(```|~~~).*?^\1[^\n]*$", string.Empty, RegexOptions.Singleline | RegexOptions.Multiline);
+        text = Regex.Replace(text, @"`[^`\n]*`", string.Empty);
+
+        var targets = Regex.Matches(text, @"\]\(\s*<?([^)\s>]*)").Select(match => match.Groups[1].Value)
+            .Concat(Regex.Matches(text, @"^ {0,3}\[[^\]\n]+\]:\s*<?(\S+)", RegexOptions.Multiline).Select(match => match.Groups[1].Value));
+        var relative = targets.Where(target => !target.StartsWith('#') && !Regex.IsMatch(target, "^[A-Za-z][A-Za-z0-9+.-]*:")).ToArray();
+        Assert.True(relative.Length == 0, $"README.md has relative link targets: {string.Join(", ", relative)}.");
+    }
+
     /// <summary>Writes the synthetic lab-style table that both the CLI and the consumer profile.</summary>
     private static string WriteSyntheticCsv(string folder)
     {
@@ -106,12 +163,12 @@ public sealed class PackageTests(PackageFeed feed)
     }
 
     /// <summary>Reads the root element of the nuspec inside a nupkg.</summary>
-    private static XElement ReadNuspec(string nupkg)
+    private static XElement ReadNuspec(string nupkg, string packageId)
     {
         Assert.True(File.Exists(nupkg), $"The package {Path.GetFileName(nupkg)} does not exist.");
         using var archive = ZipFile.OpenRead(nupkg);
-        var entry = archive.GetEntry(PackageFeed.PackageId + ".nuspec")
-            ?? throw new InvalidDataException($"{Path.GetFileName(nupkg)} has no {PackageFeed.PackageId}.nuspec.");
+        var entry = archive.GetEntry(packageId + ".nuspec")
+            ?? throw new InvalidDataException($"{Path.GetFileName(nupkg)} has no {packageId}.nuspec.");
         using var stream = entry.Open();
         return XDocument.Load(stream).Root!;
     }

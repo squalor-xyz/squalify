@@ -1,0 +1,41 @@
+{
+  "id": "sq-30",
+  "title": "squalify must have its own mark as the package icon and README image",
+  "lead": [
+    "Creates a squalify mark in the squalor branding system and uses it as the NuGet package icon for `squalor.squalify` and `squalor.squalify.Cli`, plus the README and docs header images."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner (2026-10-27), verbatim: \"no icon for now, land them when they pass.  create a slice for creating an icon/logo/images -- we can tag that to the next release target\". v0.1.0 ships without an icon; this slice targets the release after it.\n\nnuget.org's ID prefix reservation criteria ask that packages with an icon use the embedded `icon` element (not `iconUrl`). `branding/` has marks for other squalor tools but none for squalify."
+    },
+    {
+      "heading": "Files",
+      "body": "- `branding/` (the squalor branding repo): a squalify mark made by that repo's own process (`branding/generated/logos/MARKS.md`, `STYLE_GUIDE.md`), with a 128x128 PNG export for NuGet. That work lands in the branding repo; this slice consumes its export.\n- `src/squalify/squalify.csproj` and `src/squalify.Cli/squalify.Cli.csproj` (or `Directory.Build.props` for packable projects): `PackageIcon` with the PNG packed at the package root.\n- `README.md`: header image, with an absolute URL so it renders on nuget.org.\n- `docs/how-it-works.md` (optional): the mark in the header, re-rendered."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Package_Library_HasEmbeddedIcon`: the packed library and CLI nupkgs contain the icon file, and the nuspec names it in `<icon>`."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Agree the mark with the owner in the branding repo first.\n2. Write the test, watch it fail, add the icon, watch it pass."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-30` on branch `sq-30`. No agent commits."
+    }
+  ],
+  "notes": []
+}

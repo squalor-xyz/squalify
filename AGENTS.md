@@ -12,6 +12,7 @@ squalify is an Apache-2.0 .NET 10 library (`squalor.squalify`) and CLI (`squalif
 - `tests/squalify.Cli.Tests/`: xUnit for the CLI, run in-process through `CommandFactory.InvokeAsync`.
 - `docs/`: `how-it-works.md` (diagrams; `.html` and `.pdf` are committed renders of it), `design.md` (architecture) and `descriptor.md` (schema).
 - `scripts/`: `render-docs.sh` renders the committed docs (see Docs below).
+- `docs/release.md`: how to cut a release (tag `vX.Y.Z`; the workflow publishes to nuget.org).
 - `.slicer/`: roadmap and slice tracking. Manage it only through the `slicer` CLI.
 
 ## Build, test, format
