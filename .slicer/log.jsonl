@@ -353,3 +353,4 @@
 {"when": "2026-10-27T18:33:51Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
 {"when": "2026-10-27T18:34:14Z", "item": "sq-31", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
 {"when": "2026-10-27T18:39:45Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "From sq-31: the kind rule order in this spec lists parquetTa", "by": "Jon Robbins"}
+{"when": "2026-10-27T18:43:27Z", "item": "sq-31", "action": "status", "from": "started", "to": "done", "note": "Gate PASS at 0c24dd6: 876 library + 18 CLI tests (x3, plus GITHUB_ACTIONS=true), format clean, goldens lose only removed keys, 25/25 diagrams. Reviewer later notes: kind rule IDs renumber in sq-15; public record signatures changed pre-v0.1.0.", "by": "Jon Robbins"}
