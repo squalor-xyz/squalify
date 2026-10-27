@@ -258,3 +258,5 @@
 {"when": "2026-10-27T14:02:46Z", "item": "sq-07", "action": "note", "from": "", "to": "", "note": "From sq-04: the library honors --include-values-for (ASCII c", "by": "Jon Robbins"}
 {"when": "2026-10-27T14:02:46Z", "item": "sq-25", "action": "note", "from": "", "to": "", "note": "From sq-04: (1) format.dialect.quote is always \" for delimit", "by": "Jon Robbins"}
 {"when": "2026-10-27T14:02:46Z", "item": "sq-04", "action": "status", "from": "started", "to": "done", "note": "Gate PASS 2026-10-27 (run-20261027-123035-67df): 498 library + 11 CLI tests, 0 warnings, format clean; owner decisions 1-10 implemented; 8 real samples profile as delimited with the right header.", "by": "Jon Robbins"}
+{"when": "2026-10-27T14:51:37Z", "item": "sq-18", "action": "note", "from": "", "to": "", "note": "Corpus run 2026-10-27 (check-only, after sq-04 merged): pass", "by": "Jon Robbins"}
+{"when": "2026-10-27T14:51:37Z", "item": "sq-18", "action": "status", "from": "started", "to": "done", "note": "Gate PASS 2026-10-27 (run-20261027-133031-4eec): 502 library + 11 CLI after merging main; corpus run 8/8 pass.", "by": "Jon Robbins"}

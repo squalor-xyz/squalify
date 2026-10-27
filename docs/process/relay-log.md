@@ -29,6 +29,10 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 | 2026-10-26 | Docs are required work in the implementer's first round | sq-02, sq-16 |
 | 2026-10-27 | Read-only roles are time-boxed; the gate gets an ID'd checklist of earlier findings | sq-16 |
 | 2026-10-27 | Non-blocking owner questions are asked as they arise, not at approval | sq-16 |
+| 2026-10-27 | Slices with disjoint Files run in parallel, each in its own worktree; they land one at a time | sq-04, sq-18 |
+| 2026-10-27 | Owner questions are asked while the next role runs, not between roles | sq-04 |
+| 2026-10-27 | Role time is read from the harness duration, not the role's own report | sq-04 |
+| 2026-10-27 | The implementer brief includes a local real-sample sanity table (no names or values) | sq-04 |
 
 ## Proposed upstream (slicer)
 
@@ -36,8 +40,54 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 - `slicer show ID --json` reports `ready: false` for a slice that `slicer list` and `slicer next` treat as ready (sq-16, 2026-10-26). Document what the field means, or align it.
 - A small fix round is re-checked by "the reviewer" (Order). Allow any read-only role that already holds the findings, such as the gate, when that role is cheaper. In sq-16 that took 30 s instead of a reviewer that had run for 72 min.
 - An owner answer that arrives after the finish step needs `slicer set --status started`, then a fix round, a re-gate and `slicer done` again. Consider a contract line that asks non-blocking owner questions before the gate, so the common case avoids the rollback.
+- Merging main into a parallel slice branch conflicts in the generated `.slicer/render/ROADMAP.{md,html}`. Taking either side and re-running `slicer render` fixes it. A git merge driver for the renders (perhaps via `slicer setup-git`) would remove the step (2026-10-27).
+- `slicer land` rejects `--render`, unlike the other mutations (2026-10-27).
+- A Check item that needs another slice to land first (sq-18's corpus run after sq-04) has no place in the contract. The finish step was deferred until after the merge.
 
 ## Entries
+
+### sq-18: Private-corpus harness (2026-10-27)
+
+- Lineup: implementer haiku/xhigh (matrix r1), reviewer opus/medium, gate opus/medium. Lite relay (size S), run in parallel with sq-04.
+- Metrics:
+  - **Rounds:** implement, then one fix round.
+  - **Review and gate:** review ACCEPT WITH FIXES (S1-S3 fix, S4-S5 owner); gate PASS first time.
+  - **Owner attention:** 1 setup question and 1 mid-run sitting (2 questions). 0 permission prompts.
+  - **Wall time (harness):** implementer 7 min, reviewer 2 min, fix round 4 min, gate 1 min. About 35 minutes start to gate.
+  - **Land:** corpus run on the private samples after merging sq-04: 8 pass, 0 fail.
+- Frictions:
+  - Merging main conflicted in the generated ROADMAP renders (see Proposed upstream).
+  - The Check item needed sq-04 landed first, so `slicer done` waited until land time.
+- Wins:
+  - Haiku at xhigh produced a complete, accurate report on an S slice, including the interpretations.
+  - The 2-minute review found two real defects by probing: update mode leaking into the suite, and a directory symlink loop.
+- Changes: haiku/xhigh is fine for well-specified S implementers. Defer the finish step when a Check item depends on another slice.
+
+### sq-04: Delimited dialect and regions (2026-10-27)
+
+- Lineup: implementer sonnet/high, reviewer opus/medium, architect opus/high, gate opus/medium. No split. Ran in parallel with sq-18 from fix round 1 on.
+- Metrics:
+  - **Rounds:** implement, then 2 fix rounds (review, architect).
+  - **Review and gate:** review ACCEPT WITH FIXES; architect SHAPE OK with 3 drift blockers; gate PASS first time.
+  - **Findings:** fix 8 (R1, R6, A2-A4, A6-A8); owner 10 decisions in 4 sittings (2 at setup, 4 after the implementer, 2 after the review, 2 after the architect); later 9, filed on sq-05, sq-07, sq-09, sq-13, sq-17 and sq-25.
+  - **Wall time (harness):** implementer 33 min, reviewer 3 min, fix rounds 6 and 4 min, architect 5 min, gate 2 min. About 95 minutes start to gate, against about 3 hours for sq-16 (size M).
+  - **Orchestrator reads:** no full-diff reads.
+- Frictions:
+  - The implementer marked 15 of 19 interpretations as product-affecting. The spec still left real choices open: the viability floor, the line-length unit, the evidence volume, and the clean-share rule.
+  - I phrased owner option 6 ("contains anywhere") without testing it on its own example (`1,5;2,3`). The implementer had to add a decimal-comma exemption.
+  - Fix round 1 wrote its tests after the code. Fix round 2 was told "test-first" and complied.
+  - The reviewer reported "about 25 minutes" when the harness measured 3.
+- Wins:
+  - Checking prism at setup found the ATE export unescaped-quote rule. A grep of the real samples showed it was latent, and the owner settled it before code was written.
+  - Asking owner questions while the next role ran cost no wall time.
+  - The real-sample sanity table showed the slice working on production files, without exposing names or values.
+  - Time boxes held: the read-only roles took 2 to 5 minutes, against 72 for the sq-16 reviewer.
+  - The ID'd checklist (owner 1-10, R, A) made the gate a 2-minute verification again.
+  - The architect's lookahead found concrete obstacles for sq-05, sq-09 and sq-13, and a fingerprint instability (quote) that was fixed in-slice.
+- Changes, from the next slice on:
+  - **Owner options:** check each proposed rule against its own example before asking.
+  - **Fix rounds:** the brief says test-first explicitly.
+  - **L slices:** consider a short spec-check pass before the implementer, to surface choices like the viability floor at setup.
 
 ### sq-16: Value classifier (2026-10-26 to 2026-10-27)
 
