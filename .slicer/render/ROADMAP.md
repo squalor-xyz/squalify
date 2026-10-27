@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-32 items · — 13 · done 16 · parked 1 · later 1 · retired 1
+32 items · — 12 · done 16 · parked 1 · later 1 · retired 1 · started 1
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
@@ -42,7 +42,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 13 | sq-24 | Invalid UTF-16/32 reporting | S | 1 | core | sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03 | — |
 | 14 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · discovered from sq-27 | — |
 | v0.2.0 | | | | | | | |
-| 15 | [sq-30](slices/sq-30.md) | Package icon | S | 1 |  | discovered from sq-29 | — |
+| 15 | [sq-30](slices/sq-30.md) | Package icon | S | 1 |  | discovered from sq-29 | started |
 | 16 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | — |
 
 ---
