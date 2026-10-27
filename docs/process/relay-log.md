@@ -36,6 +36,8 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 | 2026-10-27 | Owner decisions are quoted verbatim in briefs, never paraphrased | sq-06 |
 | 2026-10-27 | Parallel landing: commit the branch and merge main before the last fix round, then gate once on the merged result | sq-05, sq-06 |
 | 2026-10-27 | Clones run `slicer setup-git` and its git config, so `.slicer` files merge without conflicts | sq-26 |
+| 2026-10-27 | Check CI with `gh run list` after every push to main | sq-29 |
+| 2026-10-27 | Gates and implementers also run the suite with `GITHUB_ACTIONS=true` | sq-29 |
 
 ## Proposed upstream (slicer)
 
@@ -48,6 +50,21 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 - A Check item that needs another slice to land first (sq-18's corpus run after sq-04) has no place in the contract. The finish step was deferred until after the merge.
 
 ## Entries
+
+### sq-29, sq-07, sq-31: Release workflow, values tier, drop Parquet; v0.1.0 published (2026-10-27)
+
+- Lineup: implementer sonnet/high on all three; reviewer opus/medium; gate opus/medium. sq-07 (M) also ran the architect; sq-29 and sq-31 ran the lite relay.
+- Metrics:
+  - **Wall time (harness):** sq-29 implementer 3.5 min plus 2 fix rounds under 1 min each, reviewer 11 min, gate under 1 min. sq-07 implementer 15 min, reviewer 6 min (ACCEPT WITH FIXES; all interpretations accepted). sq-31 reviewer 1.5 min (ACCEPT, no fixes), gate 1 min (PASS first time).
+  - **Owner decisions:** sq-29 R6 leave the release ungated, R7 bump the version and check it against the tag; sq-07 R4 drop duplicate allow-list names; scope: "Drop Parquet from v1" and "Tag after sq-07 (Recommended)", which turned parked sq-08 into the new sq-31.
+  - **Release:** v0.1.0 tagged at c2a8d38 after the owner confirmed; the Release run passed (build 47 s, publish 10 s, GitHub release 13 s) and both packages were pushed through trusted publishing.
+- Frictions:
+  - **CI-only failure after sq-29 landed.** `ContinuousIntegrationBuild`, set in the props whenever `GITHUB_ACTIONS` was true, mapped source paths to `/_/` and broke 3 `CallerFilePath` tests on all three CI OSes. Every local run (implementer, reviewer, gate) passed because none set `GITHUB_ACTIONS`. The post-push `gh` check caught it; fixed on main in 065f656 by passing the property only to the release pack steps.
+  - **slicer syntax misses by the orchestrator:** `note` needs `--text`; `add` rejects `--group` (use `set --group`); `relay-run step --step` is only for existing steps; `slicer land` after `slicer done` on a fast-forwarded branch has nothing left to commit.
+- Wins:
+  - **Asking the owner about scope mid-run paid off.** A dependency-size question (DuckDB's native bundle is about 110 MB) led the owner to drop Parquet before v1, which removed the heaviest dependency and an unbuilt slice from the release path.
+  - **Committing the branch before the gate** let the gate check an exact commit and made landing a fast-forward.
+- Changes: gates and implementers run the suite once more with `GITHUB_ACTIONS=true`; CI is checked after every push (both in Changes adopted).
 
 ### Parallel run: sq-14, sq-05, sq-17, sq-06, sq-25, sq-27, sq-26 (2026-10-27)
 
@@ -162,7 +179,7 @@ Seven slices landed in one session, with two running at any time. The prism bloc
 
 - Lineup: sonnet/high, opus/medium, opus/high, opus/medium; no split.
 - Metrics: reviewer ACCEPTED with minor fixes; architect FAIL once (drift in how-it-works section 12 and the README hints line, plus a path-leak guard); gate PASS after one fix round. Four owner decisions at setup.
-- Frictions: agents kept temp directories outside the working directories, and every read there prompted the owner (`blockReadsOutsideWorkingDirectories`). `gh` is not installed, so CI on the pushes went unverified.
+- Frictions: agents kept temp directories outside the working directories, and every read there prompted the owner (`blockReadsOutsideWorkingDirectories`). CI on the pushes went unverified (`gh` is installed at `/opt/homebrew/bin/gh` but was not on the agent's PATH; corrected 2026-10-27).
 - Wins: test-first plus mutation checks caught the path-leak guard cleanly; owner decisions batched into one sitting before the worktree.
 - Changes: the scratch location is now named explicitly in every brief.
 
