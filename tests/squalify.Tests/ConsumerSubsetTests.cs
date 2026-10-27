@@ -763,9 +763,9 @@ public sealed class ConsumerSubsetTests
     }
 
     [Fact]
-    public void KnownLimitation_RaggedRecordAtTheStartOfTheRun_CanCutOffTheHeader()
+    public void RaggedRecordAtTheStartOfTheRun_KeepsTheHeader()
     {
-        // sq-27 (Ragged run start) may change this; if it does, change this test and the Preconditions of the Consumer subset.
+        // sq-27: a ragged record inside the run-start window no longer moves the start past the header.
         var builder = new StringBuilder("A(id),B,C\n");
         for (var i = 1; i <= 20; i++)
         {
@@ -774,7 +774,9 @@ public sealed class ConsumerSubsetTests
 
         var d = ProfileText(builder.ToString());
         Assert.Equal("delimited", d.Format.Family);
-        Assert.False(((DelimitedDialect)d.Format.Dialect!).HasHeader);
+        Assert.True(((DelimitedDialect)d.Format.Dialect!).HasHeader);
+        Assert.Equal(new[] { "A(id)", "B", "C" }, d.Table!.Fields.Select(static f => f.Name).ToArray());
+        Assert.Equal(1, Assert.Single(d.Issues, static i => i.Code == "raggedRows").Count);
 
         // The same table with the ragged record far from the top keeps its header.
         var later = new StringBuilder("A(id),B,C\n");
@@ -787,12 +789,27 @@ public sealed class ConsumerSubsetTests
     }
 
     [Fact]
+    public void KnownLimitation_RaggedRecordAmongTheFirstTwoDataRecords_CanCutOffTheHeader()
+    {
+        // The window skips ragged records only after three records with k fields in a row (the header and two data records).
+        var builder = new StringBuilder("A(id),B,C\n");
+        for (var i = 1; i <= 20; i++)
+        {
+            builder.Append(i == 2 ? "2,x\n" : i.ToString(CultureInfo.InvariantCulture) + ",x,y\n");
+        }
+
+        var d = ProfileText(builder.ToString());
+        Assert.Equal("delimited", d.Format.Family);
+        Assert.False(((DelimitedDialect)d.Format.Dialect!).HasHeader);
+    }
+
+    [Fact]
     public void Document_NamesNoInternalDecisionIds_AndSaysTableChangesDoNotBumpSchemaVersion()
     {
         var section = DocumentedSection();
         Assert.DoesNotMatch(@"\bD\d+\b", section);
         Assert.Contains("not `schemaVersion`", section, StringComparison.Ordinal);
-        Assert.Contains("sq-27", section, StringComparison.Ordinal);
+        Assert.DoesNotContain("sq-27", section, StringComparison.Ordinal);
         Assert.Contains("pending sq-12", section, StringComparison.Ordinal);
     }
 

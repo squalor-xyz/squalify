@@ -815,6 +815,145 @@ public sealed class DelimitedTests
         Assert.Equal(2, d.Table!.Rows);
     }
 
+    // A header and `rows` data records of three fields; the data records in `ragged` (1-based) have two fields.
+    private static string RaggedTable(string header, int rows, params int[] ragged)
+    {
+        var builder = new StringBuilder(header).Append('\n');
+        for (var i = 1; i <= rows; i++)
+        {
+            var id = i.ToString(CultureInfo.InvariantCulture);
+            builder.Append(Array.IndexOf(ragged, i) >= 0 ? id + ",x\n" : id + ",x,y\n");
+        }
+
+        return builder.ToString();
+    }
+
+    private static string CommaReason(Descriptor d)
+    {
+        return Assert.Single(EvidenceOf(d, "dialect", "delimiter").Candidates, static c => c.Value == ",").Reason;
+    }
+
+    [Fact]
+    public void RunStart_RaggedRecordInsideTheWindow_KeepsTheHeader()
+    {
+        var d = ProfileText(RaggedTable("A(id),B,C", 20, 3));
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(new[] { "A(id)", "B", "C" }, Names(d));
+        Assert.Equal(20, d.Table!.Rows);
+        var ragged = Assert.Single(d.Issues, static i => i.Code == "raggedRows");
+        Assert.Equal(1, ragged.Count);
+        Assert.Equal(new long[] { 4 }, ragged.FirstLines);
+        Assert.Equal("k=3; 20/21 records; clean=1; run lines 1-21; 1 non-k records skipped in the start window; 0 quoted fields", CommaReason(d));
+    }
+
+    [Fact]
+    public void RunStart_TwoRaggedRecordsInsideTheWindow_KeepsTheHeader()
+    {
+        var d = ProfileText(RaggedTable("A(id),B,C", 20, 3, 5));
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(new[] { "A(id)", "B", "C" }, Names(d));
+        Assert.Equal(new long[] { 4, 6 }, Assert.Single(d.Issues, static i => i.Code == "raggedRows").FirstLines);
+        Assert.Contains("run lines 1-21; 2 non-k records skipped in the start window;", CommaReason(d), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RunStart_ThreeNonKRecordsInsideTheWindow_FailsTheWindow()
+    {
+        // Records 3, 4 and 5 are ragged: the header cannot start the run, so the start moves to the first record after them.
+        var d = ProfileText(RaggedTable("A(id),B,C", 20, 3, 4, 5));
+        Assert.Equal("delimited", d.Format.Family);
+        Assert.Contains("run lines 7-21; 0 quoted fields", CommaReason(d), StringComparison.Ordinal);
+        Assert.DoesNotContain("skipped", CommaReason(d), StringComparison.Ordinal);
+        Assert.False(Dialect(d).HasHeader);
+    }
+
+    [Fact]
+    public void SmallRaggedTable_IsDelimited()
+    {
+        // A header and nine data records, with data record 5 (file record 6 counting the header) ragged: no k-run has six records, and the one that reaches the end is too short to score.
+        var d = ProfileText(RaggedTable("A(id),B,C", 9, 5));
+        Assert.Equal("delimited", d.Format.Family);
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(9, d.Table!.Rows);
+        Assert.Equal(1, Assert.Single(d.Issues, static i => i.Code == "raggedRows").Count);
+    }
+
+    [Fact]
+    public void Preamble_KeyValueLines_AreNotAbsorbedIntoTheRun()
+    {
+        var plain = ProfileText(RaggedTable("A(id),B,C", 20, 3));
+        var d = ProfileText("Lot=A\nWafer=7\n" + RaggedTable("A(id),B,C", 20, 3));
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(Names(plain), Names(d));
+        Assert.Equal(
+            new[] { ("preamble", 1L, 2L), ("header", 3L, 3L), ("data", 4L, 23L) },
+            d.Layout.Regions.Select(static r => (r.Kind, r.FirstLine, r.LastLine)).ToArray());
+    }
+
+    [Fact]
+    public void Preamble_TitleLineWithTheSameFieldCount_IsNotAbsorbedIntoTheRun()
+    {
+        // "Report,," has k fields and two key=value lines follow it. A lone k-field record directly followed by other
+        // records must not start the run, or the preamble would turn into annotation rows above the header.
+        var d = ProfileText("Report,,\nLot=A\nWafer=7\n" + RaggedTable("A(id),B,C", 20));
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(new[] { "A(id)", "B", "C" }, Names(d));
+        Assert.Equal(
+            new[] { ("preamble", 1L, 3L), ("header", 4L, 4L), ("data", 5L, 24L) },
+            d.Layout.Regions.Select(static r => (r.Kind, r.FirstLine, r.LastLine)).ToArray());
+        Assert.DoesNotContain("skipped", CommaReason(d), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Preamble_TwoKFieldLinesThenKeyValue_StayPreamble()
+    {
+        // Two lines with k fields and a key=value line look like a header, a data record and a ragged record by field
+        // counts. The lead rule (three k-field records in a row) keeps them preamble.
+        var d = ProfileText("Setup,PA-7,bench 3\nCalibrated,2026-01-02,ok\nOperator=jr\n" + RaggedTable("A(id),B,C", 20));
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(new[] { "A(id)", "B", "C" }, Names(d));
+        Assert.Equal(
+            new[] { ("preamble", 1L, 3L), ("header", 4L, 4L), ("data", 5L, 24L) },
+            d.Layout.Regions.Select(static r => (r.Kind, r.FirstLine, r.LastLine)).ToArray());
+        Assert.DoesNotContain("skipped", CommaReason(d), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RunStart_TableWithATotalLineAfterTheRows_IsDelimited()
+    {
+        // A header, four rows and a one-field footer line: the window reaches the end after skipping the footer line, so
+        // the file is delimited (it used to fall back to text because no k-run had six records).
+        var d = ProfileText("A(id),B,C\n1,x,y\n2,x,y\n3,x,y\n4,x,y\nTotal=4\n");
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(4, d.Table!.Rows);
+        Assert.Equal(
+            new[] { ("header", 1L, 1L), ("data", 2L, 5L), ("footer", 6L, 6L) },
+            d.Layout.Regions.Select(static r => (r.Kind, r.FirstLine, r.LastLine)).ToArray());
+        Assert.Contains("run lines 1-5; 1 non-k records skipped in the start window;", CommaReason(d), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RunStart_Tolerance_DoesNotLetProseBecomeWhitespaceDelimited()
+    {
+        // Seven lines of five words (one cut short) open the file, and shorter and longer lines follow. The start window
+        // now skips the cut-short line and finds a run of six lines, but the run has fewer than half of the records with
+        // k fields, so the file stays text.
+        var lines = new List<string>();
+        for (var i = 0; i < 7; i++)
+        {
+            lines.Add("one two three four five");
+        }
+
+        lines[3] = "one two three";
+        for (var i = 0; i < 10; i++)
+        {
+            lines.Add(i % 2 == 0 ? "short line here ok" : "a somewhat longer line of prose follows here");
+        }
+
+        var d = ProfileText(string.Join('\n', lines) + "\n", name: "t.txt");
+        Assert.Equal("text", d.Format.Family);
+    }
+
     [Fact]
     public void Dialect_QuotedFieldOfExactlyTheLimit_IsNotRunaway_OneMoreIs()
     {
