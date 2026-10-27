@@ -14,7 +14,7 @@ internal sealed class TextDecoder
 {
     private const int BufferSize = 64 * 1024;
     private const int MaxUnit = 4;
-    private const char Replacement = '�';
+    private const char Replacement = '\uFFFD';
 
     private readonly Stream _stream;
     private readonly Kind _kind;

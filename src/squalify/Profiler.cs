@@ -8,7 +8,7 @@ namespace squalor.squalify;
 public static class Profiler
 {
     // The pipeline order of the evidence stages: evidence is sorted by stage, then by topic. Later slices append stages.
-    private static readonly string[] StageOrder = ["encoding", "format"];
+    private static readonly string[] StageOrder = ["encoding", "format", "dialect", "header"];
 
     /// <summary>Profiles a source: the byte pass, the format choice, then the winning format profiler.</summary>
     /// <param name="source">The source.</param>
@@ -48,11 +48,13 @@ public static class Profiler
     {
         var limits = Limits.Default;
         var sniff = ByteSniffer.Sniff(source, limits.CharsetTolerance);
-        var choice = FormatRegistry.Default.Detect(sniff);
-        var profile = choice.Profiler?.Profile(source, sniff, new ProfileContext(options, limits))
+        var context = new ProfileContext(options, limits);
+        var choice = FormatRegistry.Default.Detect(source, sniff, context);
+        var profile = choice.Profiler?.Profile(source, sniff, context, choice.ProfilerScore!)
             ?? new FormatProfile(null, new LayoutSection(Array.Empty<Region>()), new LineEndings(0, 0, 0), Array.Empty<Issue>(), Array.Empty<Evidence>());
 
         var issues = new List<Issue>(profile.Issues);
+        issues.AddRange(choice.NotChosenIssues ?? []);
         var utf8Family = sniff.Charset is "ascii" or "utf-8" or "latin-1";
         var facts = sniff.Facts;
         if (sniff.Charset is "ascii" or "utf-8" && facts.InvalidSequences > 0)
@@ -62,6 +64,7 @@ public static class Profiler
 
         var evidence = new List<Evidence>(sniff.Evidence) { choice.Evidence };
         evidence.AddRange(profile.Evidence);
+        evidence.AddRange(choice.NotChosenEvidence ?? []);
 
         var extension = Path.GetExtension(source.Name);
         return new Descriptor(

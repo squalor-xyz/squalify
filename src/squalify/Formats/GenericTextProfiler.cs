@@ -8,26 +8,25 @@ namespace squalor.squalify;
 /// </summary>
 internal sealed class GenericTextProfiler : IFormatProfiler
 {
-    private const int MaxListedLines = 10;
     private const int ChunkSize = 16 * 1024;
 
     /// <inheritdoc />
     public string Family => "text";
 
     /// <inheritdoc />
-    public (double Score, string Reason) Score(SniffResult sniff)
+    public FormatScore Score(IProfileSource source, SniffResult sniff, ProfileContext context)
     {
         ArgumentNullException.ThrowIfNull(sniff);
         return sniff.Kind switch
         {
-            "text" => (0.1, "text content"),
-            "empty" => (0.0, "file is empty"),
-            _ => (0.0, "not text: binary content"),
+            "text" => new FormatScore(0.1, "text content"),
+            "empty" => new FormatScore(0.0, "file is empty"),
+            _ => new FormatScore(0.0, "not text: binary content"),
         };
     }
 
     /// <inheritdoc />
-    public FormatProfile Profile(IProfileSource source, SniffResult sniff, ProfileContext context)
+    public FormatProfile Profile(IProfileSource source, SniffResult sniff, ProfileContext context, FormatScore score)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(sniff);
@@ -84,137 +83,5 @@ internal sealed class GenericTextProfiler : IFormatProfiler
             LineEndings: new LineEndings(counter.Crlf, counter.Lf, counter.Cr),
             Issues: issues,
             Evidence: Array.Empty<Evidence>());
-    }
-
-    /// <summary>Counts lines and line endings over a stream of characters.</summary>
-    private sealed class LineCounter
-    {
-        private long _currentLength;
-        private bool _currentBlank = true;
-        private bool _pendingCr;
-        private long _pendingCrLine;
-
-        // First lines of each ending kind, for the mixedLineEndings issue: 0 = CRLF, 1 = LF, 2 = CR.
-        private readonly List<long>[] _firstLines = [new(), new(), new()];
-
-        public long Lines { get; private set; }
-
-        public long BlankLines { get; private set; }
-
-        public long MaxLineLength { get; private set; }
-
-        public long Crlf { get; private set; }
-
-        public long Lf { get; private set; }
-
-        public long Cr { get; private set; }
-
-        public void Add(char c)
-        {
-            if (_pendingCr)
-            {
-                _pendingCr = false;
-                if (c == '\n')
-                {
-                    Crlf++;
-                    Remember(0, _pendingCrLine);
-                    return;
-                }
-
-                Cr++;
-                Remember(2, _pendingCrLine);
-            }
-
-            if (c == '\r')
-            {
-                EndLine();
-                _pendingCr = true;
-                _pendingCrLine = Lines;
-            }
-            else if (c == '\n')
-            {
-                EndLine();
-                Lf++;
-                Remember(1, Lines);
-            }
-            else
-            {
-                _currentLength++;
-                if (c != ' ' && c != '\t')
-                {
-                    _currentBlank = false;
-                }
-            }
-        }
-
-        public void Finish()
-        {
-            if (_pendingCr)
-            {
-                _pendingCr = false;
-                Cr++;
-                Remember(2, _pendingCrLine);
-            }
-
-            // A last line without a terminator still counts.
-            if (_currentLength > 0)
-            {
-                EndLine();
-            }
-        }
-
-        /// <summary>The <c>mixedLineEndings</c> issue, or null when at most one kind of line ending occurs.</summary>
-        public Issue? MixedLineEndings()
-        {
-            var kinds = (Crlf > 0 ? 1 : 0) + (Lf > 0 ? 1 : 0) + (Cr > 0 ? 1 : 0);
-            if (kinds < 2)
-            {
-                return null;
-            }
-
-            // The dominant kind is the most frequent one; a tie goes to CRLF, then LF, then CR.
-            var counts = new[] { Crlf, Lf, Cr };
-            var dominant = 0;
-            for (var k = 1; k < counts.Length; k++)
-            {
-                if (counts[k] > counts[dominant])
-                {
-                    dominant = k;
-                }
-            }
-
-            var others = new List<long>();
-            for (var k = 0; k < counts.Length; k++)
-            {
-                if (k != dominant)
-                {
-                    others.AddRange(_firstLines[k]);
-                }
-            }
-
-            others.Sort();
-            return new Issue("mixedLineEndings", Crlf + Lf + Cr - counts[dominant], FirstLines: others.Take(MaxListedLines).ToArray());
-        }
-
-        private void Remember(int kind, long line)
-        {
-            if (_firstLines[kind].Count < MaxListedLines)
-            {
-                _firstLines[kind].Add(line);
-            }
-        }
-
-        private void EndLine()
-        {
-            Lines++;
-            if (_currentBlank)
-            {
-                BlankLines++;
-            }
-
-            MaxLineLength = Math.Max(MaxLineLength, _currentLength);
-            _currentLength = 0;
-            _currentBlank = true;
-        }
     }
 }
