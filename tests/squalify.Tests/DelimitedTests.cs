@@ -17,6 +17,9 @@ public sealed class DelimitedTests
         "delimited/padded-annotated-no-units.csv",
         "delimited/semicolon-decimal-comma.csv",
         "delimited/leading-separator-rows.csv",
+        "delimited/header-only.csv",
+        "delimited/one-column.csv",
+        "delimited/ragged-first-rows.csv",
     ];
 
     private static ProfileOptions Options(bool includeValues = false) => ProfileOptions.Create(includeValues, Array.Empty<string>());
@@ -908,7 +911,7 @@ public sealed class DelimitedTests
     public void Preamble_TwoKFieldLinesThenKeyValue_StayPreamble()
     {
         // Two lines with k fields and a key=value line look like a header, a data record and a ragged record by field
-        // counts. The lead rule (three k-field records in a row) keeps them preamble.
+        // counts. The window rule that only multi-field ragged records are skipped keeps them preamble: the key=value line has one field and ends the window.
         var d = ProfileText("Setup,PA-7,bench 3\nCalibrated,2026-01-02,ok\nOperator=jr\n" + RaggedTable("A(id),B,C", 20));
         Assert.True(Dialect(d).HasHeader);
         Assert.Equal(new[] { "A(id)", "B", "C" }, Names(d));
@@ -921,7 +924,7 @@ public sealed class DelimitedTests
     [Fact]
     public void RunStart_TableWithATotalLineAfterTheRows_IsDelimited()
     {
-        // A header, four rows and a one-field footer line: the window reaches the end after skipping the footer line, so
+        // A header, four rows and a one-field footer line: the window ends at the last full-width row, so the footer never counts and
         // the file is delimited (it used to fall back to text because no k-run had six records).
         var d = ProfileText("A(id),B,C\n1,x,y\n2,x,y\n3,x,y\n4,x,y\nTotal=4\n");
         Assert.True(Dialect(d).HasHeader);
@@ -929,7 +932,7 @@ public sealed class DelimitedTests
         Assert.Equal(
             new[] { ("header", 1L, 1L), ("data", 2L, 5L), ("footer", 6L, 6L) },
             d.Layout.Regions.Select(static r => (r.Kind, r.FirstLine, r.LastLine)).ToArray());
-        Assert.Contains("run lines 1-5; 1 non-k records skipped in the start window;", CommaReason(d), StringComparison.Ordinal);
+        Assert.Equal("k=3; 5/6 records; clean=1; run lines 1-5; 0 quoted fields", CommaReason(d));
     }
 
     [Fact]

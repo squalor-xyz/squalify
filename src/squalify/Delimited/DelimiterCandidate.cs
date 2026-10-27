@@ -26,6 +26,9 @@ internal static class DelimiterCandidates
     /// <summary>The value written to <c>format.dialect.delimiter</c> for the whitespace-run candidate.</summary>
     public const string WhitespaceName = "whitespace";
 
+    /// <summary>The value written to <c>format.dialect.delimiter</c> for a one-column table, where no delimiter occurs.</summary>
+    public const string NoneName = "none";
+
     /// <summary>The candidates in candidate order: comma, tab, semicolon, pipe, whitespace run.</summary>
     public static IReadOnlyList<DelimiterKind> All { get; } =
         [DelimiterKind.Comma, DelimiterKind.Tab, DelimiterKind.Semicolon, DelimiterKind.Pipe, DelimiterKind.Whitespace];

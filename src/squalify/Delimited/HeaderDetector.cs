@@ -16,6 +16,9 @@ internal sealed class SampleRecord
     /// <summary>The raw field texts.</summary>
     public required string[] Cells { get; init; }
 
+    /// <summary>For each field, true when it was written in quotes; empty when not captured.</summary>
+    public bool[] Quoted { get; init; } = [];
+
     /// <summary>For each field, the byte offset of its first character and the offset after its last; null when not captured.</summary>
     public long[]? Spans { get; init; }
 
