@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 28,
+  "next_id": 29,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -2431,12 +2431,35 @@
       "id": "sq-27",
       "title": "squalify must keep the header when a ragged record falls inside the data-run start window",
       "short_title": "Ragged run start",
-      "status": "open",
-      "has_slice": false,
+      "status": "done",
+      "has_slice": true,
       "depends_on": [
         "sq-04"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "6c7033ac-ee7d-4ea4-9f53-61701790ec40",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27): tolerance of 2 ragged records inside the run-start window confirmed.",
+          "created_at": "2026-10-27T16:35:19Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "74fcab83-8677-4d31-8052-558647cfb84f",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27): lead rule RunStartMinLeadRecords = 3 accepted (keeps k-field preamble lines out of the run); the reviewer's option C (skip only multi-field ragged records) is filed as sq-28.",
+          "created_at": "2026-10-27T16:43:14Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -2455,6 +2478,38 @@
         "reason": "",
         "importance": 2,
         "urgency": 2,
+        "effort": 1,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "sq-28",
+      "title": "squalify must skip only multi-field ragged records in the run-start window",
+      "short_title": "Ragged skip by field count",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [
+        "sq-27"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later.",
+        "discovered_from": "sq-27",
+        "parent": "",
+        "cites": [],
+        "key": "sq27-review-option-c",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
         "effort": 1,
         "attempts": 0
       }
