@@ -2295,7 +2295,7 @@
       "title": "squalify must state, or own, how text escaping depends on the .NET runtime",
       "short_title": "Runtime-stable escaping",
       "status": "open",
-      "has_slice": false,
+      "has_slice": true,
       "depends_on": [
         "sq-02"
       ],
@@ -2405,7 +2405,7 @@
       "title": "squalify must report invalid UTF-16 and UTF-32 data instead of replacing it silently",
       "short_title": "Invalid UTF-16/32 reporting",
       "status": "open",
-      "has_slice": false,
+      "has_slice": true,
       "depends_on": [
         "sq-03"
       ],
@@ -3015,7 +3015,19 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "1fc76889-a67e-452f-9435-be496f65e71b",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27), verbatim: scope \"Scope block, no sha (Recommended)\" (option text: \"Top-level `scope` {maxBytes, bytesRead, complete}; file.size stays the whole-file size; file.sha256 omitted when partial. Draft schema addition, no bump, like earlier slices.\"). Long first record \"Read it whole (Recommended)\" (option text: \"Read past the limit to the end of that one record (existing record caps still apply); scope.bytesRead shows the overshoot. Never an empty profile for a file with data.\").",
+          "created_at": "2026-10-27T21:43:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",

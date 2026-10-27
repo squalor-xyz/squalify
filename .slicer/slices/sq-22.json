@@ -1,0 +1,41 @@
+{
+  "id": "sq-22",
+  "title": "squalify must state, or own, how text escaping depends on the .NET runtime",
+  "lead": [
+    "Documents the byte-stability guarantee: descriptor bytes are guaranteed identical only within one .NET runtime major version, because JSON string escaping comes from the runtime's encoder. Fingerprints are already runtime-stable (sq-06 projection JSON). Docs only."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table.",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:** an in-repo escape table; any code or descriptor change.",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-27), verbatim: \"descriptor bytes are guaranteed only within one .NET runtime major version; document it (consumers pin the package and the runtime). No in-repo escape table. Fingerprints are already runtime-stable (sq-06 ProjectionJson).\"\n\nFrom the sq-26 review (P5): \"when documenting the per-runtime-major guarantee, add it to the README 'Use as a library' version policy, where library consumers read it.\""
+    },
+    {
+      "heading": "Files",
+      "body": "- `README.md`: the library version policy (or the closest section after the sq-33 split; absolute links only).\n- `docs/user-guide.md`: determinism and stability guarantees.\n- `docs/descriptor.md`: where determinism or byte stability is stated.\n- `docs/design.md`: the determinism rules, if they claim more than this.\n- Check every place that promises \"byte-identical\" output and make it say \"within one .NET runtime major version\" where it means descriptor bytes, and \"across runtimes\" for fingerprints."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "None new beyond the existing docs tests (`Docs_RelativeLinks_Resolve`, `Package_Readme_HasNoRelativeLinks`), which must keep passing."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release`\n- `dotnet format squalify.sln --verify-no-changes`\n- All changed Markdown is ASCII.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-22` on branch `sq-22`. No agent commits."
+    }
+  ],
+  "notes": []
+}
