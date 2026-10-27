@@ -2841,11 +2841,14 @@
       "id": "sq-33",
       "title": "squalify must have getting-started, user, example and developer docs",
       "short_title": "User and developer docs",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-27T19:42:43Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -2864,7 +2867,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     }
   ],
