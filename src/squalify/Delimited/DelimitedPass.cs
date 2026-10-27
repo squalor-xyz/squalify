@@ -235,11 +235,18 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             issues.Add(new Issue("commentInData", _commentsInData, FirstLines: _commentLines.ToArray()));
         }
 
+        if (_rows == 0)
+        {
+            // A header (or units row) and no data record: a table with zero rows, described as such.
+            issues.Add(new Issue("noDataRows", 1, FirstLines: [_headerRecord?.Line ?? _runFirstLine]));
+        }
+
         var regions = BuildRegions(structure.Counter.Lines, sniff.Length);
         var padded = _nonEmptyCells > 0 ? _paddedCells / (double)_nonEmptyCells : 0.0;
-        var constant = _runLines > 0 && _constantLineLength;
+        // A table with no data record has one line, which is trivially of constant length: that says nothing, so it is false.
+        var constant = _rows > 0 && _runLines > 0 && _constantLineLength;
         var dialect = new DelimitedDialect(
-            DelimiterCandidates.Text(_dialect.Kind),
+            _dialect.Shape == DegenerateShape.SingleColumn ? DelimiterCandidates.NoneName : DelimiterCandidates.Text(_dialect.Kind),
             "\"",
             hasHeader,
             _unitsRecord is not null,
@@ -252,6 +259,11 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             fields,
             _rowClasses.Build());
         var evidence = new List<Evidence> { structure.Selection.Evidence };
+        if (structure.Selection.ShapeEvidence is not null)
+        {
+            evidence.Add(structure.Selection.ShapeEvidence);
+        }
+
         if (_decimalEvidence is not null)
         {
             evidence.Add(_decimalEvidence);
@@ -427,7 +439,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             "decimalSeparator",
             useComma ? "," : ".",
             [
-                new Candidate(",", useComma ? 1.0 : 0.0, Ordinal.Invariant(commaLike) + " comma-decimal cells" + (_dialect.Kind == DelimiterKind.Comma ? "; the delimiter is a comma" : string.Empty)),
+                new Candidate(",", useComma ? 1.0 : 0.0, Ordinal.Invariant(commaLike) + " comma-decimal cells" + (_dialect.Shape == DegenerateShape.SingleColumn ? "; one column, no delimiter" : _dialect.Kind == DelimiterKind.Comma ? "; the delimiter is a comma" : string.Empty)),
                 new Candidate(".", useComma ? 0.0 : 1.0, Ordinal.Invariant(dotLike) + " dot-decimal cells"),
             ]);
 

@@ -16,7 +16,7 @@ public abstract record Dialect
 }
 
 /// <summary>Dialect of a delimited table.</summary>
-/// <param name="Delimiter">The delimiter text.</param>
+/// <param name="Delimiter">The delimiter text; <c>whitespace</c> for runs of white space; <c>none</c> for a one-column table.</param>
 /// <param name="Quote">The quote character, or null when there is none.</param>
 /// <param name="HasHeader">True when a header row was found.</param>
 /// <param name="UnitsRow">True when a units row was found.</param>
