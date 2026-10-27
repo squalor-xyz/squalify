@@ -493,7 +493,7 @@
     ]
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:247209e89cfc00ea4d6ea051a76e2dde9e664ce50687dbf6934333004d627547",
     "layout": "sha256:c3ae92a51838227f7a2ae88328631c67d2dfd8e84909bff6a229f759333b53d2",
     "typed": "sha256:32a0aa96f31e37e2c6d9af017aea91c87a3032b9c72292685ed2a4b05f29b895",
@@ -684,8 +684,8 @@
         },
         {
           "value": "whitespace",
-          "score": 0,
-          "reason": "k=4; no run; 0 quoted fields"
+          "score": 0.034482758620689655,
+          "reason": "k=4; 1/29 records; clean=1; run lines 1-1; 0 quoted fields"
         }
       ]
     },

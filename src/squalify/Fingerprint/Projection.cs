@@ -34,7 +34,7 @@ internal sealed record ProjectionResult(Fingerprint Fingerprint, long Excluded);
 internal static class Projection
 {
     /// <summary>The projection version written as <c>fingerprint.version</c>.</summary>
-    public const long Version = 1;
+    public const long Version = 2;
 
     /// <summary>The bytes of the <c>structure</c> projection.</summary>
     /// <param name="input">The input.</param>

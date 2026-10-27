@@ -21,7 +21,7 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 /// <param name="DistinctPerField">Effective cap on exact distinct values per field: min(cap, budget / field count).</param>
 /// <param name="QuantilePerField">Effective cap on exact quantile values per field: min(cap, budget / field count).</param>
 /// <param name="ShapesPerField">Cap on shape masks per field.</param>
-/// <param name="Regions">Cap on regions.</param>
+/// <param name="Regions">The most blocks of a delimited file that are recognised; later candidates are counted in <c>blocksTruncated</c>.</param>
 /// <param name="HeaderSample">Number of records sampled for header detection.</param>
 /// <param name="RunawayQuote">Longest open quoted field, in characters, before a delimited candidate is disqualified.</param>
 /// <param name="FieldCountRuns">Most field-count runs a delimited candidate may have before it is disqualified as too irregular.</param>

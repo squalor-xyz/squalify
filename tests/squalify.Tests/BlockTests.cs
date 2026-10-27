@@ -323,12 +323,182 @@ public sealed class BlockTests
         Assert.Equal(limit, Dialect(d).Blocks);
         Assert.Equal(limit, d.Layout.Regions.Count(static r => r.Kind == "block"));
 
-        // The records past the last block belong to it: its data run goes on (the five later headers are rows of it).
-        Assert.Equal(((limit + 5) * 5) + 5, d.Table!.Fields[0].Count);
+        // Past the cap nothing more is recognised or profiled, and the issue counts the candidates left: no later header
+        // becomes a row of the last block.
+        Assert.Equal(limit * 5, d.Table!.Fields[0].Count);
+        Assert.Equal("int", d.Table.Fields[0].Type);
+        var issue = Assert.Single(d.Issues, static i => i.Code == "blocksTruncated");
+        Assert.Equal(5, issue.Count);
+        Assert.Equal(5, issue.FirstLines!.Count);
+        Assert.DoesNotContain(d.Issues, static i => i.Code is "raggedRows" or "heterogeneousBlocks");
+
+        // The evidence lists the first 10 blocks, then the summary that counts them all.
+        var evidence = Assert.Single(d.Evidence, static e => e is { Stage: "dialect", Topic: "blocks" });
+        Assert.Equal(11, evidence.Candidates.Count);
+        Assert.Equal("candidates=" + (limit + 4).ToString(CultureInfo.InvariantCulture) + "; blocks=" + limit.ToString(CultureInfo.InvariantCulture) + "; profiled=" + limit.ToString(CultureInfo.InvariantCulture), evidence.Candidates[^1].Reason);
     }
 
     [Fact]
-    public void Blocks_Heterogeneous_ProfilingStopsAtTheFirstOtherHeader()
+    public void Blocks_ErrorRowAfterRaggedRow_DoesNotStartABlock()
+    {
+        // A short ragged row, then an error row of text where the numbers are, then the table again: one table (the
+        // run after the ragged row is long, and its first row is all strings). Same as on main.
+        var builder = new StringBuilder("Site,Freq,Pout,Gain\n");
+        for (var i = 0; i < 20; i++)
+        {
+            builder.Append(string.Format(CultureInfo.InvariantCulture, "S{0},{1},{2:0.0},20.1\n", i, 1000 + i, 10.5 + i));
+        }
+
+        builder.Append("S99,1100\n").Append("S20,ERR,11.0,20.5\n");
+        for (var i = 21; i < 40; i++)
+        {
+            builder.Append(string.Format(CultureInfo.InvariantCulture, "S{0},{1},{2:0.0},20.1\n", i, 1000 + i, 10.5 + i));
+        }
+
+        var d = ProfileText(builder.ToString());
+        Assert.Equal(1, Dialect(d).Blocks);
+        Assert.Equal(new[] { "Site", "Freq", "Pout", "Gain" }, d.Table!.Fields.Select(static f => f.Name!).ToArray());
+        Assert.Equal(41, d.Table.Rows);
+        Assert.Equal(1, Assert.Single(d.Issues, static i => i.Code == "raggedRows").Count);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+    }
+
+    [Fact]
+    public void Blocks_AGapOfOnlyDataLikeRows_IsNoGap()
+    {
+        // `7,8` has two fields and no name: a short data row. The run after it opens with an all-text row (every typed
+        // column fails), but with no comment, key=value or one-field line before it, it is no block.
+        var builder = new StringBuilder("a,b,c\n");
+        for (var i = 0; i < 20; i++)
+        {
+            builder.Append(string.Format(CultureInfo.InvariantCulture, "{0},{0},{0}\n", i));
+        }
+
+        builder.Append("7,8\nERR,timeout,retry\n");
+        for (var i = 21; i < 40; i++)
+        {
+            builder.Append(string.Format(CultureInfo.InvariantCulture, "{0},{0},{0}\n", i));
+        }
+
+        var d = ProfileText(builder.ToString());
+        Assert.Equal(1, Dialect(d).Blocks);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+    }
+
+    [Fact]
+    public void Blocks_AnErrorRowAfterANote_DoesNotStartABlock()
+    {
+        // The gap has a comment (a real gap), but the row fails only one of three typed columns: not a header.
+        var builder = new StringBuilder("Site,Freq,Pout,Gain\n");
+        for (var i = 0; i < 20; i++)
+        {
+            builder.Append(string.Format(CultureInfo.InvariantCulture, "S{0},{1},{2:0.0},20.1\n", i, 1000 + i, 10.5 + i));
+        }
+
+        builder.Append("# retry\nS20,ERR,11.0,20.5\n");
+        for (var i = 21; i < 40; i++)
+        {
+            builder.Append(string.Format(CultureInfo.InvariantCulture, "S{0},{1},{2:0.0},20.1\n", i, 1000 + i, 10.5 + i));
+        }
+
+        var d = ProfileText(builder.ToString());
+        Assert.Equal(1, Dialect(d).Blocks);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+    }
+
+    [Fact]
+    public void Blocks_ExactRepeat_AfterAKeyValueLineOfTheTablesWidth_IsTheHeader()
+    {
+        // k = 2: the `Site,B` line has the table's width, so it is part of the run; the repeat of the header one line later
+        // is the header of the new block, and `Site,B` belongs to the block's annotation, not to its header.
+        var d = ProfileText("f,v\n1,1.5\n2,2.5\n3,3.5\n4,4.5\n5,5.5\n6,6.5\n# block two\nSite,B\nf,v\n1,1.5\n2,2.5\n3,3.5\n4,4.5\n5,5.5\n6,6.5\n");
+        Assert.Equal(2, Dialect(d).Blocks);
+        Assert.Equal(12, d.Table!.Rows);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+        var second = d.Layout.Regions.Single(static r => r is { Kind: "block", Index: 1 });
+        Assert.Equal(new[] { "preamble", "annotation", "header", "data" }, Kinds(second.Regions!));
+        Assert.Equal(new[] { (8L, 8L), (9L, 9L), (10L, 10L), (11L, 16L) }, second.Regions!.Select(static r => (r.FirstLine, r.LastLine)).ToArray());
+    }
+
+    [Fact]
+    public void Blocks_ExactRepeat_AfterAnAnnotationRow_IsTheHeader()
+    {
+        // A limits row (same width as the table) sits between the preamble and the repeated header.
+        var text = "Site=A\na,b,c\n1,1,1\n2,2,2\n3,3,3\n4,4,4\n5,5,5\n6,6,6\nSite=B\nRange,10,20\na,b,c\n1,1,1\n2,2,2\n3,3,3\n4,4,4\n5,5,5\n6,6,6\n";
+        var d = ProfileText(text);
+        Assert.Equal(2, Dialect(d).Blocks);
+        Assert.Equal(12, d.Table!.Rows);
+        var second = d.Layout.Regions.Single(static r => r is { Kind: "block", Index: 1 });
+        Assert.Equal(new[] { "preamble", "annotation", "header", "data" }, Kinds(second.Regions!));
+        var row = Assert.Single(second.Regions![1].Rows!);
+        Assert.Equal("Range", row.Label);
+    }
+
+    [Fact]
+    public void Blocks_ExactRepeat_AllStringTables_AreSplitToo()
+    {
+        // No column has a type, so no header can fail one; only the exact repeat finds the blocks.
+        var builder = new StringBuilder();
+        for (var b = 0; b < 3; b++)
+        {
+            builder.Append("Site=").Append(b.ToString(CultureInfo.InvariantCulture)).Append("\nName,Color,Shape\n");
+            for (var i = 0; i < 6; i++)
+            {
+                builder.Append("n").Append(i.ToString(CultureInfo.InvariantCulture)).Append(",c").Append(i.ToString(CultureInfo.InvariantCulture)).Append(",x\n");
+            }
+        }
+
+        var d = ProfileText(builder.ToString());
+        Assert.Equal(3, Dialect(d).Blocks);
+        Assert.Equal(18, d.Table!.Rows);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+    }
+
+    [Fact]
+    public void Blocks_ExactRepeat_NeedsNoRealGap_ButAnotherHeaderDoes()
+    {
+        // The same header after a gap of one data-like row is a block (an exact repeat); another header there is not.
+        var repeat = ProfileText(Block("A", 25, 6).Replace("Site=A\n", string.Empty, StringComparison.Ordinal) + "7,8\n" + Header + "\n" + Row(0) + "\n" + Row(1) + "\n" + Row(2) + "\n" + Row(3) + "\n" + Row(4) + "\n");
+        Assert.Equal(2, Dialect(repeat).Blocks);
+        var other = ProfileText(Block("A", 25, 6).Replace("Site=A\n", string.Empty, StringComparison.Ordinal) + "7,8\nVgs(V),Id(A),Gm(S)\n" + Row(0) + "\n" + Row(1) + "\n" + Row(2) + "\n" + Row(3) + "\n" + Row(4) + "\n");
+        Assert.Equal(1, Dialect(other).Blocks);
+    }
+
+    [Fact]
+    public void Blocks_FirstBlockWithoutAHeader_HasNoLaterBlocks()
+    {
+        // Six rows of numbers, a key line, then a table with a header: the table is the one table, as on main (the numbers
+        // above its header are annotation rows), not a headerless block 0 and a block that cannot be compared with it.
+        var d = ProfileText("1,1,1\n2,2,2\n3,3,3\n4,4,4\n5,5,5\n6,6,6\nSite=B\na,b,c\n1,1,1\n2,2,2\n3,3,3\n4,4,4\n5,5,5\n6,6,6\n");
+        Assert.Equal(1, Dialect(d).Blocks);
+        Assert.True(Dialect(d).HasHeader);
+        Assert.Equal(new[] { "a", "b", "c" }, d.Table!.Fields.Select(static f => f.Name!).ToArray());
+        Assert.Equal(6, d.Table.Rows);
+    }
+
+    [Fact]
+    public void Blocks_AFirstBlockOfFewerThanFiveRecords_IsNoBlock()
+    {
+        // Header and three rows, a skippable ragged line and a one-field line, then a longer table with its own header:
+        // the first run is too short to be a block, so there is one table (and no heterogeneousBlocks that would hide the
+        // longer one).
+        var d = ProfileText("a,b,c\n1,2,3\n4,5,6\n7,8,9\nx,y\nSite=B\nd,e,f\n1,1,1\n2,2,2\n3,3,3\n4,4,4\n5,5,5\n6,6,6\n");
+        Assert.Equal(1, Dialect(d).Blocks);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+    }
+
+    [Fact]
+    public void Blocks_HeaderOnlyFirstLines_AreNoBlockStart()
+    {
+        // A header, a key line and another table: no block is recognised from a first block with no data row. What the
+        // file is, is decided by the run start (sq-34), not by block detection.
+        var d = ProfileText("a,b,c\nSite=B\nd,e,f\n1,1,1\n2,2,2\n3,3,3\n4,4,4\n5,5,5\n6,6,6\n");
+        Assert.Equal(1, Dialect(d).Blocks);
+        Assert.DoesNotContain(d.Issues, static i => i.Code == "heterogeneousBlocks");
+    }
+
+    [Fact]
+    public void Blocks_Heterogeneous_ProfilesThePrefixOfMatchingBlocks()
     {
         // Blocks are read in one pass, so the fields are profiled across the blocks that have the first block's header,
         // up to the first that has another one; later blocks are listed, even one with the first header again.

@@ -16,14 +16,20 @@ internal sealed class SampleRecord
     /// <summary>The raw field texts.</summary>
     public required string[] Cells { get; init; }
 
+    /// <summary>For each field, true when it was written in quotes; empty when not captured.</summary>
+    public bool[] Quoted { get; init; } = [];
+
     /// <summary>For each field, the byte offset of its first character and the offset after its last; null when not captured.</summary>
     public long[]? Spans { get; init; }
 
     /// <summary>True when the record is a comment line.</summary>
     public required bool IsComment { get; init; }
 
-    /// <summary>The record's text up to the raw cap (all of it for a line that may be preamble of a later block); null when not kept.</summary>
-    public string? Raw { get; init; }
+    /// <summary>
+    /// The classification of the record as a preamble line (kind, key and the value, only when it may be written), set for a
+    /// record that lies in the gap before a block candidate; the raw text is not kept. Null for other records.
+    /// </summary>
+    public LineClassification? GapClass { get; init; }
 
     /// <summary>The number of fields.</summary>
     public int FieldCount => Cells.Length;
@@ -232,15 +238,18 @@ internal static class HeaderDetector
 
     /// <summary>
     /// Whether the first record of a block candidate's sample is a header line: its fields are all non-blank and distinct,
-    /// and in some typed column (the types are the strict join of the records below it, a units row left out) its value
-    /// fails the type. This is the eligibility test of <see cref="Detect"/> applied to the first record only, so a stray
-    /// row in the middle of a run can never open a block. The votes must be set (see <see cref="Classify"/>).
+    /// and its values fail the column types below it (the strict join of the records after it, a units row directly after
+    /// the header left out) in at least <paramref name="minContrast"/> of the typed columns, and in one at least. This is
+    /// the eligibility test of <see cref="Detect"/> applied to the first record only, with a floor on the contrast (a real
+    /// header fails almost every typed column; a stray text row in a table fails few). The votes must be set (see
+    /// <see cref="Classify"/>).
     /// </summary>
     /// <param name="records">The sample: the first records of the candidate run.</param>
     /// <param name="k">The field count of the table.</param>
+    /// <param name="minContrast">The least share of typed columns the record must fail.</param>
     /// <param name="unitsRow">True when the record after the header is a units row.</param>
     /// <returns>True when the sample opens with a header.</returns>
-    public static bool OpensWithHeader(IReadOnlyList<SampleRecord> records, int k, out bool unitsRow)
+    public static bool OpensWithHeader(IReadOnlyList<SampleRecord> records, int k, double minContrast, out bool unitsRow)
     {
         ArgumentNullException.ThrowIfNull(records);
         unitsRow = false;
@@ -249,18 +258,30 @@ internal static class HeaderDetector
             return false;
         }
 
-        var types = JoinFrom(records, 1, k);
-        if (records.Count > 1 && records[1] is { IsComment: false } next && next.FieldCount == k)
+        var units = UnitsRowAfter(records, 0, k);
+        var types = JoinFrom(records, units ? 2 : 1, k);
+        var detail = Evaluate(records[0], types, k);
+        if (!detail.Eligible || detail.Contrast < minContrast)
         {
-            var afterUnits = JoinFrom(records, 2, k);
-            if (IsUnitsRow(next, afterUnits, k))
-            {
-                unitsRow = true;
-                types = afterUnits;
-            }
+            return false;
         }
 
-        return Evaluate(records[0], types, k).Eligible;
+        unitsRow = units;
+        return true;
+    }
+
+    /// <summary>Whether the record after the header at <paramref name="header"/> is a units row. The votes must be set.</summary>
+    /// <param name="records">The sample.</param>
+    /// <param name="header">The sample index of the header.</param>
+    /// <param name="k">The field count of the table.</param>
+    /// <returns>True for a units row.</returns>
+    public static bool UnitsRowAfter(IReadOnlyList<SampleRecord> records, int header, int k)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        return header + 1 < records.Count
+            && records[header + 1] is { IsComment: false } next
+            && next.FieldCount == k
+            && IsUnitsRow(next, JoinFrom(records, header + 2, k), k);
     }
 
     // The column types over the participating records from `start` on.

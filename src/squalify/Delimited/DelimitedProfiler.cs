@@ -42,13 +42,20 @@ internal sealed class DelimitedProfiler : IFormatProfiler
         var counter = new LineCounter();
         TextScanner.Scan(source, sniff, tallies.Select(static t => t.Tokenizer).ToArray(), counter, null);
         var selection = DialectSelector.Select(tallies, limits.FieldCountRuns, limits.RunawayQuote);
+        selection = DegenerateShapes.Resolve(selection, source, sniff, context);
         if (selection.Best is { } best)
         {
-            var reason = "delimiter " + DelimiterCandidates.Word(best.Kind) + "; " + best.Reason;
+            var reason = selection.ShapeReason ?? "delimiter " + DelimiterCandidates.Word(best.Kind) + "; " + best.Reason;
 
             // Only the winner's run-length encoding is read for blocks; what the pass keeps is the short list of candidates.
-            var winner = tallies.First(t => t.Tokenizer.Kind == best.Kind).Rle;
-            var candidates = BlockDetector.Candidates(winner.Runs, best.K, best.RunFirstLine, best.RunLastLine, limits.HeaderSample);
+            // A header-only or one-column table has no repeated blocks.
+            var candidates = BlockDetector.None;
+            if (best.Shape == DegenerateShape.None)
+            {
+                var winner = tallies.First(t => t.Tokenizer.Kind == best.Kind).Rle;
+                candidates = BlockDetector.Candidates(winner.Runs, best.K, best.RunFirstLine, best.RunLastLine, limits.HeaderSample);
+            }
+
             return new FormatScore(selection.ProfilerScore, reason, new DelimitedStructure(selection, counter, candidates));
         }
 

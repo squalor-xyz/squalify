@@ -51,12 +51,15 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private readonly long _maxBlocks;
     private PendingBlock? _pending;
     private int _nextCandidate;
-    private int _rawCursor;
+    private readonly long[] _gapBlanks;
+    private int _gapCursor;
     private int _blankCursor;
     private bool _profiling = true;
     private string[]? _firstNames;
     private long _unprofiledBlocks;
     private readonly List<long> _unprofiledLines = [];
+    private long _truncatedBlocks;
+    private readonly List<long> _truncatedLines = [];
 
     // Data statistics.
     private FieldAccumulator[] _accumulators = [];
@@ -85,6 +88,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     public DelimitedPass(CandidateResult dialect, ProfileContext context, IReadOnlyList<BlockCandidate>? candidates = null)
     {
         _candidates = candidates ?? [];
+        _gapBlanks = new long[_candidates.Count];
         _maxBlocks = context.Limits.Regions;
         _dialect = dialect;
         _context = context;
@@ -115,13 +119,19 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         // The records between a block candidate's previous k-field record and the candidate may become the preamble of a
-        // block, so they keep all their text. The lines arrive in order, so a cursor is enough.
-        while (_rawCursor < _candidates.Count && line >= _candidates[_rawCursor].HeaderLine)
+        // block: they are classified when they end, so they keep all their text for that one call, and no more.
+        return InGap(line) ? int.MaxValue : CommentPrefix;
+    }
+
+    // Whether a line lies in the gap before a block candidate. The lines arrive in order, so a cursor is enough.
+    private bool InGap(long line)
+    {
+        while (_gapCursor < _candidates.Count && line >= _candidates[_gapCursor].HeaderLine)
         {
-            _rawCursor++;
+            _gapCursor++;
         }
 
-        return _rawCursor < _candidates.Count && line >= _candidates[_rawCursor].GapFirstLine ? int.MaxValue : CommentPrefix;
+        return _gapCursor < _candidates.Count && line >= _candidates[_gapCursor].GapFirstLine;
     }
 
     /// <inheritdoc />
@@ -145,7 +155,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
             if (_blankCursor < _candidates.Count && line > _candidates[_blankCursor].GapFirstLine)
             {
-                _candidates[_blankCursor].GapBlanks++;
+                _gapBlanks[_blankCursor]++;
             }
         }
     }
@@ -192,7 +202,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         CountPadding(record.Cells);
-        var comment = LineClassifier.IsComment(record.Raw ?? string.Empty);
+        var comment = record.IsComment;
         if (!_decided)
         {
             _sample.Add(ToSample(record, comment));
@@ -215,17 +225,17 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         Stream(ToSample(record, comment));
     }
 
-    private static SampleRecord ToSample(RecordInfo record, bool comment)
+    private SampleRecord ToSample(RecordInfo record, bool comment)
     {
         return new SampleRecord
         {
+            GapClass = InGap(record.StartLine) ? ClassifyPreambleLine(record.Raw ?? string.Empty, record.Cells) : null,
             Line = record.StartLine,
             StartByte = record.StartByte,
             EndLine = record.EndLine,
             Cells = record.Cells.ToArray(),
             Spans = record.Spans.ToArray(),
             IsComment = comment,
-            Raw = record.Raw,
         };
     }
 
@@ -289,16 +299,28 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             issues.Add(new Issue("commentInData", _commentsInData, FirstLines: _commentLines.ToArray()));
         }
 
+        if (_rows == 0)
+        {
+            // A header (or units row) and no data record: a table with zero rows, described as such.
+            issues.Add(new Issue("noDataRows", 1, FirstLines: [_headerRecord?.Line ?? _runFirstLine]));
+        }
+
         if (_unprofiledBlocks > 0)
         {
             issues.Add(new Issue("heterogeneousBlocks", _unprofiledBlocks, FirstLines: _unprofiledLines.ToArray()));
         }
 
+        if (_truncatedBlocks > 0)
+        {
+            issues.Add(new Issue("blocksTruncated", _truncatedBlocks, FirstLines: _truncatedLines.ToArray()));
+        }
+
         var regions = BuildRegions(structure.Counter.Lines, sniff.Length);
         var padded = _nonEmptyCells > 0 ? _paddedCells / (double)_nonEmptyCells : 0.0;
-        var constant = _runLines > 0 && _constantLineLength;
+        // A table with no data record has one line, which is trivially of constant length: that says nothing, so it is false.
+        var constant = _rows > 0 && _runLines > 0 && _constantLineLength;
         var dialect = new DelimitedDialect(
-            DelimiterCandidates.Text(_dialect.Kind),
+            _dialect.Shape == DegenerateShape.SingleColumn ? DelimiterCandidates.NoneName : DelimiterCandidates.Text(_dialect.Kind),
             "\"",
             hasHeader,
             _unitsRecord is not null,
@@ -311,6 +333,11 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             fields,
             _rowClasses.Build());
         var evidence = new List<Evidence> { structure.Selection.Evidence };
+        if (structure.Selection.ShapeEvidence is not null)
+        {
+            evidence.Add(structure.Selection.ShapeEvidence);
+        }
+
         if (_decimalEvidence is not null)
         {
             evidence.Add(_decimalEvidence);
@@ -394,21 +421,27 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     private void AddPreamble(RecordInfo record)
     {
-        AddPreambleLine(_preamble, record.Raw ?? string.Empty, record.Cells, record.StartLine, record.EndLine, stable: true);
+        AddPreambleLine(_preamble, ClassifyPreambleLine(record.Raw ?? string.Empty, record.Cells), record.StartLine, record.EndLine, stable: true);
     }
 
-    // One record outside the data run, or between two blocks: it counts in the preamble `target`. Only the first block's
-    // preamble feeds the hints: its stable lines are the ones that identify the file.
-    private void AddPreambleLine(PreambleData target, string raw, IReadOnlyList<string> cells, long startLine, long endLine, bool stable)
+    // The kind and key of a record outside the data run, or between two blocks; the value is kept only when it may be written.
+    private LineClassification ClassifyPreambleLine(string raw, IReadOnlyList<string> cells)
     {
         var result = LineClassifier.Classify(raw, cells, _delimiterChar);
+        return result.Key is { } key
+            ? result with { Value = _gate.Allows(ValuesPolicy.RegionValues, key) ? result.Value ?? string.Empty : null }
+            : result;
+    }
+
+    // One such record counts in the preamble `target`. Only the first block's preamble feeds the hints: its stable lines are
+    // the ones that identify the file.
+    private void AddPreambleLine(PreambleData target, LineClassification result, long startLine, long endLine, bool stable)
+    {
         target.Kinds[(int)result.Kind]++;
         if (result.Key is { } key)
         {
             target.Keys.Add(key);
-
-            // A value is held only when it may be written; otherwise it is dropped here.
-            target.Values.Add(_gate.Allows(ValuesPolicy.RegionValues, key) ? result.Value ?? string.Empty : null);
+            target.Values.Add(result.Value);
         }
 
         // A stable line is one physical line; its text is read later, and only for the lines that may be written.
@@ -521,7 +554,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             "decimalSeparator",
             useComma ? "," : ".",
             [
-                new Candidate(",", useComma ? 1.0 : 0.0, Ordinal.Invariant(commaLike) + " comma-decimal cells" + (_dialect.Kind == DelimiterKind.Comma ? "; the delimiter is a comma" : string.Empty)),
+                new Candidate(",", useComma ? 1.0 : 0.0, Ordinal.Invariant(commaLike) + " comma-decimal cells" + (_dialect.Shape == DegenerateShape.SingleColumn ? "; one column, no delimiter" : _dialect.Kind == DelimiterKind.Comma ? "; the delimiter is a comma" : string.Empty)),
                 new Candidate(".", useComma ? 0.0 : 1.0, Ordinal.Invariant(dotLike) + " dot-decimal cells"),
             ]);
 
@@ -615,9 +648,30 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
             var run = _sample.GetRange(header, need);
             HeaderDetector.Classify(run, _k, _decimal);
-            if (HeaderDetector.OpensWithHeader(run, _k, out _))
+            // The first block must be a block too: at least BlockDetector.MinRunRecords records of the table's width, and a
+            // header (the one that the records before this gap give: the first block is not decided yet). Without both the
+            // records stay one table, as when there are no candidates.
+            if (_sample.Take(gap).Count(r => !r.IsComment && r.Cells.Length == _k) >= BlockDetector.MinRunRecords)
             {
-                return gap;
+                string[]? names = null;
+                var haveNames = false;
+
+                // An exact repeat of the first block's header comes first.
+                if (RepeatsARecordBefore(run, gap))
+                {
+                    names = TentativeNames(gap);
+                    haveNames = true;
+                    if (names is not null && FindRepeat(run, names) >= 0)
+                    {
+                        return gap;
+                    }
+                }
+
+                var nonData = _sample.Skip(gap).Take(header - gap).Any(static r => r.GapClass is { } g && BlockDetector.IsNonDataLine(g.Kind, r.FieldCount));
+                if (nonData && HeaderDetector.OpensWithHeader(run, _k, BlockDetector.MinContrast, out _) && (haveNames ? names : TentativeNames(gap)) is not null)
+                {
+                    return gap;
+                }
             }
 
             _nextCandidate = c + 1;
@@ -626,16 +680,113 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         return -1;
     }
 
-    // A candidate opens when its gap starts: from then on the records are held until the run's sample is complete.
-    private bool StartsPending(long line)
+    // Whether one of the first records of a run equals a record of the sample before `gap`: a cheap test that keeps the
+    // header detection of the first block off the candidates that cannot repeat its header.
+    private bool RepeatsARecordBefore(List<SampleRecord> run, int gap)
     {
-        if (_nextCandidate >= _candidates.Count || _later.Count + 1 >= _maxBlocks || line < _candidates[_nextCandidate].GapFirstLine)
+        for (var j = 0; j < Math.Min(BlockDetector.RepeatWindow, run.Count); j++)
+        {
+            for (var p = 0; p < gap; p++)
+            {
+                if (SameCells(_sample[p], run[j]))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool SameCells(SampleRecord a, SampleRecord b)
+    {
+        if (a.IsComment || b.IsComment || a.Cells.Length != _k || b.Cells.Length != _k)
         {
             return false;
         }
 
-        _pending = new PendingBlock(_candidates[_nextCandidate]);
+        for (var c = 0; c < _k; c++)
+        {
+            if (!ValueClassifier.Trim(a.Cells[c]).SequenceEqual(ValueClassifier.Trim(b.Cells[c])))
+            {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    // The header names of the first block, if its sample ended at `gap`.
+    private string[]? TentativeNames(int gap)
+    {
+        var prefix = _sample.GetRange(0, gap);
+        HeaderDetector.Classify(prefix, _k, _decimal);
+        var decision = HeaderDetector.Detect(prefix, _k);
+        return decision.HeaderIndex >= 0 ? Names(prefix[decision.HeaderIndex]) : null;
+    }
+
+    private static string[] Names(SampleRecord record)
+    {
+        return record.Cells.Select(static c => ValueClassifier.Trim(c).ToString()).ToArray();
+    }
+
+    // The sample index of the first of the first records of a run that equals the first block's header (trimmed, ordinal), or -1.
+    private int FindRepeat(IReadOnlyList<SampleRecord> run, string[] names)
+    {
+        for (var j = 0; j < Math.Min(BlockDetector.RepeatWindow, run.Count); j++)
+        {
+            var record = run[j];
+            if (record.IsComment || record.Cells.Length != names.Length)
+            {
+                continue;
+            }
+
+            var same = true;
+            for (var c = 0; c < names.Length && same; c++)
+            {
+                same = ValueClassifier.Trim(record.Cells[c]).SequenceEqual(names[c]);
+            }
+
+            if (same)
+            {
+                return j;
+            }
+        }
+
+        return -1;
+    }
+
+    // A candidate opens when its gap starts: from then on the records are held until the run's sample is complete. At the
+    // cap on blocks nothing more is recognised and nothing more is profiled (see TruncateBlocks).
+    private bool StartsPending(long line)
+    {
+        if (_nextCandidate >= _candidates.Count || line < _candidates[_nextCandidate].GapFirstLine)
+        {
+            return false;
+        }
+
+        if (_later.Count + 1 >= _maxBlocks)
+        {
+            TruncateBlocks();
+            return false;
+        }
+
+        _pending = new PendingBlock(_nextCandidate, _candidates[_nextCandidate]);
+        return true;
+    }
+
+    // `limits.regions` blocks are recognised. A further candidate may be another block, so the records from here on are
+    // not profiled (as after a block with another header) and the issue blocksTruncated counts the candidates left.
+    private void TruncateBlocks()
+    {
+        _profiling = false;
+        _truncatedBlocks = _candidates.Count - _nextCandidate;
+        for (var c = _nextCandidate; c < _candidates.Count && _truncatedLines.Count < MaxListedLines; c++)
+        {
+            _truncatedLines.Add(_candidates[c].HeaderLine);
+        }
+
+        _nextCandidate = _candidates.Count;
     }
 
     // A record of the stream, after the first block is decided: held while a candidate is open, otherwise data.
@@ -651,7 +802,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         var pending = _pending!;
         if (record.Line < pending.Candidate.HeaderLine)
         {
-            pending.Gap.Add(record);
+            // A record of the gap is kept as what the preamble needs of it, not as cells.
+            pending.Gap.Add(new GapRecord(record.Line, record.StartByte, record.EndLine, record.FieldCount, record.IsComment, record.GapClass ?? new LineClassification(LineKind.Text, null, null)));
             return;
         }
 
@@ -662,8 +814,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
     }
 
-    // The open candidate is decided: a block when its first record is a header line, else its records are ragged rows and
-    // data rows of the open block, as if no candidate had been looked at.
+    // The open candidate is decided: a block when it repeats the first block's header or opens with a header line, else
+    // its records are ragged rows and data rows of the open block, as if no candidate had been looked at.
     private void ResolvePending()
     {
         if (_pending is not { } pending)
@@ -674,13 +826,32 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _pending = null;
         _nextCandidate++;
         HeaderDetector.Classify(pending.Sample, _k, _decimal);
+        var header = -1;
         var unitsRow = false;
 
-        // A candidate with no gap or no run records cannot be a block (it does not happen: the guard keeps a bug elsewhere
-        // from becoming an exception on a strange file).
-        if (pending.Gap.Count == 0 || !HeaderDetector.OpensWithHeader(pending.Sample, _k, out unitsRow))
+        // A table whose first block has no header has no later blocks: there is no header to repeat or to differ from.
+        if (pending.Gap.Count > 0 && FirstNames() is { } names)
         {
-            foreach (var record in pending.Gap.Concat(pending.Sample))
+            if (FindRepeat(pending.Sample, names) is var repeat and >= 0)
+            {
+                header = repeat;
+                unitsRow = HeaderDetector.UnitsRowAfter(pending.Sample, repeat, _k);
+            }
+            else if (pending.Gap.Any(static g => BlockDetector.IsNonDataLine(g.Class.Kind, g.Fields)) && HeaderDetector.OpensWithHeader(pending.Sample, _k, BlockDetector.MinContrast, out unitsRow))
+            {
+                header = 0;
+            }
+        }
+
+        if (header < 0)
+        {
+            foreach (var record in pending.Gap)
+            {
+                MarkDataStart(record.Line, record.StartByte);
+                ProcessData([], record.Fields, record.Line, record.IsComment);
+            }
+
+            foreach (var record in pending.Sample)
             {
                 MarkDataStart(record.Line, record.StartByte);
                 ProcessData(record.Cells, record.FieldCount, record.Line, record.IsComment);
@@ -689,31 +860,36 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             return;
         }
 
-        StartBlock(pending, unitsRow);
+        StartBlock(pending, header, unitsRow);
     }
 
-    private void StartBlock(PendingBlock pending, bool unitsRow)
+    // The header names of the first block, or null when it has no header.
+    private string[]? FirstNames()
+    {
+        return _firstNames ??= _headerRecord is { } header ? Names(header) : null;
+    }
+
+    private void StartBlock(PendingBlock pending, int headerIndex, bool unitsRow)
     {
         var first = pending.Gap[0];
-        var header = pending.Sample[0];
+        var header = pending.Sample[headerIndex];
         var block = new BlockInfo(1 + _later.Count, first.Line, first.StartByte, header.Line, header.StartByte);
         foreach (var record in pending.Gap)
         {
-            AddPreambleLine(block.Preamble, record.Raw ?? string.Empty, record.Cells, record.Line, record.EndLine, stable: false);
+            AddPreambleLine(block.Preamble, record.Class, record.Line, record.EndLine, stable: false);
         }
 
-        block.Preamble.Kinds[(int)LineKind.Blank] += pending.Candidate.GapBlanks;
-        var start = 1;
+        block.Preamble.Kinds[(int)LineKind.Blank] += _gapBlanks[pending.Index];
+        var start = headerIndex + 1;
         if (unitsRow)
         {
-            block.UnitsLine = pending.Sample[1].Line;
-            block.UnitsByte = pending.Sample[1].StartByte;
-            start = 2;
+            block.UnitsLine = pending.Sample[start].Line;
+            block.UnitsByte = pending.Sample[start].StartByte;
+            start++;
         }
 
         // The fields are profiled across the blocks that have the first block's header, up to the first that does not.
-        _firstNames ??= _headerRecord is { } firstHeader ? firstHeader.Cells.Select(static c => ValueClassifier.Trim(c).ToString()).ToArray() : null;
-        block.SameHeader = _firstNames is not null && _firstNames.AsSpan().SequenceEqual(header.Cells.Select(static c => ValueClassifier.Trim(c).ToString()).ToArray());
+        block.SameHeader = FirstNames() is { } names && names.AsSpan().SequenceEqual(Names(header));
         if (_profiling && block.SameHeader)
         {
             // Adjacent records of different blocks are not adjacent: no class transition at the boundary.
@@ -731,6 +907,20 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             if (_unprofiledLines.Count < MaxListedLines)
             {
                 _unprofiledLines.Add(header.Line);
+            }
+        }
+
+        // Records of the run before the header (a title or limits row that has the table's width) are the block's annotation.
+        for (var i = 0; i < headerIndex; i++)
+        {
+            var record = pending.Sample[i];
+            if (!record.IsComment)
+            {
+                block.Annotation.Add(BuildAnnotation(record));
+            }
+            else if (block.Profiled)
+            {
+                AddComment(record.Line);
             }
         }
 
@@ -976,7 +1166,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
                 first.Add(("footer", _footerFirstLine, _footerFirstByte));
             }
 
-            return Tile(first, 1, 0, totalLines, totalBytes, _preamble);
+            return Tile(first, 1, 0, totalLines, totalBytes, _preamble, _annotation);
         }
 
         // Several blocks: a block region per block holds the block's own regions, and the footer follows the last block.
@@ -990,13 +1180,21 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             var startByte = 0L;
             var starts = first;
             var preamble = _preamble;
+            IReadOnlyList<AnnotationRowSource> annotation = _annotation;
             if (b > 0)
             {
                 var block = _later[b - 1];
                 startLine = block.FirstLine;
                 startByte = block.FirstByte;
                 preamble = block.Preamble;
-                starts = [("preamble", block.FirstLine, block.FirstByte), ("header", block.HeaderLine, block.HeaderByte)];
+                annotation = block.Annotation;
+                starts = [("preamble", block.FirstLine, block.FirstByte)];
+                if (block.Annotation.Count > 0)
+                {
+                    starts.Add(("annotation", block.Annotation[0].Line, block.Annotation[0].StartByte));
+                }
+
+                starts.Add(("header", block.HeaderLine, block.HeaderByte));
                 if (block.UnitsLine >= 0)
                 {
                     starts.Add(("units", block.UnitsLine, block.UnitsByte));
@@ -1010,7 +1208,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
             var endLine = b < _later.Count ? _later[b].FirstLine - 1 : footerLine - 1;
             var endByte = b < _later.Count ? _later[b].FirstByte : footerByte;
-            regions.Add(new Region("block", startLine, endLine, startByte, endByte, Index: b, Regions: Tile(starts, startLine, startByte, endLine, endByte, preamble)));
+            regions.Add(new Region("block", startLine, endLine, startByte, endByte, Index: b, Regions: Tile(starts, startLine, startByte, endLine, endByte, preamble, annotation)));
         }
 
         if (_footerFirstLine >= 0)
@@ -1023,7 +1221,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     // Regions tile a span of the file: each starts at the first record of its kind and ends on the line before the next one
     // starts; the first starts where the span starts (the file's first byte, a BOM included) and the last ends where it ends.
-    private List<Region> Tile(List<(string Kind, long Line, long Byte)> starts, long firstLine, long firstByte, long endLine, long endByte, PreambleData preamble)
+    private List<Region> Tile(List<(string Kind, long Line, long Byte)> starts, long firstLine, long firstByte, long endLine, long endByte, PreambleData preamble, IReadOnlyList<AnnotationRowSource> annotation)
     {
         var regions = new List<Region>();
         for (var i = 0; i < starts.Count; i++)
@@ -1040,7 +1238,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             regions.Add(kind switch
             {
                 "preamble" => PreambleRegion(preamble, line, lastLine, startByte, regionEndByte),
-                "annotation" => new Region(kind, line, lastLine, startByte, regionEndByte, Rows: _annotation.Select(static a => a.Row).ToArray()),
+                "annotation" => new Region(kind, line, lastLine, startByte, regionEndByte, Rows: annotation.Select(static a => a.Row).ToArray()),
                 "footer" => new Region(kind, line, lastLine, startByte, regionEndByte, LineKinds: KindMap(_footerKinds)),
                 _ => new Region(kind, line, lastLine, startByte, regionEndByte),
             });
@@ -1068,12 +1266,14 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             Values: values);
     }
 
-    // stage dialect, topic blocks: one candidate per block in file order, then a summary. Value-free numbers only.
+    // stage dialect, topic blocks: one candidate per block in file order, the first 10 only, then a summary that counts them
+    // all. Value-free numbers only.
     private Evidence BlockEvidence()
     {
+        const int Listed = 10;
         var candidates = new List<Candidate>
         {
-            new("0", 1.0, _headerRecord is { } first ? "header line " + Ordinal.Invariant(first.Line) + "; the first block" : "no header; the first block"),
+            new("0", 1.0, "header line " + Ordinal.Invariant(_headerRecord?.Line ?? 0) + "; the first block"),
         };
         long profiled = 1;
         foreach (var block in _later)
@@ -1082,6 +1282,15 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             if (block.Profiled)
             {
                 profiled++;
+            }
+
+            if (candidates.Count >= Listed)
+            {
+                continue;
+            }
+
+            if (block.Profiled)
+            {
                 candidates.Add(new Candidate(Ordinal.Invariant(block.Index), 1.0, line + "; the same header as block 0"));
             }
             else if (block.SameHeader)
@@ -1127,6 +1336,9 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         public List<string?> Values { get; } = [];
     }
 
+    // A record of a gap before a block, as much of it as a preamble needs.
+    private sealed record GapRecord(long Line, long StartByte, long EndLine, int Fields, bool IsComment, LineClassification Class);
+
     // A block after the first: where it starts (its preamble), its header, units row and data, and whether it is profiled.
     private sealed class BlockInfo(int index, long firstLine, long firstByte, long headerLine, long headerByte)
     {
@@ -1142,6 +1354,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
         public PreambleData Preamble { get; } = new();
 
+        public List<AnnotationRowSource> Annotation { get; } = [];
+
         public long UnitsLine { get; set; } = -1;
 
         public long UnitsByte { get; set; }
@@ -1156,11 +1370,13 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     }
 
     // A block candidate that is open: the records of its gap and of the first records of its run.
-    private sealed class PendingBlock(BlockCandidate candidate)
+    private sealed class PendingBlock(int index, BlockCandidate candidate)
     {
+        public int Index { get; } = index;
+
         public BlockCandidate Candidate { get; } = candidate;
 
-        public List<SampleRecord> Gap { get; } = [];
+        public List<GapRecord> Gap { get; } = [];
 
         public List<SampleRecord> Sample { get; } = [];
     }

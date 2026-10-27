@@ -16,6 +16,7 @@ internal sealed class FieldCountRun
         EndByte = record.EndByte;
         Tokens = record.Tokens;
         CleanTokens = record.CleanTokens;
+        CommentRecords = record.IsComment ? 1 : 0;
     }
 
     /// <summary>The field count of every record in the run.</summary>
@@ -42,6 +43,9 @@ internal sealed class FieldCountRun
     /// <summary>The clean tokens of all records in the run.</summary>
     public long CleanTokens { get; private set; }
 
+    /// <summary>The records in the run that are comment lines.</summary>
+    public long CommentRecords { get; private set; }
+
     /// <summary>Adds a record with the same field count.</summary>
     /// <param name="record">The record.</param>
     public void Add(RecordInfo record)
@@ -51,6 +55,10 @@ internal sealed class FieldCountRun
         EndByte = record.EndByte;
         Tokens += record.Tokens;
         CleanTokens += record.CleanTokens;
+        if (record.IsComment)
+        {
+            CommentRecords++;
+        }
     }
 }
 

@@ -39,7 +39,7 @@
 - Editing, repairing or converting files.<br>
 - A dependency on DataBall. The descriptor schema is the contract.<br>
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
-<p class="summary">37 items · — 14 · done 18 · parked 1 · later 1 · retired 2 · started 1</p>
+<p class="summary">37 items · — 13 · done 19 · parked 1 · later 1 · retired 2 · started 1</p>
 <h2>v1.0.0</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="open"><td>1</td><td>sq-19</td><td>Throughput benchmark</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
@@ -52,7 +52,7 @@
 <tr class="open"><td>5</td><td>sq-22</td><td>Runtime-stable escaping</td><td>S</td><td>1</td><td>core</td><td>sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime&#x27;s Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02</td><td class="status">—</td></tr>
 <tr class="open"><td>6</td><td>sq-24</td><td>Invalid UTF-16/32 reporting</td><td>S</td><td>1</td><td>core</td><td>sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE &#x27;hello world\n&#x27; plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03</td><td class="status">—</td></tr>
 <tr class="open"><td>7</td><td>sq-32</td><td>Compact field profiles</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>8</td><td>sq-34</td><td>Claim degenerate delimited tables</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="done"><td>8</td><td>sq-34</td><td>Claim degenerate delimited tables</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
 <tr class="open"><td>9</td><td>sq-35</td><td>Byte-limited profiling</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">—</td></tr>
 <tr class="open"><td>10</td><td>sq-36</td><td>Exact null spellings</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">—</td></tr>
 <tr class="open"><td>11</td><td>sq-37</td><td>Raw header names</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">—</td></tr>

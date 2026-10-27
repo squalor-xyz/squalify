@@ -30,11 +30,17 @@ internal sealed class RecordInfo
     /// <summary>The raw field text (quotes removed, <c>""</c> unescaped), when the tokenizer collects cells.</summary>
     public List<string> Cells { get; } = [];
 
+    /// <summary>For each field, true when it was written in quotes, when the tokenizer collects cells.</summary>
+    public List<bool> Quoted { get; } = [];
+
     /// <summary>For each field, the byte offset of its first character and the offset after its last, when the tokenizer captures spans.</summary>
     public List<long> Spans { get; } = [];
 
     /// <summary>The record's text up to the raw cap, with a line break inside a quoted field written as LF; null when the cap is 0.</summary>
     public string? Raw { get; set; }
+
+    /// <summary>True when the record is a comment line (see <see cref="LineClassifier.IsComment"/>); known in pass 1, which keeps no raw text.</summary>
+    public bool IsComment { get; set; }
 }
 
 /// <summary>Receives the records and the blank lines that a <see cref="RecordTokenizer"/> finds.</summary>
@@ -119,6 +125,10 @@ internal sealed class RecordTokenizer
     private bool _awaitingEnd;
     private long _lastOffset = -1;
 
+    // The comment probe: the first character that is not trim-set white space, and the one right after it ('//' needs both).
+    private int _probe;
+    private bool _probeComment;
+
     private enum State
     {
         FieldStart,
@@ -177,6 +187,7 @@ internal sealed class RecordTokenizer
         _cell.Clear();
         _raw.Clear();
         _info.Cells.Clear();
+        _info.Quoted.Clear();
         _info.Spans.Clear();
     }
 
@@ -214,6 +225,11 @@ internal sealed class RecordTokenizer
         if (_raw.Length < _rawLimit)
         {
             _raw.Append(c);
+        }
+
+        if (_probe < 2)
+        {
+            Probe(c);
         }
 
         switch (_state)
@@ -413,8 +429,30 @@ internal sealed class RecordTokenizer
         }
     }
 
+    // Decides whether the record is a comment line from its first one or two characters, as LineClassifier.IsComment does
+    // on the whole text: trimmed, it starts with '#', '!' or '//'.
+    private void Probe(char c)
+    {
+        if (_probe == 0)
+        {
+            if (IsTrim(c))
+            {
+                return;
+            }
+
+            _probeComment = c is '#' or '!';
+            _probe = _probeComment || c != '/' ? 2 : 1;
+            return;
+        }
+
+        _probeComment = c == '/';
+        _probe = 2;
+    }
+
     private void StartRecord(long offset)
     {
+        _probe = 0;
+        _probeComment = false;
         _open = true;
         _recordStartLine = _line;
         _recordStartByte = offset;
@@ -424,6 +462,7 @@ internal sealed class RecordTokenizer
         _blank = true;
         _state = State.FieldStart;
         _info.Cells.Clear();
+        _info.Quoted.Clear();
         _info.Spans.Clear();
         _raw.Clear();
         _rawLimit = _rawCap?.Invoke(_line) ?? 0;
@@ -542,6 +581,7 @@ internal sealed class RecordTokenizer
         if (_collect)
         {
             _info.Cells.Add(_cell.ToString());
+            _info.Quoted.Add(_fieldQuoted);
         }
 
         if (_capture)
@@ -604,6 +644,7 @@ internal sealed class RecordTokenizer
         _info.Tokens = _tokens;
         _info.CleanTokens = _clean;
         _info.Raw = _rawLimit > 0 ? _raw.ToString() : null;
+        _info.IsComment = _probeComment;
         _open = false;
         _sink.Record(_info);
     }

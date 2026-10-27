@@ -45,7 +45,7 @@ flowchart LR
     S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF: FAR record at start → 1.0"]
     S --> P3["Touchstone: extension + option line → 0.9"]
     S --> P4["Key=value document → up to 0.6"]
-    S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score<br/><small>DelimitedProfiler</small>"]
+    S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score (0.5 for a header-only or one-column table)<br/><small>DelimitedProfiler</small>"]
     S --> P6["Plain text / other binary (a Parquet file included) → 0.1–0.2"]
     P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
     W --> Ev["All scores go to evidence"]
@@ -59,13 +59,14 @@ A profiler can also decline a file and say why. When the delimited profiler find
 flowchart TD
     D["Delimited profiler scores the file<br/><small>DelimitedProfiler.Score</small>"] --> V{"Is any delimiter good enough?<br/><small>DialectSelector</small>"}
     V -- "yes" --> Keep["Score 0.5 to 0.7, and keeps what it found<br/><small>FormatScore.State</small>"]
+    V -- "no, but it is a header-only or one-column table" --> Deg["Score 0.5, and keeps what it found<br/><small>DegenerateShapes</small>"]
     V -- "no, but some were disqualified" --> Dec["Declines with score 0, an issue and evidence<br/><small>FormatScore.NotChosenIssues</small>"]
     V -- "no, none disqualified" --> Plain["Declines with score 0"]
     Dec --> T["Plain text profile wins; the issue is written<br/><small>FormatRegistry.Detect, Profiler</small>"]
     Plain --> T2["Plain text profile wins<br/><small>GenericTextProfiler</small>"]
 ```
 
-*Source: `Delimited/DelimitedProfiler.cs`, `Delimited/DialectSelector.cs`, `Formats/IFormatProfiler.cs`, `Formats/FormatRegistry.cs`, `Profiler.cs`.*
+*Source: `Delimited/DelimitedProfiler.cs`, `Delimited/DialectSelector.cs`, `Delimited/DegenerateShapes.cs`, `Formats/IFormatProfiler.cs`, `Formats/FormatRegistry.cs`, `Profiler.cs`.*
 
 ## 4. Reading a delimited file
 
@@ -81,6 +82,34 @@ flowchart TD
 ```
 
 *Source: `Delimited/TextScanner.cs`, `Delimited/RecordTokenizer.cs`, `Delimited/FieldCountRle.cs`, `Delimited/DialectSelector.cs`.* Quotes follow the usual CSV rule (a doubled quote is one quote, and a quoted cell may hold a comma or a line break). A closing quote may be followed by spaces before the comma or the line end, as in padded tables. A stray quote inside a quoted cell, with no comma or line end after it, is kept as plain text, because some instruments write quotes inside a quoted cell without doubling them. A cell counts as clean when it is quoted or contains none of the characters `,` `;` `|` other than its own delimiter, and, for those three delimiters, no tab inside the cell. Spaces never make a cell unclean, and a decimal comma such as `1,5` does not count, so a semicolon file with decimal commas is told apart from a comma file. A delimiter is only chosen when it is good enough: its steady run has at least 2 rows (6 for spaces) and its score is at least 0.5. When tab and spaces tie, tab wins.
+
+Where the run begins matters as much as which delimiter wins. A row can start the run when the next five rows have the table's field count, and the window may step over up to two stragglers on the way: rows with two or more fields but the wrong count (counted as ragged rows), comment lines, and a one-field line once the header and three rows have come before it. A one-field line earlier than that, such as a `key=value` setting or a title above the table, is not a straggler: it ends the window, so lines like that stay in the preamble. The window ends at the last row of the right width, so a footer after it, of any length, never counts. This is why a short row among the first data rows no longer costs the table its header.
+
+```mermaid
+flowchart TD
+    A["A row with the table's field count k<br/><small>DialectSelector.Evaluate</small>"] --> B["Read on until five rows have k fields<br/><small>DialectSelector.StartWindowHolds</small>"]
+    B --> C{"A row with another field count?"}
+    C -- "two or more fields, a comment,<br/>or a one-field line after the header and three rows" --> D["Step over it, at most twice<br/>(a ragged row is reported)"]
+    C -- "after the last k row" --> G["The window ends: a footer never counts"]
+    D --> B
+    C -- "one field, earlier than that:<br/>key=value, title" --> E["The window fails:<br/>this row cannot start the run"]
+    C -- "no, five found" --> F["The run starts at this row"]
+```
+
+*Source: `Delimited/DialectSelector.cs`, `Delimited/FieldCountRle.cs`, `Delimited/RecordTokenizer.cs` (it flags comment lines in pass 1).*
+
+Two tiny shapes get a second chance when no delimiter is good enough, because they are still tables. A file whose only multi-field line is its last line is a table with a header and no rows, when that line sits within the first 1,000 lines, only blank, comment or `key=value` lines come before it, and every cell reads like a single-word column name (filled, different, not a number, short, and no spaces unless quoted): `Time,Vcc(V),Icc` qualifies, `Hello, world` does not. squalify reports zero rows, every field `empty`, and the issue `noDataRows`. A file where no delimiter occurs at all is a one-column table when its first line is a header that the values below disagree with, such as a text header over numbers, and the delimiter is then written as `none`. A column of plain text, a log or prose does not qualify, so it stays text. The evidence lists both shapes and says why the other was declined.
+
+```mermaid
+flowchart TD
+    N["No delimiter is good enough"] --> H["Only the last line has several fields, within the first 1,000 lines,<br/>after a blank, comment or key=value preamble,<br/>and each cell is a single-word name?<br/><small>DegenerateShapes.TryHeaderOnly</small>"]
+    H -- "yes" --> HO["Table with a header and no rows<br/>issue noDataRows"]
+    H -- "no" --> C["One field in every line, and the first line is a header<br/>that the values below disagree with?<br/><small>DegenerateShapes.TrySingleColumn</small>"]
+    C -- "yes" --> OC["One-column table, delimiter none"]
+    C -- "no" --> T["Plain text profile"]
+```
+
+*Source: `Delimited/DegenerateShapes.cs`, `Delimited/DialectSelector.cs`.*
 
 The header is not always the first row of that run. Some exports put rows of limits, units or line numbers above the header, lined up with its columns. squalify scores the first rows of the run and picks the one that looks most like names over typed data. The rows above it become **annotation** rows: their labels are kept, their cells are opt-in.
 
@@ -103,28 +132,28 @@ flowchart TD
     R1["Preamble: Lot=A12, Temp=25, comments<br/><small>keys always kept, values opt-in</small>"] --> RA["Annotation rows (optional): limits, units<br/><small>labels kept, cells opt-in</small>"]
     RA --> R2["Header row: Freq(MHz), Pout(dBm), …<br/><small>best-scoring candidate</small>"]
     R2 --> R3["Units row (optional): MHz, dBm<br/><small>text opt-in</small>"]
-    R3 --> R4["Data rows<br/><small>the steady run of k fields</small>"]
+    R3 --> R4["Data rows (none in a header-only table)<br/><small>the steady run of k fields</small>"]
     R4 --> R5["Footer (optional)"]
     R4 -. "a new header and table follow" .-> R6["Next block: its own preamble, header and data<br/><small>block region; see below</small>"]
 ```
 
 *Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`, `Descriptor/Layout.cs`.*
 
-Lab exports often repeat a header and a table per site, temperature or sweep. A **block** is one such header and table. The field-count runs from the structure pass show where a later run of at least 5 rows with the table's field count follows rows with another field count, and squalify takes that run for a new block only when its first row is a header: names filled and different, with a value that disagrees with a column type below it (the same test as for the first header). Otherwise the odd rows are ragged rows of one table, so one bad row cannot split a table. The rows between the last row of a block and the next header are the next block's preamble, not ragged rows. While a run is being decided its rows are held, a bounded number of them, and are then either processed as the table's own rows or turned into the new block.
+Lab exports often repeat a header and a table per site, temperature or sweep. A **block** is one such header and table. The field-count runs from the structure pass show where a later run of at least 5 rows with the table's field count follows rows with another field count, and squalify takes that run for a new block in one of two cases. Either one of its first 5 rows is **exactly the first block's header**, which works whatever the types are (a table of only text too), and the rows before it become the block's annotation. Or its first row is a header: names filled and different, and its values disagree with at least half of the typed columns below it, with a note, a `key=value` line or a one-field line before it (a short two-field row does not count). Otherwise the odd rows are ragged rows of one table, so one bad row cannot split a table. The rows between the last row of a block and the next header are the next block's preamble, not ragged rows. While a run is being decided its rows are held, a bounded number of them, and are then either processed as the table's own rows or turned into the new block.
 
 ```mermaid
 flowchart TD
     Runs["Field counts as runs, from the structure pass<br/><small>FieldCountRle</small>"] --> Cand["Candidates: a later run of 5 or more rows<br/>after rows with another field count<br/><small>BlockDetector.Candidates</small>"]
     Cand --> Held["Rows of the gap and the first 100 of the run are held<br/><small>DelimitedPass, PendingBlock</small>"]
-    Held --> Q{"Is the first row of the run a header?<br/>names filled and different, one value<br/>disagrees with a column type<br/><small>HeaderDetector.OpensWithHeader</small>"}
+    Held --> Q{"Does one of the first 5 rows repeat the first header exactly?<br/>Or is the first row a header that disagrees<br/>with half the typed columns, after a note or key=value line?<br/><small>DelimitedPass.ResolvePending, HeaderDetector.OpensWithHeader</small>"}
     Q -- "no" --> Rag["The odd rows are ragged rows of one table<br/><small>raggedRows</small>"]
-    Q -- "yes" --> Blk["A new block: the held rows before the header are its preamble<br/><small>block region, dialect.blocks</small>"]
+    Q -- "yes" --> Blk["A new block: the held rows before the header are its preamble<br/>and annotation<br/><small>block region, dialect.blocks</small>"]
     Blk --> Same{"Same header text as the first block?<br/><small>DelimitedPass.StartBlock</small>"}
     Same -- "yes" --> Agg["Rows join the same fields and row classes,<br/>with no switch counted at the boundary<br/><small>RowClassAccumulator.Break</small>"]
     Same -- "no" --> Het["This and later blocks are not profiled;<br/>their header lines are listed<br/><small>heterogeneousBlocks</small>"]
 ```
 
-*Source: `Delimited/BlockDetector.cs`, `Delimited/DelimitedPass.cs`, `Delimited/HeaderDetector.cs`, `Delimited/FieldCountRle.cs`, `Fields/RowClassAccumulator.cs`.* The file is read once, so aggregation stops at the first block whose header differs from the first block's: the blocks before it are one table, and it and the blocks after it are not profiled, but their regions are still in the layout. With more than one block, `layout.regions` holds a `block` region per block, each with its own regions inside, and `dialect.blocks` is the count. A block region has only its index, its lines and its regions: squalify does not name a block, so a consumer reads the file for that. The fingerprint says that there are several blocks, never how many, so 3 blocks and 5 give the same hash.
+*Source: `Delimited/BlockDetector.cs`, `Delimited/DelimitedPass.cs`, `Delimited/HeaderDetector.cs`, `Delimited/FieldCountRle.cs`, `Fields/RowClassAccumulator.cs`.* The file is read once, so aggregation stops at the first block whose header differs from the first block's: the leading blocks with the same header are one table, and the block with another header and the blocks after it are not profiled, but their regions are still in the layout. The same stop applies after 1,000 blocks (the issue `blocksTruncated`). Blocks that are only separated by blank lines, with the header repeated inside one run of rows, are not recognised. With more than one block, `layout.regions` holds a `block` region per block, each with its own regions inside, and `dialect.blocks` is the count. A block region has only its index, its lines and its regions: squalify does not name a block, so a consumer reads the file for that. The fingerprint says that there are several blocks, never how many, so 3 blocks and 5 give the same hash.
 
 squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer. Every data row is read a second time and handed to the field accumulators, one per column, so the descriptor says what each field holds; section 5 shows what they keep.
 
@@ -392,7 +421,7 @@ flowchart TD
 
 *Source: `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`, `Descriptor/Table.cs`.*
 
-A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. When a file has several blocks with the same header, the switch count restarts at each block, so a boundary is never a switch. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
+A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. When a file has several blocks with the same header, a block boundary is never counted as a switch. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
 
 ## 11. Writing the descriptor
 
