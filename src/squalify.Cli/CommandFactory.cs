@@ -52,11 +52,18 @@ public static class CommandFactory
         var path = new Argument<string>("path") { Description = "Data file to profile" };
         var output = new Option<string?>("--output", "-o") { Description = "Write the descriptor to this file instead of stdout" };
         var includeValues = new Option<bool>("--include-values") { Description = "Include literal data values in the descriptor" };
-        var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues };
+        var includeValuesFor = new Option<string[]>("--include-values-for")
+        {
+            Description = "Include literal values only for the named preamble key, annotation label, key=value key or column (repeatable; matched whole, ASCII case-folded)",
+            AllowMultipleArgumentsPerToken = false,
+            Arity = ArgumentArity.OneOrMore,
+        };
+        var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor };
         command.SetAction(async (result, _) => await CliApp.ProfileAsync(
             result.GetValue(path)!,
             result.GetValue(output),
             result.GetValue(includeValues),
+            result.GetValue(includeValuesFor) ?? [],
             stdout,
             stderr,
             result.GetValue(verboseOption)));

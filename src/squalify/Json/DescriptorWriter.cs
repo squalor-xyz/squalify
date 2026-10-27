@@ -25,9 +25,14 @@ public static class DescriptorWriter
     /// <param name="descriptor">The descriptor.</param>
     /// <returns>The bytes, ending in a single LF.</returns>
     /// <exception cref="SqualifyException">The descriptor cannot be written, for example because an <see cref="Issue"/> has both lines and offsets.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// A value-bearing member is present although its owner is not opted in by <c>includeValues</c> or <c>includeValuesFor</c>
+    /// (see <c>ValuesPolicy</c>). That is a bug in the producer of the descriptor, not a user error, so it is not wrapped.
+    /// </exception>
     public static byte[] ToBytes(Descriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
+        ValuesPolicy.Verify(descriptor);
         try
         {
             using var buffer = new MemoryStream();
@@ -692,6 +697,7 @@ public static class DescriptorWriter
             List(w, "offsets", v.Offsets, static (writer, offset) => writer.WriteNumberValue(offset));
         }
 
+        OptionalStrings(w, "names", v.Names);
         w.WriteEndObject();
     }
 

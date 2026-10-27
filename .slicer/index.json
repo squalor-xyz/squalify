@@ -410,6 +410,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "af5cb5be-2e1c-4e8c-81a8-1f9394a63f79",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-07 review (R6, info): annotation row labels (non-numeric first cell) are written without --include-values by design; a misdetected pre-header row would expose its first cell. Consider when revisiting annotation detection.",
+          "created_at": "2026-10-27T18:25:51Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -966,7 +977,7 @@
       "id": "sq-07",
       "title": "squalify must include literal values only with --include-values, and never leak them otherwise",
       "short_title": "Values tier",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-05"
@@ -1050,7 +1061,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-27T18:01:09Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -1070,7 +1084,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -1396,6 +1410,17 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-05 architect (C5): the temporal quantile code (year|First|Second|time) orders like ticks under YMD and MDY but not DMY, so past the cap with DMY and MDY both possible you need two GK sketches. The distinct HashSet<ulong> (XxHash64 of trimmed UTF-8) can feed HLL directly. EstimatedBytes must count List capacity (doubling, ~2-3x transient) and the header-sample buffer (headerSample x k cell strings). Optional: AddShape/Hash stackalloc ~2 KB zeroed per cell; size to 13*min(len,64)+1 or use [SkipLocalsInit].",
           "created_at": "2026-10-27T15:33:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "21cec82a-de0a-428e-8e79-408308322e69",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-07 review (R5): TopK value text is not counted by MemoryBudget. With values opted in, each field can hold up to distinctPerField strings in the exact phase and always up to 1000 Space-Saving counters even when MemoryBudget shrinks caps.Distinct below 1000. sq-11 should budget both.",
+          "created_at": "2026-10-27T18:25:51Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",

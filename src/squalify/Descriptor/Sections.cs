@@ -6,7 +6,7 @@ namespace squalor.squalify;
 /// <param name="Line">The 1-based line of the header.</param>
 /// <param name="Keys">Normalized keys in file order.</param>
 /// <param name="Values">Values aligned with <paramref name="Keys"/>; an entry that is not opted in is null. Values tier.</param>
-public sealed record KeyValueSection(string Name, long Line, IReadOnlyList<string> Keys, IReadOnlyList<string?>? Values = null);
+public sealed record KeyValueSection(string Name, long Line, IReadOnlyList<string> Keys, [property: ValueBearing] IReadOnlyList<string?>? Values = null);
 
 /// <summary>The <c>binary</c> section.</summary>
 /// <param name="Bytes">Whole-file byte statistics.</param>

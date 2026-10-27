@@ -11,7 +11,7 @@ Other tools read the descriptor to decide what to do with the file. Examples: cl
 - **Deterministic.** The same input bytes and the same squalify version always give the same descriptor, byte for byte. squalify uses no machine learning, no LLM and no network.
 - **Describe, don't decide.** squalify does not match files against a library of known types, propose configs or convert data. Consumers do that from the descriptor. The built-in `kind` label is a generic hint, and the evidence shows how it was chosen.
 - **Full scan, bounded memory.** squalify streams the whole file. The statistics are exact where that is affordable and come from deterministic, documented approximations beyond fixed caps. The descriptor marks every approximate value as approximate.
-- **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text, and the statistics of columns that hold one value for the whole file) appear only with `--include-values`, or for named keys and columns with `--include-values-for`. Column header names are always included, because matching needs them.
+- **No data values by default.** The default descriptor holds structure, types, counts, ranges, shape masks and hashes. Literal values (top-k values, min/max text, preamble text, and the statistics of columns that hold one value for the whole file) appear only with `--include-values`, or for named keys and columns with `--include-values-for`. A name given to `--include-values-for` is matched whole and ASCII case-folded against preamble keys, annotation labels, key=value keys and column names, and opens every member of that name; a name that matches nothing is reported as the issue `includeValuesForUnmatched`. Column header names are always included, because matching needs them.
 - **Explainable.** Every inference (encoding, delimiter, header row, field type, format) has an evidence entry that lists the candidates considered and why the winner won.
 
 ## Usage
@@ -19,8 +19,8 @@ Other tools read the descriptor to decide what to do with the file. Examples: cl
 ```bash
 squalify profile data.csv                     # descriptor to stdout
 squalify profile data.csv -o data.squalify.json
-squalify profile data.csv --include-values     # include literal values (preamble values, annotation cells, units-row text)
-squalify profile data.csv --include-values-for Program   # values of named keys/columns only (planned; the library already honors it for delimited files)
+squalify profile data.csv --include-values     # include literal values (top values, text min/max, preamble values, annotation cells, units-row text)
+squalify profile data.csv --include-values-for Program --include-values-for Lot   # values of the named keys, labels and columns only (repeatable)
 squalify profile data.csv --verbose            # print full exception details on error
 squalify --version
 ```

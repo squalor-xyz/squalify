@@ -267,7 +267,7 @@ internal static class TestModels
         var segments = Enumerable.Range(0, 16).Select(static i => i / 2.0).ToArray();
         return new Descriptor(
             Tool: new ToolSection("squalify", "0.1.0"),
-            Options: ProfileOptions.Create(false, Array.Empty<string>()),
+            Options: ProfileOptions.Create(false, ["Vdd", "Temp"]),
             Limits: StandardLimits(),
             File: new FileSection("run.stdf", 65536, Sha256Empty),
             Encoding: new EncodingSection("binary", null, null, new LineEndings(0, 0, 0), 0, 17),

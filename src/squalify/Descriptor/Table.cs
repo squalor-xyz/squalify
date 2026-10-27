@@ -85,13 +85,13 @@ public sealed record FieldProfile(
     bool? Unique,
     string? NameHex = null,
     CountMap? Patterns = null,
-    NumericStats? Numeric = null,
-    TemporalStats? Temporal = null,
+    [property: ValueBearing] NumericStats? Numeric = null,
+    [property: ValueBearing] TemporalStats? Temporal = null,
     string? StatsWithheld = null,
     string? SourceType = null,
-    string? Unit = null,
-    TopValues? Top = null,
-    TextStats? Text = null);
+    [property: ValueBearing] string? Unit = null,
+    [property: ValueBearing] TopValues? Top = null,
+    [property: ValueBearing] TextStats? Text = null);
 
 /// <summary>A header name split into base and unit.</summary>
 /// <param name="Base">The name without the unit.</param>

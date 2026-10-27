@@ -35,12 +35,12 @@ internal static class CliApp
         }
     }
 
-    internal static Task<int> ProfileAsync(string path, string? output, bool includeValues, TextWriter stdout, TextWriter stderr, bool verbose)
+    internal static Task<int> ProfileAsync(string path, string? output, bool includeValues, IReadOnlyList<string> includeValuesFor, TextWriter stdout, TextWriter stderr, bool verbose)
     {
         return RunAsync(stderr, verbose, () =>
         {
             // Profile completely before writing anything, so a failure leaves stdout and any existing output file untouched.
-            var descriptor = Profiler.Profile(path, ProfileOptions.Create(includeValues, Array.Empty<string>()));
+            var descriptor = Profiler.Profile(path, ProfileOptions.Create(includeValues, includeValuesFor));
             var bytes = DescriptorWriter.ToBytes(descriptor);
             if (output is null)
             {

@@ -42,7 +42,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `hints.stableLines[]` | `line`, `regex` |
 | `hints.fieldCount` | `min`, `max` |
 | `hints.stdf` | `cpuType`, `version` |
-| `issues[]` | `code`, `count`, then `firstLines` or `offsets` (one of them, when the issue has locations) |
+| `issues[]` | `code`, `count`, then `firstLines` or `offsets` (one of them, when the issue has locations), then `names` (only `includeValuesForUnmatched`) |
 | `evidence[]` | `stage`, `topic`, `chosen`, `candidates`; each candidate is `value`, `score`, `reason` |
 
 `encoding.charset` is `null` for files that are not text, and `encoding.bom` is the BOM name or `null`. See [`encoding`](#encoding).
@@ -66,7 +66,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
 | `stdf` | object | stdf | See below. |
 | `fingerprint` | object | yes | `version`, `structure`, `layout`, `typed`, `names` |
 | `hints` | object | yes | Detect-rule hints |
-| `issues` | array | yes | `[{ code, count, firstLines[] or offsets[] }]`, sorted by code |
+| `issues` | array | yes | `[{ code, count, firstLines[] or offsets[], names[] }]`, sorted by code; each entry has at most one of `firstLines`, `offsets` and `names` |
 | `evidence` | array | yes | The inference trail |
 
 ## `limits`
@@ -164,7 +164,7 @@ A file that the delimited profiler claims has its regions in file order, and `la
 Until the slices that own them land, these members hold fixed interim values (or `null`), so that every file yields a valid descriptor:
 
 - `kind` follows the byte-pass class: `empty` (`K12`), `binary` (`K11`) or `text` (`K09`), with confidence 1. sq-15 replaces it with the rule table.
-- `table.fields[]` of a delimited file holds real values for every member except those of later slices: `sourceType` (Parquet) is `null` for text, and `top` and `text` (values tier) are `null` until sq-07; `nameParts` is computed from the header by sq-14 (it is `null` only for a table with no header). A consumer must read `null` in those members as "not computed". See [`table.fields[]`](#tablefields) for the rest; `unit` is `null` without `--include-values` or when the units cell is null.
+- `table.fields[]` of a delimited file holds real values for every member except those of later slices: `sourceType` (Parquet) is `null` for text, and `top` and `text` (values tier) are `null` unless values are opted in for the field (see [Values tier](#values-tier)); `nameParts` is computed from the header by sq-14 (it is `null` only for a table with no header). A consumer must read `null` in those members as "not computed". See [`table.fields[]`](#tablefields) for the rest; `unit` is `null` without `--include-values` or when the units cell is null.
 - `hints.parquetColumns` and `hints.stdf` are `null` until sq-08 and sq-10 add the Parquet and STDF profilers; every other `hints` member is computed (see [`hints`](#hints)).
 
 ## `layout.regions[]`
@@ -299,6 +299,9 @@ A temporal field, for example:
 - `sourceType` is the native type for Parquet (for example `DECIMAL(10,2)`).
 - `unit` is the unit from a units row. **Values tier.** Units parsed from header names are in `nameParts` and are always included. With a units row, a field whose name carries no unit has the convention `unitsRow` when its units cell has a value, and `none` otherwise; `unit` is `null` either way unless values are opted in.
 - `top` (`{ "items": [{ value, count }], "approximate": false }`, plus `maxError` when approximate) and `text` (`{ min, max }`, lexical) are **values tier**. The `{ items, approximate, maxError? }` shape of `top` is the pinned draft shape; sq-12 records it in the schema changelog.
+  - `top.items` lists at most 10 values of any type, as the trimmed text of the file (not normalized: `1` and `1.0` are two values), ordered by `count` descending, then `value` ordinally. A field with no non-null value has `items: []`.
+  - Counts are exact while the field has at most `limits.distinctPerField` distinct values (`approximate: false`). Past that cap the counts come from Space-Saving with 1,000 counters (`approximate: true`): a count is never below the true count and exceeds it by at most `maxError`, the largest overcount among the listed items (never more than the number of values divided by 1,000; it is 0 when every listed counter is still exact). A value that is not listed has a count no larger than the lowest counter. Ties are always settled by ordinal value, so the output is deterministic.
+  - `text.min` and `text.max` are the ordinal (UTF-16 code unit) minimum and maximum of the trimmed non-null values of a field whose `type` is `string`; `text` is `null` for every other type.
 
 Distinct counting, `unique` and the text comparison of `constant` compare a 64-bit xxHash of each trimmed value (see [design.md](design.md#field-profiling)), so two different values are taken for one with probability 2^-64.
 
@@ -451,6 +454,7 @@ Issues are sorted by `code`, ordinally. Each has a `count` and, for some, locati
 | `invalidUtf8` | The charset is `ascii` or `utf-8` and the file holds invalid UTF-8 sequences (within the tolerance). Not written for `latin-1`, where nothing is lost; `encoding.invalidBytes` still counts them. | Invalid sequences | `offsets`: byte offsets where the first 10 start, ascending |
 | `mixedLineEndings` | More than one of CRLF, lone LF and lone CR occurs. | Line endings that are not the dominant kind (most frequent; a tie goes to CRLF, then LF, then CR) | `firstLines`: the first 10 lines, ascending, that end with a non-dominant kind |
 | `nameExcludedFromFingerprint` | A header name or a preamble key holds a control character (U+0000 to U+001F, U+007F to U+009F) or U+FFFD, so the fingerprint projections leave it out (see [`fingerprint`](#fingerprint)). Written by every family that has such names. | Names and keys left out | none |
+| `includeValuesForUnmatched` | A name in `options.includeValuesFor` matches no preamble key, annotation label, key=value key (a section's or a Parquet file's) or field name, under ASCII case folding. Written by every family, whether or not `includeValues` is set. | Unmatched names, without duplicates | `names`: the unmatched names as given on the command line, sorted ordinally. They come from the command line, not from the data, so they are not values tier |
 
 The delimited profiler writes these:
 
@@ -501,7 +505,12 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 | `stableLines` for comment and text lines | values tier |
 | `fingerprint` (the projections hold no values), `hints.stableLines` for the header and for `keyValue` keys | always |
 
-`--include-values-for <name>` opts in the values tier for the named preamble keys, annotation labels, key=value keys and fields only.
+Normative rules:
+
+- **One list.** `ValuesPolicy` (`src/squalify/ValuesPolicy.cs`) is the single list of value-bearing members: `layout.regions[].values` (preamble, owner: the key), `layout.regions[].rows[].values` (annotation cells, owner: the label), `sections[].values` (owner: the key), `table.fields[].unit`, `top`, `text`, the `numeric` and `temporal` members of a field whose `constant` is `true` (owner: the field name), and `hints.stableLines` entries built from a comment or text line (no owner). Parquet key-value values and comment text join the list when their members join the model. Every such model member carries a `[ValueBearing]` mark and a test compares the marks with the list.
+- **`--include-values`** opts in every member. **`--include-values-for <name>`** (repeatable; `options.includeValuesFor`, sorted ordinally) opts in the members whose owner has that name: a preamble key, an annotation label, a key=value key or a field name. The name is compared whole and with ASCII case folding (`A` to `Z` only); there is no prefix or substring match and no Unicode folding. A name that matches several members, for example a preamble key and a field, opens all of them. A stable-line regex of a comment or text line has no owner, so only `--include-values` opens it. A name that matches nothing gives the issue [`includeValuesForUnmatched`](#issues).
+- **Aligned lists.** The entry for an owner that is not opted in is `null`; an annotation row's `values` is absent unless its label is opted in.
+- **Never held, never written.** A profiler asks the policy before it collects a value, so a value that may not be written is not kept in memory, and `DescriptorWriter` checks every descriptor against the policy before it writes. A value-bearing member whose owner is not opted in makes the writer throw `InvalidOperationException`, with the member's path and no value in the message. That is a bug in the producer, not a user error, and it is not wrapped in `SqualifyException`.
 
 ## Consumer subset
 
@@ -640,4 +649,4 @@ Not in the subset: statistics (`numeric`, `distinct`, `top` and the like), `enco
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.
 - Consumers must ignore unknown keys within a major version.
 - `fingerprint.version` changes whenever a projection changes. Hashes from different versions cannot be compared.
-- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`.
+- sq-12 makes this policy normative. Until then the schema is a draft: the members that sq-04 adds (`limits.runawayQuote`, `limits.fieldCountRuns`, the delimited dialect and regions, the delimited issues and the `dialect` and `header` evidence stages), the members that sq-17 adds (`table.rowClasses` and its classes) and the members that sq-14 adds (`fields[].nameParts` with `unknownUnit`, `layout.headerConvention`, `hints.headerConvention` and the `unit` evidence stage) do not bump `schemaVersion`, which stays `1.0`. The same holds for the members that sq-06 adds or changes: the `fingerprint` projections (`fingerprint.version` is now 1), the structured `hints.magic` (it was a string), the other `hints` members and the issue `nameExcludedFromFingerprint`. The members that sq-07 adds or fills do not bump it either: `fields[].top` and `fields[].text` (now computed, behind the values tier), the issue `includeValuesForUnmatched` and `issues[].names`.

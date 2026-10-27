@@ -4,7 +4,11 @@ namespace squalor.squalify;
 /// <summary>What a format profiler may use besides the file: the options and the limits in effect.</summary>
 /// <param name="Options">The profile options.</param>
 /// <param name="Limits">The caps and table versions.</param>
-internal sealed record ProfileContext(ProfileOptions Options, Limits Limits);
+internal sealed record ProfileContext(ProfileOptions Options, Limits Limits)
+{
+    /// <summary>Decides, member by member and owner by owner, which values-tier members may be collected and written.</summary>
+    public ValuesGate Gate { get; } = ValuesPolicy.Gate(Options);
+}
 
 /// <summary>The parts of the descriptor that a format profiler produces.</summary>
 /// <param name="Dialect">The family dialect, or null.</param>

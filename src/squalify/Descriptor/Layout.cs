@@ -32,7 +32,7 @@ public sealed record Region(
     string? Label = null,
     CountMap? LineKinds = null,
     IReadOnlyList<string>? Keys = null,
-    IReadOnlyList<string?>? Values = null,
+    [property: ValueBearing] IReadOnlyList<string?>? Values = null,
     IReadOnlyList<AnnotationRow>? Rows = null);
 
 /// <summary>One row of an annotation region.</summary>
@@ -50,7 +50,7 @@ public sealed record AnnotationRow(
     CountMap NullTokens,
     CountMap TypeVotes,
     string Type,
-    IReadOnlyList<string?>? Values = null);
+    [property: ValueBearing] IReadOnlyList<string?>? Values = null);
 
 /// <summary>The <c>layout.headerConvention</c> object.</summary>
 /// <param name="Dominant">The most common convention.</param>

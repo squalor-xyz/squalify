@@ -236,7 +236,7 @@ What it computes for a field, over the trimmed non-null values unless said other
 |---|---|---|
 | Distinct values per field | 10,000 | HyperLogLog, p=14, over `XxHash64` (seed 0), with linear counting below 2.5m (sq-11; until then `distinct.exceeds`) |
 | Quantiles per field | 100,000 values | Greenwald-Khanna, ε = 0.001, compressing every ⌊1/(2ε)⌋ inserts (sq-11; until then `quantiles` is null and `exceeds` carries the cap) |
-| Top-k values (`--include-values`) | while the distinct set is exact | Space-Saving, 1,000 counters; k = 10 |
+| Top-k values (values tier; `TopK`, `Fields/TopK.cs`) | while the field has at most `limits.distinctPerField` distinct values; the counters hold the value text, so only an opted-in field pays for it | Space-Saving, 1,000 counters seeded with the heaviest exact counts, keyed by `XxHash64`; k = 10; `top.maxError` |
 | Shapes per field | 64 masks | counted as `other` |
 | Regions | 1,000 | truncated, with a count |
 | Runaway quote (delimited) | 65,536 characters in an open quoted field (`limits.runawayQuote`) | that delimiter candidate is disqualified |
@@ -259,9 +259,16 @@ What it computes for a field, over the trimmed non-null values unless said other
 | Numeric and temporal min/max/mean/stddev/quantiles, except for constant fields | Units-row text (field `unit` from a units row); statistics of constant fields |
 | Header-unit convention and units parsed from header names | Value-bearing `stableLines` regexes (comment and text lines) |
 
-`--include-values` opts in every value. `--include-values-for <name>` (repeatable) opts in only the values of the named preamble keys, annotation labels, key=value keys and fields, matched case-folded; identity often lives in one or two of them. A name that matches several members opts in all of them; a name that matches nothing gives the issue `includeValuesForUnmatched`. `options.includeValuesFor` records the names.
+`--include-values` opts in every value. `--include-values-for <name>` (repeatable) opts in only the values of the named preamble keys, annotation labels, key=value keys and fields; identity often lives in one or two of them. The name is compared whole, with ASCII case folding (`Ordinal.AsciiFold`, no Unicode tables). A name that matches several members opts in all of them; a name that matches nothing gives the issue `includeValuesForUnmatched`, which lists the names sorted ordinally (they come from the command line, so they are not values). `options.includeValuesFor` records the names.
 
-`ValuesPolicy` lists every value-bearing descriptor member in one place, including annotation cells and the statistics of constant fields. Canary tests prove that nothing leaks without the flag or an allow-list entry.
+`ValuesPolicy` (`src/squalify/ValuesPolicy.cs`) lists every value-bearing descriptor member in one place, including annotation cells and the numeric and temporal statistics of constant fields, and does two jobs with that list:
+
+- **The gate.** `ValuesGate.Allows(member, owner)` decides before a value is collected. The delimited pass asks it for each preamble value, annotation row, units cell and field, and hands each field accumulator a `FieldValueAccess` (top, text, constant statistics) at construction. A value that may not be written is therefore never held. A field's top-k counters and its lexical min and max are collected only when the field's access allows them, which is why the opt-in is known when the accumulator is built.
+- **The guard.** `DescriptorWriter.ToBytes` calls `ValuesPolicy.Verify` first. A descriptor with a value-bearing member whose owner is not opted in makes it throw `InvalidOperationException` (a bug in the producer, never a user error), naming the member's path and no value.
+
+A member that is not in the list is neither gated nor checked, so a model member that can carry values must be marked `[ValueBearing]` and listed; a reflection test compares the two. Canary tests prove that nothing literal leaks without the flag or an allow-list entry (`tests/squalify.Tests/fixtures/canary/`; a numeric canary covers the statistics of a constant field). Each later format slice adds a canary fixture to the same theory.
+
+**Top-k and text.** `FieldAccumulator` computes one `XxHash64` per value (`FieldAccumulator.Hash`), shared by the distinct set and `TopK`, and the text of a value is copied only when a counter or the lexical minimum or maximum moves. `TopK` keeps a value-to-count map keyed by the hash. Past the cap it keeps the heaviest 1,000 exact counters and evicts the counter with the lowest count, ties by lowest ordinal value, so the result never depends on dictionary order. Memory for an opted-in field is the value text of up to `limits.distinctPerField` distinct values; the global budget (`MemoryBudget`) does not count it yet, and sq-11 accounts for it in the memory ceiling.
 
 ## Header-unit conventions
 

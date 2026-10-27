@@ -80,7 +80,7 @@ public static class Profiler
             issues.Add(new Issue("nameExcludedFromFingerprint", projection.Excluded));
         }
 
-        return new Descriptor(
+        var descriptor = new Descriptor(
             Tool: new ToolSection(ToolInfo.Name, ToolInfo.Version),
             Options: options,
             Limits: profile.EffectiveLimits ?? limits,
@@ -101,6 +101,17 @@ public static class Profiler
             Evidence: SortEvidence(evidence),
             Table: profile.Table,
             Binary: profile.Binary);
+
+        // An allow-list name that matches no key, label or field is reported. The names come from the command line, not
+        // from the data, so they are safe to write.
+        var unmatched = ValuesPolicy.UnmatchedNames(descriptor);
+        if (unmatched.Count > 0)
+        {
+            issues.Add(new Issue("includeValuesForUnmatched", unmatched.Count, Names: unmatched));
+            descriptor = descriptor with { Issues = Ordinal.SortedBy(issues, static i => i.Code) };
+        }
+
+        return descriptor;
     }
 
     // Until sq-15 adds the rule table, the kind label follows the byte-pass class. The rule ids are those of the

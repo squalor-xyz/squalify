@@ -66,14 +66,14 @@ public sealed class FieldProfilingTests
         return ProfileText(text, includeValues, limits, allow).Table!.Fields[index];
     }
 
-    private static FieldProfile Build(FieldAccumulator accumulator, bool valuesAllowed = false)
+    private static FieldProfile Build(FieldAccumulator accumulator)
     {
-        return accumulator.Build(0, "f", null, 0, valuesAllowed);
+        return accumulator.Build(0, "f", null, 0);
     }
 
-    private static FieldAccumulator Accumulate(IEnumerable<string> values, char decimalSeparator = '.', FieldCaps? caps = null)
+    private static FieldAccumulator Accumulate(IEnumerable<string> values, char decimalSeparator = '.', FieldCaps? caps = null, bool valuesAllowed = false)
     {
-        var accumulator = new FieldAccumulator(caps ?? DefaultCaps, decimalSeparator);
+        var accumulator = new FieldAccumulator(caps ?? DefaultCaps, decimalSeparator, valuesAllowed ? FieldValueAccess.All : FieldValueAccess.None);
         foreach (var value in values)
         {
             accumulator.AddText(value);
@@ -182,7 +182,7 @@ public sealed class FieldProfilingTests
     [Fact]
     public void NumericStats_SingleValue_HasNoStddev()
     {
-        var stats = Build(Accumulate(["3"]), valuesAllowed: true).Numeric!;
+        var stats = Build(Accumulate(["3"], valuesAllowed: true)).Numeric!;
         Assert.Null(stats.Stddev);
         Assert.Equal(3.0, stats.Mean!.Value);
     }
@@ -395,7 +395,7 @@ public sealed class FieldProfilingTests
     [InlineData("increasing", "1,1.5,2")]
     public void Monotonic_Variants(string expected, string values)
     {
-        var field = Build(Accumulate(values.Split(',')), valuesAllowed: true);
+        var field = Build(Accumulate(values.Split(','), valuesAllowed: true));
         Assert.Equal(expected, field.Monotonic);
     }
 
@@ -718,15 +718,15 @@ public sealed class FieldProfilingTests
     [Fact]
     public void AddTemporal_AcceptsTheWholeDateTimeRange_AndTheClassifierStaysInsideIt()
     {
-        var accumulator = new FieldAccumulator(DefaultCaps);
+        var accumulator = new FieldAccumulator(DefaultCaps, '.', FieldValueAccess.All);
         accumulator.AddTemporal(0, ValueVote.DateTime);
         accumulator.AddTemporal(DateTime.MaxValue.Ticks, ValueVote.DateTime);
-        var field = Build(accumulator, valuesAllowed: true);
+        var field = Build(accumulator);
         Assert.Equal("0001-01-01T00:00:00", field.Temporal!.Min);
         Assert.Equal("9999-12-31T23:59:59.9999999", field.Temporal.Max);
 
         // The classifier path: 4-digit years only (1 to 9999 once valid) and a time of day below 24 hours.
-        var text = Build(Accumulate(["0001-01-01", "9999-12-31 23:59:59.9999999"]), valuesAllowed: true);
+        var text = Build(Accumulate(["0001-01-01", "9999-12-31 23:59:59.9999999"], valuesAllowed: true));
         Assert.Equal("0001-01-01T00:00:00", text.Temporal!.Min);
         Assert.Equal("9999-12-31T23:59:59.9999999", text.Temporal.Max);
     }
