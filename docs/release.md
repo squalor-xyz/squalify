@@ -9,8 +9,8 @@ squalify publishes two packages to nuget.org from a version tag: `squalor.squali
 3. Tag that commit `v<Version>` and push the tag:
 
    ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
+   git tag v0.1.1
+   git push origin v0.1.1
    ```
 
 4. Watch the Release run in GitHub Actions.
