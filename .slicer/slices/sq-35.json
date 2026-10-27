@@ -1,0 +1,41 @@
+{
+  "id": "sq-35",
+  "title": "Byte-limited profiling",
+  "lead": [
+    "`ProfileOptions` gets a byte limit: squalify reads at most that many bytes, cuts at the last whole record, and says in the descriptor what it read. Today a consumer that wants only a prefix must build its own `IProfileSource`, and the descriptor's `file.size` and `file.sha256` then describe the prefix, not the file. **Not in this slice:** sampling from the middle or end of a file."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "A library consumer (a lab sweep-table splitter in another repo) classifies a file from its first 1 MiB and confirms over the whole file itself. It now wraps the file in its own prefix source, which duplicates the record-boundary cut and leaves `file.size` and `file.sha256` misleading."
+    },
+    {
+      "heading": "Files",
+      "body": "- `ProfileOptions`, `Profiler`, the sources, the descriptor (a scope block), descriptor.md, the CLI (a `--max-bytes` option), README"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- With a limit smaller than the file, squalify reads at most the limit plus what it needs to find the record end, and the profile ends on a whole record.\n- The descriptor reports the scope: bytes read, whether the end of the file was reached, and the whole file's size; `file.sha256` is absent or marked as the prefix's, not presented as the file's.\n- A limit larger than the file gives the same descriptor as no limit (apart from the scope block).\n- A first record longer than the limit is read whole, or fails with a clear issue (pick one and document it)."
+    },
+    {
+      "heading": "Implement",
+      "body": "- Decide with the owner whether the scope block is a schema change for the draft schema (before sq-12)."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}
