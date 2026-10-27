@@ -1,0 +1,149 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tag is an ancestor of main
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::tag $GITHUB_REF_NAME is not reachable from main"; exit 1; }
+
+      - name: Resolve version
+        id: version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
+          if ! [[ "$version" =~ $semver ]]; then
+            echo "::error::tag $GITHUB_REF_NAME is not vMAJOR.MINOR.PATCH[-prerelease][+build]"
+            exit 1
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          global-json-file: global.json
+
+      # The tag names the release, and the repository names the version. They must be the same string.
+      - name: Check the tag matches Version
+        run: |
+          project_version="$(dotnet msbuild src/squalify/squalify.csproj -getProperty:Version)"
+          if [ "$project_version" != "${{ steps.version.outputs.value }}" ]; then
+            echo "::error::tag $GITHUB_REF_NAME is version ${{ steps.version.outputs.value }}, but Version in Directory.Build.props is $project_version. Bump Version, commit it to main, and tag that commit."
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore squalify.sln
+
+      - name: Build
+        run: dotnet build squalify.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test squalify.sln --configuration Release --no-build --no-restore --filter "Category!=Corpus&Category!=Package"
+
+      - name: Package
+        run: dotnet test squalify.sln --configuration Release --no-build --no-restore --filter "Category=Package"
+
+      - name: Pack library
+        run: >
+          dotnet pack src/squalify/squalify.csproj
+          --configuration Release
+          --no-restore
+          -p:Version=${{ steps.version.outputs.value }}
+          -p:ContinuousIntegrationBuild=true
+          --output artifacts/nuget
+
+      - name: Pack CLI tool
+        run: >
+          dotnet pack src/squalify.Cli/squalify.Cli.csproj
+          --configuration Release
+          --no-restore
+          -p:Version=${{ steps.version.outputs.value }}
+          -p:ContinuousIntegrationBuild=true
+          --output artifacts/nuget
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: |
+            artifacts/nuget/*.nupkg
+            artifacts/nuget/*.snupkg
+          if-no-files-found: error
+
+  publish:
+    name: Publish to nuget.org
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts/nuget
+
+      # The temporary API key lives one hour, so request it right before the push.
+      - name: Log in to nuget.org
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: squalor
+
+      # Pushing a .nupkg also pushes the .snupkg next to it, so there is no separate symbols push.
+      - name: Push packages
+        run: dotnet nuget push "artifacts/nuget/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  github-release:
+    name: Create GitHub release
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts/nuget
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(needs.build.outputs.version, '-') }}
+          files: |
+            artifacts/nuget/*.nupkg
+            artifacts/nuget/*.snupkg

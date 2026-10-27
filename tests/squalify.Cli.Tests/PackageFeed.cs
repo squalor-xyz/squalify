@@ -2,30 +2,38 @@
 namespace squalor.squalify.Cli.Tests;
 
 /// <summary>
-/// Packs the library once for the Package tests, into a temporary local folder feed. Dispose deletes the feed.
+/// Packs the library and the CLI tool once for the Package tests, each into its own temporary folder. The library
+/// folder is the local feed that the consumer test restores from. Dispose deletes both folders.
 /// </summary>
 public sealed class PackageFeed : IDisposable
 {
     /// <summary>The package id, which is also the assembly and namespace name.</summary>
     public const string PackageId = "squalor.squalify";
 
-    private readonly TempFolder _folder = TempFolder.Create("squalify-feed-");
+    /// <summary>The package id of the CLI tool.</summary>
+    public const string CliPackageId = "squalor.squalify.Cli";
 
-    /// <summary>Runs dotnet pack on the library project into the feed.</summary>
+    private readonly TempFolder _folder = TempFolder.Create("squalify-feed-");
+    private readonly TempFolder _cliFolder = TempFolder.Create("squalify-cli-feed-");
+
+    /// <summary>Runs dotnet pack on the library project and on the CLI project, each into its own folder.</summary>
     public PackageFeed()
     {
         try
         {
             var root = DotNetTool.RepositoryRoot();
-            var project = Path.Combine(root, "src", "squalify", "squalify.csproj");
-            var result = DotNetTool.Run(root, "pack", project, "--configuration", "Release", "--no-restore", "--output", FolderPath);
-            PackExitCode = result.ExitCode;
-            PackLog = result.Log;
+            var library = Pack(root, Path.Combine("src", "squalify", "squalify.csproj"), FolderPath);
+            PackExitCode = library.ExitCode;
+            PackLog = library.Log;
+            var cli = Pack(root, Path.Combine("src", "squalify.Cli", "squalify.Cli.csproj"), CliFolderPath);
+            CliPackExitCode = cli.ExitCode;
+            CliPackLog = cli.Log;
         }
         catch
         {
-            // A failed constructor is never disposed, so the feed would leak.
+            // A failed constructor is never disposed, so the folders would leak.
             _folder.Dispose();
+            _cliFolder.Dispose();
             throw;
         }
     }
@@ -39,11 +47,33 @@ public sealed class PackageFeed : IDisposable
     /// <summary>The output of dotnet pack, for failure messages.</summary>
     public string PackLog { get; }
 
-    /// <summary>The path of the nupkg for a version, whether or not it exists.</summary>
+    /// <summary>The folder that holds the packed CLI tool.</summary>
+    public string CliFolderPath => _cliFolder.Path;
+
+    /// <summary>The exit code of dotnet pack on the CLI project.</summary>
+    public int CliPackExitCode { get; }
+
+    /// <summary>The output of dotnet pack on the CLI project, for failure messages.</summary>
+    public string CliPackLog { get; }
+
+    /// <summary>The path of the library nupkg for a version, whether or not it exists.</summary>
     public string NupkgPath(string version) => Path.Combine(FolderPath, $"{PackageId}.{version}.nupkg");
 
-    /// <summary>Deletes the feed.</summary>
-    public void Dispose() => _folder.Dispose();
+    /// <summary>The path of the library symbol package for a version, whether or not it exists.</summary>
+    public string SnupkgPath(string version) => Path.Combine(FolderPath, $"{PackageId}.{version}.snupkg");
+
+    /// <summary>The path of the CLI tool nupkg for a version, whether or not it exists.</summary>
+    public string CliNupkgPath(string version) => Path.Combine(CliFolderPath, $"{CliPackageId}.{version}.nupkg");
+
+    /// <summary>Deletes both folders.</summary>
+    public void Dispose()
+    {
+        _folder.Dispose();
+        _cliFolder.Dispose();
+    }
+
+    private static DotNetResult Pack(string root, string project, string output) =>
+        DotNetTool.Run(root, "pack", Path.Combine(root, project), "--configuration", "Release", "--no-restore", "--output", output);
 }
 
 /// <summary>Shares one <see cref="PackageFeed"/> across the Package test classes.</summary>
