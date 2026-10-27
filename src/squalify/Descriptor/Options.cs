@@ -23,6 +23,8 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 /// <param name="ShapesPerField">Cap on shape masks per field.</param>
 /// <param name="Regions">Cap on regions.</param>
 /// <param name="HeaderSample">Number of records sampled for header detection.</param>
+/// <param name="RunawayQuote">Longest open quoted field, in characters, before a delimited candidate is disqualified.</param>
+/// <param name="FieldCountRuns">Most field-count runs a delimited candidate may have before it is disqualified as too irregular.</param>
 /// <param name="RowClasses">Cap on row classes.</param>
 /// <param name="CharsetTolerance">Tolerated invalid UTF-8 sequences.</param>
 /// <param name="StdfTests">Cap on STDF test catalog entries.</param>
@@ -35,6 +37,8 @@ public sealed record Limits(
     long ShapesPerField,
     long Regions,
     long HeaderSample,
+    long RunawayQuote,
+    long FieldCountRuns,
     long RowClasses,
     CharsetTolerance CharsetTolerance,
     long StdfTests,
@@ -49,6 +53,8 @@ public sealed record Limits(
         ShapesPerField: 64,
         Regions: 1_000,
         HeaderSample: 1_000,
+        RunawayQuote: 65_536,
+        FieldCountRuns: 100_000,
         RowClasses: 64,
         CharsetTolerance: new CharsetTolerance(8, 65_536),
         StdfTests: 10_000,

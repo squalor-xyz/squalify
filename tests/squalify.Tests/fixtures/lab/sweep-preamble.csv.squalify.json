@@ -1,0 +1,414 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "squalify",
+    "version": "0.1.0"
+  },
+  "options": {
+    "includeValues": false,
+    "includeValuesFor": []
+  },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": {
+      "invalidSequences": 8,
+      "perBytes": 65536
+    },
+    "stdfTests": 10000,
+    "budget": {
+      "quantileValues": 10000000,
+      "distinctValues": 2000000
+    },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "sweep-preamble.csv",
+    "size": 448,
+    "sha256": "499bc481b0130e4a7672462a5d6e5c0306f4f616ae7ee01f6548ef748954a904"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": {
+      "crlf": 0,
+      "lf": 31,
+      "cr": 0
+    },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "delimited",
+    "dialect": {
+      "delimiter": ",",
+      "quote": "\"",
+      "hasHeader": true,
+      "unitsRow": true,
+      "decimalSeparator": ".",
+      "padding": {
+        "trim": false,
+        "paddedShare": 0,
+        "constantLineLength": false,
+        "lineLength": null
+      },
+      "blocks": 1
+    },
+    "score": 0.5838709677419355
+  },
+  "kind": {
+    "label": "text",
+    "ruleId": "K09",
+    "confidence": 1
+  },
+  "layout": {
+    "regions": [
+      {
+        "kind": "preamble",
+        "lines": [
+          1,
+          7
+        ],
+        "bytes": [
+          0,
+          98
+        ],
+        "lineKinds": {
+          "comment": 1,
+          "keyValue": 4,
+          "text": 2
+        },
+        "keys": [
+          "Lot",
+          "Wafer",
+          "Temp",
+          "Operator"
+        ]
+      },
+      {
+        "kind": "header",
+        "lines": [
+          8,
+          8
+        ],
+        "bytes": [
+          98,
+          127
+        ]
+      },
+      {
+        "kind": "units",
+        "lines": [
+          9,
+          9
+        ],
+        "bytes": [
+          127,
+          138
+        ]
+      },
+      {
+        "kind": "data",
+        "lines": [
+          10,
+          29
+        ],
+        "bytes": [
+          138,
+          435
+        ]
+      },
+      {
+        "kind": "footer",
+        "lines": [
+          30,
+          31
+        ],
+        "bytes": [
+          435,
+          448
+        ],
+        "lineKinds": {
+          "keyValue": 1,
+          "text": 1
+        }
+      }
+    ],
+    "maxLineLength": 28
+  },
+  "table": {
+    "rows": 20,
+    "fieldCount": {
+      "min": 3,
+      "max": 3
+    },
+    "fields": [
+      {
+        "index": 0,
+        "name": "Freq(MHz)",
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 20
+        },
+        "patterns": null,
+        "count": 20,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 1,
+        "name": "Pout(dBm)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 20
+        },
+        "patterns": null,
+        "count": 20,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 2,
+        "name": "Gain(dB)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 20
+        },
+        "patterns": null,
+        "count": 20,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 0,
+    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "hints": {
+    "extension": ".csv",
+    "magic": null,
+    "stableLines": [],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": null,
+    "fieldCount": null,
+    "dataStartLine": null,
+    "delimiter": null,
+    "headerConvention": null,
+    "parquetColumns": null,
+    "stdf": null,
+    "fileNameShape": "a{5}-a{8}.a{3}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        {
+          "value": "ascii",
+          "score": 1,
+          "reason": "no bytes at or above 0x80"
+        },
+        {
+          "value": "latin-1",
+          "score": 0,
+          "reason": "UTF-8 or ASCII decoding accepted"
+        },
+        {
+          "value": "utf-8",
+          "score": 0,
+          "reason": "no bytes at or above 0x80"
+        }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "empty",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "text",
+          "score": 1,
+          "reason": "rule 6: no NUL bytes; 0 of 448 bytes are control bytes"
+        }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "delimited",
+      "candidates": [
+        {
+          "value": "delimited",
+          "score": 0.5838709677419355,
+          "reason": "delimiter comma; k=3; 22/31 records; clean=1; run lines 8-29; 0 quoted fields"
+        },
+        {
+          "value": "text",
+          "score": 0.1,
+          "reason": "text content"
+        },
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not binary: text content"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "decimalSeparator",
+      "chosen": ".",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0,
+          "reason": "0 comma-decimal cells; the delimiter is a comma"
+        },
+        {
+          "value": ".",
+          "score": 1,
+          "reason": "40 dot-decimal cells"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "delimiter",
+      "chosen": ",",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0.7096774193548387,
+          "reason": "k=3; 22/31 records; clean=1; run lines 8-29; 0 quoted fields"
+        },
+        {
+          "value": "\t",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": ";",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "|",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "whitespace",
+          "score": 0,
+          "reason": "k=3; no run; 0 quoted fields"
+        }
+      ]
+    },
+    {
+      "stage": "header",
+      "topic": "candidates",
+      "chosen": "8",
+      "candidates": [
+        {
+          "value": "8",
+          "score": 1,
+          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
+        },
+        {
+          "value": "9",
+          "score": 1,
+          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
+        },
+        {
+          "value": "summary",
+          "score": 0,
+          "reason": "sampled=22; eligible=2; ineligible=20 (comment line=0, field count=0, blank or repeated names=0, fits every typed column=20)"
+        }
+      ]
+    }
+  ]
+}

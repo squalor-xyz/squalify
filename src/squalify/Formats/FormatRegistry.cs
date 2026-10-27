@@ -6,7 +6,17 @@ namespace squalor.squalify;
 /// <param name="Score">The winning score (1 for an empty file).</param>
 /// <param name="Profiler">The winning profiler, or null for an empty file.</param>
 /// <param name="Evidence">The evidence entry that lists every profiler's score.</param>
-internal sealed record FormatChoice(string Family, double Score, IFormatProfiler? Profiler, Evidence Evidence);
+/// <param name="ProfilerScore">What the winning profiler returned from scoring, to hand back to it; null for an empty file.</param>
+/// <param name="NotChosenIssues">Issues that the other profilers want on record because they declined the file.</param>
+/// <param name="NotChosenEvidence">Evidence that goes with <paramref name="NotChosenIssues"/>.</param>
+internal sealed record FormatChoice(
+    string Family,
+    double Score,
+    IFormatProfiler? Profiler,
+    Evidence Evidence,
+    FormatScore? ProfilerScore = null,
+    IReadOnlyList<Issue>? NotChosenIssues = null,
+    IReadOnlyList<Evidence>? NotChosenEvidence = null);
 
 /// <summary>The registered format profilers, in the fixed registry order.</summary>
 internal sealed class FormatRegistry
@@ -40,38 +50,58 @@ internal sealed class FormatRegistry
     public static IReadOnlyList<string> Order { get; } =
         ["parquet", "stdf", "touchstone", "keyValue", "delimited", "text", "binary"];
 
-    /// <summary>The registry of this tool version: text and binary.</summary>
-    public static FormatRegistry Default { get; } = new FormatRegistry([new GenericTextProfiler(), new GenericBinaryProfiler()]);
+    /// <summary>The registry of this tool version: delimited, text and binary.</summary>
+    public static FormatRegistry Default { get; } = new FormatRegistry([new DelimitedProfiler(), new GenericTextProfiler(), new GenericBinaryProfiler()]);
 
     /// <summary>
     /// Scores every profiler and picks the winner: the highest score, and on a tie the profiler that comes first in
-    /// <see cref="Order"/>. A zero-length file is <c>empty</c> by rule, whatever the scores are.
+    /// <see cref="Order"/>. A zero-length file is <c>empty</c> by rule, whatever the scores are. A profiler that loses
+    /// may still hand back issues and evidence that explain why it declined (<see cref="FormatScore.NotChosenIssues"/>);
+    /// these are the "fallback": a delimited profiler that gave up on a file as too irregular lets the generic text
+    /// profile describe it, and the issue <c>tooIrregular</c> says why.
     /// </summary>
+    /// <param name="source">The source.</param>
     /// <param name="sniff">The byte-pass result.</param>
+    /// <param name="context">The options and limits.</param>
     /// <returns>The choice.</returns>
-    public FormatChoice Detect(SniffResult sniff)
+    public FormatChoice Detect(IProfileSource source, SniffResult sniff, ProfileContext context)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(sniff);
+        ArgumentNullException.ThrowIfNull(context);
         var candidates = new List<Candidate>();
+        var scores = new List<(IFormatProfiler Profiler, FormatScore Score)>();
         IFormatProfiler? best = null;
-        var bestScore = double.NegativeInfinity;
+        FormatScore? bestScore = null;
         foreach (var profiler in _profilers)
         {
-            var (score, reason) = profiler.Score(sniff);
-            candidates.Add(new Candidate(profiler.Family, score, reason));
-            if (score > bestScore)
+            var result = profiler.Score(source, sniff, context);
+            scores.Add((profiler, result));
+            candidates.Add(new Candidate(profiler.Family, result.Score, result.Reason));
+            if (bestScore is null || result.Score > bestScore.Score)
             {
                 best = profiler;
-                bestScore = score;
+                bestScore = result;
             }
         }
 
-        if (sniff.Kind == "empty" || best is null)
+        if (sniff.Kind == "empty" || best is null || bestScore is null)
         {
             return new FormatChoice("empty", 1.0, null, new Evidence("format", "family", "empty", candidates));
         }
 
-        return new FormatChoice(best.Family, bestScore, best, new Evidence("format", "family", best.Family, candidates));
+        var issues = new List<Issue>();
+        var evidence = new List<Evidence>();
+        foreach (var (profiler, result) in scores)
+        {
+            if (!ReferenceEquals(profiler, best))
+            {
+                issues.AddRange(result.NotChosenIssues ?? []);
+                evidence.AddRange(result.NotChosenEvidence ?? []);
+            }
+        }
+
+        return new FormatChoice(best.Family, bestScore.Score, best, new Evidence("format", "family", best.Family, candidates), bestScore, issues, evidence);
     }
 
     private static int IndexOf(string family)

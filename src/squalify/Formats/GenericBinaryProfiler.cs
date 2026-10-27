@@ -11,20 +11,20 @@ internal sealed class GenericBinaryProfiler : IFormatProfiler
     public string Family => "binary";
 
     /// <inheritdoc />
-    public (double Score, string Reason) Score(SniffResult sniff)
+    public FormatScore Score(IProfileSource source, SniffResult sniff, ProfileContext context)
     {
         ArgumentNullException.ThrowIfNull(sniff);
         return sniff.Kind switch
         {
-            "binary" when sniff.Magic is { } magic => (0.2, "binary content; named magic " + magic),
-            "binary" => (0.1, "binary content; no named magic"),
-            "empty" => (0.0, "file is empty"),
-            _ => (0.0, "not binary: text content"),
+            "binary" when sniff.Magic is { } magic => new FormatScore(0.2, "binary content; named magic " + magic),
+            "binary" => new FormatScore(0.1, "binary content; no named magic"),
+            "empty" => new FormatScore(0.0, "file is empty"),
+            _ => new FormatScore(0.0, "not binary: text content"),
         };
     }
 
     /// <inheritdoc />
-    public FormatProfile Profile(IProfileSource source, SniffResult sniff, ProfileContext context)
+    public FormatProfile Profile(IProfileSource source, SniffResult sniff, ProfileContext context, FormatScore score)
     {
         ArgumentNullException.ThrowIfNull(sniff);
         var histogram = sniff.Facts.Histogram;

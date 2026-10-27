@@ -51,7 +51,7 @@ internal static class TestModels
 
     public static Limits StandardLimits()
     {
-        return new Limits(10000, 100000, 64, 1000, 1000, 64, new CharsetTolerance(8, 65536), 10000, new Budget(10000000, 2000000), 1, 1);
+        return new Limits(10000, 100000, 64, 1000, 1000, 65536, 100000, 64, new CharsetTolerance(8, 65536), 10000, new Budget(10000000, 2000000), 1, 1);
     }
 
     public const string Sha256Empty = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";

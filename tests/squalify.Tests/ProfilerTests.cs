@@ -351,7 +351,7 @@ public sealed class ProfilerTests : IDisposable
         var descriptor = Profile("a.txt", TestBytes.Ascii("x\n"));
         Assert.Equal(new[] { "encoding/charset", "encoding/class", "format/family" }, descriptor.Evidence.Select(static e => e.Stage + "/" + e.Topic).ToArray());
         var family = descriptor.Evidence.Single(static e => e.Topic == "family");
-        Assert.Equal(new[] { "text", "binary" }, family.Candidates.Select(static c => c.Value).ToArray());
+        Assert.Equal(new[] { "delimited", "text", "binary" }, family.Candidates.Select(static c => c.Value).ToArray());
     }
 
     [Fact]

@@ -1,0 +1,361 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "squalify",
+    "version": "0.1.0"
+  },
+  "options": {
+    "includeValues": false,
+    "includeValuesFor": []
+  },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": {
+      "invalidSequences": 8,
+      "perBytes": 65536
+    },
+    "stdfTests": 10000,
+    "budget": {
+      "quantileValues": 10000000,
+      "distinctValues": 2000000
+    },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "leading-separator-rows.csv",
+    "size": 2407,
+    "sha256": "51f96e33231df4b71d4b773a7b9cbc7b23ebccc4b25b1ebef3d2c2deac7d5fba"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": {
+      "crlf": 141,
+      "lf": 0,
+      "cr": 0
+    },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "delimited",
+    "dialect": {
+      "delimiter": ",",
+      "quote": "\"",
+      "hasHeader": true,
+      "unitsRow": false,
+      "decimalSeparator": ".",
+      "padding": {
+        "trim": false,
+        "paddedShare": 0,
+        "constantLineLength": false,
+        "lineLength": null
+      },
+      "blocks": 1
+    },
+    "score": 0.7
+  },
+  "kind": {
+    "label": "text",
+    "ruleId": "K09",
+    "confidence": 1
+  },
+  "layout": {
+    "regions": [
+      {
+        "kind": "header",
+        "lines": [
+          1,
+          1
+        ],
+        "bytes": [
+          0,
+          27
+        ]
+      },
+      {
+        "kind": "data",
+        "lines": [
+          2,
+          141
+        ],
+        "bytes": [
+          27,
+          2407
+        ]
+      }
+    ],
+    "maxLineLength": 25
+  },
+  "table": {
+    "rows": 140,
+    "fieldCount": {
+      "min": 3,
+      "max": 3
+    },
+    "fields": [
+      {
+        "index": 0,
+        "name": "Pout(dBm)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 20
+        },
+        "patterns": null,
+        "count": 140,
+        "nulls": 120,
+        "nullsExcludingAllNullRows": 60,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 1,
+        "name": "Gain(dB)",
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 20
+        },
+        "patterns": null,
+        "count": 140,
+        "nulls": 120,
+        "nullsExcludingAllNullRows": 60,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 2,
+        "name": "Status",
+        "nameParts": null,
+        "type": "string",
+        "dominant": {
+          "type": "string",
+          "share": 1
+        },
+        "typeVotes": {
+          "string": 80
+        },
+        "patterns": null,
+        "count": 140,
+        "nulls": 60,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 0,
+    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "hints": {
+    "extension": ".csv",
+    "magic": null,
+    "stableLines": [],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": null,
+    "fieldCount": null,
+    "dataStartLine": null,
+    "delimiter": null,
+    "headerConvention": null,
+    "parquetColumns": null,
+    "stdf": null,
+    "fileNameShape": "a{7}-a{9}-a{4}.a{3}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        {
+          "value": "ascii",
+          "score": 1,
+          "reason": "no bytes at or above 0x80"
+        },
+        {
+          "value": "latin-1",
+          "score": 0,
+          "reason": "UTF-8 or ASCII decoding accepted"
+        },
+        {
+          "value": "utf-8",
+          "score": 0,
+          "reason": "no bytes at or above 0x80"
+        }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "empty",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "text",
+          "score": 1,
+          "reason": "rule 6: no NUL bytes; 0 of 2407 bytes are control bytes"
+        }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "delimited",
+      "candidates": [
+        {
+          "value": "delimited",
+          "score": 0.7,
+          "reason": "delimiter comma; k=3; 141/141 records; clean=1; run lines 1-141; 0 quoted fields"
+        },
+        {
+          "value": "text",
+          "score": 0.1,
+          "reason": "text content"
+        },
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not binary: text content"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "decimalSeparator",
+      "chosen": ".",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0,
+          "reason": "0 comma-decimal cells; the delimiter is a comma"
+        },
+        {
+          "value": ".",
+          "score": 1,
+          "reason": "40 dot-decimal cells"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "delimiter",
+      "chosen": ",",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 1,
+          "reason": "k=3; 141/141 records; clean=1; run lines 1-141; 0 quoted fields"
+        },
+        {
+          "value": "\t",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": ";",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "|",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "whitespace",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        }
+      ]
+    },
+    {
+      "stage": "header",
+      "topic": "candidates",
+      "chosen": "1",
+      "candidates": [
+        {
+          "value": "1",
+          "score": 1,
+          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
+        },
+        {
+          "value": "summary",
+          "score": 0,
+          "reason": "sampled=141; eligible=1; ineligible=140 (comment line=0, field count=0, blank or repeated names=120, fits every typed column=20)"
+        }
+      ]
+    }
+  ]
+}
