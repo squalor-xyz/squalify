@@ -2728,14 +2728,11 @@
       "id": "sq-30",
       "title": "squalify must have its own mark as the package icon and README image",
       "short_title": "Package icon",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-27T19:34:45Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
