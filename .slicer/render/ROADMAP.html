@@ -39,7 +39,7 @@
 - Editing, repairing or converting files.<br>
 - A dependency on DataBall. The descriptor schema is the contract.<br>
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
-<p class="summary">32 items · — 13 · done 16 · parked 1 · later 1 · retired 1</p>
+<p class="summary">32 items · — 12 · done 16 · parked 1 · later 1 · retired 1 · started 1</p>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="parked"><td>1</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
 <tr class="open"><td>2</td><td>sq-09</td><td>Touchstone and key=value docs</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
@@ -56,7 +56,7 @@
 <tr class="open"><td>13</td><td>sq-24</td><td>Invalid UTF-16/32 reporting</td><td>S</td><td>1</td><td>core</td><td>sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE &#x27;hello world\n&#x27; plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03</td><td class="status">—</td></tr>
 <tr class="open"><td>14</td><td>sq-28</td><td>Ragged skip by field count</td><td>S</td><td>1</td><td>core</td><td>sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with &#x27;skip only ragged records that have at least 2 fields&#x27;. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · discovered from sq-27</td><td class="status">—</td></tr>
 <tr class="group"><td></td><td colspan="7"><strong>v0.2.0</strong></td></tr>
-<tr class="open"><td>15</td><td>sq-30</td><td>Package icon</td><td>S</td><td>1</td><td></td><td>discovered from sq-29</td><td class="status">—</td></tr>
+<tr class="started"><td>15</td><td>sq-30</td><td>Package icon</td><td>S</td><td>1</td><td></td><td>discovered from sq-29</td><td class="status">started</td></tr>
 <tr class="open"><td>16</td><td>sq-32</td><td>Compact field profiles</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>

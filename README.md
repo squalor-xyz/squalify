@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/squalor-xyz/squalify/main/assets/squalify-512.png" alt="squalify" width="96">
+
 # squalify
 
 squalify profiles one data file and writes a **descriptor**: a versioned JSON document that says what the file is (encoding, format, dialect), how it is laid out (preamble, header, units row, data, footer), what each column holds (type, null tokens, statistics, units), what looks wrong (issues), and a structural fingerprint. Every inference carries the evidence behind it.

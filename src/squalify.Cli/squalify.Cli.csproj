@@ -10,12 +10,14 @@
     <Description>Command-line tool that profiles a data file into a deterministic JSON descriptor. Install it as the squalify .NET tool.</Description>
     <PackageTags>squalify;profiling;descriptor;csv;data-profiling;dotnet-tool</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>squalify-512.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="squalify.Cli.Tests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\squalify-512.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.11" />
