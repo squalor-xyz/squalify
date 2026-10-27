@@ -1048,7 +1048,7 @@ public sealed class DelimitedTests
     [Fact]
     public void Dialect_LoneQuoteInQuotedField_IsLiteral()
     {
-        // DangerTest's writer quotes a field that holds a comma but does not escape quotes inside it.
+        // An ATE export's writer quotes a field that holds a comma but does not escape quotes inside it.
         var text = "Name,Note,Val\n"
             + "a,\"5\" pipe, 3\",1.5\n"
             + "b,\"say \"\"hi\"\", ok\",2.5\n"
@@ -1089,7 +1089,7 @@ public sealed class DelimitedTests
     [Fact]
     public void UnitsRow_AllNullFirstDataRow_IsNotUnits()
     {
-        // A DangerTest main CSV: interleaved all-NULL separator rows. Nulls are neutral, but a units row needs one value.
+        // An ATE main CSV: interleaved all-NULL separator rows. Nulls are neutral, but a units row needs one value.
         var text = "Pout(dBm),RowID(id),Gain(dB)\r\nNULL,NULL,NULL\r\n10.5,1,15.5\r\n11.5,2,16.5\r\nNULL,NULL,NULL\r\n12.5,3,17.5\r\n13.5,4,18.5\r\n14.5,5,19.5\r\n";
         var d = ProfileText(text);
         var dialect = Dialect(d);
@@ -1228,7 +1228,7 @@ public sealed class DelimitedTests
     }
 
     [Fact]
-    public void DangerTestMainCsv_HasHeader_NoUnitsRow_QuotedFieldsWithCommas()
+    public void AteMainCsv_HasHeader_NoUnitsRow_QuotedFieldsWithCommas()
     {
         var builder = new StringBuilder("Pout(dBm),RowID(id),Mode,Note\r\n");
         builder.Append("NULL,NULL,NULL,NULL\r\n");

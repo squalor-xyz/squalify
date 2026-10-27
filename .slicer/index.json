@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 32,
+  "next_id": 33,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [],
   "items": [
@@ -1445,6 +1445,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "27f807f0-4753-4a6b-9bcc-4ba3bb205651",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"64 MB (Recommended)\" for the fixed allowance in MemoryBudget.CeilingBytes (option text: \"Covers a .NET 10 console process baseline (roughly 30-50 MB) plus read buffers, with some headroom. Tight enough to catch leaks.\").",
+          "created_at": "2026-10-27T19:13:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1813,6 +1824,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "132c36e6-20e9-4259-a6da-fb68f7c5a32b",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27): sq-12 no longer depends on sq-15; kind is added after the schema freeze as an additive member, with all its labels at once.",
+          "created_at": "2026-10-27T19:13:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1841,7 +1863,7 @@
       "id": "sq-20",
       "title": "squalify must keep descriptors compact for wide files",
       "short_title": "Compact evidence",
-      "status": "open",
+      "status": "retired",
       "has_slice": true,
       "depends_on": [
         "sq-05",
@@ -1902,6 +1924,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "638a123c-2863-47cb-b649-d6e3b5fdf97e",
+          "kind": "",
+          "text": "**2026-10-27** — Orchestrator (2026-10-27): per the sq-06 K8 note, hints.nonNullFields is already ascending field indexes; this slice only verifies it. Owner order: sq-11 and sq-20 run in parallel, sq-13 after.",
+          "created_at": "2026-10-27T19:13:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1919,7 +1952,7 @@
         "key": "",
         "pass": "",
         "group": "",
-        "reason": "",
+        "reason": "Owner decision (2026-10-27), verbatim: \"Retire, refile on fields (Recommended)\". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.",
         "importance": 2,
         "urgency": 2,
         "effort": 2,
@@ -1936,15 +1969,12 @@
         "sq-06",
         "sq-07",
         "sq-31",
-        "sq-09",
-        "sq-10",
         "sq-11",
         "sq-13",
         "sq-14",
-        "sq-15",
         "sq-17",
         "sq-18",
-        "sq-20"
+        "sq-32"
       ],
       "note_records": [
         {
@@ -2062,6 +2092,39 @@
           "kind": "",
           "text": "**2026-10-27** — sq-08 (Parquet) parked: Parquet dropped from v1 (owner, 2026-10-27). Dependency replaced by sq-31, which removes the Parquet members before the freeze.",
           "created_at": "2026-10-27T18:33:47Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "3a81b172-ee8f-4c1d-a146-1129be3d85fb",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"yes sq-12 can drop dep on sq-09/sq-10\". Touchstone/key=value (sq-09) and STDF (sq-10) are added after the freeze as additive changes.",
+          "created_at": "2026-10-27T19:04:00Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "c00bf0cf-768a-4acc-a303-0d97e36d7250",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"Drop sq-15 from sq-12 (Recommended)\" (option text: \"The freeze waits only on non-format work; kind is added after the freeze as an additive member, with all its labels at once.\").",
+          "created_at": "2026-10-27T19:13:50Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "65ec747c-f266-4de8-8129-fcb43c7af373",
+          "kind": "",
+          "text": "**2026-10-27** — sq-20 retired (2026-10-27); sq-32 (compact field profiles) replaces it as a freeze dependency.",
+          "created_at": "2026-10-27T19:27:44Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -2715,6 +2778,38 @@
         "urgency": 3,
         "effort": 1,
         "attempts": 1
+      }
+    },
+    {
+      "id": "sq-32",
+      "title": "Compact field profiles",
+      "short_title": "Compact field profiles",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-11"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
       }
     }
   ],

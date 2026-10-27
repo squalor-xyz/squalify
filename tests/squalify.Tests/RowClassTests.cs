@@ -174,9 +174,9 @@ public sealed class RowClassTests
     }
 
     [Fact]
-    public void RowClasses_DangerTestShape_SeparatorsCountedApartFromDataRows()
+    public void RowClasses_AteShape_SeparatorsCountedApartFromDataRows()
     {
-        // Interleaved all-NULL separator rows, as DangerTest writes them: prism maps DataRows to rows minus allNullRows.
+        // Interleaved all-NULL separator rows, as an ATE export writes them: prism maps DataRows to rows minus allNullRows.
         var builder = new StringBuilder("Pout(dBm),RowID(id),Mode,Note\r\n");
         builder.Append("NULL,NULL,NULL,NULL\r\n");
         for (var i = 1; i <= 8; i++)
