@@ -412,3 +412,4 @@
 {"when": "2026-10-27T20:18:04Z", "item": "sq-11", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27), verbatim answers: HLL switch: ", "by": "Jon Robbins"}
 {"when": "2026-10-27T20:18:19Z", "item": "sq-38", "action": "add", "from": "", "to": "open", "note": "Sketches under the memory budget"}
 {"when": "2026-10-27T20:18:19Z", "item": "sq-38", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-10-27T20:18:24Z", "item": "sq-38", "action": "set", "from": "", "to": "", "note": "effort -→2"}
