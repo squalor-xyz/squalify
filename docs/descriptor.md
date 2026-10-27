@@ -434,6 +434,137 @@ Reasons are fixed templates filled with value-free numbers (counts and offsets),
 
 `--include-values-for <name>` opts in the values tier for the named preamble keys, annotation labels, key=value keys and fields only.
 
+## Consumer subset
+
+A downstream consumer (prism) matches delimited lab exports against its own declared file types, and reads a small subset of this descriptor to do it. squalify only describes: it does not classify, and it adds no member for one consumer. The owner decided (2026-10-27) that this document is the contract and the consumer adapts: where the meaning of a member differs from the consumer's own, the difference is listed here with the formula that gets the consumer's view, and where no formula exists the consumer keeps its own check of the file.
+
+`ConsumerSubsetTests` (`tests/squalify.Tests/`) pins every member and every formula below on synthetic fixtures (`fixtures/consumer/`), and fails if this section stops listing a member.
+
+### Preconditions
+
+- Everything below is for `format.family` `delimited`. For any other family `table` is absent, and a file with a header and no data row is not claimed as delimited.
+- Every count is over the whole file. squalify reads all of it, so a consumer that describes a prefix of its own has `ReachedEndOfFile` true and `BytesExamined` equal to `file.size`.
+- Pin `schemaVersion` (major), `limits.nullTokens` and `limits.unitTable`: the last two version the tables that decide every null and every header unit (see [`limits`](#limits)). A change to the null vocabulary or the unit table bumps only `limits.nullTokens` or `limits.unitTable`, not `schemaVersion`, so a consumer pins the table versions alongside `schemaVersion`.
+- **Known limitation, ragged run start.** A ragged record among the first data records can end the data run before the header, so `format.dialect.hasHeader` is `false` and names are `null` (a test pins today's behaviour). The slice sq-27, "Ragged run start", tracks it; until then a consumer that needs a header rejects such a file.
+- **Known limitation, header-less comma files.** A header-less comma CSV with a multi-word first column and an integer last column can be read as whitespace-delimited (reported by the sq-04 architect probe; no test pins it). A file with a header is unaffected.
+- With no header, `table.fields[].name` and `nameParts` are `null`, and the other field members are written as usual.
+
+### Members and their stability
+
+Stability is read under the [versioning policy](#versioning-policy): adding an optional key is a minor change, and removing, renaming or changing the meaning of a key is a major one.
+
+- **S** (stable): the meaning is fixed by this section. Changing it is a major change.
+- **E** (closed set): the member is stable, but its set of values can grow. Adding a value is a minor change, and a consumer treats a value it does not know as unknown rather than failing. This rule for enumeration values is pending sq-12, which adds it to the versioning policy; until then it is a commitment of this section. The values today are listed in the description.
+- **T** (versioned table): the value depends on a fixed built-in table (`limits.nullTokens` or `limits.unitTable`). A change to the null vocabulary or the unit table bumps only `limits.nullTokens` or `limits.unitTable`, not `schemaVersion`. A consumer pins those table versions alongside `schemaVersion`, and a change in either is a change to re-check against this section.
+
+Until sq-12 freezes v1 this holds as a commitment, not as a published schema: members may still change without a version bump (see the status line), and a change to any member below must change this section and `ConsumerSubsetTests` in the same commit.
+
+| Member | Stab. | Meaning for a consumer |
+|---|---|---|
+| `schemaVersion` | S | `"1.0"`. |
+| `limits.nullTokens` | S | Version of the null vocabulary (1 today). |
+| `limits.unitTable` | S | Version of the unit table (1 today). |
+| `file.name` | S | The file name, never a path. |
+| `format.family` | E | `delimited` for the files below. |
+| `format.dialect.delimiter` | E | `,`, a tab, `;`, `\|` or the word `whitespace`. |
+| `format.dialect.quote` | S | Always `"` for a delimited file, whether or not a field is quoted. |
+| `format.dialect.hasHeader` | S | True when a header row was chosen. |
+| `encoding.bom` | E | `utf-8`, `utf-16le`, `utf-16be`, `utf-32le`, `utf-32be` or `null`. |
+| `encoding.lineEndings.crlf` | S | CRLF pairs, over the whole decoded text. |
+| `encoding.lineEndings.lf` | S | Lone LF. |
+| `encoding.lineEndings.cr` | S | Lone CR. A consumer whose parser fails on a lone CR rejects the file when it is not 0. |
+| `table.rows` | S | Data records after the header and any units row, **ragged ones included**. Comment lines, annotation rows and the header are not data records. |
+| `table.rowClasses.allNullRows` | S, T | Records in which every field is null **by the null vocabulary**. |
+| `table.rowClasses.truncated` | S | Records of classes past the cap of 64. |
+| `table.rowClasses.classes[].count` | S | Records in one class. |
+| `table.fields[].index` | S | 0-based column index. |
+| `table.fields[].name` | S | The header text, trimmed; `""` for a blank name; `null` with no header. |
+| `table.fields[].nameParts.base` | S | The name without its unit (the whole name when there is none). |
+| `table.fields[].nameParts.unit` | S | The unit text as written, or `null`. |
+| `table.fields[].nameParts.convention` | E | `nameParenUnit`, `nameBracketUnit`, `nameUnderscoreUnit`, `unitsRow` or `none`. |
+| `table.fields[].nameParts.unknownUnit` | S, T | True when `unit` is not in the unit table. |
+| `table.fields[].type` | E | The strict join of the value types: `empty`, `bool`, `int`, `float`, `date`, `datetime`, `time` or `string`. |
+| `table.fields[].typeVotes` | S | Non-null values by type. |
+| `table.fields[].count` | S | Non-null plus null values of the records that have the header's field count (ragged records are not counted). |
+| `table.fields[].nulls` | S, T | Null values, **all-null records included**. |
+| `table.fields[].nullsExcludingAllNullRows` | S, T | Null values outside all-null records. |
+| `table.fields[].nullTokens` | S, T | Null values by null-vocabulary entry: `""`, `NA`, `NA.`, `N/A`, `null`, `NaN`, `-`. All-null records are counted; the counts add up to `nulls`. |
+| `table.fields[].constant` | S, T | Every non-null value is equal (see [How `constant` treats nulls](#how-constant-treats-nulls)). |
+| `table.fields[].statsWithheld` | E | `"constant"` or `null`. |
+| `issues[].code`, `issues[].count` | E, S | `raggedRows` counts the records that have another field count than the header's. |
+
+A field that holds only nulls is typed `empty`, and every member above is written for it.
+
+### Differences from the consumer's own view
+
+Each row is a difference, and the formulas that follow are the consumer's way to its own view. Where a row says "no formula", the consumer keeps its own check of the file.
+
+| Topic | squalify | Consumer's own view | How the consumer gets there |
+|---|---|---|---|
+| `nullTokens` keys | Entries of the null vocabulary, matched ASCII case-insensitively after trimming: `NULL`, `Null` and `null` all count under `null`. Counts include all-null records. | Per column, five case-sensitive spellings (`NULL`, the empty field, `null`, `NA`, `N/A`), counted over data rows only. Its null count, its all-null rows and its constant-ignoring-nulls flag follow the single file-level token `NULL`. | [F5](#derivation-formulas) covers the per-column counts and the single token. There is no formula for `NULL` against `null` against `Null`: squalify cannot tell them apart, so a consumer that distinguishes them keeps its own check. |
+| `NaN` | A vocabulary entry, so a `NaN` value, in any ASCII case (`nan`, `NAN`), is a null, counted under the key `NaN` (all-null records included), and it does not vote for a type. | A number in a `(unit)` column, for the exact spelling `NaN` only. | `nullTokens["NaN"]` is the count of `NaN` values in the field in any case, so it is an upper bound on the consumer's `NaN` numbers. The other non-finite spellings (`-NaN`, `+NaN`, `Infinity`, `-Infinity`, `+Infinity`, `inf`) are not in the vocabulary: they vote `string`, so a `(unit)` column holding them has `type` `string`. See [F8](#derivation-formulas). |
+| Big integers | An integer that fits in 64 bits is `int`; a longer one, up to 309 digits, is `float`; one of more than 309 digits is `string`. | `Int64`. | A `(id)` column is an `Int64` column only when `type` is `int`. |
+| `constant` | Compared as parsed values for `int`, `float`, `date`, `datetime` and `time` fields (`1`, `1.0` and `01` are equal), and as trimmed text otherwise. Nulls are ignored, and a field of only nulls is constant. | The same text in every data row, `NULL` counting as a value. | [F3](#derivation-formulas) for the NULL-as-a-value view (a necessary condition), [F7](#derivation-formulas) for the text. |
+| `allNullRows` | Every field null by the vocabulary (blank, `NULL`, `NA`, `N/A`, `NaN`, `-` and the rest). | Every field the token `NULL`. | [F5](#derivation-formulas). |
+| Names | Trimmed, and split by the DataBall grammar below. | The exact header text, and its own split. | [F6](#derivation-formulas) for the convention; the consumer keeps its exact-name checks on the header it parsed itself. |
+| Ragged records | Counted in `table.rows`, in no row class, and in no field's `count` or `nulls`. | A record of another width fails the parse. | [F2](#derivation-formulas): `issues[]` `raggedRows` is the count, and a consumer that does not accept ragged records rejects the file when it is not 0. |
+| Types | A vote from the values. | A type from the name convention. | [Types](#types-and-the-name-convention). |
+| Scope | The whole file. | A bounded prefix. | None needed. |
+
+**Header grammar.** Names follow the [conventions of `layout.headerConvention`](#layoutheaderconvention), which mirror DataBall's `HeaderParser`, and they are trimmed before parsing. For a consumer that reads the header as written, these are the differences:
+
+| Header cell | squalify `base`, `unit`, `convention` |
+|---|---|
+| `RowID( id )` | `RowID`, `id`, `nameParenUnit` (the unit is trimmed) |
+| `RowID(id) ` | `RowID`, `id`, `nameParenUnit`, and `name` is `RowID(id)` (the trailing space is trimmed, so an exact-name near miss is invisible in the descriptor) |
+| `X( )` | `X( )`, `null`, `none` (blank unit text is no unit) |
+| `A(b(c))` | `A(b`, `c)`, `nameParenUnit` (the last `(` opens the unit) |
+| `X(1)` | `X`, `1`, `nameParenUnit`, `unknownUnit` true (digit-only text is still a paren unit) |
+| `Pout(dBm)[1]`, `Trace[0]` | the whole name, `null`, `none` (an indexed trace column carries no unit) |
+| `RowID(ID)` | `RowID`, `ID`, `nameParenUnit`: the unit text keeps its case, so `id` is matched ordinally |
+
+### Types and the name convention
+
+`type` is a vote from the values, not a type derived from the name. A consumer that types by name (a `(id)` column as an integer, a `(unit)` column as a number, any other column as boolean or string) uses `type` as a check:
+
+| Consumer's column | `type` that fits | Notes |
+|---|---|---|
+| `(id)`, integer | `int` (or `empty` when every value is null) | `float` and `string` mean a value does not fit 64 bits or is not a number. squalify's `int` is wider than digits only: it also accepts a sign, surrounding spaces (`flags.padded`) and leading zeros (`flags.leadingZero`), so a consumer that wants digits only keeps its own check. |
+| `(unit)`, number | `int`, `float` or `empty` | `NaN` is a null here. `Infinity` and `-Infinity` vote `string`; `typeVotes` says how many ([F8](#derivation-formulas)). `empty` means only that every value is null by the vocabulary: a column of `NA` is `empty` to squalify, and every value of it is a misfit to a consumer that reads only `NULL` as null. Other null spellings, padded values, signs and comma decimals are numbers or nulls to squalify, so `type` alone does not say the consumer accepts the column (see F8). |
+| Other, boolean or string | `bool` is a boolean; every other type is a string to the consumer | A column of `1` and `2` is `int`, which the consumer reads as a string column. squalify's `bool` is wider than `True` and `False`: it also takes `yes` and `no`, in any ASCII case, so a consumer that accepts exactly `True` and `False` keeps its own check. |
+
+### How `constant` treats nulls
+
+`constant` is true when every **non-null** value of the field is equal. Nulls are not values: a field with one value and many nulls is constant, a field whose values are all null is constant, and the all-null records (separator rows) neither make a field vary nor count as a value. The member never says whether the field has nulls. A consumer whose rule is "the same text in every data row, `NULL` included" gets a necessary condition for it from `constant`, the null counts and `count`, over its own data rows:
+
+```
+ConstantWithNullAsValue = constant && (nullsExcludingAllNullRows == 0
+                                       || nullsExcludingAllNullRows == count - allNullRows)
+```
+
+The field is then one value with no null in a data row, or null in every data row. A field that is null in some data rows and has one value in the others is constant here and **not** constant with null as a value.
+
+The formula is a necessary condition, not the consumer's rule. If it is false, the consumer's rule is false. If it is true, it is exact only in a NULL-only file ([F5](#derivation-formulas)) whose equal values are also equal texts (`1`, `1.0` and `01` are one parsed value). Otherwise the consumer keeps its own check of the file. For example, in a file that also uses `NA`, a record of `NA` in every field is an all-null record to squalify and a data row with the text `NA` to the consumer: a field that is `x` in every other record has the formula true and the consumer's rule false.
+
+When `DataRows == 0` (every record is all-null), the consumer sets both of its constants false, while squalify's `constant` can be true (a field of only nulls is constant). The consumer keeps its own rule there.
+
+The shorter form `constant && (nulls == 0 || nulls == count)` is wrong when the table has separator rows, because `nulls` includes them.
+
+### Derivation formulas
+
+`allNullRows`, `rows`, `count` and the rest are the members above.
+
+- **F1. Data rows.** `DataRows = table.rows - table.rowClasses.allNullRows`. Ragged records are data rows here, and for every field `nulls - nullsExcludingAllNullRows == allNullRows`.
+- **F2. Row accounting.** `table.rows == sum(table.rowClasses.classes[].count) + table.rowClasses.truncated + ragged`, where `ragged` is the `count` of the `issues[]` entry with `code` `raggedRows`, or 0 when there is none. Field `count` is `table.rows - ragged`.
+- **F3. Constant, NULL counted as a value (necessary condition).** The formula in [How `constant` treats nulls](#how-constant-treats-nulls): false implies the consumer's rule is false, and true is exact only in a NULL-only file whose equal values are equal texts.
+- **F4. Constant, nulls ignored.** `constant` itself.
+- **F5. A NULL-only file.** Call a table NULL-only when every key of every field's `nullTokens` is `null`. Then every null in the file is a spelling of `NULL`, and for a consumer that treats only `NULL` as null (its file-level token): its all-null rows are `allNullRows`; its null count of a field over the data rows is `nullsExcludingAllNullRows`; and its count of the spelling `NULL` in a field is `nullTokens["null"] - allNullRows` (the key read as 0 when absent), modulo case, since `NULL`, `Null` and `null` are one key. Its counts of the other four spellings (the empty field, `null`, `NA`, `N/A`) are 0, except that squalify cannot split `NULL` from `null`. `nulls == 0` is a sufficient never-null test for every spelling in any file. `nullsExcludingAllNullRows == 0` is not: a record of `NA` in every field is all-null to squalify and a data row with `NA` tokens to the consumer. When the file is not NULL-only, squalify's nulls are wider than the consumer's, and the consumer keeps its own count.
+- **F6. Id, Unit or None.** `Id` is `nameParts.convention == "nameParenUnit"` with `nameParts.unit == "id"` (ordinal); `Unit` is any other `nameParenUnit`; `None` is every other convention, including `nameBracketUnit`, `nameUnderscoreUnit` and `unitsRow`.
+- **F7. Text constant.** `constant == false` implies the values are not the same text, because different parsed values are different texts. `constant == true` does not imply the same text: `1`, `1.0` and `01` are constant. The consumer keeps its own exact-text check.
+- **F8. Non-numeric votes.** In a NULL-only file ([F5](#derivation-formulas)) with `flags.padded == 0` for the field, `sum(typeVotes) - typeVotes.int - typeVotes.float` is the number of non-null values that are not numbers, and 0 means the `(unit)` column has no value the consumer fails for being non-numeric. A positive number is an upper bound on the consumer's misfits, because a consumer that accepts `Infinity` and `-Infinity` counts those as numbers where squalify votes them `string`. Differences of syntax remain even then: squalify's number votes include signed values (`+3`) and, in a file whose decimal separator is a comma, comma decimals (`1,5`), which a stricter consumer rejects. Outside a NULL-only file, or with padded values, the votes say nothing about the consumer's misfits (another null spelling is a null, not a vote, and a padded value is a number) and the consumer keeps its own misfit count.
+
+Not in the subset: statistics (`numeric`, `distinct`, `top` and the like), `encoding.charset`, `layout`, `kind`, `fingerprint`, `hints`, `evidence`.
+
 ## Versioning policy
 
 - `schemaVersion` is `major.minor`. Adding optional keys bumps the minor version. Removing, renaming or changing the meaning of a key bumps the major version.

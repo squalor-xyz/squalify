@@ -18,7 +18,7 @@
     },
     {
       "heading": "Files",
-      "body": "- `docs/descriptor.md`: a \"Consumer subset\" section listing the members and their stability under the schema-version policy\n- tests on synthetic fixtures under `tests/` (no real files); the private-corpus harness (sq-18) covers real files"
+      "body": "- `docs/descriptor.md`: a \"Consumer subset\" section listing the members and their stability under the schema-version policy\n- tests on synthetic fixtures under `tests/` (no real files); the private-corpus harness (sq-18) covers real files\n\n- Owner decisions (2026-10-27, review): (1) A change to the null vocabulary or the unit table bumps only `limits.nullTokens` / `limits.unitTable`, not `schemaVersion`; consumers pin those table versions alongside `schemaVersion`, and the Consumer subset says so. (2) Today's ragged-record-at-run-start behaviour is documented as a known limitation, with a pointer to the new ragged-run-start item."
     },
     {
       "heading": "Failing tests",
