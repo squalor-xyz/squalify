@@ -40,22 +40,22 @@ public sealed record FieldRange(long First, long Last);
 
 /// <summary>One entry of <c>table.fields[]</c>. Members that the schema always writes are written as null when they do not apply.</summary>
 /// <param name="Index">Column index.</param>
-/// <param name="Name">Normalized header name.</param>
-/// <param name="NameParts">Name split into base and unit.</param>
+/// <param name="Name">The header name, trimmed; null when the table has no header.</param>
+/// <param name="NameParts">Name split into base and unit; null until the header-unit conventions are parsed (sq-14).</param>
 /// <param name="Type">The field type.</param>
 /// <param name="Dominant">The dominant vote.</param>
 /// <param name="TypeVotes">Type votes.</param>
 /// <param name="Count">Non-null plus null values.</param>
 /// <param name="Nulls">Null values.</param>
 /// <param name="NullsExcludingAllNullRows">Null values outside all-null rows.</param>
-/// <param name="NullTokens">Null-token counts.</param>
-/// <param name="Flags">Value-shape flags.</param>
-/// <param name="Distinct">Distinct count.</param>
+/// <param name="NullTokens">Null-token counts; null until the field accumulators fill it (sq-05).</param>
+/// <param name="Flags">Value-shape flags; null until sq-05.</param>
+/// <param name="Distinct">Distinct count; null until sq-05.</param>
 /// <param name="Length">Length statistics, or null for an all-null field.</param>
-/// <param name="Shapes">Shape masks; the caller sorts by count descending, then mask (ordinal).</param>
+/// <param name="Shapes">Shape masks; the caller sorts by count descending, then mask (ordinal). Null until sq-05.</param>
 /// <param name="Monotonic"><c>increasing</c>, <c>decreasing</c>, <c>nonDecreasing</c>, <c>nonIncreasing</c>, <c>none</c>, or null.</param>
-/// <param name="Constant">True when every non-null value is equal.</param>
-/// <param name="Unique">True when every non-null value is distinct.</param>
+/// <param name="Constant">True when every non-null value is equal; null until sq-05.</param>
+/// <param name="Unique">True when every non-null value is distinct; null until sq-05.</param>
 /// <param name="NameHex">Hex of the original name bytes; present only when the name contains U+FFFD.</param>
 /// <param name="Patterns">Counts of matched date and time patterns.</param>
 /// <param name="Numeric">Numeric statistics.</param>
@@ -67,22 +67,22 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="Text">Lexical minimum and maximum. Values tier.</param>
 public sealed record FieldProfile(
     long Index,
-    string Name,
-    NameParts NameParts,
+    string? Name,
+    NameParts? NameParts,
     string Type,
     DominantType Dominant,
     CountMap TypeVotes,
     long Count,
     long Nulls,
     long NullsExcludingAllNullRows,
-    CountMap NullTokens,
-    FieldFlags Flags,
-    DistinctInfo Distinct,
+    CountMap? NullTokens,
+    FieldFlags? Flags,
+    DistinctInfo? Distinct,
     LengthStats? Length,
-    IReadOnlyList<Shape> Shapes,
+    IReadOnlyList<Shape>? Shapes,
     string? Monotonic,
-    bool Constant,
-    bool Unique,
+    bool? Constant,
+    bool? Unique,
     string? NameHex = null,
     CountMap? Patterns = null,
     NumericStats? Numeric = null,

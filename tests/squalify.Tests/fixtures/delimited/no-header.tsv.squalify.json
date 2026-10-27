@@ -1,0 +1,377 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "squalify",
+    "version": "0.1.0"
+  },
+  "options": {
+    "includeValues": false,
+    "includeValuesFor": []
+  },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": {
+      "invalidSequences": 8,
+      "perBytes": 65536
+    },
+    "stdfTests": 10000,
+    "budget": {
+      "quantileValues": 10000000,
+      "distinctValues": 2000000
+    },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "no-header.tsv",
+    "size": 90,
+    "sha256": "7535e32dcd72182e861b637f7a2061f914987216e2c59af639783fb4cbba173b"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": {
+      "crlf": 0,
+      "lf": 6,
+      "cr": 0
+    },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "delimited",
+    "dialect": {
+      "delimiter": "\t",
+      "quote": "\"",
+      "hasHeader": false,
+      "unitsRow": false,
+      "decimalSeparator": ".",
+      "padding": {
+        "trim": false,
+        "paddedShare": 0,
+        "constantLineLength": true,
+        "lineLength": 14
+      },
+      "blocks": 1
+    },
+    "score": 0.7
+  },
+  "kind": {
+    "label": "text",
+    "ruleId": "K09",
+    "confidence": 1
+  },
+  "layout": {
+    "regions": [
+      {
+        "kind": "data",
+        "lines": [
+          1,
+          6
+        ],
+        "bytes": [
+          0,
+          90
+        ]
+      }
+    ],
+    "maxLineLength": 14
+  },
+  "table": {
+    "rows": 6,
+    "fieldCount": {
+      "min": 4,
+      "max": 4
+    },
+    "fields": [
+      {
+        "index": 0,
+        "name": null,
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 6
+        },
+        "patterns": null,
+        "count": 6,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 1,
+        "name": null,
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 6
+        },
+        "patterns": null,
+        "count": 6,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 2,
+        "name": null,
+        "nameParts": null,
+        "type": "int",
+        "dominant": {
+          "type": "int",
+          "share": 1
+        },
+        "typeVotes": {
+          "int": 6
+        },
+        "patterns": null,
+        "count": 6,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      },
+      {
+        "index": 3,
+        "name": null,
+        "nameParts": null,
+        "type": "float",
+        "dominant": {
+          "type": "float",
+          "share": 1
+        },
+        "typeVotes": {
+          "float": 6
+        },
+        "patterns": null,
+        "count": 6,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": null,
+        "flags": null,
+        "distinct": null,
+        "numeric": null,
+        "temporal": null,
+        "statsWithheld": null,
+        "length": null,
+        "shapes": null,
+        "monotonic": null,
+        "constant": null,
+        "unique": null,
+        "sourceType": null,
+        "unit": null,
+        "top": null,
+        "text": null
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 0,
+    "structure": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "layout": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "typed": "sha256:f0c57a32628a2caa2217f3142247c4d89b946e8b679cddaacb77dadd0b413f9c",
+    "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "hints": {
+    "extension": ".tsv",
+    "magic": null,
+    "stableLines": [],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": null,
+    "fieldCount": null,
+    "dataStartLine": null,
+    "delimiter": null,
+    "headerConvention": null,
+    "parquetColumns": null,
+    "stdf": null,
+    "fileNameShape": "a{2}-a{6}.a{3}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        {
+          "value": "ascii",
+          "score": 1,
+          "reason": "no bytes at or above 0x80"
+        },
+        {
+          "value": "latin-1",
+          "score": 0,
+          "reason": "UTF-8 or ASCII decoding accepted"
+        },
+        {
+          "value": "utf-8",
+          "score": 0,
+          "reason": "no bytes at or above 0x80"
+        }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "empty",
+          "score": 0,
+          "reason": "not chosen"
+        },
+        {
+          "value": "text",
+          "score": 1,
+          "reason": "rule 6: no NUL bytes; 0 of 90 bytes are control bytes"
+        }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "delimited",
+      "candidates": [
+        {
+          "value": "delimited",
+          "score": 0.7,
+          "reason": "delimiter tab; k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields"
+        },
+        {
+          "value": "text",
+          "score": 0.1,
+          "reason": "text content"
+        },
+        {
+          "value": "binary",
+          "score": 0,
+          "reason": "not binary: text content"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "decimalSeparator",
+      "chosen": ".",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0,
+          "reason": "0 comma-decimal cells"
+        },
+        {
+          "value": ".",
+          "score": 1,
+          "reason": "12 dot-decimal cells"
+        }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "delimiter",
+      "chosen": "\t",
+      "candidates": [
+        {
+          "value": ",",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "\t",
+          "score": 1,
+          "reason": "k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields"
+        },
+        {
+          "value": ";",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "|",
+          "score": 0,
+          "reason": "k=1; no run; 0 quoted fields"
+        },
+        {
+          "value": "whitespace",
+          "score": 1,
+          "reason": "k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields"
+        }
+      ]
+    },
+    {
+      "stage": "header",
+      "topic": "candidates",
+      "chosen": null,
+      "candidates": [
+        {
+          "value": "summary",
+          "score": 0,
+          "reason": "sampled=6; eligible=0; ineligible=6 (comment line=0, field count=0, blank or repeated names=0, fits every typed column=6)"
+        }
+      ]
+    }
+  ]
+}

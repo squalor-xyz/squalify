@@ -163,12 +163,35 @@ internal static class ValueClassifier
         return true;
     }
 
-    // ^[+-]?\d+,\d+$ with ASCII digits.
-    private static bool IsCommaDecimalLike(ReadOnlySpan<char> v)
+    /// <summary>
+    /// Whether a value (already trimmed) matches <c>^[+-]?[0-9]+,[0-9]+$</c>: the <c>commaDecimalLike</c> flag.
+    /// The dialect's decimal-separator vote counts these against <see cref="IsDotDecimalLike"/>, so both are
+    /// defined here, under one rule.
+    /// </summary>
+    /// <param name="v">The trimmed value.</param>
+    /// <returns>True for a value such as <c>1,5</c> or <c>-12,50</c>.</returns>
+    internal static bool IsCommaDecimalLike(ReadOnlySpan<char> v)
+    {
+        return IsDecimalLike(v, ',');
+    }
+
+    /// <summary>
+    /// Whether a value (already trimmed) matches <c>^[+-]?[0-9]+\.[0-9]+$</c>: the dot counterpart of
+    /// <see cref="IsCommaDecimalLike"/>.
+    /// </summary>
+    /// <param name="v">The trimmed value.</param>
+    /// <returns>True for a value such as <c>1.5</c> or <c>-12.50</c>.</returns>
+    internal static bool IsDotDecimalLike(ReadOnlySpan<char> v)
+    {
+        return IsDecimalLike(v, '.');
+    }
+
+    // ^[+-]?\d+<separator>\d+$ with ASCII digits.
+    private static bool IsDecimalLike(ReadOnlySpan<char> v, char separator)
     {
         var digits = v[SignLength(v)..];
-        var comma = digits.IndexOf(',');
-        return comma > 0 && AllDigits(digits[..comma]) && AllDigits(digits[(comma + 1)..]);
+        var at = digits.IndexOf(separator);
+        return at > 0 && AllDigits(digits[..at]) && AllDigits(digits[(at + 1)..]);
     }
 
     // The integer part starts with a zero that is followed by another digit, as in 007 or -00.5.

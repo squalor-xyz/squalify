@@ -305,7 +305,7 @@
       "id": "sq-04",
       "title": "squalify must detect the dialect, header and regions of delimited text, with evidence",
       "short_title": "Delimited dialect and regions",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-03",
@@ -431,7 +431,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 3,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -586,6 +586,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "18f92695-f40f-4314-913b-bedcfcc48da6",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-04 architect (A9): the type lattice and vote counting (HeaderDetector.Join/TypeName, the long[k*8] vote arrays in DelimitedPass) live in the delimited layer; extract a format-agnostic FieldAccumulator/type lattice under Values/ or Fields/ (sq-08 Parquet and sq-17 also need it). SampleRecord keeps only the vote and the vocabulary null token; per-spelling nullTokens (prism D74/D77 count case-sensitively) need the exact trimmed spelling. Hook point: DelimitedPass.ProcessData. From the sq-04 gate: how-it-works section 6 still says ValuesPolicy.cs (planned) though the values tier lives in Descriptor/Options.cs and DelimitedPass; the section 4 units-row node lacks a <small> code name and the 16-char/non-string conditions.",
+          "created_at": "2026-10-27T14:02:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -669,6 +680,17 @@
           "kind": "",
           "text": "**2026-10-26** — A downstream consumer (a lab sweep-table splitter in another repo) plans to replace its stand-in describer with squalify once this lands; see sq-25 for the members it relies on.",
           "created_at": "2026-10-26T15:59:42Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "973fcf08-d034-49ef-861f-c855e24e61ee",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-04 review (R5): any text file with an unclosed quote at a line start gets tooIrregular (all five candidates hit the runaway limit), which reads as a broken table on prose. Consider raising it only when some candidate had a k>=2 run before being disqualified (also revisit at sq-12).",
+          "created_at": "2026-10-27T14:02:46Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -952,6 +974,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "f02425ba-7b3e-44cc-865c-a6373e059b76",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-04: the library honors --include-values-for (ASCII case-folded) for preamble keys, annotation labels and units text, but the CLI has no --include-values-for option and the includeValuesForUnmatched issue is not implemented.",
+          "created_at": "2026-10-27T14:02:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1060,6 +1093,17 @@
           "created_at": "2026-10-13T15:42:13Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "c2de7481-e16a-4ccf-9182-8567f90f9051",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-04 architect (A11, reasoned, not probed): 'Lot = A12' lines give the whitespace candidate k=3, clean=1, so delimited scores 0.7, above sq-09's planned 0.6 ceiling. Revisit the score bands, or have the delimited profiler discount runs LineClassifier marks keyValue. Also: TextScanner (decode + line split) sits in Delimited/ tied to RecordTokenizer; move it to Text/ behind a line sink. Every whole-file Score pass is one more full read (sniff, delimited, keyValue, profile = 4 per text file); see sq-19.",
+          "created_at": "2026-10-27T14:02:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
@@ -1335,6 +1379,17 @@
           "created_at": "2026-10-13T15:42:13Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "d7de95d4-7ec3-4e57-9860-cbdde1376afd",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-04 architect (A10): DelimitedStructure keeps CandidateResult but drops the winner's FieldCountRle, and DelimitedPass assumes one run (_runFirstLine/_runLastLine, one header decision, blocks=1). Today a later block's preamble shows as raggedRows and its header as string votes. Carry the RLE in FormatScore.State and make the pass per block; feasible without changing sq-04 goldens.",
+          "created_at": "2026-10-27T14:02:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
@@ -1891,6 +1946,17 @@
           "kind": "",
           "text": "**2026-10-27** — **2026-10-27** — From sq-16 review: `-NaN`, `+NaN`, `Infinity` and `-Infinity` classify as `string` (only `NaN` is in the null vocabulary), so a prism `(unit)` column with them types as `string`; integers over ~309 digits are `string`, 20-309 digits `float`. Document or decide in the consumer contract.",
           "created_at": "2026-10-27T10:55:53Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "92a2b868-f7af-4426-b6d1-19aead16bfff",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-04: (1) format.dialect.quote is always \" for delimited files (owner decision 10), so it is stable across ATE export files. (2) fields[] members not computed until sq-05/sq-14 are null (nameParts, nullTokens, flags, distinct, shapes, constant, unique); consumers must wait for those slices. (3) Known edge (architect probe G): a header-less comma CSV with a multi-word first column and an integer last column (Site North,3) can be taken as whitespace-delimited; with a header, comma wins. ATE export files always have a header.",
+          "created_at": "2026-10-27T14:02:46Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",

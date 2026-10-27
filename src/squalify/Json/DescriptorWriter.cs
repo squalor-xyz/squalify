@@ -124,6 +124,8 @@ public static class DescriptorWriter
         w.WriteNumber("shapesPerField", v.ShapesPerField);
         w.WriteNumber("regions", v.Regions);
         w.WriteNumber("headerSample", v.HeaderSample);
+        w.WriteNumber("runawayQuote", v.RunawayQuote);
+        w.WriteNumber("fieldCountRuns", v.FieldCountRuns);
         w.WriteNumber("rowClasses", v.RowClasses);
         w.WritePropertyName("charsetTolerance");
         w.WriteStartObject();
@@ -348,12 +350,18 @@ public static class DescriptorWriter
         w.WriteNumber("index", v.Index);
         w.WriteString("name", v.Name);
         OptionalString(w, "nameHex", v.NameHex);
-        w.WritePropertyName("nameParts");
-        w.WriteStartObject();
-        w.WriteString("base", v.NameParts.Base);
-        w.WriteString("unit", v.NameParts.Unit);
-        w.WriteString("convention", v.NameParts.Convention);
-        w.WriteEndObject();
+        Nullable(
+            w,
+            "nameParts",
+            v.NameParts,
+            static (writer, parts) =>
+            {
+                writer.WriteStartObject();
+                writer.WriteString("base", parts.Base);
+                writer.WriteString("unit", parts.Unit);
+                writer.WriteString("convention", parts.Convention);
+                writer.WriteEndObject();
+            });
         w.WriteString("type", v.Type);
         w.WritePropertyName("dominant");
         w.WriteStartObject();
@@ -365,23 +373,36 @@ public static class DescriptorWriter
         w.WriteNumber("count", v.Count);
         w.WriteNumber("nulls", v.Nulls);
         w.WriteNumber("nullsExcludingAllNullRows", v.NullsExcludingAllNullRows);
-        Map(w, "nullTokens", v.NullTokens);
-        w.WritePropertyName("flags");
-        w.WriteStartObject();
-        w.WriteNumber("leadingZero", v.Flags.LeadingZero);
-        w.WriteNumber("commaDecimalLike", v.Flags.CommaDecimalLike);
-        w.WriteNumber("padded", v.Flags.Padded);
-        w.WriteEndObject();
-        w.WritePropertyName("distinct");
-        Write(w, v.Distinct);
+        Nullable(w, "nullTokens", v.NullTokens, WriteMap);
+        Nullable(
+            w,
+            "flags",
+            v.Flags,
+            static (writer, flags) =>
+            {
+                writer.WriteStartObject();
+                writer.WriteNumber("leadingZero", flags.LeadingZero);
+                writer.WriteNumber("commaDecimalLike", flags.CommaDecimalLike);
+                writer.WriteNumber("padded", flags.Padded);
+                writer.WriteEndObject();
+            });
+        Nullable(w, "distinct", v.Distinct, Write);
         Nullable(w, "numeric", v.Numeric, Write);
         Nullable(w, "temporal", v.Temporal, Write);
         w.WriteString("statsWithheld", v.StatsWithheld);
         Nullable(w, "length", v.Length, Write);
-        List(w, "shapes", v.Shapes, Write);
+        if (v.Shapes is null)
+        {
+            w.WriteNull("shapes");
+        }
+        else
+        {
+            List(w, "shapes", v.Shapes, Write);
+        }
+
         w.WriteString("monotonic", v.Monotonic);
-        w.WriteBoolean("constant", v.Constant);
-        w.WriteBoolean("unique", v.Unique);
+        NullableBoolean(w, "constant", v.Constant);
+        NullableBoolean(w, "unique", v.Unique);
         w.WriteString("sourceType", v.SourceType);
         w.WriteString("unit", v.Unit);
         Nullable(w, "top", v.Top, Write);
@@ -673,6 +694,18 @@ public static class DescriptorWriter
         }
 
         w.WriteEndObject();
+    }
+
+    private static void NullableBoolean(Utf8JsonWriter w, string name, bool? value)
+    {
+        if (value is { } flag)
+        {
+            w.WriteBoolean(name, flag);
+        }
+        else
+        {
+            w.WriteNull(name);
+        }
     }
 
     private static void Map(Utf8JsonWriter w, string name, CountMap map)
