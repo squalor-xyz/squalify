@@ -24,6 +24,8 @@ internal static class ValueClassifier
     /// </summary>
     public const string TrimChars = "\t\n\v\f\r \u00A0";
 
+    private const long TicksPerSecond = 10_000_000;
+
     private static readonly string[] NullEntries = ["", "NA", "NA.", "N/A", "null", "NaN", "-"];
 
     private static readonly string[] BoolWords = ["true", "false", "yes", "no"];
@@ -68,24 +70,32 @@ internal static class ValueClassifier
             }
         }
 
-        if (TryNumber(v, decimalSeparator, out var numeric))
+        if (TryNumber(v, decimalSeparator, out var numeric, out var integer, out var number))
         {
-            return Plain(numeric, flags | (HasLeadingZero(v) ? ValueFlags.LeadingZero : ValueFlags.None));
+            return new ValueClass(
+                numeric,
+                null,
+                DateOrders.None,
+                ClockKind.None,
+                flags | (HasLeadingZero(v) ? ValueFlags.LeadingZero : ValueFlags.None),
+                null,
+                integer,
+                number);
         }
 
-        if (TryDate(v, out var orders, out var pattern))
+        if (TryDate(v, out var orders, out var pattern, out var parts))
         {
-            return new ValueClass(ValueVote.Date, pattern, orders, ClockKind.None, flags, null);
+            return new ValueClass(ValueVote.Date, pattern, orders, ClockKind.None, flags, null, Temporal: parts);
         }
 
-        if (TryDateTime(v, out orders, out var clock, out pattern))
+        if (TryDateTime(v, out orders, out var clock, out pattern, out parts))
         {
-            return new ValueClass(ValueVote.DateTime, pattern, orders, clock, flags, null);
+            return new ValueClass(ValueVote.DateTime, pattern, orders, clock, flags, null, Temporal: parts);
         }
 
-        if (TryTime(v, allowMarker: true, allowOffset: false, twoDigitHour: false, out clock, out pattern))
+        if (TryTime(v, allowMarker: true, allowOffset: false, twoDigitHour: false, out clock, out pattern, out var ticks))
         {
-            return new ValueClass(ValueVote.Time, pattern, DateOrders.None, clock, flags, null);
+            return new ValueClass(ValueVote.Time, pattern, DateOrders.None, clock, flags, null, Temporal: new TemporalParts(0, 0, 0, ticks));
         }
 
         return Plain(ValueVote.String, flags);
@@ -201,9 +211,11 @@ internal static class ValueClassifier
         return digits.Length >= 2 && digits[0] == '0' && IsDigit(digits[1]);
     }
 
-    private static bool TryNumber(ReadOnlySpan<char> v, char decimalSeparator, out ValueVote vote)
+    private static bool TryNumber(ReadOnlySpan<char> v, char decimalSeparator, out ValueVote vote, out long integer, out double number)
     {
         vote = ValueVote.String;
+        integer = 0;
+        number = 0;
         if (v.IsEmpty)
         {
             return false;
@@ -219,18 +231,21 @@ internal static class ValueClassifier
             }
         }
 
-        if (AllDigits(v[SignLength(v)..]) && long.TryParse(v, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out _))
+        if (AllDigits(v[SignLength(v)..]) && long.TryParse(v, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out integer))
         {
             vote = ValueVote.Int;
+            number = integer;
             return true;
         }
 
         var format = decimalSeparator == ',' ? CommaFormat : CultureInfo.InvariantCulture.NumberFormat;
-        if (double.TryParse(v, NumberStyles.Float, format, out var number) && double.IsFinite(number))
+        if (double.TryParse(v, NumberStyles.Float, format, out number) && double.IsFinite(number))
         {
             vote = ValueVote.Float;
             return true;
         }
+
+        number = 0;
 
         return false;
     }
@@ -280,10 +295,11 @@ internal static class ValueClassifier
     // Three digit groups with the same separator (/, - or .): a 4-digit year first or last and 1-2 digit day and
     // month. The pattern keeps the separator and each group's width, and no order, so it is the same for every
     // order the value allows.
-    private static bool TryDate(ReadOnlySpan<char> v, out DateOrders orders, out string pattern)
+    private static bool TryDate(ReadOnlySpan<char> v, out DateOrders orders, out string pattern, out TemporalParts parts)
     {
         orders = DateOrders.None;
         pattern = string.Empty;
+        parts = default;
 
         var first = 0;
         while (first < v.Length && IsDigit(v[first]))
@@ -317,6 +333,7 @@ internal static class ValueClassifier
             if (IsValidDate(ParseDigits(a), ParseDigits(second), ParseDigits(third)))
             {
                 orders = DateOrders.YMD;
+                parts = new TemporalParts(ParseDigits(a), ParseDigits(second), ParseDigits(third), 0);
             }
         }
         else if (a.Length <= 2 && second.Length <= 2 && third.Length == 4)
@@ -331,6 +348,8 @@ internal static class ValueClassifier
             {
                 orders |= DateOrders.DMY;
             }
+
+            parts = new TemporalParts(year, ParseDigits(a), ParseDigits(second), 0);
         }
 
         if (orders == DateOrders.None)
@@ -345,14 +364,15 @@ internal static class ValueClassifier
 
     // A date, then T or one space, then a time. T is only for the ISO shape yyyy-MM-dd; a zone offset is only
     // allowed after the ISO date, and a day-period marker only after a space.
-    private static bool TryDateTime(ReadOnlySpan<char> v, out DateOrders orders, out ClockKind clock, out string pattern)
+    private static bool TryDateTime(ReadOnlySpan<char> v, out DateOrders orders, out ClockKind clock, out string pattern, out TemporalParts parts)
     {
         orders = DateOrders.None;
         clock = ClockKind.None;
         pattern = string.Empty;
+        parts = default;
 
         var cut = v.IndexOfAny('T', ' ');
-        if (cut <= 0 || !TryDate(v[..cut], out orders, out var datePattern))
+        if (cut <= 0 || !TryDate(v[..cut], out orders, out var datePattern, out var dateParts))
         {
             return false;
         }
@@ -364,7 +384,7 @@ internal static class ValueClassifier
             return false;
         }
 
-        if (!TryTime(v[(cut + 1)..], allowMarker: separator == ' ', allowOffset: isoDate, twoDigitHour: separator == 'T', out clock, out var timePattern))
+        if (!TryTime(v[(cut + 1)..], allowMarker: separator == ' ', allowOffset: isoDate, twoDigitHour: separator == 'T', out clock, out var timePattern, out var ticks))
         {
             orders = DateOrders.None;
             clock = ClockKind.None;
@@ -372,6 +392,7 @@ internal static class ValueClassifier
         }
 
         pattern = datePattern + separator + timePattern;
+        parts = dateParts with { TimeTicks = ticks };
         return true;
     }
 
@@ -389,10 +410,11 @@ internal static class ValueClassifier
     }
 
     // H:mm[:ss[.f+]] with an optional ASCII AM/PM marker (12h clock, hours 1 to 12) or, when allowed, a zone offset.
-    private static bool TryTime(ReadOnlySpan<char> s, bool allowMarker, bool allowOffset, bool twoDigitHour, out ClockKind clock, out string pattern)
+    private static bool TryTime(ReadOnlySpan<char> s, bool allowMarker, bool allowOffset, bool twoDigitHour, out ClockKind clock, out string pattern, out long ticks)
     {
         clock = ClockKind.None;
         pattern = string.Empty;
+        ticks = 0;
 
         var position = 0;
         while (position < s.Length && IsDigit(s[position]))
@@ -414,15 +436,17 @@ internal static class ValueClassifier
 
         position++;
         var tail = new StringBuilder(":mm");
-        if (!TryTwoDigits(s, ref position, 59, out _))
+        if (!TryTwoDigits(s, ref position, 59, out var minute))
         {
             return false;
         }
 
+        var second = 0;
+        long fraction = 0;
         if (position < s.Length && s[position] == ':')
         {
             position++;
-            if (!TryTwoDigits(s, ref position, 59, out _))
+            if (!TryTwoDigits(s, ref position, 59, out second))
             {
                 return false;
             }
@@ -440,6 +464,14 @@ internal static class ValueClassifier
                 if (position == start)
                 {
                     return false;
+                }
+
+                // Ticks of 100 ns: the first 7 digits, the rest truncated.
+                var scale = TicksPerSecond;
+                for (var i = start; i < position && scale > 1; i++)
+                {
+                    scale /= 10;
+                    fraction += (s[i] - '0') * scale;
                 }
 
                 tail.Append(".f+");
@@ -474,6 +506,14 @@ internal static class ValueClassifier
         var token = marker ? 'h' : 'H';
         pattern = new string(token, hourDigits) + tail;
         clock = marker ? ClockKind.H12 : ClockKind.H24;
+        if (marker)
+        {
+            // 12 AM is hour 0 and 12 PM is hour 12; a 1 to 11 o'clock value moves up 12 hours after noon.
+            var pm = LowerAscii(remainder[^2]) == 'p';
+            hour = (hour % 12) + (pm ? 12 : 0);
+        }
+
+        ticks = ((((hour * 60L) + minute) * 60L) + second) * TicksPerSecond + fraction;
         return true;
     }
 

@@ -14,6 +14,10 @@ internal sealed record ProfileContext(ProfileOptions Options, Limits Limits);
 /// <param name="Evidence">Evidence entries, in any order; the caller sorts by stage and topic.</param>
 /// <param name="Table">The table section, for tabular files.</param>
 /// <param name="Binary">The binary section, for binary files.</param>
+/// <param name="EffectiveLimits">
+/// The limits with the per-field caps that the profiler used after the global budget, or null when the profiler
+/// profiles no fields.
+/// </param>
 internal sealed record FormatProfile(
     Dialect? Dialect,
     LayoutSection Layout,
@@ -21,7 +25,8 @@ internal sealed record FormatProfile(
     IReadOnlyList<Issue> Issues,
     IReadOnlyList<Evidence> Evidence,
     TableSection? Table = null,
-    BinarySection? Binary = null);
+    BinarySection? Binary = null,
+    Limits? EffectiveLimits = null);
 
 /// <summary>
 /// The result of scoring one file against one format family.

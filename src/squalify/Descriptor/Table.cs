@@ -120,17 +120,19 @@ public sealed record DistinctInfo(long? Value, bool? Approximate = null, double?
 /// <summary>Numeric statistics of an <c>int</c> or <c>float</c> field.</summary>
 /// <param name="Min">Minimum.</param>
 /// <param name="Max">Maximum.</param>
-/// <param name="Mean">Mean.</param>
-/// <param name="Stddev">Sample standard deviation.</param>
-/// <param name="Quantiles">Quantiles.</param>
-/// <param name="Approximate">True when the quantiles come from a sketch.</param>
+/// <param name="Mean">Mean; null when the running computation overflowed to a non-finite value.</param>
+/// <param name="Stddev">Sample standard deviation; null for fewer than two values or when the computation overflowed.</param>
+/// <param name="Quantiles">Quantiles; null when the field has more values than the exact cap (see <paramref name="Exceeds"/>).</param>
+/// <param name="Approximate">True when the quantiles come from a sketch, false when they are exact, null when there are none.</param>
+/// <param name="Exceeds">The quantile cap that was exceeded, when there are no quantiles; written only then.</param>
 public sealed record NumericStats(
     DescriptorNumber Min,
     DescriptorNumber Max,
-    double Mean,
-    double Stddev,
-    Quantiles<DescriptorNumber> Quantiles,
-    bool Approximate);
+    double? Mean,
+    double? Stddev,
+    Quantiles<DescriptorNumber>? Quantiles,
+    bool? Approximate,
+    long? Exceeds = null);
 
 /// <summary>The fixed quantile set p01, p05, p25, p50, p75, p95 and p99.</summary>
 /// <typeparam name="T">The value type.</typeparam>
@@ -149,14 +151,16 @@ public sealed record Quantiles<T>(T P01, T P05, T P25, T P50, T P75, T P95, T P9
 /// <param name="Clock"><c>12h</c> or <c>24h</c>, or null for dates.</param>
 /// <param name="Min">Minimum as ISO 8601, or null when ambiguous.</param>
 /// <param name="Max">Maximum as ISO 8601, or null when ambiguous.</param>
-/// <param name="Quantiles">Quantiles as ISO 8601, or null when ambiguous.</param>
+/// <param name="Quantiles">Quantiles as ISO 8601, or null when ambiguous or past the exact cap.</param>
+/// <param name="Exceeds">The quantile cap that was exceeded, when there are no quantiles for that reason; written only then.</param>
 public sealed record TemporalStats(
     IReadOnlyList<string> Orders,
     bool Ambiguous,
     string? Clock,
     string? Min,
     string? Max,
-    Quantiles<string>? Quantiles);
+    Quantiles<string>? Quantiles,
+    long? Exceeds = null);
 
 /// <summary>Length statistics, in characters.</summary>
 /// <param name="Min">Shortest value.</param>

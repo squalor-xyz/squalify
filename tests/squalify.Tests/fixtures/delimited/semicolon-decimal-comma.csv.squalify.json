@@ -119,17 +119,52 @@
         "count": 8,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 8,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 700,
+          "max": 1400,
+          "mean": 1050,
+          "stddev": 244.94897427831782,
+          "quantiles": {
+            "p01": 700,
+            "p05": 700,
+            "p25": 800,
+            "p50": 1000,
+            "p75": 1200,
+            "p95": 1400,
+            "p99": 1400
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 3,
+          "max": 4,
+          "mean": 3.625
+        },
+        "shapes": [
+          {
+            "mask": "9{4}",
+            "count": 5
+          },
+          {
+            "mask": "9{3}",
+            "count": 3
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -151,17 +186,48 @@
         "count": 8,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 8,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 8,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 10,
+          "max": 13.5,
+          "mean": 11.75,
+          "stddev": 1.224744871391589,
+          "quantiles": {
+            "p01": 10,
+            "p05": 10,
+            "p25": 10.5,
+            "p50": 11.5,
+            "p75": 12.5,
+            "p95": 13.5,
+            "p99": 13.5
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 4,
+          "max": 4,
+          "mean": 4
+        },
+        "shapes": [
+          {
+            "mask": "9{2},9",
+            "count": 8
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -183,17 +249,48 @@
         "count": 8,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 8,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 8,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 15,
+          "max": 16.75,
+          "mean": 15.875,
+          "stddev": 0.6123724356957945,
+          "quantiles": {
+            "p01": 15,
+            "p05": 15,
+            "p25": 15.25,
+            "p50": 15.75,
+            "p75": 16.25,
+            "p95": 16.75,
+            "p99": 16.75
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 5,
+          "max": 5,
+          "mean": 5
+        },
+        "shapes": [
+          {
+            "mask": "9{2},9{2}",
+            "count": 8
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
         "sourceType": null,
         "unit": null,
         "top": null,

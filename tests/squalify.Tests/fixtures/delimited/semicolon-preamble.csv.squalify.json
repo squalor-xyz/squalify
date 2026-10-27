@@ -138,17 +138,48 @@
         "count": 8,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 8,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 1,
+          "max": 8,
+          "mean": 4.5,
+          "stddev": 2.449489742783178,
+          "quantiles": {
+            "p01": 1,
+            "p05": 1,
+            "p25": 2,
+            "p50": 4,
+            "p75": 6,
+            "p95": 8,
+            "p99": 8
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 1,
+          "max": 1,
+          "mean": 1
+        },
+        "shapes": [
+          {
+            "mask": "9",
+            "count": 8
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -170,17 +201,48 @@
         "count": 8,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 8,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 0.45,
+          "max": 0.52,
+          "mean": 0.48500000000000004,
+          "stddev": 0.024494897427831754,
+          "quantiles": {
+            "p01": 0.45,
+            "p05": 0.45,
+            "p25": 0.46,
+            "p50": 0.48,
+            "p75": 0.5,
+            "p95": 0.52,
+            "p99": 0.52
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 4,
+          "max": 4,
+          "mean": 4
+        },
+        "shapes": [
+          {
+            "mask": "9.9{2}",
+            "count": 8
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -202,17 +264,48 @@
         "count": 8,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 8,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 120,
+          "max": 130.5,
+          "mean": 125.25,
+          "stddev": 3.6742346141747673,
+          "quantiles": {
+            "p01": 120,
+            "p05": 120,
+            "p25": 121.5,
+            "p50": 124.5,
+            "p75": 127.5,
+            "p95": 130.5,
+            "p99": 130.5
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 5,
+          "max": 5,
+          "mean": 5
+        },
+        "shapes": [
+          {
+            "mask": "9{3}.9",
+            "count": 8
+          }
+        ],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true,
         "sourceType": null,
         "unit": null,
         "top": null,

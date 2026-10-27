@@ -438,7 +438,7 @@
       "id": "sq-05",
       "title": "squalify must profile every field with types, statistics and shapes in bounded memory",
       "short_title": "Field profiling",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-04"
@@ -618,7 +618,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -691,6 +691,17 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-04 review (R5): any text file with an unclosed quote at a line start gets tooIrregular (all five candidates hit the runaway limit), which reads as a broken table on prose. Consider raising it only when some candidate had a k>=2 run before being disqualified (also revisit at sq-12).",
           "created_at": "2026-10-27T14:02:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "79b25d49-0521-4959-8e54-fd7e6da504d0",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 architect (C8): nullsExcludingAllNullRows is counted in DelimitedPass and passed to FieldAccumulator.Build while the sq-17 spec puts it on the accumulator; pick one. DelimitedPass._kinds already holds the per-row null set in file order at ProcessData. Annotation-row VoteKinds/VotesMap duplicate FieldAccumulator.VotesMap (could become a TypeLattice helper).",
+          "created_at": "2026-10-27T15:33:51Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -993,6 +1004,28 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "a9b9cdf2-14ad-4627-8c16-5611d8988d64",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 architect (C6): top-k cannot reuse the distinct set (8-byte hashes, no strings or counts); it needs its own value-to-count map for opted-in fields outside the per-value budget, opt-in known at accumulator construction (today valuesAllowed reaches only Build), and the hash moved up into AddValue because AddDistinct stops hashing past the cap. Lexical min/max is easy in AddValue.",
+          "created_at": "2026-10-27T15:33:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "50b5ddef-ad48-499e-8ece-5c840b7ecf7a",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 gate: design.md (Values tier) says in the present tense that ValuesPolicy lists every value-bearing member, but no ValuesPolicy type exists (how-it-works section 6 says planned). Build it or mark it planned.",
+          "created_at": "2026-10-27T15:39:01Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1046,6 +1079,17 @@
           "created_at": "2026-10-13T15:42:13Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "6922d2b5-6a3b-4191-b159-96414a8c2066",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 architect (C4): FieldAccumulator cannot express BLOB (string with length stats only) or STRUCT/LIST/MAP (type null, count and nulls only): add AddOpaque(length) or a counts-only mode and a nullable Type; choose the native-null token for AddNull (recommend \"\"); typed paths allocate a string per value (Ordinal.Invariant, CanonicalNumber.FormatFinite, TemporalMath.Iso) - use TryFormat into a stack span at Parquet row counts.",
+          "created_at": "2026-10-27T15:33:50Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
@@ -1181,6 +1225,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "04997f7a-393f-4d38-a751-e4cbc8be1ed9",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27): the primary STDF V4-2007 spec check is waived; the pystdf layouts are enough. sq-10 waits until the owner has a real anonymized STDF sample (Obfuscator has no STDF support today).",
+          "created_at": "2026-10-27T15:39:01Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1255,6 +1310,28 @@
           "created_at": "2026-10-14T12:43:58Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "630392dc-2833-47f3-aa4c-06cb5619c25d",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 review (F3): shape masks are outside the global memory budget (each field keeps up to 64 masks of up to ~833 chars; adversarial worst case ~200 MB at 2,000 fields). Accepted for now; when sketches land, divide shapesPerField by the budget or cap mask length.",
+          "created_at": "2026-10-27T15:24:28Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "29f58d1b-c1a9-472e-80ca-3118657732a7",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 architect (C5): the temporal quantile code (year|First|Second|time) orders like ticks under YMD and MDY but not DMY, so past the cap with DMY and MDY both possible you need two GK sketches. The distinct HashSet<ulong> (XxHash64 of trimmed UTF-8) can feed HLL directly. EstimatedBytes must count List capacity (doubling, ~2-3x transient) and the header-sample buffer (headerSample x k cell strings). Optional: AddShape/Hash stackalloc ~2 KB zeroed per cell; size to 13*min(len,64)+1 or use [SkipLocalsInit].",
+          "created_at": "2026-10-27T15:33:51Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
@@ -1715,6 +1792,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "356cf177-735c-4481-a9df-bd751bc69af0",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 fix round: in shape masks a literal ? collides with the non-ASCII placeholder ?, and + is both literal ASCII punctuation and the truncation marker. Braces were fixed (mapped to ?); decide these two before the schema freeze.",
+          "created_at": "2026-10-27T15:28:12Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -1965,6 +2053,39 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-04: (1) format.dialect.quote is always \" for delimited files (owner decision 10), so it is stable across ATE export files. (2) fields[] members not computed until sq-05/sq-14 are null (nameParts, nullTokens, flags, distinct, shapes, constant, unique); consumers must wait for those slices. (3) Known edge (architect probe G): a header-less comma CSV with a multi-word first column and an integer last column (Site North,3) can be taken as whitespace-delimited; with a header, comma wins. ATE export files always have a header.",
           "created_at": "2026-10-27T14:02:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "71575a56-a424-4595-b512-99fb5e9a532f",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27, sq-05 setup): nullTokens keys are null-vocabulary entries, case-insensitive, so the contract must say prism cannot tell NULL from null through squalify; NaN has its own vocabulary entry.",
+          "created_at": "2026-10-27T14:54:44Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "6d71a897-7a1c-4260-b2b5-2e2f1c758af9",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 review (F7): prism's D11 Constant derives as constant && (nulls == 0 || nulls == count); an all-null column has constant true. nullTokens key `null` covers NULL, Null and null (vocabulary entries); NaN has its own key. Separator rows count in nulls, not nullsExcludingAllNullRows.",
+          "created_at": "2026-10-27T15:24:28Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "64234c78-a1fa-490f-8ee6-380ef49b5cdc",
+          "kind": "",
+          "text": "**2026-10-27** — From sq-05 architect: constant can be true while unique is true with distinct 3 (1, 1.0, 01: owner decision, numeric constant compares parsed values). prism's column-constant is same text with NULL as a value, so the consumer subset must spell this out.",
+          "created_at": "2026-10-27T15:33:51Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",

@@ -224,53 +224,6 @@ internal static class HeaderDetector
         return new HeaderDecision { HeaderIndex = header, UnitsIndex = units, Assumed = assumed, Relaxed = relaxed, Evidence = evidence };
     }
 
-    /// <summary>The strict join of two votes (the type lattice). A null vote is the identity.</summary>
-    /// <param name="a">The first type.</param>
-    /// <param name="b">The second type.</param>
-    /// <returns>The joined type.</returns>
-    public static ValueVote Join(ValueVote a, ValueVote b)
-    {
-        if (a == ValueVote.Null)
-        {
-            return b;
-        }
-
-        if (b == ValueVote.Null || a == b)
-        {
-            return a;
-        }
-
-        if ((a == ValueVote.Int && b == ValueVote.Float) || (a == ValueVote.Float && b == ValueVote.Int))
-        {
-            return ValueVote.Float;
-        }
-
-        if ((a == ValueVote.Date && b == ValueVote.DateTime) || (a == ValueVote.DateTime && b == ValueVote.Date))
-        {
-            return ValueVote.DateTime;
-        }
-
-        return ValueVote.String;
-    }
-
-    /// <summary>The type name written to the descriptor; <c>empty</c> for no votes.</summary>
-    /// <param name="type">The joined type (<see cref="ValueVote.Null"/> for none).</param>
-    /// <returns>The name.</returns>
-    public static string TypeName(ValueVote type)
-    {
-        return type switch
-        {
-            ValueVote.Bool => "bool",
-            ValueVote.Int => "int",
-            ValueVote.Float => "float",
-            ValueVote.Date => "date",
-            ValueVote.DateTime => "datetime",
-            ValueVote.Time => "time",
-            ValueVote.String => "string",
-            _ => "empty",
-        };
-    }
-
     /// <summary>
     /// Whether a record is a units row, given the column types below it. Null cells (blank or a null-vocabulary token)
     /// are neutral. Every non-null field must fail its column's type, be at most 16 characters and sit in a column whose
@@ -309,7 +262,7 @@ internal static class HeaderDetector
 
     private static bool Fits(ValueVote type, ValueVote vote)
     {
-        return vote == ValueVote.Null || Join(type, vote) == type;
+        return vote == ValueVote.Null || TypeLattice.Join(type, vote) == type;
     }
 
     private static bool IsTyped(ValueVote type)
@@ -340,7 +293,7 @@ internal static class HeaderDetector
             var types = (ValueVote[])below[i + 1].Clone();
             for (var c = 0; c < k; c++)
             {
-                types[c] = Join(types[c], records[i].Votes[c]);
+                types[c] = TypeLattice.Join(types[c], records[i].Votes[c]);
             }
 
             below[i] = types;

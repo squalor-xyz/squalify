@@ -331,21 +331,25 @@ public sealed class DelimitedTests
     }
 
     [Fact]
-    public void Fields_MembersThatAreNotComputedYet_AreNull()
+    public void Fields_MembersOfLaterSlices_AreNull_AndTheFieldMembersOfSq05AreWritten()
     {
         var d = ProfileFixture("delimited/padded-annotated.csv", includeValues: true);
         using var json = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(d));
         foreach (var field in json.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray())
         {
-            foreach (var member in new[] { "nameParts", "patterns", "nullTokens", "flags", "distinct", "numeric", "temporal", "statsWithheld", "length", "shapes", "monotonic", "constant", "unique", "sourceType", "top", "text" })
+            // nameParts is sq-14's, sourceType is Parquet's, top and text are sq-07's.
+            foreach (var member in new[] { "nameParts", "sourceType", "top", "text" })
             {
                 Assert.Equal(System.Text.Json.JsonValueKind.Null, field.GetProperty(member).ValueKind);
             }
 
-            foreach (var member in new[] { "index", "name", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "unit" })
+            foreach (var member in new[] { "index", "name", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "nullTokens", "flags", "distinct", "shapes", "constant", "unique" })
             {
-                Assert.True(field.TryGetProperty(member, out _), member);
+                Assert.True(field.TryGetProperty(member, out var value), member);
+                Assert.NotEqual(System.Text.Json.JsonValueKind.Null, value.ValueKind);
             }
+
+            Assert.True(field.TryGetProperty("unit", out _));
         }
 
         Assert.Equal(System.Text.Json.JsonValueKind.Null, json.RootElement.GetProperty("table").GetProperty("fields")[0].GetProperty("unit").ValueKind);

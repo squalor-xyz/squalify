@@ -18,8 +18,8 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 }
 
 /// <summary>The <c>limits</c> section: caps and table versions in effect.</summary>
-/// <param name="DistinctPerField">Effective cap on exact distinct values per field.</param>
-/// <param name="QuantilePerField">Effective cap on exact quantile values per field.</param>
+/// <param name="DistinctPerField">Effective cap on exact distinct values per field: min(cap, budget / field count).</param>
+/// <param name="QuantilePerField">Effective cap on exact quantile values per field: min(cap, budget / field count).</param>
 /// <param name="ShapesPerField">Cap on shape masks per field.</param>
 /// <param name="Regions">Cap on regions.</param>
 /// <param name="HeaderSample">Number of records sampled for header detection.</param>
@@ -48,9 +48,9 @@ public sealed record Limits(
 {
     /// <summary>The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>.</summary>
     public static Limits Default { get; } = new(
-        DistinctPerField: 10_000,
-        QuantilePerField: 100_000,
-        ShapesPerField: 64,
+        DistinctPerField: ProfileLimits.Default.DistinctPerField,
+        QuantilePerField: ProfileLimits.Default.QuantilePerField,
+        ShapesPerField: ProfileLimits.Default.ShapesPerField,
         Regions: 1_000,
         HeaderSample: 1_000,
         RunawayQuote: 65_536,
@@ -58,7 +58,7 @@ public sealed record Limits(
         RowClasses: 64,
         CharsetTolerance: new CharsetTolerance(8, 65_536),
         StdfTests: 10_000,
-        Budget: new Budget(10_000_000, 2_000_000),
+        Budget: ProfileLimits.Default.Budget,
         NullTokens: ValueClassifier.NullVocabularyVersion,
         UnitTable: 1);
 }

@@ -8,7 +8,7 @@ namespace squalor.squalify;
 public static class Profiler
 {
     // The pipeline order of the evidence stages: evidence is sorted by stage, then by topic. Later slices append stages.
-    private static readonly string[] StageOrder = ["encoding", "format", "dialect", "header"];
+    private static readonly string[] StageOrder = ["encoding", "format", "dialect", "header", "type"];
 
     /// <summary>Profiles a source: the byte pass, the format choice, then the winning format profiler.</summary>
     /// <param name="source">The source.</param>
@@ -17,7 +17,18 @@ public static class Profiler
     /// <exception cref="SqualifyException">The source cannot be read, or its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>.</exception>
     public static Descriptor Profile(IProfileSource source, ProfileOptions options)
     {
+        return Profile(source, options, ProfileLimits.Default);
+    }
+
+    /// <summary>Profiles a source with other field caps. Tests use it to inject small ones.</summary>
+    /// <param name="source">The source.</param>
+    /// <param name="options">The options that affect output.</param>
+    /// <param name="fieldLimits">The caps that bound field profiling.</param>
+    /// <returns>The descriptor.</returns>
+    internal static Descriptor Profile(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits)
+    {
         ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(fieldLimits);
         ArgumentNullException.ThrowIfNull(options);
         if (string.IsNullOrEmpty(source.Name) || source.Name.AsSpan().IndexOfAny('/', '\\') >= 0)
         {
@@ -26,7 +37,7 @@ public static class Profiler
 
         try
         {
-            return ProfileCore(source, options);
+            return ProfileCore(source, options, fieldLimits);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -44,9 +55,9 @@ public static class Profiler
         return Profile(new FileSource(path), options);
     }
 
-    private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options)
+    private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits)
     {
-        var limits = Limits.Default;
+        var limits = fieldLimits.ApplyTo(Limits.Default);
         var sniff = ByteSniffer.Sniff(source, limits.CharsetTolerance);
         var context = new ProfileContext(options, limits);
         var choice = FormatRegistry.Default.Detect(source, sniff, context);
@@ -70,7 +81,7 @@ public static class Profiler
         return new Descriptor(
             Tool: new ToolSection(ToolInfo.Name, ToolInfo.Version),
             Options: options,
-            Limits: limits,
+            Limits: profile.EffectiveLimits ?? limits,
             File: new FileSection(source.Name, facts.Length, facts.Sha256),
             Encoding: new EncodingSection(
                 sniff.Kind,
