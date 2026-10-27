@@ -2,7 +2,7 @@
 namespace squalor.squalify;
 
 /// <summary>What pass 1 learned about one delimiter candidate.</summary>
-internal sealed class CandidateResult
+internal sealed record CandidateResult
 {
     /// <summary>The candidate.</summary>
     public required DelimiterKind Kind { get; init; }
@@ -51,6 +51,15 @@ internal sealed class CandidateResult
 
     /// <summary>True when the candidate may be chosen: its run has at least two records (six for whitespace runs) and its score is at least 0.5.</summary>
     public bool Viable { get; init; }
+
+    /// <summary>True when the only record with two or more fields is the last record, a single physical line, and every other record has one field (a possible header-only table; the cells are checked later).</summary>
+    public bool LooksHeaderOnly { get; init; }
+
+    /// <summary>True when every record has one field and there are at least <see cref="DegenerateShapes.MinSingleColumnRecords"/> of them (a possible one-column table; the first line is checked later).</summary>
+    public bool LooksSingleColumn { get; init; }
+
+    /// <summary>The degenerate shape under which this candidate was claimed, or <see cref="DegenerateShape.None"/>.</summary>
+    public DegenerateShape Shape { get; init; }
 }
 
 /// <summary>The outcome of choosing the delimiter.</summary>
@@ -70,14 +79,20 @@ internal sealed class DialectSelection
 
     /// <summary>The profiler score: 0.3 plus 0.4 times the best candidate's score, or 0 when there is none.</summary>
     public double ProfilerScore { get; init; }
+
+    /// <summary>The evidence entry (stage <c>dialect</c>, topic <c>shape</c>) of a claimed degenerate table, or null.</summary>
+    public Evidence? ShapeEvidence { get; init; }
+
+    /// <summary>The reason of the format score of a claimed degenerate table, or null.</summary>
+    public string? ShapeReason { get; init; }
 }
 
 /// <summary>
 /// Chooses the delimiter from the pass-1 tally of every candidate. For each candidate, k is the modal field count among
 /// records with at least two fields (a tie goes to the larger k); the data run starts at the first record that has k
 /// fields and has min(5, remaining) further records with k fields in its window, where up to
-/// <see cref="RunStartRaggedTolerance"/> records with another field count are skipped (only after at least
-/// <see cref="RunStartMinLeadRecords"/> records with k fields in a row); the run ends at the last record with k fields. The score is the share of
+/// <see cref="RunStartRaggedTolerance"/> records with another field count are skipped (ragged records, comment lines and, inside a table, a stray one-field line; records after the last one with k fields
+/// are the footer and never count; see <c>StartWindowHolds</c>); the run ends at the last record with k fields. The score is the share of
 /// non-blank records that are in the run with k fields, times the clean share. The highest score wins; ties go to the
 /// larger k, then to candidate order.
 /// </summary>
@@ -86,11 +101,11 @@ internal static class DialectSelector
     /// <summary>A record opens a run when the next records, up to this many, have k fields (ragged ones skipped, see <see cref="RunStartRaggedTolerance"/>).</summary>
     public const int RunWindow = 5;
 
-    /// <summary>The fewest records that the start's own k-run needs before the window may skip a ragged record.</summary>
-    public const int RunStartMinLeadRecords = 3;
-
     /// <summary>The most records with another field count that the run-start window skips; one more fails the window.</summary>
     public const int RunStartRaggedTolerance = 2;
+
+    /// <summary>The k-field records (header included) that must precede a one-field line in the window before the window may skip it as a stray row.</summary>
+    public const int RunStartMinRecordsBeforeStrayLine = 4;
 
     private const double MinScore = 0.5;
     private const long MinRunRecords = 2;
@@ -203,7 +218,21 @@ internal static class DialectSelector
                 LiteralQuotes = tokenizer.LiteralQuotes,
                 QuotedFields = tokenizer.QuotedFields,
                 Reason = "k=1; no run" + literal,
+                LooksSingleColumn = total >= DegenerateShapes.MinSingleColumnRecords && runs.Count == 1,
+                RunFirstLine = runs.Count == 1 ? runs[0].FirstLine : 0,
+                RunFirstByte = runs.Count == 1 ? runs[0].FirstByte : 0,
+                RunLastLine = runs.Count == 1 ? runs[0].LastLine : 0,
             };
+        }
+
+        var lastK = -1;
+        for (var i = runs.Count - 1; i >= 0; i--)
+        {
+            if (runs[i].FieldCount == k)
+            {
+                lastK = i;
+                break;
+            }
         }
 
         var startIndex = -1;
@@ -211,7 +240,7 @@ internal static class DialectSelector
         for (var i = 0; i < runs.Count; i++)
         {
             // Only the first record of a k-run can be the start: if a later record of the run qualified, so would the first.
-            if (runs[i].FieldCount == k && StartWindowHolds(runs, i, k, out var skipped))
+            if (runs[i].FieldCount == k && StartWindowHolds(runs, i, k, lastK, out var skipped))
             {
                 startIndex = i;
                 startSkipped = skipped;
@@ -281,29 +310,54 @@ internal static class DialectSelector
             QuotedFields = tokenizer.QuotedFields,
             Reason = reason,
             Viable = inRun >= (kind == DelimiterKind.Whitespace ? MinWhitespaceRunRecords : MinRunRecords) && score >= MinScore,
+            LooksHeaderOnly = kind != DelimiterKind.Whitespace
+                && inRun == 1
+                && startIndex == runs.Count - 1
+                && first.FirstLine == lastLine
+                && runs.Take(startIndex).All(static r => r.FieldCount == 1),
         };
     }
 
     // Whether the first record of run `start` (a k-run) can start the data run: its window holds when the next
     // min(5, remaining) k-field records are reached after skipping at most RunStartRaggedTolerance records with another
-    // field count. A window may skip records only when the start's own k-run has at least RunStartMinLeadRecords records:
-    // two k-field preamble lines followed by a key=value line look the same by field counts, and must stay preamble.
+    // field count. This is the one place that decides where a run starts (sq-34 replaced the lead rule here).
+    //
+    // The window ends at the last k-field record: records after it are the footer, however many, and never count
+    // against the allowance. Before that, a skipped record is a ragged data row with at least two fields, or a comment
+    // line (free text, counted as commentInData). A one-field record that is not a comment, such as a key=value line or a
+    // title, is skipped only inside a table: when the k-field records of the window before it number at least
+    // RunStartMinRecordsBeforeStrayLine (the header and three rows). Earlier it ends the window, which is what keeps
+    // k-field title lines followed by a key=value line preamble (sq-28).
+    //
     // `skipped` is the number of records skipped.
-    private static bool StartWindowHolds(IReadOnlyList<FieldCountRun> runs, int start, int k, out int skipped)
+    private static bool StartWindowHolds(IReadOnlyList<FieldCountRun> runs, int start, int k, int lastK, out int skipped)
     {
         skipped = 0;
-        var lead = runs[start].Records;
-        var need = RunWindow - (lead - 1);
+        var seen = runs[start].Records;
+        var need = RunWindow - (seen - 1);
         for (var j = start + 1; need > 0 && j < runs.Count; j++)
         {
+            if (j > lastK)
+            {
+                return true;
+            }
+
             if (runs[j].FieldCount == k)
             {
                 need -= runs[j].Records;
+                seen += runs[j].Records;
                 continue;
             }
 
-            skipped += (int)Math.Min(runs[j].Records, RunStartRaggedTolerance + 1);
-            if (skipped > RunStartRaggedTolerance || lead < RunStartMinLeadRecords)
+            var run = runs[j];
+            var stray = run.FieldCount < 2 && run.CommentRecords != run.Records;
+            if (stray && seen < RunStartMinRecordsBeforeStrayLine)
+            {
+                return false;
+            }
+
+            skipped += (int)Math.Min(run.Records, RunStartRaggedTolerance + 1);
+            if (skipped > RunStartRaggedTolerance)
             {
                 return false;
             }

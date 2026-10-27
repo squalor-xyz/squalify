@@ -55,7 +55,7 @@ internal static class PortableRegex
 
     /// <summary>The regex of the start of a header line: the first names, each allowing spaces around it (and a quote, when the dialect has one).</summary>
     /// <param name="names">The first header names.</param>
-    /// <param name="delimiter">The delimiter text of the dialect; <c>whitespace</c> for runs of white space.</param>
+    /// <param name="delimiter">The delimiter text of the dialect; <c>whitespace</c> for runs of white space; <c>none</c> for a one-column table, which has one name and so never joins any.</param>
     /// <param name="quoted">True when a name may be quoted.</param>
     /// <returns>The regex, anchored at the start only.</returns>
     public static string Prefix(IReadOnlyList<string> names, string delimiter, bool quoted)
