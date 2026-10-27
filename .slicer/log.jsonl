@@ -401,3 +401,4 @@
 {"when": "2026-10-27T19:51:15Z", "item": "sq-35", "action": "set", "from": "", "to": "", "note": "pass_key"}
 {"when": "2026-10-27T19:51:15Z", "item": "sq-36", "action": "set", "from": "", "to": "", "note": "pass_key"}
 {"when": "2026-10-27T19:51:15Z", "item": "sq-37", "action": "set", "from": "", "to": "", "note": "pass_key"}
+{"when": "2026-10-27T19:59:59Z", "item": "sq-33", "action": "status", "from": "started", "to": "done", "note": "README split into front page, getting-started, user guide, examples and CONTRIBUTING; AGENTS.md trimmed to agent rules; DocsTests guard relative links and fixture paths. Gate FAIL on one exit-code sentence (F2), fixed by the orchestrator and verified against real CLI runs. Later: an empty path argument surfaces an ArgumentException message instead of a SqualifyException.", "by": "Jon Robbins"}
