@@ -520,8 +520,8 @@
         },
         {
           "value": "whitespace",
-          "score": 0,
-          "reason": "k=2; no run; 0 quoted fields"
+          "score": 0.16666666666666666,
+          "reason": "k=2; 2/12 records; clean=1; run lines 2-3; 0 quoted fields"
         }
       ]
     },

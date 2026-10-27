@@ -791,9 +791,9 @@ public sealed class ConsumerSubsetTests
     }
 
     [Fact]
-    public void KnownLimitation_RaggedRecordAmongTheFirstTwoDataRecords_CanCutOffTheHeader()
+    public void RaggedRecordAmongTheFirstTwoDataRecords_KeepsTheHeader()
     {
-        // The window skips ragged records only after three records with k fields in a row (the header and two data records).
+        // sq-34 replaced the lead rule: the window skips a ragged record whatever the start's own k-run.
         var builder = new StringBuilder("A(id),B,C\n");
         for (var i = 1; i <= 20; i++)
         {
@@ -802,7 +802,8 @@ public sealed class ConsumerSubsetTests
 
         var d = ProfileText(builder.ToString());
         Assert.Equal("delimited", d.Format.Family);
-        Assert.False(((DelimitedDialect)d.Format.Dialect!).HasHeader);
+        Assert.True(((DelimitedDialect)d.Format.Dialect!).HasHeader);
+        Assert.Equal(new long[] { 3 }, Assert.Single(d.Issues, static i => i.Code == "raggedRows").FirstLines);
     }
 
     [Fact]
@@ -888,11 +889,13 @@ public sealed class ConsumerSubsetTests
     }
 
     [Fact]
-    public void HeaderOnlyFile_IsNotADelimitedTable()
+    public void HeaderOnlyFile_IsADelimitedTableWithZeroRows()
     {
         var d = ProfileText("A(id),B,C\n");
-        Assert.NotEqual("delimited", d.Format.Family);
-        Assert.Null(d.Table);
+        Assert.Equal("delimited", d.Format.Family);
+        Assert.True(((DelimitedDialect)d.Format.Dialect!).HasHeader);
+        Assert.Equal(0, d.Table!.Rows);
+        Assert.Equal(1, Assert.Single(d.Issues, static i => i.Code == "noDataRows").Count);
     }
 
     [Fact]

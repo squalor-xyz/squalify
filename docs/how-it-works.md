@@ -45,7 +45,7 @@ flowchart LR
     S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF: FAR record at start → 1.0"]
     S --> P3["Touchstone: extension + option line → 0.9"]
     S --> P4["Key=value document → up to 0.6"]
-    S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score<br/><small>DelimitedProfiler</small>"]
+    S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score (0.5 for a header-only or one-column table)<br/><small>DelimitedProfiler</small>"]
     S --> P6["Plain text / other binary (a Parquet file included) → 0.1–0.2"]
     P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
     W --> Ev["All scores go to evidence"]
@@ -59,13 +59,14 @@ A profiler can also decline a file and say why. When the delimited profiler find
 flowchart TD
     D["Delimited profiler scores the file<br/><small>DelimitedProfiler.Score</small>"] --> V{"Is any delimiter good enough?<br/><small>DialectSelector</small>"}
     V -- "yes" --> Keep["Score 0.5 to 0.7, and keeps what it found<br/><small>FormatScore.State</small>"]
+    V -- "no, but it is a header-only or one-column table" --> Deg["Score 0.5, and keeps what it found<br/><small>DegenerateShapes</small>"]
     V -- "no, but some were disqualified" --> Dec["Declines with score 0, an issue and evidence<br/><small>FormatScore.NotChosenIssues</small>"]
     V -- "no, none disqualified" --> Plain["Declines with score 0"]
     Dec --> T["Plain text profile wins; the issue is written<br/><small>FormatRegistry.Detect, Profiler</small>"]
     Plain --> T2["Plain text profile wins<br/><small>GenericTextProfiler</small>"]
 ```
 
-*Source: `Delimited/DelimitedProfiler.cs`, `Delimited/DialectSelector.cs`, `Formats/IFormatProfiler.cs`, `Formats/FormatRegistry.cs`, `Profiler.cs`.*
+*Source: `Delimited/DelimitedProfiler.cs`, `Delimited/DialectSelector.cs`, `Delimited/DegenerateShapes.cs`, `Formats/IFormatProfiler.cs`, `Formats/FormatRegistry.cs`, `Profiler.cs`.*
 
 ## 4. Reading a delimited file
 
@@ -81,6 +82,34 @@ flowchart TD
 ```
 
 *Source: `Delimited/TextScanner.cs`, `Delimited/RecordTokenizer.cs`, `Delimited/FieldCountRle.cs`, `Delimited/DialectSelector.cs`.* Quotes follow the usual CSV rule (a doubled quote is one quote, and a quoted cell may hold a comma or a line break). A closing quote may be followed by spaces before the comma or the line end, as in padded tables. A stray quote inside a quoted cell, with no comma or line end after it, is kept as plain text, because some instruments write quotes inside a quoted cell without doubling them. A cell counts as clean when it is quoted or contains none of the characters `,` `;` `|` other than its own delimiter, and, for those three delimiters, no tab inside the cell. Spaces never make a cell unclean, and a decimal comma such as `1,5` does not count, so a semicolon file with decimal commas is told apart from a comma file. A delimiter is only chosen when it is good enough: its steady run has at least 2 rows (6 for spaces) and its score is at least 0.5. When tab and spaces tie, tab wins.
+
+Where the run begins matters as much as which delimiter wins. A row can start the run when the next five rows have the table's field count, and the window may step over up to two stragglers on the way: rows with two or more fields but the wrong count (counted as ragged rows), comment lines, and a one-field line once the header and three rows have come before it. A one-field line earlier than that, such as a `key=value` setting or a title above the table, is not a straggler: it ends the window, so lines like that stay in the preamble. The window ends at the last row of the right width, so a footer after it, of any length, never counts. This is why a short row among the first data rows no longer costs the table its header.
+
+```mermaid
+flowchart TD
+    A["A row with the table's field count k<br/><small>DialectSelector.Evaluate</small>"] --> B["Read on until five rows have k fields<br/><small>DialectSelector.StartWindowHolds</small>"]
+    B --> C{"A row with another field count?"}
+    C -- "two or more fields, a comment,<br/>or a one-field line after the header and three rows" --> D["Step over it, at most twice<br/>(a ragged row is reported)"]
+    C -- "after the last k row" --> G["The window ends: a footer never counts"]
+    D --> B
+    C -- "one field, earlier than that:<br/>key=value, title" --> E["The window fails:<br/>this row cannot start the run"]
+    C -- "no, five found" --> F["The run starts at this row"]
+```
+
+*Source: `Delimited/DialectSelector.cs`, `Delimited/FieldCountRle.cs`, `Delimited/RecordTokenizer.cs` (it flags comment lines in pass 1).*
+
+Two tiny shapes get a second chance when no delimiter is good enough, because they are still tables. A file whose only multi-field line is its last line is a table with a header and no rows, when that line sits within the first 1,000 lines, only blank, comment or `key=value` lines come before it, and every cell reads like a single-word column name (filled, different, not a number, short, and no spaces unless quoted): `Time,Vcc(V),Icc` qualifies, `Hello, world` does not. squalify reports zero rows, every field `empty`, and the issue `noDataRows`. A file where no delimiter occurs at all is a one-column table when its first line is a header that the values below disagree with, such as a text header over numbers, and the delimiter is then written as `none`. A column of plain text, a log or prose does not qualify, so it stays text. The evidence lists both shapes and says why the other was declined.
+
+```mermaid
+flowchart TD
+    N["No delimiter is good enough"] --> H["Only the last line has several fields, within the first 1,000 lines,<br/>after a blank, comment or key=value preamble,<br/>and each cell is a single-word name?<br/><small>DegenerateShapes.TryHeaderOnly</small>"]
+    H -- "yes" --> HO["Table with a header and no rows<br/>issue noDataRows"]
+    H -- "no" --> C["One field in every line, and the first line is a header<br/>that the values below disagree with?<br/><small>DegenerateShapes.TrySingleColumn</small>"]
+    C -- "yes" --> OC["One-column table, delimiter none"]
+    C -- "no" --> T["Plain text profile"]
+```
+
+*Source: `Delimited/DegenerateShapes.cs`, `Delimited/DialectSelector.cs`.*
 
 The header is not always the first row of that run. Some exports put rows of limits, units or line numbers above the header, lined up with its columns. squalify scores the first rows of the run and picks the one that looks most like names over typed data. The rows above it become **annotation** rows: their labels are kept, their cells are opt-in.
 
@@ -103,7 +132,7 @@ flowchart TD
     R1["Preamble: Lot=A12, Temp=25, comments<br/><small>keys always kept, values opt-in</small>"] --> RA["Annotation rows (optional): limits, units<br/><small>labels kept, cells opt-in</small>"]
     RA --> R2["Header row: Freq(MHz), Pout(dBm), …<br/><small>best-scoring candidate</small>"]
     R2 --> R3["Units row (optional): MHz, dBm<br/><small>text opt-in</small>"]
-    R3 --> R4["Data rows<br/><small>the steady run of k fields</small>"]
+    R3 --> R4["Data rows (none in a header-only table)<br/><small>the steady run of k fields</small>"]
     R4 --> R5["Footer (optional)"]
     R4 -. "same header again" .-> R6["Repeated blocks<br/><small>one per site or sweep</small>"]
 ```

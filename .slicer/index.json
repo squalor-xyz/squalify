@@ -2929,7 +2929,7 @@
       "id": "sq-34",
       "title": "Claim degenerate delimited tables",
       "short_title": "Claim degenerate delimited tables",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -2965,6 +2965,28 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "c2b246b9-1b51-4d3e-a71f-388dd92db5a8",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27), verbatim answers: prose line: \"Tighten: single words only (Recommended)\" (option text: \"A header-only cell must have no internal spaces (or be quoted), as header names usually do. `Hello, world` becomes text; `Time,Vcc(V),Icc` stays a table. A header like `Test Name,Result` alone would then stay text.\"). Skip rule: \"Accept both exceptions (Recommended)\" (option text: \"Comments and trailing footer records are skippable too; plain one-field lines in the window still end it. Keeps existing behavior for footers and comments.\").",
+          "created_at": "2026-10-27T20:23:08Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "8fa21195-f0ac-4b26-8778-0f62efa65409",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27, review round), verbatim answers: delimiter: \"A word: \\\"none\\\" (Recommended)\" (option text: \"Write `\\\"none\\\"`, like the existing `\\\"whitespace\\\"` word. The member stays non-null in JSON and C#, and null keeps meaning not a table.\"). Footers: \"Fix in sq-34 (Recommended)\" (option text: \"Records after the last full-width row no longer count against the allowance; any number of footer lines is fine.\"). Evidence: \"List both shapes (Recommended)\" (option text: \"List `headerOnly` and `singleColumn`, the one not taken with score 0 and why it was declined.\"). Stray line: \"Skip it inside data (Recommended)\" (option text: \"A one-field line is skippable once the run it interrupts already has at least 3 records after its header, so it is reported as ragged. One-field lines before the header (titles, key=value) still end the window and stay preamble, as your rule intended.\").",
+          "created_at": "2026-10-27T20:36:56Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -2986,7 +3008,7 @@
         "importance": 3,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

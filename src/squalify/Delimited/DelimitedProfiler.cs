@@ -41,9 +41,10 @@ internal sealed class DelimitedProfiler : IFormatProfiler
         var counter = new LineCounter();
         TextScanner.Scan(source, sniff, tallies.Select(static t => t.Tokenizer).ToArray(), counter, null);
         var selection = DialectSelector.Select(tallies, limits.FieldCountRuns, limits.RunawayQuote);
+        selection = DegenerateShapes.Resolve(selection, source, sniff, context);
         if (selection.Best is { } best)
         {
-            var reason = "delimiter " + DelimiterCandidates.Word(best.Kind) + "; " + best.Reason;
+            var reason = selection.ShapeReason ?? "delimiter " + DelimiterCandidates.Word(best.Kind) + "; " + best.Reason;
             return new FormatScore(selection.ProfilerScore, reason, new DelimitedStructure(selection, counter));
         }
 
