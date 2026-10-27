@@ -4,7 +4,7 @@ squalify publishes two packages to nuget.org from a version tag: `squalor.squali
 
 ## Cut a release
 
-1. Bump `<Version>` in `Directory.Build.props` to the new version, for example `0.1.1` or `0.2.0-rc.1`. At v0.1.0, also edit the **Install** line in `README.md`, which now says v0.1.0 is not released yet, so the package's README on nuget.org reads correctly.
+1. Bump `<Version>` in `Directory.Build.props` to the new version, for example `0.1.1` or `0.2.0-rc.1`.
 2. Commit the bump to `main` and wait for CI to pass.
 3. Tag that commit `v<Version>` and push the tag:
 
@@ -16,8 +16,6 @@ squalify publishes two packages to nuget.org from a version tag: `squalor.squali
 4. Watch the Release run in GitHub Actions.
 
 The release is ungated by owner decision: there is no required reviewer on the `release` environment, so any `v*` tag on a commit that is on `main` publishes. The workflow fails, before it builds anything, if the tag version differs from `<Version>`.
-
-The first release, v0.1.0, waits until slices sq-07 and sq-08 have landed.
 
 ## What the workflow does
 

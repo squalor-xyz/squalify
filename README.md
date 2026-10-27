@@ -38,7 +38,7 @@ var bytes = DescriptorWriter.ToBytes(descriptor);
 
 **Version policy.** The package version is the version the tool reports: `squalify --version`, `ToolInfo.Version`, and `tool.version` in every descriptor. All three come from the build's `Version`: `<Version>` in `Directory.Build.props`, which the release workflow overrides with the tag, so one string names each build. The first package is 0.1.0, while the descriptor schema is still a draft.
 
-**Install.** Both packages are published to nuget.org from release tags starting with v0.1.0, which is not released yet ([`docs/release.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md)):
+**Install.** Both packages are published to nuget.org from release tags, starting with v0.1.0 ([`docs/release.md`](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md)):
 
 ```bash
 dotnet add package squalor.squalify          # the library
