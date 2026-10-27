@@ -313,7 +313,7 @@ public sealed class ProfilerTests : IDisposable
     {
         var gz = Profile("a.GZ", TestBytes.Hex("1F 8B 08 00 00 00 00 00 02 FF"));
         Assert.Equal(0.2, gz.Format.Score);
-        Assert.Equal("gzip", gz.Hints.Magic);
+        Assert.Equal(new MagicHint("gzip", 0, "1f8b"), gz.Hints.Magic);
         Assert.Equal(".gz", gz.Hints.Extension);
 
         var plain = Profile("a", TestBytes.Hex("01 02 03 04 05 06 07 08"));
@@ -334,7 +334,7 @@ public sealed class ProfilerTests : IDisposable
         Assert.Equal("text", descriptor.Kind.Label);
         Assert.Equal("a{5}.a{3}", descriptor.Hints.FileNameShape);
         Assert.Equal(".txt", descriptor.Hints.Extension);
-        Assert.Equal(0, descriptor.Fingerprint.Version);
+        Assert.Equal(1, descriptor.Fingerprint.Version);
     }
 
     [Fact]

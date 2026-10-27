@@ -1,7 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-using System.Security.Cryptography;
-using System.Text;
-
 namespace squalor.squalify;
 
 /// <summary>The entry point of the library: profiles one file into a <see cref="Descriptor"/>.</summary>
@@ -77,7 +74,12 @@ public static class Profiler
         evidence.AddRange(profile.Evidence);
         evidence.AddRange(choice.NotChosenEvidence ?? []);
 
-        var extension = Path.GetExtension(source.Name);
+        var projection = Projection.Compute(new ProjectionInput(choice.Family, sniff.Charset, profile.Dialect, profile.Layout, profile.Table));
+        if (projection.Excluded > 0)
+        {
+            issues.Add(new Issue("nameExcludedFromFingerprint", projection.Excluded));
+        }
+
         return new Descriptor(
             Tool: new ToolSection(ToolInfo.Name, ToolInfo.Version),
             Options: options,
@@ -93,21 +95,8 @@ public static class Profiler
             Format: new FormatSection(choice.Family, profile.Dialect, choice.Score),
             Kind: InterimKind(sniff.Kind),
             Layout: profile.Layout,
-            Fingerprint: InterimFingerprint(choice.Family),
-            Hints: new Hints(
-                Extension: extension.Length == 0 ? null : extension.ToLowerInvariant(),
-                Magic: sniff.Magic,
-                StableLines: Array.Empty<StableLine>(),
-                HeaderFields: null,
-                HeaderPrefix: null,
-                NonNullFields: null,
-                FieldCount: null,
-                DataStartLine: null,
-                Delimiter: null,
-                HeaderConvention: profile.Layout.HeaderConvention?.Dominant,
-                ParquetColumns: null,
-                Stdf: null,
-                FileNameShape: FileNameShape.Of(source.Name)),
+            Fingerprint: projection.Fingerprint,
+            Hints: HintBuilder.Build(source.Name, sniff, profile.Dialect, profile.Layout, profile.Table, profile.StableLines ?? []),
             Issues: Ordinal.SortedBy(issues, static i => i.Code),
             Evidence: SortEvidence(evidence),
             Table: profile.Table,
@@ -124,18 +113,6 @@ public static class Profiler
             "binary" => new KindLabel("binary", "K11", 1.0),
             _ => new KindLabel("text", "K09", 1.0),
         };
-    }
-
-    // Until sq-06 adds the projections, every hash covers only the family: version 0 marks the interim form.
-    private static Fingerprint InterimFingerprint(string family)
-    {
-        var projection = Hash("{\"family\":\"" + family + "\"}");
-        return new Fingerprint(0, projection, projection, projection, Hash("[]"));
-    }
-
-    private static string Hash(string text)
-    {
-        return "sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     }
 
     internal static IReadOnlyList<Evidence> SortEvidence(IEnumerable<Evidence> evidence)

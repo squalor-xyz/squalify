@@ -620,7 +620,18 @@ public static class DescriptorWriter
     {
         w.WriteStartObject();
         w.WriteString("extension", v.Extension);
-        w.WriteString("magic", v.Magic);
+        Nullable(
+            w,
+            "magic",
+            v.Magic,
+            static (writer, magic) =>
+            {
+                writer.WriteStartObject();
+                writer.WriteString("name", magic.Name);
+                writer.WriteNumber("offset", magic.Offset);
+                writer.WriteString("hex", magic.Hex);
+                writer.WriteEndObject();
+            });
         List(w, "stableLines", v.StableLines, Write);
         NullableStrings(w, "headerFields", v.HeaderFields);
         NullableStrings(w, "headerPrefix", v.HeaderPrefix);

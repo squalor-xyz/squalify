@@ -326,10 +326,10 @@
     }
   },
   "fingerprint": {
-    "version": 0,
-    "structure": "sha256:19e9e32920f7fd9ca995e72cc8e60ef6429235e8bf81a343237afb180d794cf1",
-    "layout": "sha256:19e9e32920f7fd9ca995e72cc8e60ef6429235e8bf81a343237afb180d794cf1",
-    "typed": "sha256:19e9e32920f7fd9ca995e72cc8e60ef6429235e8bf81a343237afb180d794cf1",
+    "version": 1,
+    "structure": "sha256:c056c7233527c089b168fc11aad3a6496ea1a2bb31012aa956c271d80abc3815",
+    "layout": "sha256:d1513996708323ae3969d45e4517787903f7551bc4c2a66ce20ab5e0be5c1c72",
+    "typed": "sha256:e88aedcc42ad360eba71c889689c678da08acaf95b47728e509ec8bc50ba55b4",
     "names": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
   },
   "hints": {

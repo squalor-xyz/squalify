@@ -30,7 +30,7 @@ public sealed record Candidate(string Value, double Score, string Reason);
 
 /// <summary>The <c>hints</c> section: neutral facts for detect rules. Members are written as null when they do not apply.</summary>
 /// <param name="Extension">The file extension with its dot, or null.</param>
-/// <param name="Magic">The named magic, or null.</param>
+/// <param name="Magic">The matched magic, or null.</param>
 /// <param name="StableLines">Anchored regexes for stable lines.</param>
 /// <param name="HeaderFields">Header field names.</param>
 /// <param name="HeaderPrefix">The first header field names.</param>
@@ -44,7 +44,7 @@ public sealed record Candidate(string Value, double Score, string Reason);
 /// <param name="FileNameShape">The shape mask of the file name.</param>
 public sealed record Hints(
     string? Extension,
-    string? Magic,
+    MagicHint? Magic,
     IReadOnlyList<StableLine> StableLines,
     IReadOnlyList<string>? HeaderFields,
     IReadOnlyList<string>? HeaderPrefix,
@@ -56,6 +56,12 @@ public sealed record Hints(
     IReadOnlyList<string>? ParquetColumns,
     StdfHints? Stdf,
     string FileNameShape);
+
+/// <summary>The structured form of <c>hints.magic</c>: a named byte string at a fixed offset.</summary>
+/// <param name="Name">The magic name, for example <c>gzip</c>.</param>
+/// <param name="Offset">The 0-based byte offset from the start of the file where the bytes lie.</param>
+/// <param name="Hex">The bytes that must be found there, as lower-case hex.</param>
+public sealed record MagicHint(string Name, long Offset, string Hex);
 
 /// <summary>A stable line and the regex that matches it.</summary>
 /// <param name="Line">The 0-based line number.</param>

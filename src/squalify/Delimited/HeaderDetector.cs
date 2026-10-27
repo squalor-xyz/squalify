@@ -7,6 +7,9 @@ internal sealed class SampleRecord
     /// <summary>The 1-based line where the record starts.</summary>
     public required long Line { get; init; }
 
+    /// <summary>The 1-based line where the record ends (later than <see cref="Line"/> when a quoted field holds a line break).</summary>
+    public long EndLine { get; init; }
+
     /// <summary>The byte offset where the record starts.</summary>
     public required long StartByte { get; init; }
 

@@ -298,50 +298,58 @@ The table is not DataBall's table, and squalify does not read DataBall's configu
 
 ## Structural fingerprint
 
-There are four SHA-256 hashes, each written as `sha256:<hex>`. Each is computed over a compact canonical JSON projection that contains no values.
+*Source: `Fingerprint/Projection.cs`, `Fingerprint/ProjectionJson.cs`, `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`.*
 
-- **`structure`.** No names at all: the family, the dialect (delimiter, quote, hasHeader, unitsRow, decimal separator, constant line length), the charset family, the region kinds in order, and the dominant preamble line kind.
+There are four SHA-256 hashes, each written as `sha256:<hex>`. Each is computed over a compact canonical JSON projection that contains no values, so the hashes are the same with and without `--include-values`. The member lists and the exact text are in [descriptor.md](descriptor.md#fingerprint); this section gives the reasons.
 
-- **`layout`.** The projection holds:
-  - the family and the dialect (delimiter, quote, hasHeader, unitsRow);
-  - the charset family (`unicode` or `latin1`);
-  - the region kinds, in order;
-  - the preamble keys (normalized);
+- **`structure`.** No names at all: the family, the family's own members (for delimited text the whole dialect: delimiter, quote, hasHeader, unitsRow, decimal separator, constant line length; and the dominant preamble line kind), the charset family and the region kinds in order. A file with an annotation or units row hashes differently from one without, because `unitsRow` and the region kinds are part of it.
+- **`layout`.** The same kind of projection, with a smaller dialect (delimiter, quote, hasHeader, unitsRow), and in addition:
+  - the preamble keys (normalized, case-folded, in file order);
   - the dominant header-unit convention;
-  - the ordered, case-folded field names (`#<index>` when unnamed);
-  - each family's own contribution.
+  - the ordered, case-folded field names (`#<index>` when unnamed).
 - **`typed`.** `layout` plus the field types.
 - **`names`.** The sorted, unique, case-folded field names.
 
-A name with a control character or U+FFFD is hashed as `#<index>` (fields) or left out (keys), with the issue `nameExcludedFromFingerprint`. Such bytes may vary per file and would otherwise make every sibling unique.
+**Case folding is ASCII only** (`A` to `Z`). It never uses `ToLowerInvariant`, the runtime's Unicode tables or the culture, so a hash is the same on every runtime and machine. The projection is written by `ProjectionJson`, not by the descriptor writer, for the same reason: the descriptor writer escapes the code points that the runtime's tables leave unassigned, and a runtime upgrade must not change a hash.
 
-**Fingerprint equality is not a family test.** Column sets often vary by recipe, unit or bench, so `layout`, `typed` and `names` can be unique per file, and every plain header-plus-rows CSV shares one `structure`. Family recognition needs more evidence, such as name containment and hints. Consumers comparing `typed` should treat `empty` as matching any type and `int` as within `float`.
+**The header convention.** `layout` carries `layout.headerConvention.dominant`. When the object is absent (no header, or a file that is not a table) the projection writes JSON `null`, which cannot be confused with the convention `none`. Indexed groups such as `Trace[0]` to `Trace[n]` are not collapsed: the owner's trace files are long form, so arrays of columns are not a real case today, and collapsing them would have made two files with different column counts look the same. If wide trace files appear, a later version of the projection can collapse them.
 
-Family contributions:
+**Names that are left out.** A name with a control character or U+FFFD is projected as `#<index>` (fields) or left out (keys, and the `names` list), with the issue `nameExcludedFromFingerprint`. Such bytes may vary per file and would otherwise make every sibling unique.
 
-- **Parquet:** column names with repetition. The typed hash adds the physical and logical types.
-- **Touchstone:** version, ports, parameter, format, matrix and noise.
-- **keyValue:** sections and keys.
-- **STDF:**
+**Fingerprint equality is not a family test.** Column sets often vary by recipe, unit or bench, so `layout`, `typed` and `names` can be unique per file, and every plain header-plus-rows CSV shares one `structure`. Family recognition needs more evidence, such as name containment and hints. Consumers comparing `typed` should treat `empty` as matching any type and `int` as within `float`: a column that is empty in a short file, or whose values happen to be whole numbers, changes `typed` without changing what the file is.
+
+**The family seam.** Each format family adds its part through `IFingerprintContributor`. A contributor returns a `FingerprintContribution`: members for the `structure` projection, members for `layout` (which `typed` includes), further members for `typed` only, names for the `names` list, and the count of names it left out. The projection writes these members right after `family`. `FingerprintContributors` lists the contributors; a family without one adds nothing. The delimited family exists; the other contributions come with their slices:
+
+- **Delimited:** the dialect, the dominant preamble line kind (structure) and the preamble keys (layout). Field names and types are the same for every tabular family, so the core projection takes them from `table.fields[]`.
+- **Parquet (sq-08):** column names with repetition. The typed hash adds the physical and logical types.
+- **Touchstone (sq-09):** version, ports, parameter, format, matrix and noise.
+- **keyValue (sq-09):** sections and keys.
+- **STDF (sq-10):**
   - layout: the record-type set and the endianness;
   - typed: the catalog's `(testNum, kind)` pairs;
   - names: the test names.
 
-`fingerprint.version` changes whenever a projection changes.
+`fingerprint.version` changes whenever a projection changes. It is 1 (version 0 was the interim hash of the family name alone).
 
 ## Detect-rule hints
 
-Hints are neutral facts that a consumer can turn into match rules:
+*Source: `Hints/HintBuilder.cs`, `Hints/PortableRegex.cs`, `Hints/StableLineSource.cs`, `Text/LineReader.cs`, `Delimited/DelimitedPass.cs` (`ReadStableLines`).*
 
-- `extension`.
-- `magic`.
-- `stableLines`: each entry has a 0-based `line` and an anchored, portable regex. For example, a header line becomes `^<escaped header>$` at any length, the header prefix becomes a padding-tolerant regex over the first 5 names (all when there are fewer), and a preamble key becomes `^\s*<key>\s*[=:]`.
+Hints are neutral facts that a consumer can turn into match rules. The members and their rules are in [descriptor.md](descriptor.md#hints):
+
+- `extension` (ASCII-lower-cased) and `magic` (`{ name, offset, hex }`).
+- `stableLines`: each entry has a 0-based `line` and an anchored, portable regex. For example, a header line becomes `^<escaped header>$` at any length, the header prefix becomes a padding-tolerant regex over the first 5 names (all when there are fewer), and a preamble key becomes `^\s*<key>\s*[=:]`. Entries are ordered by line, then regex.
 - `headerFields`, `headerPrefix` and `nonNullFields` (fields with no nulls in this file: an observation, not a requirement of the type).
-- `fileNameShape`: the shape mask of the file name.
+- `fileNameShape`: the shape mask of the file name, by the same rules as the field shapes.
 - `fieldCount`, `dataStartLine`, `delimiter`.
-- `headerConvention`.
-- `parquetColumns`.
-- `stdf { cpuType, version }`.
+- `headerConvention`, which repeats the dominant convention of the layout.
+- `parquetColumns` (sq-08) and `stdf { cpuType, version }` (sq-10).
+
+**How a stable line is made.** The delimited pass notes the lines that may become stable lines: the header line, the preamble `keyValue` lines, and (only with `--include-values`) the preamble comment and text lines. After the pass, `LineReader` reads those physical lines from the start of the file in one streaming read that stops at the last one, and `HintBuilder` builds each regex with `PortableRegex`. Reading the physical line, rather than rebuilding it from the parsed cells, keeps quotes and padding, so the regex matches the file as written. A record that spans several lines is skipped.
+
+**Portable regexes.** `PortableRegex` escapes only `\ . ^ $ | ? * + ( ) [ ] { }` and uses nothing else but `^`, `$`, `\s`, `*`, `+`, `?` and `[=:]`, so every regex compiles under .NET and under `RegexOptions.ECMAScript`. The one difference in meaning is `\s` (Unicode white space by default, ASCII only under the ECMAScript option). `HintBuilder` therefore keeps a regex only when it matches its own source line under both engines; a key that was trimmed of a non-ASCII space, or a quoted key, gets no entry rather than an entry that fails under one engine.
+
+**Values.** Header names and preamble keys are always included, so the header regexes and the key regexes are too, and a key regex never contains the value. A comment or text line is free text, so its regex is values tier and appears only with `--include-values`.
 
 ## Kind label
 
@@ -363,7 +371,7 @@ Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason 
 ## Determinism rules
 
 - **No environment input.** Output never depends on the time, environment, absolute path, mtime, machine or user.
-- **Culture and sorting.** Use `CultureInfo.InvariantCulture` everywhere. Case-fold with `ToLowerInvariant` and sort ordinally (UTF-16 code unit order); `Ordinal` (`src/squalify/Determinism/Ordinal.cs`) holds the helpers. Tests run under `de-DE` and `tr-TR`.
+- **Culture and sorting.** Use `CultureInfo.InvariantCulture` everywhere. Sort ordinally (UTF-16 code unit order); `Ordinal` (`src/squalify/Determinism/Ordinal.cs`) holds the helpers. Anything that reaches a fingerprint or a hint is case-folded with `Ordinal.AsciiFold` (`A` to `Z` only), never with `ToLowerInvariant` or a Unicode table. Tests run under `de-DE` and `tr-TR`.
 - **No runtime Unicode tables in structure detection.** The delimited profiler never calls `char.IsWhiteSpace`, `char.IsUpper`, `ToLower` or a culture-sensitive comparison: white space is the fixed set `ValueClassifier.TrimChars`, blank lines are spaces and tabs, header names are compared after ASCII-only folding, and null tokens and types come from `ValueClassifier`.
 - **Collections.** Sort every map and set before writing. The descriptor model (`src/squalify/Descriptor/`) does not sort lists: producers build every collection sorted by its documented key (`CountMap` sorts its own keys at construction), and the writer never sorts.
 - **Single thread.** Accumulation runs in a single thread, in input order. Greenwald-Khanna summaries do not merge exactly across shards, so parallel profiling would need fixed shard boundaries and a mergeable sketch first. sq-19 measures throughput before any such change.
@@ -374,7 +382,7 @@ Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason 
   - Powers of two are exact. `Ln(x)` is `Log2(x) * Ln2`.
   - `tests/squalify.Tests/fixtures/detmath-log2.tsv` holds inputs and expected bit patterns generated once with mpmath (the header records how). The test requires an exact bit match, which CI checks on each OS.
 - **Field statistics.** Mean and stddev run in input order with only IEEE `+ - * /` and `Math.Sqrt`. Quantile ranks use integer percentages. Dates are compared as integer ticks computed by `TemporalMath` (a days-from-civil algorithm), never through `DateTime` parsing, and ISO text is formatted by hand with the invariant culture. Shape masks are plain ASCII ranges, so `char.IsUpper` and `char.IsLower` stay out of them as they stay out of structure detection. Distinct counting hashes with `XxHash64` and never enumerates a hash set for output.
-- **Hashing.** Sketches use the in-repo `XxHash64` (`src/squalify/Determinism/XxHash64.cs`) with seed 0, never `string.GetHashCode`. Its tests use published vectors.
+- **Hashing.** The fingerprint hashes are the BCL's SHA-256 over the UTF-8 bytes of a projection that `ProjectionJson` writes with its own fixed escaping (see "Structural fingerprint"). Sketches use the in-repo `XxHash64` (`src/squalify/Determinism/XxHash64.cs`) with seed 0, never `string.GetHashCode`. Its tests use published vectors.
 - **Visibility.** `DetMath`, `XxHash64`, `Ordinal` and `CanonicalNumber` are internal to the library; the test project sees them through `InternalsVisibleTo`. The descriptor model, `DescriptorWriter` and `SqualifyException` are public.
 - **Version.** `tool.version` comes from `AssemblyInformationalVersion`, with `IncludeSourceRevisionInInformationalVersion=false`. A behavior change that alters output for the same input bumps the version.
 - **CI.** The same golden files are compared on Windows, macOS and Linux. `Golden.Verify` (`tests/squalify.Tests/Golden.cs`) compares the written bytes with `<fixture>.squalify.json` and fails with a unified diff; `SQUALIFY_UPDATE_GOLDEN=1` rewrites a golden, and the change is reviewed in git before it is committed. The private-corpus check (`scripts/corpus-check.sh`, sq-18) repeats the determinism and golden checks on real files outside the repository; it runs by hand, not in CI.
