@@ -266,6 +266,7 @@ public class DescriptorWriterTests
                     Rows: [new AnnotationRow(3, "Upper", 0, CountMap.Empty, CountMap.Empty, "float", [null, "2"])]),
             ]),
             Sections = [new KeyValueSection("S", 1, ["k", "j"], [null, "v"])],
+            Options = ProfileOptions.Create(false, ["a", "upper", "J"]),
         };
         using var doc = JsonDocument.Parse(DescriptorWriter.ToBytes(model));
         var regions = doc.RootElement.GetProperty("layout").GetProperty("regions");

@@ -327,8 +327,10 @@ public sealed class ConsumerSubsetTests
         Assert.True(Field(on, "Vcc(V)").Constant);
         Assert.Null(Field(on, "Vcc(V)").StatsWithheld);
         Assert.NotNull(Field(on, "Vcc(V)").Numeric);
-        // top and text (values tier) are not computed yet (sq-07), so no literal value appears either way.
-        Assert.Null(Field(on, "Mode").Top);
+        // top and text are values tier: with the flag a constant text field lists its one value.
+        var onMode = Field(on, "Mode");
+        Assert.Equal("ZXQ7", Assert.Single(onMode.Top!.Items).Value);
+        Assert.Equal(new TextStats("ZXQ7", "ZXQ7"), onMode.Text);
     }
 
     [Fact]

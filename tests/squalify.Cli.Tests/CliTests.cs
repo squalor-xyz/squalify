@@ -145,6 +145,36 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public async Task Cli_Profile_IncludeValuesFor_IsRepeatable_SortedInOptions_AndOpensOnlyTheNamedField()
+    {
+        var path = WriteInput("sample.csv", "id,a,b\n1,CANARY-1,CANARY-2\n2,CANARY-1,CANARY-3\n3,CANARY-1,CANARY-2\n4,CANARY-1,CANARY-3\n");
+        var (code, output, error) = await RunAsync("profile", path, "--include-values-for", "b", "--include-values-for", "B", "--include-values-for", "nothing");
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(0, code);
+        using var json = JsonDocument.Parse(output);
+        var options = json.RootElement.GetProperty("options");
+        Assert.False(options.GetProperty("includeValues").GetBoolean());
+        Assert.Equal(new[] { "B", "b", "nothing" }, options.GetProperty("includeValuesFor").EnumerateArray().Select(static e => e.GetString()).ToArray());
+        var fields = json.RootElement.GetProperty("table").GetProperty("fields");
+        Assert.Equal(JsonValueKind.Null, fields[1].GetProperty("top").ValueKind);
+        Assert.Equal("CANARY-2", fields[2].GetProperty("top").GetProperty("items")[0].GetProperty("value").GetString());
+        var unmatched = json.RootElement.GetProperty("issues").EnumerateArray().Single(static i => i.GetProperty("code").GetString() == "includeValuesForUnmatched");
+        Assert.Equal(new[] { "nothing" }, unmatched.GetProperty("names").EnumerateArray().Select(static e => e.GetString()).ToArray());
+        Assert.Equal(1, unmatched.GetProperty("count").GetInt64());
+        Assert.DoesNotContain("CANARY-1", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_IncludeValuesFor_WithoutAName_ExitsOne()
+    {
+        var path = WriteInput("sample.txt", "a\n");
+        var (code, output, error) = await RunAsync("profile", path, "--include-values-for");
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.False(string.IsNullOrWhiteSpace(error));
+    }
+
+    [Fact]
     public async Task Cli_Profile_TwiceGivesIdenticalOutput()
     {
         var path = WriteInput("sample.txt", "x\ny\n");

@@ -19,7 +19,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private readonly long _runFirstLine;
     private readonly long _runLastLine;
     private readonly char _delimiterChar;
-    private readonly HashSet<string> _allowed = new(StringComparer.Ordinal);
+    private readonly ValuesGate _gate;
 
     // Preamble.
     private readonly long[] _preambleKinds = new long[5];
@@ -78,10 +78,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _caps = MemoryBudget.Effective(context.Limits, _k);
         _nullMask = new bool[_k];
         _rowClasses = new RowClassAccumulator(_k, context.Limits.RowClasses);
-        foreach (var name in context.Options.IncludeValuesFor)
-        {
-            _allowed.Add(Ordinal.AsciiFold(name));
-        }
+        _gate = context.Gate;
     }
 
     /// <summary>The per-field caps in effect: the configured caps after the global budget (<see cref="MemoryBudget"/>).</summary>
@@ -328,11 +325,6 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         return ValueClassifier.TrimChars.Contains(c, StringComparison.Ordinal);
     }
 
-    private bool Allows(string? name)
-    {
-        return _context.Options.IncludeValues || (name is not null && _allowed.Contains(Ordinal.AsciiFold(name)));
-    }
-
     private void AddPreamble(RecordInfo record)
     {
         var result = LineClassifier.Classify(record.Raw ?? string.Empty, record.Cells, _delimiterChar);
@@ -341,7 +333,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         {
             _preambleKeys.Add(key);
             // A value is held only when it may be written; otherwise it is dropped here.
-            _preambleValues.Add(Allows(key) ? result.Value ?? string.Empty : null);
+            _preambleValues.Add(_gate.Allows(ValuesPolicy.RegionValues, key) ? result.Value ?? string.Empty : null);
         }
 
         // A stable line is one physical line; its text is read later, and only for the lines that may be written.
@@ -351,7 +343,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             {
                 _stableLines.Add((record.StartLine, StableLineKind.PreambleKey, stableKey));
             }
-            else if (_context.Options.IncludeValues && result.Kind is LineKind.Comment or LineKind.Text)
+            else if (_gate.Allows(ValuesPolicy.StableLineText, null) && result.Kind is LineKind.Comment or LineKind.Text)
             {
                 _stableLines.Add((record.StartLine, StableLineKind.PreambleText, null));
             }
@@ -468,7 +460,12 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _accumulators = new FieldAccumulator[_k];
         for (var c = 0; c < _k; c++)
         {
-            _accumulators[c] = new FieldAccumulator(_caps, _decimal);
+            var name = h >= 0 ? ValueClassifier.Trim(_headerRecord!.Cells[c]).ToString() : null;
+            var access = new FieldValueAccess(
+                _gate.Allows(ValuesPolicy.FieldTop, name),
+                _gate.Allows(ValuesPolicy.FieldText, name),
+                _gate.Allows(ValuesPolicy.ConstantStatistics, name));
+            _accumulators[c] = new FieldAccumulator(_caps, _decimal, access);
         }
 
         for (var i = start; i < _sample.Count; i++)
@@ -560,7 +557,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         string?[]? values = null;
-        if (Allows(label))
+        if (_gate.Allows(ValuesPolicy.AnnotationRowValues, label))
         {
             values = record.Cells.Select(static c => (string?)ValueClassifier.Trim(c).ToString()).ToArray();
         }
@@ -606,8 +603,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     private FieldProfile BuildField(int index, string? name, string? nameHex)
     {
-        var profile = _accumulators[index].Build(index, name, nameHex, _rowClasses.NullsExcludingAllNullRows(index), Allows(name));
-        if (_unitsRecord is { } units && index < units.FieldCount && units.Votes[index] != ValueVote.Null && Allows(name))
+        var profile = _accumulators[index].Build(index, name, nameHex, _rowClasses.NullsExcludingAllNullRows(index));
+        if (_unitsRecord is { } units && index < units.FieldCount && units.Votes[index] != ValueVote.Null && _gate.Allows(ValuesPolicy.FieldUnit, name))
         {
             profile = profile with { Unit = ValueClassifier.Trim(units.Cells[index]).ToString() };
         }
@@ -733,7 +730,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private Region PreambleRegion(long line, long lastLine, long startByte, long endByte)
     {
         IReadOnlyList<string?>? values = null;
-        if (_context.Options.IncludeValues || _preambleValues.Any(static v => v is not null))
+        if (_gate.Allows(ValuesPolicy.RegionValues, null) || _preambleValues.Any(static v => v is not null))
         {
             values = _preambleValues.ToArray();
         }

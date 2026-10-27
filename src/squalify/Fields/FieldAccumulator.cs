@@ -35,6 +35,7 @@ internal sealed class FieldAccumulator
 
     private readonly FieldCaps _caps;
     private readonly char _decimal;
+    private readonly FieldValueAccess _access;
 
     // Votes and types.
     private readonly long[] _votes = new long[VoteKinds];
@@ -62,6 +63,11 @@ internal sealed class FieldAccumulator
     private bool _haveFirst;
     private ulong _firstHash;
     private bool _allEqual = true;
+
+    // Values tier: collected only for a field whose access allows them, so a value that may not be written is never held.
+    private readonly TopK? _top;
+    private string? _textMin;
+    private string? _textMax;
 
     // Numeric.
     private bool _numericLive = true;
@@ -108,8 +114,9 @@ internal sealed class FieldAccumulator
     /// <summary>Creates an accumulator.</summary>
     /// <param name="caps">The effective caps of this field.</param>
     /// <param name="decimalSeparator">The dialect's decimal separator for <see cref="AddText"/>: <c>.</c> or <c>,</c>.</param>
+    /// <param name="access">The values-tier members that may be written for this field; the default allows none.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="decimalSeparator"/> is neither <c>.</c> nor <c>,</c>.</exception>
-    public FieldAccumulator(FieldCaps caps, char decimalSeparator = '.')
+    public FieldAccumulator(FieldCaps caps, char decimalSeparator = '.', FieldValueAccess access = default)
     {
         if (decimalSeparator != '.' && decimalSeparator != ',')
         {
@@ -118,6 +125,8 @@ internal sealed class FieldAccumulator
 
         _caps = caps;
         _decimal = decimalSeparator;
+        _access = access;
+        _top = access.Top ? new TopK(caps.Distinct) : null;
     }
 
     /// <summary>
@@ -252,14 +261,13 @@ internal sealed class FieldAccumulator
         return new Evidence("type", "dateOrderConflict", "string", candidates);
     }
 
-    /// <summary>Builds the field profile. <c>nameParts</c> is left null (the delimited pass sets it from the header, sq-14), and so are the values-tier members.</summary>
+    /// <summary>Builds the field profile. <c>nameParts</c> is left null (the delimited pass sets it from the header, sq-14), and so is <c>unit</c>. <c>top</c> and <c>text</c> are set only when the access given at construction allows them.</summary>
     /// <param name="index">The column index.</param>
     /// <param name="name">The header name, or null.</param>
     /// <param name="nameHex">The hex of the original name bytes, or null.</param>
     /// <param name="nullsExcludingAllNullRows">Null values outside all-null rows. This accumulator sees values, not rows, so the row-level owner (<see cref="RowClassAccumulator"/>) counts them and passes them in.</param>
-    /// <param name="valuesAllowed">True when values are opted in for this field: statistics of a constant field are then kept.</param>
     /// <returns>The profile.</returns>
-    public FieldProfile Build(long index, string? name, string? nameHex, long nullsExcludingAllNullRows, bool valuesAllowed)
+    public FieldProfile Build(long index, string? name, string? nameHex, long nullsExcludingAllNullRows)
     {
         var nulls = _votes[(int)ValueVote.Null];
         var conflict = OrderConflict is not null;
@@ -279,7 +287,7 @@ internal sealed class FieldAccumulator
         var numeric = type is ValueVote.Int or ValueVote.Float && _numericLive ? BuildNumeric(type) : null;
         var temporal = type is ValueVote.Date or ValueVote.DateTime or ValueVote.Time && _temporalLive ? BuildTemporal(type) : null;
         string? withheld = null;
-        if (constant == true && !valuesAllowed && (numeric is not null || temporal is not null))
+        if (constant == true && !_access.ConstantStatistics && (numeric is not null || temporal is not null))
         {
             numeric = null;
             temporal = null;
@@ -308,7 +316,9 @@ internal sealed class FieldAccumulator
             Patterns: _patterns is null ? null : CountMap.FromOrdinal(_patterns),
             Numeric: numeric,
             Temporal: temporal,
-            StatsWithheld: withheld);
+            StatsWithheld: withheld,
+            Top: _top?.Build(),
+            Text: _access.Text && type == ValueVote.String && _textMin is not null ? new TextStats(_textMin, _textMax!) : null);
     }
 
     // True when every non-null value is equal, which a field without a non-null value is too (it has one value, null);
@@ -370,7 +380,16 @@ internal sealed class FieldAccumulator
         _lengthSum += length;
 
         AddShape(trimmed);
-        AddDistinct(trimmed);
+
+        // One hash per value, shared by the distinct set and the top-k counters. The distinct set stops needing it past
+        // its cap once two different values were seen; the top-k counters always need it.
+        var hash = _top is not null || !_distinctExceeded || _allEqual ? Hash(trimmed) : 0;
+        AddDistinct(hash);
+        _top?.Add(hash, trimmed);
+        if (_access.Text)
+        {
+            TrackLexicalRange(trimmed);
+        }
 
         if (_joined is ValueVote.Int or ValueVote.Float)
         {
@@ -427,14 +446,27 @@ internal sealed class FieldAccumulator
         return shapes;
     }
 
-    private void AddDistinct(ReadOnlySpan<char> trimmed)
+    // The lexical minimum and maximum, by UTF-16 code unit order. A string is made only when a bound moves.
+    private void TrackLexicalRange(ReadOnlySpan<char> trimmed)
+    {
+        if (_textMin is null || trimmed.SequenceCompareTo(_textMin.AsSpan()) < 0)
+        {
+            _textMin = trimmed.ToString();
+        }
+
+        if (_textMax is null || trimmed.SequenceCompareTo(_textMax.AsSpan()) > 0)
+        {
+            _textMax = trimmed.ToString();
+        }
+    }
+
+    private void AddDistinct(ulong hash)
     {
         if (_distinctExceeded && !_allEqual)
         {
             return;
         }
 
-        var hash = Hash(trimmed);
         if (!_haveFirst)
         {
             _haveFirst = true;
@@ -462,7 +494,10 @@ internal sealed class FieldAccumulator
         }
     }
 
-    private static ulong Hash(ReadOnlySpan<char> text)
+    /// <summary>The XxHash64 (seed 0) of the UTF-8 bytes of a value; the key of the distinct set and of <see cref="TopK"/>.</summary>
+    /// <param name="text">The trimmed value.</param>
+    /// <returns>The hash.</returns>
+    internal static ulong Hash(ReadOnlySpan<char> text)
     {
         if (text.Length <= 128)
         {

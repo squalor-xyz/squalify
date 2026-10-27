@@ -6,7 +6,10 @@
   },
   "options": {
     "includeValues": false,
-    "includeValuesFor": []
+    "includeValuesFor": [
+      "Temp",
+      "Vdd"
+    ]
   },
   "limits": {
     "distinctPerField": 10000,

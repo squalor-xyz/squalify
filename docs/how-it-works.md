@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. sq-25 documented and tested the consumer subset of the descriptor (`docs/descriptor.md`, "Consumer subset"); it changes no code and no diagram. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. sq-14 added the header-unit conventions (`HeaderConventionParser`, `UnitTable`): each header name is split into a base name and a unit, and the file reports its dominant convention. sq-17 added the row classes (`RowClassAccumulator`): the data rows are grouped by which columns are filled in, so a table that mixes measurement, setup, error and empty separator rows says so. sq-06 added the fingerprints (`Projection`, `IFingerprintContributor`): four hashes of a value-free projection of the descriptor, and the detect-rule hints (`HintBuilder`, `PortableRegex`): the extension, a structured magic, the header names and regexes that match the stable lines of the file. sq-07 added the values tier: the most common values and the text minimum and maximum of a field (`TopK`), the `--include-values-for` allow-list with its `includeValuesForUnmatched` issue, and `ValuesPolicy`, the one list of value-bearing members that decides what is collected and that the writer checks before it writes. sq-25 documented and tested the consumer subset of the descriptor (`docs/descriptor.md`, "Consumer subset"); it changes no code and no diagram. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -32,7 +32,7 @@ flowchart TD
     B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
     C --> D["4. Profile every field:<br/>types and statistics, and group the rows<br/><small>FieldAccumulator, RowClassAccumulator</small>"]
     D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, HintBuilder, KindRules</small>"]
-    E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
+    E --> F["6. Check the values policy,<br/>then write canonical JSON<br/><small>ValuesPolicy.Verify, DescriptorWriter</small>"]
 ```
 
 *Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines.
@@ -198,7 +198,7 @@ flowchart TD
 
 ## 6. What is always included, and what needs `--include-values`
 
-By default a descriptor describes the **shape** of the data and its statistics, not its contents. Literal text from the file appears only when you ask for it: all of it with `--include-values`, or only named keys and columns with `--include-values-for <name>`.
+By default a descriptor describes the **shape** of the data and its statistics, not its contents. Literal text from the file appears only when you ask for it: all of it with `--include-values`, or only named keys and columns with `--include-values-for <name>` (repeatable). A name is matched whole, ignoring ASCII upper and lower case, against preamble keys, annotation labels, key=value keys and column names, and it opens every one of that name: `--include-values-for lot` opens a preamble key `Lot` and a column `LOT` together. A name that matches nothing is reported as the issue `includeValuesForUnmatched`, so a typo is not silent.
 
 A column with one value for the whole file, such as a serial number, is a special case. Its range would just be that value, so its statistics are opt-in too: the descriptor leaves them out and says `statsWithheld: "constant"`, but still reports the column's length, shapes and distinct count. A column that has one value and otherwise only empty markers counts as one-value, and for numbers and dates "one value" means the same number or date however it is written, so `1`, `1.0` and `01` are one value.
 
@@ -215,7 +215,7 @@ flowchart LR
     subgraph optin["Only with --include-values"]
         direction TB
         O1["Preamble and key=value values"]
-        O2["Most common values, text min/max"]
+        O2["Ten most common values and their counts,<br/>text min/max<br/><small>TopK</small>"]
         O3["Units-row and annotation cells,<br/>comment text"]
         O4["Statistics of one-value columns"]
         O1 ~~~ O2 ~~~ O3 ~~~ O4
@@ -223,7 +223,24 @@ flowchart LR
     always ~~~ optin
 ```
 
-*Source: `Descriptor/Options.cs` (`ProfileOptions`), `Delimited/DelimitedPass.cs` (`DelimitedPass.Allows` decides, field by field and key by key, what may be written), `Fields/FieldAccumulator.cs` (the one-value-column rule). One `ValuesPolicy` that lists every value-bearing member in one place is planned.*
+*Source: `Descriptor/Options.cs` (`ProfileOptions`), `ValuesPolicy.cs` (the list of value-bearing members), `Fields/FieldAccumulator.cs` (the one-value-column rule, top values, text min/max), `Fields/TopK.cs`.*
+
+The most common values are exact while a column has at most 10,000 distinct values (fewer in a very wide file). Past that, a fixed set of 1,000 counters takes over, the output says `approximate: true`, and `maxError` says by how much a listed count can be too high.
+
+Two checks keep values out. Before a profiler keeps a value (a preamble value, an annotation cell, a units cell, a column's common values), it asks the policy whether that key, label or column is opted in, so a value that may not be written is never held in memory. Then, before the writer writes anything, it checks the finished descriptor against the same list, and a value that slipped through stops the run as a bug rather than reaching the file.
+
+```mermaid
+flowchart TD
+    L["List of value-bearing members<br/><small>ValuesPolicy</small>"] --> G["Is this key, label or column<br/>opted in?<br/><small>ValuesGate</small>"]
+    O["The options<br/><small>--include-values, --include-values-for</small>"] --> G
+    G --> C["Profilers keep a value only if it is<br/><small>DelimitedPass, FieldAccumulator</small>"]
+    C --> D["Descriptor"]
+    D --> W["Writer checks every value-bearing member<br/>against the list, and stops on a leak<br/><small>ValuesPolicy.Verify</small>"]
+    L --> W
+    W --> J["JSON"]
+```
+
+*Source: `ValuesPolicy.cs` (`ValuesPolicy`, `ValuesGate`, `Verify`), `Delimited/DelimitedPass.cs`, `Fields/FieldAccumulator.cs`, `Json/DescriptorWriter.cs`.*
 
 ## 7. Fingerprints and hints
 

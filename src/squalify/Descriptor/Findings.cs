@@ -9,11 +9,13 @@ namespace squalor.squalify;
 /// <param name="Count">Occurrences.</param>
 /// <param name="FirstLines">First 1-based lines where the issue occurs.</param>
 /// <param name="Offsets">First byte offsets where the issue occurs.</param>
+/// <param name="Names">Names the issue is about, for issues that concern the command line rather than the data (<c>includeValuesForUnmatched</c>); sorted ordinally by the producer.</param>
 public sealed record Issue(
     string Code,
     long Count,
     IReadOnlyList<long>? FirstLines = null,
-    IReadOnlyList<long>? Offsets = null);
+    IReadOnlyList<long>? Offsets = null,
+    IReadOnlyList<string>? Names = null);
 
 /// <summary>An entry of <c>evidence[]</c>: one inference and the candidates considered.</summary>
 /// <param name="Stage">The pipeline stage.</param>
@@ -45,7 +47,7 @@ public sealed record Candidate(string Value, double Score, string Reason);
 public sealed record Hints(
     string? Extension,
     MagicHint? Magic,
-    IReadOnlyList<StableLine> StableLines,
+    [property: ValueBearing] IReadOnlyList<StableLine> StableLines,
     IReadOnlyList<string>? HeaderFields,
     IReadOnlyList<string>? HeaderPrefix,
     IReadOnlyList<long>? NonNullFields,
@@ -66,7 +68,8 @@ public sealed record MagicHint(string Name, long Offset, string Hex);
 /// <summary>A stable line and the regex that matches it.</summary>
 /// <param name="Line">The 0-based line number.</param>
 /// <param name="Regex">The anchored, portable regex.</param>
-public sealed record StableLine(long Line, string Regex);
+/// <param name="CarriesValue">True when the regex is built from a data value (a preamble comment or text line), so it is values tier. Not written.</param>
+public sealed record StableLine(long Line, string Regex, bool CarriesValue = false);
 
 /// <summary>STDF hints.</summary>
 /// <param name="CpuType">The CPU_TYPE byte.</param>

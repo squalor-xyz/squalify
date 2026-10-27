@@ -97,7 +97,8 @@ internal static class HintBuilder
                     Add(result, source, PortableRegex.Key(source.Key ?? string.Empty));
                     break;
                 default:
-                    Add(result, source, PortableRegex.Line(source.Text));
+                    // A comment or text line is a data value: its regex is values tier (see ValuesPolicy.StableLineText).
+                    Add(result, source, PortableRegex.Line(source.Text), carriesValue: true);
                     break;
             }
         }
@@ -106,11 +107,11 @@ internal static class HintBuilder
         return result;
     }
 
-    private static void Add(List<StableLine> result, StableLineSource source, string regex)
+    private static void Add(List<StableLine> result, StableLineSource source, string regex, bool carriesValue = false)
     {
         if (!HasStrayCharacter(regex) && PortableRegex.MatchesBoth(regex, source.Text))
         {
-            result.Add(new StableLine(source.Line - 1, regex));
+            result.Add(new StableLine(source.Line - 1, regex, carriesValue));
         }
     }
 }
