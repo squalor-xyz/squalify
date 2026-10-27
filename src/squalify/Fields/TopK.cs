@@ -31,6 +31,7 @@ internal sealed class TopK
     private readonly int _counters;
     private Dictionary<ulong, Counter> _map = [];
     private SortedSet<Counter>? _byCount;
+    private long _textChars;
 
     /// <summary>Creates the counter set of a field.</summary>
     /// <param name="exactCap">Distinct values counted exactly; the next new value switches to Space-Saving.</param>
@@ -42,6 +43,13 @@ internal sealed class TopK
         _exactCap = exactCap;
         _counters = counters;
     }
+
+    /// <summary>
+    /// An estimate of the memory held, in bytes: each counter (the object, its dictionary entry and its node in the
+    /// ordered set) and the UTF-16 text of its value. Up to 1,000 counters are held past the exact cap, whatever the
+    /// cap is.
+    /// </summary>
+    public long EstimatedBytes => 128 + (_map.Count * 220L) + (_textChars * 2);
 
     /// <summary>Counts one occurrence of a value.</summary>
     /// <param name="hash">The <see cref="XxHash64"/> of the value's UTF-8 bytes.</param>
@@ -67,6 +75,7 @@ internal sealed class TopK
         if (_byCount is null)
         {
             _map[hash] = new Counter(hash, value.ToString(), 1, 0);
+            _textChars += value.Length;
             if (_map.Count > _exactCap)
             {
                 StartSpaceSaving();
@@ -78,12 +87,14 @@ internal sealed class TopK
         if (_map.Count < _counters)
         {
             Insert(new Counter(hash, value.ToString(), 1, 0));
+            _textChars += value.Length;
             return;
         }
 
         var lowest = _byCount.Min!;
         _byCount.Remove(lowest);
         _map.Remove(lowest.Hash);
+        _textChars += value.Length - lowest.Value.Length;
         Insert(new Counter(hash, value.ToString(), lowest.Count + 1, lowest.Count));
     }
 
@@ -119,9 +130,11 @@ internal sealed class TopK
         var kept = Ranked(_map.Values).Take(_counters).ToArray();
         _map = new Dictionary<ulong, Counter>(kept.Length);
         _byCount = new SortedSet<Counter>(CounterOrder.Instance);
+        _textChars = 0;
         foreach (var counter in kept)
         {
             Insert(counter);
+            _textChars += counter.Value.Length;
         }
     }
 

@@ -27,6 +27,34 @@ internal static class Golden
         Verify(fixtureRelPath, descriptor, FixturesRoot(update), update);
     }
 
+    /// <summary>Verifies (or, with the update variable set, rewrites) a golden text file under the fixtures, byte for byte.</summary>
+    /// <param name="fixtureRelPath">The path of the golden under <c>fixtures</c>, with <c>/</c> separators.</param>
+    /// <param name="actual">The text, with <c>\n</c> line ends.</param>
+    public static void VerifyText(string fixtureRelPath, string actual)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(fixtureRelPath);
+        var update = Environment.GetEnvironmentVariable(UpdateVariable) == "1";
+        var path = Path.Combine(FixturesRoot(update), fixtureRelPath.Replace('/', Path.DirectorySeparatorChar));
+        var bytes = new UTF8Encoding(false).GetBytes(actual);
+        if (update)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllBytes(path, bytes);
+            return;
+        }
+
+        if (!File.Exists(path))
+        {
+            throw new XunitException($"Golden file is missing: {path}\nSet {UpdateVariable}=1 to create it, then review it.");
+        }
+
+        var expected = File.ReadAllBytes(path);
+        if (!expected.AsSpan().SequenceEqual(bytes))
+        {
+            throw new XunitException($"Golden mismatch: {path}\nSet {UpdateVariable}=1 to rewrite it if the change is intended.\n{UnifiedDiff(Decode(expected), actual)}");
+        }
+    }
+
     /// <summary>Verifies or rewrites a golden under an explicit root. Used by the harness's own tests.</summary>
     public static void Verify(string fixtureRelPath, Descriptor descriptor, string root, bool update)
     {

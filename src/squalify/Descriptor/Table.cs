@@ -109,29 +109,28 @@ public sealed record DominantType(string Type, double Share);
 /// <param name="Padded">Padded values.</param>
 public sealed record FieldFlags(long LeadingZero, long CommaDecimalLike, long Padded);
 
-/// <summary>A distinct count, exact, approximate or past the cap.</summary>
-/// <param name="Value">The count, or null when it exceeds the cap.</param>
-/// <param name="Approximate">True or false when the count is exact or sketched; null past the cap, before sq-11.</param>
-/// <param name="ErrorBound">Relative error bound of a sketched count.</param>
-/// <param name="Exceeds">The cap that was exceeded, when there is no count.</param>
-public sealed record DistinctInfo(long? Value, bool? Approximate = null, double? ErrorBound = null, long? Exceeds = null);
+/// <summary>A distinct count, exact or from a HyperLogLog sketch.</summary>
+/// <param name="Value">The count.</param>
+/// <param name="Approximate">False when the count is exact, true when it comes from the sketch.</param>
+/// <param name="RelativeStdError">The relative standard error (one sigma) of a sketched count, 1.04 / sqrt(m); written only when <paramref name="Approximate"/> is true.</param>
+public sealed record DistinctInfo(long Value, bool Approximate, double? RelativeStdError = null);
 
 /// <summary>Numeric statistics of an <c>int</c> or <c>float</c> field.</summary>
 /// <param name="Min">Minimum.</param>
 /// <param name="Max">Maximum.</param>
 /// <param name="Mean">Mean; null when the running computation overflowed to a non-finite value.</param>
 /// <param name="Stddev">Sample standard deviation; null for fewer than two values or when the computation overflowed.</param>
-/// <param name="Quantiles">Quantiles; null when the field has more values than the exact cap (see <paramref name="Exceeds"/>).</param>
-/// <param name="Approximate">True when the quantiles come from a sketch, false when they are exact, null when there are none.</param>
-/// <param name="Exceeds">The quantile cap that was exceeded, when there are no quantiles; written only then.</param>
+/// <param name="Quantiles">Quantiles: exact up to the cap, from a Greenwald-Khanna sketch past it.</param>
+/// <param name="Approximate">True when the quantiles come from a sketch, false when they are exact.</param>
+/// <param name="RankError">The worst-case rank error of the sketched quantiles as a fraction of the value count (epsilon); null, and not written, unless <paramref name="Approximate"/> is true.</param>
 public sealed record NumericStats(
     DescriptorNumber Min,
     DescriptorNumber Max,
     double? Mean,
     double? Stddev,
-    Quantiles<DescriptorNumber>? Quantiles,
-    bool? Approximate,
-    long? Exceeds = null);
+    Quantiles<DescriptorNumber> Quantiles,
+    bool Approximate,
+    double? RankError = null);
 
 /// <summary>The fixed quantile set p01, p05, p25, p50, p75, p95 and p99.</summary>
 /// <typeparam name="T">The value type.</typeparam>
@@ -150,8 +149,9 @@ public sealed record Quantiles<T>(T P01, T P05, T P25, T P50, T P75, T P95, T P9
 /// <param name="Clock"><c>12h</c> or <c>24h</c>, or null for dates.</param>
 /// <param name="Min">Minimum as ISO 8601, or null when ambiguous.</param>
 /// <param name="Max">Maximum as ISO 8601, or null when ambiguous.</param>
-/// <param name="Quantiles">Quantiles as ISO 8601, or null when ambiguous or past the exact cap.</param>
-/// <param name="Exceeds">The quantile cap that was exceeded, when there are no quantiles for that reason; written only then.</param>
+/// <param name="Quantiles">Quantiles as ISO 8601, or null when ambiguous.</param>
+/// <param name="Approximate">True when the quantiles come from a sketch, false when they are exact, null when there are none.</param>
+/// <param name="RankError">The worst-case rank error of the sketched quantiles as a fraction of the value count (epsilon); null, and not written, unless <paramref name="Approximate"/> is true.</param>
 public sealed record TemporalStats(
     IReadOnlyList<string> Orders,
     bool Ambiguous,
@@ -159,7 +159,8 @@ public sealed record TemporalStats(
     string? Min,
     string? Max,
     Quantiles<string>? Quantiles,
-    long? Exceeds = null);
+    bool? Approximate = null,
+    double? RankError = null);
 
 /// <summary>Length statistics, in characters.</summary>
 /// <param name="Min">Shortest value.</param>

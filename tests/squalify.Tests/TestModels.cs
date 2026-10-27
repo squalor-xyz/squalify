@@ -6,6 +6,13 @@ namespace squalor.squalify.Tests;
 /// <summary>Descriptor models shared by the writer and golden tests.</summary>
 internal static class TestModels
 {
+    /// <summary>Quantiles that are all one integer, for tests that need a valid numeric member.</summary>
+    public static Quantiles<DescriptorNumber> IntQuantiles(long value)
+    {
+        var n = DescriptorNumber.Int(value);
+        return new Quantiles<DescriptorNumber>(n, n, n, n, n, n, n);
+    }
+
     /// <summary>A descriptor with only the always-present members, for tests that vary one member.</summary>
     public static Descriptor Minimal(IReadOnlyList<FieldProfile>? fields = null)
     {
@@ -51,7 +58,7 @@ internal static class TestModels
 
     public static Limits StandardLimits()
     {
-        return new Limits(10000, 100000, 64, 1000, 1000, 65536, 100000, 64, new CharsetTolerance(8, 65536), 10000, new Budget(10000000, 2000000), 1, 1);
+        return new Limits(10000, 100000, 64, 53312, 1000, 1000, 65536, 100000, 64, new CharsetTolerance(8, 65536), 10000, new Budget(10000000, 2000000, 16000000), 1, 1);
     }
 
     public const string Sha256Empty = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -125,7 +132,8 @@ internal static class TestModels
                     "2026-01-01T13:53:19",
                     "2026-01-01T20:49:59",
                     "2026-01-02T02:23:19",
-                    "2026-01-02T03:46:39")));
+                    "2026-01-02T03:46:39"),
+                false));
 
         var f2 = new FieldProfile(
             Index: 2,
@@ -139,7 +147,7 @@ internal static class TestModels
             NullsExcludingAllNullRows: 0,
             NullTokens: CountMap.Empty,
             Flags: new FieldFlags(0, 0, 0),
-            Distinct: new DistinctInfo(null, Exceeds: 10000),
+            Distinct: new DistinctInfo(9_987, true, 0.008125),
             Length: new LengthStats(4, 4, 4),
             Shapes: [new Shape("A{3}9", 10000)],
             Monotonic: "none",

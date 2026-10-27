@@ -11,10 +11,14 @@ namespace squalor.squalify;
 /// <param name="ShapesPerField">Shape masks kept per field.</param>
 /// <param name="RowClasses">Row classes kept, with exact counts; the records of later classes are counted as truncated.</param>
 /// <param name="Budget">The global budget of exact values.</param>
-internal sealed record ProfileLimits(long DistinctPerField, long QuantilePerField, long ShapesPerField, long RowClasses, Budget Budget)
+/// <param name="ShapeCharsPerField">Characters of shape mask text kept per field; the default is 64 masks of the longest possible length.</param>
+internal sealed record ProfileLimits(long DistinctPerField, long QuantilePerField, long ShapesPerField, long RowClasses, Budget Budget, long ShapeCharsPerField = ProfileLimits.MaxShapeChars)
 {
+    /// <summary>The characters of 64 shape masks of the longest possible length: a field cannot use more than this with the default mask cap.</summary>
+    public const long MaxShapeChars = 64 * ShapeMask.MaxLength;
+
     /// <summary>The caps of this tool version, as in <c>docs/descriptor.md</c>.</summary>
-    public static ProfileLimits Default { get; } = new(10_000, 100_000, 64, 64, new Budget(10_000_000, 2_000_000));
+    public static ProfileLimits Default { get; } = new(10_000, 100_000, 64, 64, new Budget(10_000_000, 2_000_000, 16_000_000));
 
     /// <summary>Applies these caps to a limits record, leaving every other member as it is.</summary>
     /// <param name="limits">The limits to start from.</param>
@@ -27,6 +31,7 @@ internal sealed record ProfileLimits(long DistinctPerField, long QuantilePerFiel
             DistinctPerField = DistinctPerField,
             QuantilePerField = QuantilePerField,
             ShapesPerField = ShapesPerField,
+            ShapeCharsPerField = ShapeCharsPerField,
             RowClasses = RowClasses,
             Budget = Budget,
         };

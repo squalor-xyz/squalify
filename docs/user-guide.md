@@ -57,7 +57,7 @@ A complete program is in [Examples](examples.md#use-the-library-to-pick-an-impor
 | Key=value / INI | Planned | Profiled as text for now. |
 | STDF V4 | Planned | Profiled as binary, with the `stdf-le` or `stdf-be` magic hint, for now. |
 
-Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint. Also planned: sketches for columns past the exact caps (see [Limits](#limits-and-large-files)), and the `kind` label beyond `text`, `binary` and `empty`. Malformed content is described, not rejected: problems become `issues` and the descriptor is still written. The issue codes are listed in [descriptor.md](descriptor.md#issues).
+Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint. Also planned: the `kind` label beyond `text`, `binary` and `empty`. Malformed content is described, not rejected: problems become `issues` and the descriptor is still written. The issue codes are listed in [descriptor.md](descriptor.md#issues).
 
 ## Values policy
 
@@ -90,12 +90,12 @@ The whole file is streamed in bounded memory and nothing is sampled: counts, min
 |---|---|
 | Distinct values per column | 10,000 |
 | Quantiles per column | 100,000 values |
-| Shape masks per column | 64 |
+| Shape masks per column | 64 masks, and 53,312 characters of mask text |
 | Regions | 1,000 |
 | Header-detection sample | 1,000 records |
 | Row classes | 64 |
 
-A global budget shrinks the first two caps for very wide tables (100 columns or fewer keep the full caps); `limits.distinctPerField` and `limits.quantilePerField` show the effective values. Past a cap the descriptor says so (`distinct.exceeds`, `quantiles: null` with `exceeds`) rather than guessing. Approximate sketches that go beyond the caps are planned. See [design.md](design.md#bounded-memory-and-sketches).
+A global budget shrinks the first two caps, and the mask text, for very wide tables (100 columns or fewer keep the full caps); `limits.distinctPerField`, `limits.quantilePerField` and `limits.shapeCharsPerField` show the effective values. Past a cap a deterministic sketch takes over and the descriptor says so: `distinct` is a HyperLogLog estimate with `approximate: true` and `relativeStdError` (0.008125, one standard error), and `numeric` and `temporal` quantiles come from a Greenwald-Khanna summary with `approximate: true` and `rankError` (a sibling of `quantiles` and `approximate`, 0.001, the worst-case rank error as a fraction of the values). Both members are absent while the value is exact. `min`, `max`, `mean` and `stddev` do not depend on the caps. The sketches have a fixed size per column, so a very wide table pays for them in memory. See [design.md](design.md#bounded-memory-and-sketches).
 
 ## Troubleshooting
 

@@ -35,6 +35,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     // The run.
     private readonly List<SampleRecord> _sample = [];
+    private long _sampleBytes;
+    private long _pendingBytes;
     private bool _decided;
     private char _decimal = '.';
     private HeaderDecision? _decision;
@@ -205,6 +207,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         var comment = record.IsComment;
         if (!_decided)
         {
+            _sampleBytes += SampleBytes(record.Cells);
             _sample.Add(ToSample(record, comment));
             if (_sample.Count >= _context.Limits.HeaderSample)
             {
@@ -252,6 +255,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         ResolvePending();
+        SampleMemory();
         var counter = structure.Counter;
         var issues = new List<Issue>();
         if (counter.MixedLineEndings() is { } mixed)
@@ -513,6 +517,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private void Decide()
     {
         _decided = true;
+        SampleMemory();
         long commaLike = 0;
         long dotLike = 0;
         foreach (var record in _sample)
@@ -607,6 +612,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         _sample.Clear();
+        _sampleBytes = 0;
+        SampleMemory();
         foreach (var record in leftover ?? [])
         {
             Stream(record);
@@ -803,11 +810,14 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         if (record.Line < pending.Candidate.HeaderLine)
         {
             // A record of the gap is kept as what the preamble needs of it, not as cells.
-            pending.Gap.Add(new GapRecord(record.Line, record.StartByte, record.EndLine, record.FieldCount, record.IsComment, record.GapClass ?? new LineClassification(LineKind.Text, null, null)));
+            var gapClass = record.GapClass ?? new LineClassification(LineKind.Text, null, null);
+            pending.Gap.Add(new GapRecord(record.Line, record.StartByte, record.EndLine, record.FieldCount, record.IsComment, gapClass));
+            _pendingBytes += 160 + (2L * ((gapClass.Key?.Length ?? 0) + (gapClass.Value?.Length ?? 0)));
             return;
         }
 
         pending.Sample.Add(record);
+        _pendingBytes += SampleBytes(record.Cells);
         if (pending.Sample.Count >= Math.Min(BlockDetector.SampleRecords, pending.Candidate.Records))
         {
             ResolvePending();
@@ -823,7 +833,9 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             return;
         }
 
+        SampleMemory();
         _pending = null;
+        _pendingBytes = 0;
         _nextCandidate++;
         HeaderDetector.Classify(pending.Sample, _k, _decimal);
         var header = -1;
@@ -933,6 +945,70 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
     }
 
+    // The header sample holds the cell texts, their spans and (once decided) a vote and a null token for each cell.
+    private static long SampleBytes(IReadOnlyList<string> cells)
+    {
+        long bytes = 160;
+        foreach (var cell in cells)
+        {
+            bytes += 22 + (2L * cell.Length) + 8 + 16 + 12;
+        }
+
+        return bytes;
+    }
+
+    /// <summary>
+    /// An estimate of the memory held while the file streams: the field accumulators, the row classes, the header
+    /// sample, the state of the repeated blocks (the candidates, the open candidate's held records, the preamble, keys and
+    /// annotation of each block) and a fixed share for the lists of lines; see <see cref="MemoryBudget.CeilingBytes(long)"/>.
+    /// </summary>
+    internal long EstimatedBytes
+    {
+        get
+        {
+            var bytes = 65_536 + _sampleBytes + _pendingBytes + _rowClasses.EstimatedBytes + PreambleBytes(_preamble) + (_k * 16L);
+
+            // The candidates (one object of seven numbers each) and the gap-blank counts, kept from the scoring pass; the
+            // names of the first header, kept to compare with later blocks.
+            bytes += _candidates.Count * 112L;
+            bytes += _gapBlanks.Length * 8L;
+            bytes += _firstNames is null ? 0 : _k * 64L;
+            foreach (var block in _later)
+            {
+                bytes += 256 + PreambleBytes(block.Preamble) + (block.Annotation.Count * 512L);
+            }
+
+            foreach (var accumulator in _accumulators)
+            {
+                bytes += accumulator.EstimatedBytes;
+            }
+
+            return bytes;
+        }
+    }
+
+    // A preamble keeps a key and a value slot per key line (the text only when it may be written).
+    private static long PreambleBytes(PreambleData preamble)
+    {
+        var bytes = preamble.Keys.Count * 100L;
+        foreach (var key in preamble.Keys)
+        {
+            bytes += 2L * key.Length;
+        }
+
+        foreach (var value in preamble.Values)
+        {
+            bytes += value is null ? 0 : 22 + (2L * value.Length);
+        }
+
+        return bytes;
+    }
+
+    private void SampleMemory()
+    {
+        _context.Trace?.Sample(EstimatedBytes);
+    }
+
     private void AddComment(long line)
     {
         _commentsInData++;
@@ -977,6 +1053,10 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         _rowClasses.Add(_nullMask, line);
+        if ((_rows & 1023) == 0)
+        {
+            SampleMemory();
+        }
     }
 
     private AnnotationRowSource BuildAnnotation(SampleRecord record)

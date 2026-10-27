@@ -12,6 +12,7 @@
     "distinctPerField": 10000,
     "quantilePerField": 100000,
     "shapesPerField": 64,
+    "shapeCharsPerField": 53312,
     "regions": 1000,
     "headerSample": 1000,
     "runawayQuote": 65536,
@@ -24,7 +25,8 @@
     "stdfTests": 10000,
     "budget": {
       "quantileValues": 10000000,
-      "distinctValues": 2000000
+      "distinctValues": 2000000,
+      "shapeChars": 16000000
     },
     "nullTokens": 1,
     "unitTable": 1
