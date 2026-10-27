@@ -977,7 +977,7 @@
       "id": "sq-07",
       "title": "squalify must include literal values only with --include-values, and never leak them otherwise",
       "short_title": "Values tier",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-05"
@@ -1072,10 +1072,7 @@
           "stale_after": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-27T18:01:09Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
