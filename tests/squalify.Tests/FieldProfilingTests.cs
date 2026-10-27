@@ -901,9 +901,11 @@ public sealed class FieldProfilingTests
     }
 
     [Fact]
-    public void Fields_MembersThatSq14Owns_StayNull()
+    public void Fields_NameParts_AreSetByTheDelimitedPass_NotByTheAccumulator()
     {
-        var d = ProfileText(Column("1", "2"));
-        Assert.All(d.Table!.Fields, static f => Assert.Null(f.NameParts));
+        Assert.Null(Build(Accumulate(["1", "2"])).NameParts);
+        var d = ProfileText("Freq(MHz),Pout(dBm)\n700,1.5\n800,2.5\n");
+        Assert.All(d.Table!.Fields, static f => Assert.NotNull(f.NameParts));
+        Assert.Equal("MHz", d.Table.Fields[0].NameParts!.Unit);
     }
 }

@@ -60,7 +60,7 @@ public sealed record Limits(
         StdfTests: 10_000,
         Budget: ProfileLimits.Default.Budget,
         NullTokens: ValueClassifier.NullVocabularyVersion,
-        UnitTable: 1);
+        UnitTable: squalor.squalify.UnitTable.Version);
 }
 
 /// <summary>Tolerated stray invalid UTF-8 sequences.</summary>

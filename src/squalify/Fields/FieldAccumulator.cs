@@ -252,7 +252,7 @@ internal sealed class FieldAccumulator
         return new Evidence("type", "dateOrderConflict", "string", candidates);
     }
 
-    /// <summary>Builds the field profile. <c>nameParts</c> is left null (sq-14), and so are the values-tier members.</summary>
+    /// <summary>Builds the field profile. <c>nameParts</c> is left null (the delimited pass sets it from the header, sq-14), and so are the values-tier members.</summary>
     /// <param name="index">The column index.</param>
     /// <param name="name">The header name, or null.</param>
     /// <param name="nameHex">The hex of the original name bytes, or null.</param>

@@ -8,7 +8,7 @@ namespace squalor.squalify;
 public static class Profiler
 {
     // The pipeline order of the evidence stages: evidence is sorted by stage, then by topic. Later slices append stages.
-    private static readonly string[] StageOrder = ["encoding", "format", "dialect", "header", "type"];
+    private static readonly string[] StageOrder = ["encoding", "format", "dialect", "header", "unit", "type"];
 
     /// <summary>Profiles a source: the byte pass, the format choice, then the winning format profiler.</summary>
     /// <param name="source">The source.</param>
@@ -104,7 +104,7 @@ public static class Profiler
                 FieldCount: null,
                 DataStartLine: null,
                 Delimiter: null,
-                HeaderConvention: null,
+                HeaderConvention: profile.Layout.HeaderConvention?.Dominant,
                 ParquetColumns: null,
                 Stdf: null,
                 FileNameShape: FileNameShape.Of(source.Name)),
