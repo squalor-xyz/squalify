@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Five slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). These slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. sq-04 added the delimited-text profiler: delimiter and quoting, preamble, annotation, header, units, data and footer regions, padding, the decimal separator and per-field type votes. sq-05 added the field accumulators (`FieldAccumulator`), which turn those votes into full field profiles: the type, null tokens, number and date statistics, lengths, shape masks and the constant and unique flags, in bounded memory. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -35,7 +35,7 @@ flowchart TD
     E --> F["6. Write canonical JSON<br/><small>DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`; `Fields/`, `Fingerprint/`, `Units/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now, step 4 is limited to the type votes that the delimited profile counts (the other field statistics come later), and the fingerprint and kind label hold fixed placeholder values until their slices land. For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`; `Fields/FieldAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/`, `Units/`, `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now, step 4 is built for delimited text (the other formats will feed the same field accumulators), and the fingerprint and kind label hold fixed placeholder values until their slices land. The header-unit conventions and the row classes are still to come. For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won.
 
 ## 3. Choosing a format
 
@@ -93,7 +93,7 @@ flowchart TD
     E --> Sc["Score = filled × not numbers × different<br/>× (0.5 + 0.5 × contrast)<br/><small>HeaderDetector.Evaluate</small>"]
     Sc --> H["Best score wins<br/>a tie goes to the earlier row<br/><small>HeaderDetector.Detect</small>"]
     H --> A["Rows above it:<br/>annotation rows<br/><small>DelimitedPass</small>"]
-    H --> U["Row below it is a units row when every non-empty cell<br/>disagrees with its column type<br/><small>empty cells do not count</small>"]
+    H --> U["Row below it is a units row when every non-empty cell disagrees with its column type,<br/>is at most 16 characters and sits in a column that is not text<br/><small>HeaderDetector.IsUnitsRow; empty cells do not count</small>"]
 ```
 
 *Source: `Delimited/DelimitedPass.cs`, `Delimited/HeaderDetector.cs`.* The contrast is the share of typed columns (columns that are not text) that the candidate disagrees with, so a row of units scores below the header that sits under it. A header with a blank or repeated name is still taken when nothing else qualifies, with an issue. A table made only of text takes its first row as the header and says so in the evidence. A first data row that is all `NULL` is never taken for a units row, so the interleaved separator rows of a DangerTest export do no harm. A comment line (`#`, `!`, `//`) is free text: it is never a header, an annotation row or a label, wherever it sits. The evidence lists the eligible candidates and the winner, and one summary line that counts the rest by reason.
@@ -112,15 +112,15 @@ flowchart TD
 
 *Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`; `Delimited/BlockDetector.cs` (planned).*
 
-squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer. Every data row is read a second time to count the type of each field, so the descriptor already says which fields are numbers; the other field statistics come later.
+squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer. Every data row is read a second time and handed to the field accumulators, one per column, so the descriptor says what each field holds; section 5 shows what they keep.
 
 ## 5. Profiling one field
 
-Each value is classified on its own: empty, true/false, whole number, decimal number, date, time or text. A field's type is the narrowest type that fits **every** non-empty value. Empty markers such as `NA`, `NA.` or `-` come from a fixed, versioned list that is never learned from the data, and the classifier says which marker it matched, so a consumer can decide which markers it treats as empty. Statistics are exact up to a cap. Past the cap they switch to a fixed approximation that gives the same answer every time, and the descriptor marks them as approximate.
+Each value is classified on its own: empty, true/false, whole number, decimal number, date, time or text. A field's type is the narrowest type that fits **every** non-empty value. Empty markers such as `NA`, `NA.` or `-` come from a fixed, versioned list that is never learned from the data, and the classifier says which marker it matched, so a consumer can decide which markers it treats as empty. The descriptor counts the markers by their entry in that list, so `NULL`, `Null` and `null` are all counted as `null`.
 
 Dates never assume a locale. `6/5/2026` could be June 5 or May 6, so squalify reports both possible orders and marks the field ambiguous. It then leaves out the date range and whether the dates rise or fall, because both would assume one order. The same goes for the clock: a time with `AM` or `PM` is a 12-hour time, and a two-digit year such as `6/5/26` stays text, because squalify would have to guess the century.
 
-The classifier looks at one value at a time and takes the first test that fits, in this order. Two flags ride along: *leading zero* only on whole and decimal numbers, and *looks like a decimal comma* on a decimal number or text. It only reads the value and the file's decimal separator, so it gives the same answer on every machine and in every language setting.
+The classifier looks at one value at a time and takes the first test that fits, in this order. Two flags ride along: *leading zero* only on whole and decimal numbers, and *looks like a decimal comma* on a decimal number or text. It also hands on what it parsed (the number, or the date and time parts), so nothing parses the text a second time. It only reads the value and the file's decimal separator, so it gives the same answer on every machine and in every language setting.
 
 ```mermaid
 flowchart TD
@@ -138,23 +138,69 @@ flowchart TD
 
 *Source: `Values/ValueClassifier.cs`, `Values/DateOrders.cs`, `Values/ValueClass.cs`.*
 
+Every column has its own **field accumulator**. It receives the column's values in file order, in one pass, and keeps only bounded summaries, so a file can be far larger than memory. The delimited reader feeds it the text of each cell; other formats will feed it typed values through the same class, so the statistics match whatever the format.
+
 ```mermaid
-flowchart LR
-    V["One value<br/>'12.5'"] --> C["Classify<br/><small>ValueClassifier</small>"]
-    C --> T["Join into the field's type<br/><small>int → float → string;<br/>date orders intersect</small>"]
-    C --> St["Update statistics<br/><small>count, min/max, mean, shapes</small>"]
-    St --> X{"Over the cap?"}
-    X -- "no" --> Exact["Exact distinct count and quantiles"]
-    X -- "yes" --> Sk["Sketches: HyperLogLog,<br/>Greenwald-Khanna<br/><small>marked approximate</small>"]
+flowchart TD
+    V["One cell, as written"] --> C["Trim and classify<br/><small>FieldAccumulator.AddText, ValueClassifier.Classify</small>"]
+    C -- "empty marker" --> N["Count the marker<br/><small>nullTokens, by entry in the empty list</small>"]
+    C -- "a value" --> U["Count its vote and join the field's type<br/><small>TypeLattice.Join</small>"]
+    U --> A["Every value: length, shape mask, flags,<br/>distinct count, same-as-the-first, repeats<br/><small>FieldAccumulator.AddValue</small>"]
+    U --> Nu["Numbers: min, max, mean, spread,<br/>rising or falling, quantiles<br/><small>FieldAccumulator.AddNumeric,<br/>FieldAccumulator.BuildNumeric</small>"]
+    U --> Te["Dates and times: possible orders, clock,<br/>range, rising or falling,<br/>quantiles<br/><small>FieldAccumulator.AddTemporalValue,<br/>FieldAccumulator.BuildTemporal</small>"]
 ```
 
-*Source: `Values/ValueClassifier.cs`, `Fields/FieldAccumulator.cs` (planned), `Sketches/` (planned).*
+*Source: `Fields/FieldAccumulator.cs`, `Fields/TypeLattice.cs`, `Fields/TemporalMath.cs`, `Delimited/DelimitedPass.cs` (the hook is `DelimitedPass.ProcessData`).*
+
+A field's type is the join of what its values vote for. Whole numbers join with decimal numbers, a date joins with a date and time, and any other mix is text. A value that is empty does not vote.
+
+```mermaid
+flowchart LR
+    E["No value yet<br/><small>empty</small>"] --> Bo["true / false<br/><small>bool</small>"]
+    E --> I["Whole number<br/><small>int</small>"] --> Fl["Decimal number<br/><small>float</small>"]
+    E --> Da["Date<br/><small>date</small>"] --> Dt["Date and time<br/><small>datetime</small>"]
+    E --> Ti["Time<br/><small>time</small>"]
+    Bo -. "any other mix" .-> St["Text<br/><small>string</small>"]
+    Fl -. "any other mix" .-> St
+    Dt -. "any other mix" .-> St
+    Ti -. "any other mix" .-> St
+```
+
+*Source: `Fields/TypeLattice.cs` (the join is `TypeLattice.Join`).*
+
+Dates are the one place where the type can depend on more than the votes. Each date allows some field orders, and the field keeps the orders that every one of its dates allows. The votes are still reported as they were counted.
+
+```mermaid
+flowchart TD
+    D["Each date allows some orders<br/><small>6/5/2026: day-month or month-day</small>"] --> I["The field keeps the orders every date allows<br/><small>FieldAccumulator, DateOrders</small>"]
+    I --> One{"How many are left?"}
+    One -- "one" --> Ok["Range, rising or falling, and quantiles are written"]
+    One -- "several" --> Amb["Ambiguous: range, rising or falling<br/>and quantiles are null"]
+    One -- "none" --> Str["The field becomes text, and the evidence says why<br/><small>type / dateOrderConflict</small>"]
+```
+
+*Source: `Fields/FieldAccumulator.cs`, `Values/DateOrders.cs`, `Fields/TemporalMath.cs`.*
+
+Every value of a field is also reduced to a **shape mask**: `9` for a digit, `A` for an upper-case letter, `a` for a lower-case letter, punctuation and spaces kept as they are, and `?` for anything that is not plain ASCII (and for curly braces, which the run counts use). A run of two or more is written with a count, so `Lot-A12` is `Aa{2}-A9{2}`. The masks show how a field is written without showing what is in it. A field keeps at most 64 masks and counts the rest as `other`. File names use the same masks.
+
+Some facts about a field are cheap to keep exactly, and some are not. Counts, the minimum and maximum, the mean and the spread take constant memory. The distinct count and the quantiles need the values themselves, so they are exact only up to a cap (10,000 distinct values and 100,000 values per field). A global budget keeps wide files bounded: each field gets the smaller of its cap and its share of the budget, so a file of 2,000 columns gets 5,000 quantile values and 1,000 distinct values per column, and `limits` in the descriptor records the caps in effect. Past a cap, the distinct count and the quantiles are reported as exceeded until sketches replace them.
+
+```mermaid
+flowchart TD
+    B["Global budget: 10,000,000 quantile values and 2,000,000 distinct values<br/><small>Limits.Budget</small>"] --> P["Per field: the smaller of the cap and the budget<br/>divided by the number of fields<br/><small>MemoryBudget.Effective</small>"]
+    P --> X{"More values than the cap?"}
+    X -- "no" --> Exact["Exact distinct count and quantiles"]
+    X -- "yes" --> Over["Distinct count and quantiles are reported as exceeded<br/>(min, max, mean and spread are not affected)<br/><small>distinct.exceeds, numeric.exceeds, temporal.exceeds</small>"]
+    Over -. "later" .-> Sk["Sketches replace them: HyperLogLog,<br/>Greenwald-Khanna, marked approximate<br/><small>Sketches/ (planned)</small>"]
+```
+
+*Source: `Fields/MemoryBudget.cs`, `Fields/ProfileLimits.cs`, `Fields/FieldAccumulator.cs`, `Descriptor/Options.cs`; `Sketches/` (planned).*
 
 ## 6. What is always included, and what needs `--include-values`
 
 By default a descriptor describes the **shape** of the data and its statistics, not its contents. Literal text from the file appears only when you ask for it: all of it with `--include-values`, or only named keys and columns with `--include-values-for <name>`.
 
-A column with one value for the whole file, such as a serial number, is a special case. Its range would just be that value, so its statistics are opt-in too.
+A column with one value for the whole file, such as a serial number, is a special case. Its range would just be that value, so its statistics are opt-in too: the descriptor leaves them out and says `statsWithheld: "constant"`, but still reports the column's length, shapes and distinct count. A column that has one value and otherwise only empty markers counts as one-value, and for numbers and dates "one value" means the same number or date however it is written, so `1`, `1.0` and `01` are one value.
 
 ```mermaid
 flowchart LR
@@ -177,7 +223,7 @@ flowchart LR
     always ~~~ optin
 ```
 
-*Source: `ValuesPolicy.cs` (planned).*
+*Source: `Descriptor/Options.cs` (`ProfileOptions`), `Delimited/DelimitedPass.cs` (`DelimitedPass.Allows` decides, field by field and key by key, what may be written), `Fields/FieldAccumulator.cs` (the one-value-column rule). One `ValuesPolicy` that lists every value-bearing member in one place is planned.*
 
 ## 7. Fingerprints
 

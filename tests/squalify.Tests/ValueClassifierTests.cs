@@ -342,4 +342,31 @@ public class ValueClassifierTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => ValueClassifier.Classify("1", ';'));
     }
+
+    [Fact]
+    public void Classify_CarriesTheParsedNumberAndTemporalParts()
+    {
+        var integer = ValueClassifier.Classify(" -007 ", '.');
+        Assert.Equal(ValueVote.Int, integer.Vote);
+        Assert.Equal(-7, integer.Integer);
+        Assert.Equal(-7.0, integer.Number);
+
+        var comma = ValueClassifier.Classify("1,5", ',');
+        Assert.Equal(ValueVote.Float, comma.Vote);
+        Assert.Equal(1.5, comma.Number);
+
+        var big = ValueClassifier.Classify("12345678901234567890", '.');
+        Assert.Equal(ValueVote.Float, big.Vote);
+        Assert.Equal(12345678901234567890.0, big.Number);
+
+        Assert.Equal(new TemporalParts(2026, 3, 17, 0), ValueClassifier.Classify("2026-03-17", '.').Temporal);
+        // The two non-year groups stay in text order: 6/5/2026 is (6, 5) under either DMY or MDY.
+        Assert.Equal(new TemporalParts(2026, 6, 5, 0), ValueClassifier.Classify("6/5/2026", '.').Temporal);
+        var stamp = ValueClassifier.Classify("2026-03-17T10:30:15.25Z", '.').Temporal;
+        Assert.Equal(new TemporalParts(2026, 3, 17, ((((10 * 60L) + 30) * 60) + 15) * 10_000_000L + 2_500_000L), stamp);
+        Assert.Equal(30L * 60 * 10_000_000, ValueClassifier.Classify("12:30 AM", '.').Temporal.TimeTicks);
+        Assert.Equal(12L * 3600 * 10_000_000, ValueClassifier.Classify("12:00 PM", '.').Temporal.TimeTicks);
+        Assert.Equal(((21L * 60) + 5) * 60 * 10_000_000, ValueClassifier.Classify("9:05 PM", '.').Temporal.TimeTicks);
+        Assert.Equal(0, ValueClassifier.Classify("abc", '.').Number);
+    }
 }

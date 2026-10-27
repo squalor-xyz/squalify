@@ -56,6 +56,19 @@ internal enum ValueFlags
     CommaDecimalLike = 2,
 }
 
+/// <summary>
+/// The parsed parts of a date, datetime or time value, so that no later stage parses the text again. A date or
+/// datetime keeps its two non-year groups in text order, because the order is not decided per value (see
+/// <see cref="DateOrders"/>): <see cref="First"/> and <see cref="Second"/> are the month and the day under
+/// <see cref="DateOrders.YMD"/> and <see cref="DateOrders.MDY"/>, and the day and the month under
+/// <see cref="DateOrders.DMY"/>. A time keeps only <see cref="TimeTicks"/>.
+/// </summary>
+/// <param name="Year">The 4-digit year, or 0 for a time.</param>
+/// <param name="First">The first non-year group, 0 to 31, or 0 for a time.</param>
+/// <param name="Second">The second non-year group, 0 to 31, or 0 for a time.</param>
+/// <param name="TimeTicks">The time of day in ticks of 100 ns (0 for a date); 12-hour values are already on a 24-hour day, and a zone offset is ignored.</param>
+internal readonly record struct TemporalParts(int Year, int First, int Second, long TimeTicks);
+
 /// <summary>The result of classifying one value.</summary>
 /// <param name="Vote">The vote.</param>
 /// <param name="Pattern">
@@ -66,10 +79,16 @@ internal enum ValueFlags
 /// <param name="Clock">For <c>datetime</c> and <c>time</c> votes, the clock; otherwise <see cref="ClockKind.None"/>.</param>
 /// <param name="Flags">The value-level flags.</param>
 /// <param name="NullToken">For a <see cref="ValueVote.Null"/> vote, the vocabulary entry that matched, in its vocabulary spelling.</param>
+/// <param name="Integer">For an <see cref="ValueVote.Int"/> vote, the value; otherwise 0.</param>
+/// <param name="Number">For an <see cref="ValueVote.Int"/> or <see cref="ValueVote.Float"/> vote, the value as a double; otherwise 0.</param>
+/// <param name="Temporal">For a date, datetime or time vote, the parsed parts; otherwise default.</param>
 internal readonly record struct ValueClass(
     ValueVote Vote,
     string? Pattern,
     DateOrders Orders,
     ClockKind Clock,
     ValueFlags Flags,
-    string? NullToken);
+    string? NullToken,
+    long Integer = 0,
+    double Number = 0,
+    TemporalParts Temporal = default);

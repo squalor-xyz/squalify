@@ -5,7 +5,8 @@ namespace squalor.squalify;
 /// Pass 2 of the delimited profiler. It receives the records of the chosen dialect in file order and sorts them by
 /// where they lie: before the data run (preamble), inside it (header sample, then data) or after it (footer).
 /// The first <c>limits.headerSample</c> records of the run are buffered, scored as header candidates, and then
-/// processed as annotation, header, units or data; later records stream straight into the type votes.
+/// processed as annotation, header, units or data; later records stream straight into the field accumulators
+/// (<see cref="FieldAccumulator"/>), which hold the type votes and every field statistic.
 /// </summary>
 internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 {
@@ -44,7 +45,9 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private long _dataFirstByte;
 
     // Data statistics.
-    private readonly long[] _votes;
+    private FieldAccumulator[] _accumulators = [];
+    private readonly FieldCaps _caps;
+    private readonly ValueVote[] _kinds;
     private readonly long[] _nullsOutsideAllNull;
     private long _rows;
     private long _minFields = long.MaxValue;
@@ -72,13 +75,17 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _runFirstLine = dialect.RunFirstLine;
         _runLastLine = dialect.RunLastLine;
         _delimiterChar = DelimiterCandidates.Char(dialect.Kind);
-        _votes = new long[_k * VoteKinds];
+        _caps = MemoryBudget.Effective(context.Limits, _k);
+        _kinds = new ValueVote[_k];
         _nullsOutsideAllNull = new long[_k];
         foreach (var name in context.Options.IncludeValuesFor)
         {
             _allowed.Add(AsciiFold(name));
         }
     }
+
+    /// <summary>The per-field caps in effect: the configured caps after the global budget (<see cref="MemoryBudget"/>).</summary>
+    internal FieldCaps Caps => _caps;
 
     /// <summary>The number of preamble values held in memory; only values that may be written are held.</summary>
     internal int PreambleValuesHeld => _preambleValues.Count(static v => v is not null);
@@ -165,7 +172,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         MarkDataStart(record.StartLine, record.StartByte);
-        ProcessData(record.Cells, record.FieldCount, record.StartLine, comment, null);
+        ProcessData(record.Cells, record.FieldCount, record.StartLine, comment);
     }
 
     /// <summary>Finishes the pass and builds the parts of the descriptor.</summary>
@@ -206,9 +213,14 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
         var hex = ReadNameHex(source, names, nameSpans);
         var fields = new List<FieldProfile>();
+        var orderConflicts = new List<(long Index, DateOrderCounts Counts)>();
         for (var c = 0; c < _k; c++)
         {
             fields.Add(BuildField(c, names[c], hex[c]));
+            if (_accumulators[c].OrderConflict is { } conflict)
+            {
+                orderConflicts.Add((c, conflict));
+            }
         }
 
         if (_ragged > 0)
@@ -247,13 +259,19 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             evidence.Add(_decision.Evidence);
         }
 
+        if (FieldAccumulator.ConflictEvidence(orderConflicts) is { } conflictEvidence)
+        {
+            evidence.Add(conflictEvidence);
+        }
+
         return new FormatProfile(
             dialect,
             new LayoutSection(regions, MaxLineLength: counter.MaxLineLength),
             new LineEndings(counter.Crlf, counter.Lf, counter.Cr),
             issues,
             evidence,
-            Table: table);
+            Table: table,
+            EffectiveLimits: MemoryBudget.Record(_context.Limits, _caps));
     }
 
     private static string AsciiFold(string text)
@@ -398,11 +416,18 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             }
         }
 
+        // The decimal separator is known now, and it is always '.' or ',' (a FieldAccumulator rejects anything else).
+        _accumulators = new FieldAccumulator[_k];
+        for (var c = 0; c < _k; c++)
+        {
+            _accumulators[c] = new FieldAccumulator(_caps, _decimal);
+        }
+
         for (var i = start; i < _sample.Count; i++)
         {
             var record = _sample[i];
             MarkDataStart(record.Line, record.StartByte);
-            ProcessData(record.Cells, record.FieldCount, record.Line, record.IsComment, record.Votes);
+            ProcessData(record.Cells, record.FieldCount, record.Line, record.IsComment);
         }
 
         _sample.Clear();
@@ -417,7 +442,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
     }
 
-    private void ProcessData(IReadOnlyList<string> cells, int fieldCount, long line, bool comment, ValueVote[]? votes)
+    private void ProcessData(IReadOnlyList<string> cells, int fieldCount, long line, bool comment)
     {
         if (comment)
         {
@@ -440,12 +465,10 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         var allNull = true;
-        var kinds = new ValueVote[_k];
         for (var c = 0; c < _k; c++)
         {
-            var vote = votes is not null ? votes[c] : ValueClassifier.Classify(cells[c], _decimal).Vote;
-            kinds[c] = vote;
-            _votes[(c * VoteKinds) + (int)vote]++;
+            var vote = _accumulators[c].AddText(cells[c]);
+            _kinds[c] = vote;
             if (vote != ValueVote.Null)
             {
                 allNull = false;
@@ -456,7 +479,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         {
             for (var c = 0; c < _k; c++)
             {
-                if (kinds[c] == ValueVote.Null)
+                if (_kinds[c] == ValueVote.Null)
                 {
                     _nullsOutsideAllNull[c]++;
                 }
@@ -499,7 +522,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             }
 
             typeVotes[(int)vote]++;
-            joined = HeaderDetector.Join(joined, vote);
+            joined = TypeLattice.Join(joined, vote);
         }
 
         string?[]? values = null;
@@ -514,7 +537,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             blank,
             CountMap.FromOrdinal(nullTokens.Select(static e => new KeyValuePair<string, long>(e.Key, e.Value))),
             VotesMap(typeVotes, 0),
-            HeaderDetector.TypeName(joined),
+            TypeLattice.TypeName(joined),
             values);
         return new AnnotationRowSource(row, record.Line, record.StartByte);
     }
@@ -526,7 +549,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         {
             if (counts[offset + v] > 0)
             {
-                entries.Add(new(HeaderDetector.TypeName((ValueVote)v), counts[offset + v]));
+                entries.Add(new(TypeLattice.TypeName((ValueVote)v), counts[offset + v]));
             }
         }
 
@@ -563,55 +586,13 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
     private FieldProfile BuildField(int index, string? name, string? nameHex)
     {
-        var offset = index * VoteKinds;
-        var nulls = _votes[offset + (int)ValueVote.Null];
-        long nonNull = 0;
-        var joined = ValueVote.Null;
-        var dominant = ValueVote.Null;
-        long dominantCount = 0;
-        for (var v = (int)ValueVote.Bool; v <= (int)ValueVote.String; v++)
-        {
-            var count = _votes[offset + v];
-            if (count == 0)
-            {
-                continue;
-            }
-
-            nonNull += count;
-            joined = HeaderDetector.Join(joined, (ValueVote)v);
-            if (count > dominantCount)
-            {
-                dominant = (ValueVote)v;
-                dominantCount = count;
-            }
-        }
-
-        string? unit = null;
+        var profile = _accumulators[index].Build(index, name, nameHex, _nullsOutsideAllNull[index], Allows(name));
         if (_unitsRecord is { } units && index < units.FieldCount && units.Votes[index] != ValueVote.Null && Allows(name))
         {
-            unit = ValueClassifier.Trim(units.Cells[index]).ToString();
+            profile = profile with { Unit = ValueClassifier.Trim(units.Cells[index]).ToString() };
         }
 
-        return new FieldProfile(
-            Index: index,
-            Name: name,
-            NameParts: null,
-            Type: HeaderDetector.TypeName(joined),
-            Dominant: new DominantType(HeaderDetector.TypeName(dominant), nonNull > 0 ? dominantCount / (double)nonNull : 0.0),
-            TypeVotes: VotesMap(_votes, offset),
-            Count: nonNull + nulls,
-            Nulls: nulls,
-            NullsExcludingAllNullRows: _nullsOutsideAllNull[index],
-            NullTokens: null,
-            Flags: null,
-            Distinct: null,
-            Length: null,
-            Shapes: null,
-            Monotonic: null,
-            Constant: null,
-            Unique: null,
-            NameHex: nameHex,
-            Unit: unit);
+        return profile;
     }
 
     // Header names with a replacement character carry the hex of their original bytes. The bytes are read from the

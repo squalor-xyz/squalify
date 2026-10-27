@@ -119,17 +119,52 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 27,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 1,
+          "max": 27,
+          "mean": 14.000000000000002,
+          "stddev": 7.837410286567879,
+          "quantiles": {
+            "p01": 1,
+            "p05": 2,
+            "p25": 7,
+            "p50": 14,
+            "p75": 21,
+            "p95": 26,
+            "p99": 27
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 1,
+          "max": 2,
+          "mean": 1.6666666666666667
+        },
+        "shapes": [
+          {
+            "mask": "9{2}",
+            "count": 54
+          },
+          {
+            "mask": "9",
+            "count": 27
+          }
+        ],
+        "monotonic": "nonDecreasing",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -151,17 +186,48 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 3,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 1,
+          "max": 3,
+          "mean": 1.9999999999999998,
+          "stddev": 0.8215838362577494,
+          "quantiles": {
+            "p01": 1,
+            "p05": 1,
+            "p25": 1,
+            "p50": 2,
+            "p75": 3,
+            "p95": 3,
+            "p99": 3
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 1,
+          "max": 1,
+          "mean": 1
+        },
+        "shapes": [
+          {
+            "mask": "9",
+            "count": 81
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -183,17 +249,33 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 1,
+          "approximate": false
+        },
         "numeric": null,
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
+        "length": {
+          "min": 9,
+          "max": 9,
+          "mean": 9
+        },
+        "shapes": [
+          {
+            "mask": "a{2}Aa{2}-9{3}",
+            "count": 81
+          }
+        ],
         "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "constant": true,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -211,21 +293,56 @@
         "typeVotes": {
           "date": 81
         },
-        "patterns": null,
+        "patterns": {
+          "yyyy-nn-nn": 81
+        },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 75,
+          "approximate": false
+        },
         "numeric": null,
-        "temporal": null,
+        "temporal": {
+          "orders": [
+            "YMD"
+          ],
+          "ambiguous": false,
+          "clock": null,
+          "min": "2026-01-01",
+          "max": "2026-12-26",
+          "quantiles": {
+            "p01": "2026-01-01",
+            "p05": "2026-01-14",
+            "p25": "2026-03-30",
+            "p50": "2026-06-12",
+            "p75": "2026-09-21",
+            "p95": "2026-12-08",
+            "p99": "2026-12-26"
+          }
+        },
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 10,
+          "max": 10,
+          "mean": 10
+        },
+        "shapes": [
+          {
+            "mask": "9{4}-9{2}-9{2}",
+            "count": 81
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -247,17 +364,33 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 1,
+          "approximate": false
+        },
         "numeric": null,
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
+        "length": {
+          "min": 11,
+          "max": 11,
+          "mean": 11
+        },
+        "shapes": [
+          {
+            "mask": "a{2}Aa{4}-9{3}",
+            "count": 81
+          }
+        ],
         "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "constant": true,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -279,17 +412,52 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 3,
+          "approximate": false
+        },
+        "numeric": {
+          "min": -40,
+          "max": 85,
+          "mean": 23.333333333333332,
+          "stddev": 51.3626810047918,
+          "quantiles": {
+            "p01": -40,
+            "p05": -40,
+            "p25": -40,
+            "p50": 25,
+            "p75": 85,
+            "p95": 85,
+            "p99": 85
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 4,
+          "max": 5,
+          "mean": 4.333333333333333
+        },
+        "shapes": [
+          {
+            "mask": "9{2}.9",
+            "count": 54
+          },
+          {
+            "mask": "-9{2}.9",
+            "count": 27
+          }
+        ],
+        "monotonic": "nonDecreasing",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -311,17 +479,48 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 3,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 3.3,
+          "max": 5,
+          "mean": 4.166666666666667,
+          "stddev": 0.698748881931127,
+          "quantiles": {
+            "p01": 3.3,
+            "p05": 3.3,
+            "p25": 3.3,
+            "p50": 4.2,
+            "p75": 5,
+            "p95": 5,
+            "p99": 5
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "shapes": [
+          {
+            "mask": "9.9",
+            "count": 81
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -343,17 +542,48 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 3,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 2400,
+          "max": 2500,
+          "mean": 2450.0000000000005,
+          "stddev": 41.07919181288746,
+          "quantiles": {
+            "p01": 2400,
+            "p05": 2400,
+            "p25": 2400,
+            "p50": 2450,
+            "p75": 2500,
+            "p95": 2500,
+            "p99": 2500
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 4,
+          "max": 4,
+          "mean": 4
+        },
+        "shapes": [
+          {
+            "mask": "9{4}",
+            "count": 81
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -375,17 +605,52 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 3,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 0,
+          "max": 10,
+          "mean": 5.000000000000001,
+          "stddev": 4.107919181288746,
+          "quantiles": {
+            "p01": 0,
+            "p05": 0,
+            "p25": 0,
+            "p50": 5,
+            "p75": 10,
+            "p95": 10,
+            "p99": 10
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 1,
+          "max": 2,
+          "mean": 1.3333333333333333
+        },
+        "shapes": [
+          {
+            "mask": "9",
+            "count": 54
+          },
+          {
+            "mask": "9{2}",
+            "count": 27
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -408,17 +673,88 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 75,
+          "approximate": false
+        },
+        "numeric": {
+          "min": -25,
+          "max": 15,
+          "mean": -5.682080984120485,
+          "stddev": 9.707861340975946,
+          "quantiles": {
+            "p01": -25,
+            "p05": -25,
+            "p25": -10.977215463461942,
+            "p50": -5.132195868045265,
+            "p75": 0.20522826502003255,
+            "p95": 11.733746598312223,
+            "p99": 15
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 2,
+          "max": 20,
+          "mean": 17.11111111111111
+        },
+        "shapes": [
+          {
+            "mask": "-9.9{16}",
+            "count": 29
+          },
+          {
+            "mask": "-9{2}.9{15}",
+            "count": 18
+          },
+          {
+            "mask": "9.9{16}",
+            "count": 10
+          },
+          {
+            "mask": "-9{2}",
+            "count": 5
+          },
+          {
+            "mask": "9.9{15}",
+            "count": 5
+          },
+          {
+            "mask": "-9.9{15}",
+            "count": 3
+          },
+          {
+            "mask": "9.9{17}",
+            "count": 3
+          },
+          {
+            "mask": "9{2}",
+            "count": 3
+          },
+          {
+            "mask": "-9.9{17}",
+            "count": 2
+          },
+          {
+            "mask": "9{2}.9{15}",
+            "count": 2
+          },
+          {
+            "mask": "9.9{18}",
+            "count": 1
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -441,17 +777,64 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 73,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 9.819184306194146,
+          "max": 35,
+          "mean": 23.57243032466259,
+          "stddev": 4.242362475489749,
+          "quantiles": {
+            "p01": 9.819184306194146,
+            "p05": 18,
+            "p25": 21.308963635238896,
+            "p50": 24.141433811313284,
+            "p75": 25.633730379900143,
+            "p95": 32.38080686470252,
+            "p99": 35
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 2,
+          "max": 18,
+          "mean": 15.925925925925926
+        },
+        "shapes": [
+          {
+            "mask": "9{2}.9{15}",
+            "count": 63
+          },
+          {
+            "mask": "9{2}",
+            "count": 10
+          },
+          {
+            "mask": "9{2}.9{14}",
+            "count": 6
+          },
+          {
+            "mask": "9.9{16}",
+            "count": 1
+          },
+          {
+            "mask": "9{2}.9{13}",
+            "count": 1
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -474,17 +857,68 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 76,
+          "approximate": false
+        },
+        "numeric": {
+          "min": 0,
+          "max": 10,
+          "mean": 5.047953389738936,
+          "stddev": 2.399619238094918,
+          "quantiles": {
+            "p01": 0,
+            "p05": 0.8603951667726615,
+            "p25": 3.38686630257619,
+            "p50": 5.076622772794641,
+            "p75": 6.782008453221278,
+            "p95": 9.84988365168445,
+            "p99": 10
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 1,
+          "max": 19,
+          "mean": 16.48148148148148
+        },
+        "shapes": [
+          {
+            "mask": "9.9{16}",
+            "count": 66
+          },
+          {
+            "mask": "9.9{15}",
+            "count": 6
+          },
+          {
+            "mask": "9",
+            "count": 4
+          },
+          {
+            "mask": "9{2}",
+            "count": 3
+          },
+          {
+            "mask": "9.9{14}",
+            "count": 1
+          },
+          {
+            "mask": "9.9{17}",
+            "count": 1
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,
@@ -507,17 +941,68 @@
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": null,
-        "flags": null,
-        "distinct": null,
-        "numeric": null,
+        "nullTokens": {},
+        "flags": {
+          "leadingZero": 0,
+          "commaDecimalLike": 0,
+          "padded": 0
+        },
+        "distinct": {
+          "value": 72,
+          "approximate": false
+        },
+        "numeric": {
+          "min": -59.15170859192161,
+          "max": 0,
+          "mean": -41.636586035493806,
+          "stddev": 12.313728157640764,
+          "quantiles": {
+            "p01": -59.15170859192161,
+            "p05": -55,
+            "p25": -48.30853437750171,
+            "p50": -43.352717135038645,
+            "p75": -39.006913811680114,
+            "p95": -5.017140158044736,
+            "p99": 0
+          },
+          "approximate": false
+        },
         "temporal": null,
         "statsWithheld": null,
-        "length": null,
-        "shapes": null,
-        "monotonic": null,
-        "constant": null,
-        "unique": null,
+        "length": {
+          "min": 1,
+          "max": 19,
+          "mean": 16.617283950617285
+        },
+        "shapes": [
+          {
+            "mask": "-9{2}.9{15}",
+            "count": 61
+          },
+          {
+            "mask": "-9{2}",
+            "count": 7
+          },
+          {
+            "mask": "-9{2}.9{14}",
+            "count": 7
+          },
+          {
+            "mask": "9",
+            "count": 4
+          },
+          {
+            "mask": "-9.9{16}",
+            "count": 1
+          },
+          {
+            "mask": "-9{2}.9{13}",
+            "count": 1
+          }
+        ],
+        "monotonic": "none",
+        "constant": false,
+        "unique": false,
         "sourceType": null,
         "unit": null,
         "top": null,

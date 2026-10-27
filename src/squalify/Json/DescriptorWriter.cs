@@ -433,11 +433,27 @@ public static class DescriptorWriter
         w.WriteStartObject();
         Number(w, "min", v.Min);
         Number(w, "max", v.Max);
-        Double(w, "mean", v.Mean);
-        Double(w, "stddev", v.Stddev);
-        w.WritePropertyName("quantiles");
-        WriteQuantiles(w, v.Quantiles, static (writer, value) => Number(writer, value));
-        w.WriteBoolean("approximate", v.Approximate);
+        if (v.Mean is { } mean)
+        {
+            Double(w, "mean", mean);
+        }
+        else
+        {
+            w.WriteNull("mean");
+        }
+
+        if (v.Stddev is { } stddev)
+        {
+            Double(w, "stddev", stddev);
+        }
+        else
+        {
+            w.WriteNull("stddev");
+        }
+
+        Nullable(w, "quantiles", v.Quantiles, static (writer, quantiles) => WriteQuantiles(writer, quantiles, static (inner, value) => Number(inner, value)));
+        NullableBoolean(w, "approximate", v.Approximate);
+        OptionalNumber(w, "exceeds", v.Exceeds);
         w.WriteEndObject();
     }
 
@@ -454,6 +470,7 @@ public static class DescriptorWriter
             "quantiles",
             v.Quantiles,
             static (writer, quantiles) => WriteQuantiles(writer, quantiles, static (inner, text) => inner.WriteStringValue(text)));
+        OptionalNumber(w, "exceeds", v.Exceeds);
         w.WriteEndObject();
     }
 
