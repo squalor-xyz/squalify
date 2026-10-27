@@ -83,7 +83,7 @@ Seven slices landed in one session, with two running at any time. The prism bloc
   - **Gate-merge-regate** (sq-05) cost an extra role run; committing the branch and merging main before the fix round (sq-06 onward) let one gate cover the merged result.
 - Wins:
   - **Asking owner questions while the next role runs** cost no wall time and avoided every post-finish rollback.
-  - **Architects reading the parallel slice's in-progress diff** found a cross-slice product issue (sq-06 `nonNullFields` empty on DangerTest files) before that slice reached review, and predicted merge conflicts, both semantic ones included, correctly.
+  - **Architects reading the parallel slice's in-progress diff** found a cross-slice product issue (sq-06 `nonNullFields` empty on ATE export files) before that slice reached review, and predicted merge conflicts, both semantic ones included, correctly.
   - **Consumer probing:** the sq-25 reviewer tested each contract formula against the code and the consumer's decisions, and found three overclaims plus internal decision IDs in an Apache-licensed doc.
   - **Implementers verified and pushed back with evidence:** the 11-of-13 arithmetic (sq-14), the `nulls == 0` never-null test (sq-25), the lead rule (sq-27).
   - **Real-sample sanity tables** (local, aggregates only) on every slice caught nothing wrong, and made regressions cheap to rule out.
@@ -126,7 +126,7 @@ Seven slices landed in one session, with two running at any time. The prism bloc
   - Fix round 1 wrote its tests after the code. Fix round 2 was told "test-first" and complied.
   - The reviewer reported "about 25 minutes" when the harness measured 3.
 - Wins:
-  - Checking prism at setup found the DangerTest unescaped-quote rule. A grep of the real samples showed it was latent, and the owner settled it before code was written.
+  - Checking prism at setup found the ATE export unescaped-quote rule. A grep of the real samples showed it was latent, and the owner settled it before code was written.
   - Asking owner questions while the next role ran cost no wall time.
   - The real-sample sanity table showed the slice working on production files, without exposing names or values.
   - Time boxes held: the read-only roles took 2 to 5 minutes, against 72 for the sq-16 reviewer.

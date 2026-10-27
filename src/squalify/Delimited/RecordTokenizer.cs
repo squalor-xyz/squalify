@@ -70,7 +70,7 @@ internal enum Disqualification
 /// <remarks>
 /// Quoting is RFC 4180 with <c>"</c>. A quote opens a quoted field only at the start of a field. Inside one, <c>""</c>
 /// is an escape and a line break is part of the field. A <c>"</c> that is followed by neither another <c>"</c> nor the
-/// delimiter nor the end of the line is literal text (owner decision 2026-10-27: DangerTest's writer does not escape
+/// delimiter nor the end of the line is literal text (owner decision 2026-10-27: an ATE export's writer does not escape
 /// quotes inside a quoted field), and is counted in <see cref="LiteralQuotes"/>. A closing quote followed by spaces or
 /// tabs and then the delimiter or the end of the line still closes the field (padded quoted cells; owner decision
 /// 2026-10-27). A line that holds only blank

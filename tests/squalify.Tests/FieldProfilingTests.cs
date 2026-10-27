@@ -606,7 +606,7 @@ public sealed class FieldProfilingTests
     }
 
     [Fact]
-    public void DangerTestShapedColumns_GiveSensibleConstantAndNullCounts()
+    public void AteShapedColumns_GiveSensibleConstantAndNullCounts()
     {
         const string Text = "SN,Freq(MHz),Pout(dBm)\nA1,2400,1.5\nA1,2450,NULL\nNULL,NULL,NULL\nA1,2500,2.5\nNULL,NULL,NULL\n";
         var d = ProfileText(Text);
