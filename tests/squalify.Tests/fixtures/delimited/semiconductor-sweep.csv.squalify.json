@@ -110,6 +110,26 @@
       "min": 13,
       "max": 13
     },
+    "rowClasses": {
+      "count": 1,
+      "transitions": 0,
+      "allNullRows": 0,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:39d991009a72c46e",
+          "count": 81,
+          "fields": [
+            [
+              0,
+              12
+            ]
+          ],
+          "firstLine": 2,
+          "lastLine": 82
+        }
+      ]
+    },
     "fields": [
       {
         "index": 0,

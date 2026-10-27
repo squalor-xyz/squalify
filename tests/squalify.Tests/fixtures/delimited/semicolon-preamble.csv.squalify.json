@@ -129,6 +129,26 @@
       "min": 3,
       "max": 3
     },
+    "rowClasses": {
+      "count": 1,
+      "transitions": 0,
+      "allNullRows": 0,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:22dc4629eaf665af",
+          "count": 8,
+          "fields": [
+            [
+              0,
+              2
+            ]
+          ],
+          "firstLine": 5,
+          "lastLine": 12
+        }
+      ]
+    },
     "fields": [
       {
         "index": 0,

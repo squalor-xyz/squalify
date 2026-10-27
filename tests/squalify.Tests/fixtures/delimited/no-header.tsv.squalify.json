@@ -91,6 +91,26 @@
       "min": 4,
       "max": 4
     },
+    "rowClasses": {
+      "count": 1,
+      "transitions": 0,
+      "allNullRows": 0,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:f84a18ec7f5e8c9a",
+          "count": 6,
+          "fields": [
+            [
+              0,
+              3
+            ]
+          ],
+          "firstLine": 1,
+          "lastLine": 6
+        }
+      ]
+    },
     "fields": [
       {
         "index": 0,

@@ -186,6 +186,42 @@
       "min": 4,
       "max": 5
     },
+    "rowClasses": {
+      "count": 2,
+      "transitions": 4,
+      "allNullRows": 0,
+      "truncated": 0,
+      "classes": [
+        {
+          "id": "rc:653e7b9b016a9705",
+          "count": 7,
+          "fields": [
+            [
+              0,
+              4
+            ]
+          ],
+          "firstLine": 11,
+          "lastLine": 20
+        },
+        {
+          "id": "rc:f781960e7cf51885",
+          "count": 2,
+          "fields": [
+            [
+              0,
+              1
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "firstLine": 14,
+          "lastLine": 18
+        }
+      ]
+    },
     "fields": [
       {
         "index": 0,
