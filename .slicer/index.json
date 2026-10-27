@@ -228,7 +228,7 @@
       "id": "sq-16",
       "title": "squalify must classify single values without assuming a locale",
       "short_title": "Value classifier",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-01"
@@ -266,6 +266,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "5951f2d3-1083-4759-9b6d-5b46721b2cef",
+          "kind": "",
+          "text": "**2026-10-27** — **2026-10-27** — Owner answer: a 12-hour time accepts only hours 1 to 12 with an AM/PM marker. `0:30 AM` and `00:00 PM` are `string` (and so is a date followed by such a time). Chosen over the lenient option because it is the standard 12-hour clock and keeps the classifier from accepting malformed values.",
+          "created_at": "2026-10-27T10:53:23Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -287,7 +298,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

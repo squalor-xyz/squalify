@@ -53,7 +53,7 @@ public sealed record Limits(
         CharsetTolerance: new CharsetTolerance(8, 65_536),
         StdfTests: 10_000,
         Budget: new Budget(10_000_000, 2_000_000),
-        NullTokens: 1,
+        NullTokens: ValueClassifier.NullVocabularyVersion,
         UnitTable: 1);
 }
 

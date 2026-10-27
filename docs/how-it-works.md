@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Three slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Design stage.** This page describes the agreed design (spec pass, 2026-10-13, amended after the sample-data review the same day). Four slices have landed. sq-01 added the CLI shell, `ToolInfo` and `SqualifyException`. sq-02 added the descriptor model, the canonical JSON writer and the determinism kit (`DetMath`, `XxHash64`, `Ordinal`) and the golden-file test harness. sq-03 added the byte pass, the format registry and the generic text and binary profiles, so `squalify profile` now works on any file. sq-16 added the value classifier (`ValueClassifier`), which classifies one value as empty, true/false, a number, a date or time, or text. Every source file that does not exist yet is marked *(planned)*. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -77,9 +77,27 @@ squalify also reports how the table is padded (fixed line length or not) and whe
 
 ## 5. Profiling one field
 
-Each value is classified on its own: empty, true/false, whole number, decimal number, date, time or text. A field's type is the narrowest type that fits **every** non-empty value. Empty markers such as `NA` or `NA.` come from a fixed, versioned list. Statistics are exact up to a cap. Past the cap they switch to a fixed approximation that gives the same answer every time, and the descriptor marks them as approximate.
+Each value is classified on its own: empty, true/false, whole number, decimal number, date, time or text. A field's type is the narrowest type that fits **every** non-empty value. Empty markers such as `NA`, `NA.` or `-` come from a fixed, versioned list that is never learned from the data, and the classifier says which marker it matched, so a consumer can decide which markers it treats as empty. Statistics are exact up to a cap. Past the cap they switch to a fixed approximation that gives the same answer every time, and the descriptor marks them as approximate.
 
-Dates never assume a locale. `6/5/2026` could be June 5 or May 6, so squalify reports both possible orders and marks the field ambiguous. It then leaves out the date range and whether the dates rise or fall, because both would assume one order.
+Dates never assume a locale. `6/5/2026` could be June 5 or May 6, so squalify reports both possible orders and marks the field ambiguous. It then leaves out the date range and whether the dates rise or fall, because both would assume one order. The same goes for the clock: a time with `AM` or `PM` is a 12-hour time, and a two-digit year such as `6/5/26` stays text, because squalify would have to guess the century.
+
+The classifier looks at one value at a time and takes the first test that fits, in this order. Two flags ride along: *leading zero* only on whole and decimal numbers, and *looks like a decimal comma* on a decimal number or text. It only reads the value and the file's decimal separator, so it gives the same answer on every machine and in every language setting.
+
+```mermaid
+flowchart TD
+    V["One value, trimmed of tabs, line breaks, spaces and no-break spaces<br/><small>ValueClassifier.Trim, ValueClassifier.Classify</small>"] --> N{"In the empty list?<br/>NA, NA., N/A, null, NaN, -, blank<br/><small>ValueClassifier.NullVocabulary</small>"}
+    N -- "yes" --> Nn["Empty, and which marker matched<br/><small>ValueClass.NullToken</small>"]
+    N -- "no" --> B{"true, false, yes, no?"}
+    B -- "yes" --> Bb["Boolean"]
+    B -- "no" --> Num{"A number?<br/><small>decimal separator from the file</small>"}
+    Num -- "whole" --> I["Whole number<br/><small>flag: leading zero</small>"]
+    Num -- "decimal" --> F["Decimal number<br/><small>flags: leading zero, looks like a decimal comma</small>"]
+    Num -- "no" --> D{"A date, a date and time,<br/>or a time?"}
+    D -- "yes" --> Dd["Date or time, with every possible field order and the clock<br/><small>DateOrders</small>"]
+    D -- "no" --> S["Text<br/><small>flag: looks like a decimal comma<br/>(for example 1,5 when the separator is a point)</small>"]
+```
+
+*Source: `Values/ValueClassifier.cs`, `Values/DateOrders.cs`, `Values/ValueClass.cs`.*
 
 ```mermaid
 flowchart LR
@@ -91,7 +109,7 @@ flowchart LR
     X -- "yes" --> Sk["Sketches: HyperLogLog,<br/>Greenwald-Khanna<br/><small>marked approximate</small>"]
 ```
 
-*Source: `Values/ValueClassifier.cs`, `Fields/FieldAccumulator.cs`, `Sketches/` (planned).*
+*Source: `Values/ValueClassifier.cs`, `Fields/FieldAccumulator.cs` (planned), `Sketches/` (planned).*
 
 ## 6. What is always included, and what needs `--include-values`
 

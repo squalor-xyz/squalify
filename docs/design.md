@@ -153,19 +153,22 @@ DuckDB.NET runs on an in-memory connection with `threads=1` and `preserve_insert
 
 ### Value classification and types
 
-`ValueClassifier` (sq-16) is a pure function that uses the invariant culture. It takes the dialect's decimal separator.
+`ValueClassifier` (sq-16, `Values/ValueClassifier.cs`) is a pure function: `Classify(value, decimalSeparator)`. It uses the invariant culture and ASCII rules only, so the result does not depend on the current culture, the clock or the machine. It takes the dialect's decimal separator (`.` or `,`), and it never assumes a locale. It trims the value (see **Trim set** below), then returns a `ValueClass`: the vote, the pattern, the date orders, the clock, the flags and, for a null, the matched vocabulary entry.
 
-- **Null tokens, vocabulary 1:** `""`, `NA`, `NA.`, `N/A`, `null`, `NaN`, `-`. They are matched case-insensitively after trimming. The vocabulary is fixed and versioned (`limits.nullTokens`), never learned from the data: learning it would make one column's type depend on the others.
-- **Types:**
-  - `bool`: `true`, `false`, `yes`, `no`.
-  - `int`: `^[+-]?\d+$` and fits Int64.
-  - `float`: `NumberStyles.Float` and finite.
-  - `date`: three numeric parts separated by `/`, `-` or `.`, with a 4-digit year and 1–2 digit day and month. The value reports every **order** (`YMD`, `MDY`, `DMY`) under which it is a valid date. squalify never picks a locale.
-  - `datetime`: ISO 8601 (with `T` or a space, and an optional fraction and offset), or a `date` followed by a time.
-  - `time`: `H:mm[:ss[.f+]]`, with an optional ASCII `AM`/`PM` (the **clock** is `12h`, else `24h`).
-  - A field's orders are the intersection over its values. More than one left means `ambiguous`; none left joins the field to `string`, with evidence.
-  - `string`: anything else.
-- **Flags:** `leadingZero` (for example `007`) and `commaDecimalLike` (`^[+-]?\d+,\d+$`).
+- **Trim set.** Before anything else the value is trimmed at both ends of exactly these characters: U+0009 to U+000D (tab, line feed, vertical tab, form feed, carriage return), U+0020 (space) and U+00A0 (no-break space). The set is a fixed constant (`ValueClassifier.TrimChars`, applied by `ValueClassifier.Trim`), not `char.IsWhiteSpace`, because that follows the runtime's Unicode tables and the output must not depend on the runtime. Other space characters (U+2028, U+3000 and so on) are not trimmed, so `"\u3000NA"` is a `string`. The field accumulator (sq-05) trims with the same method.
+- **Null tokens, vocabulary 1:** `""`, `NA`, `NA.`, `N/A`, `null`, `NaN`, `-`. They are matched ASCII case-insensitively after trimming with the trim set above. The vocabulary is fixed and versioned (`limits.nullTokens`, from `ValueClassifier.NullVocabularyVersion`), never learned from the data: learning it would make one column's type depend on the others.
+  - **Matched entry.** A null value also reports which vocabulary entry matched, in the vocabulary's spelling (`na.` reports `NA.`, `nan` reports `NaN`, white space reports `""`). A consumer can then choose which tokens it treats as null; for example, one that reads `NaN` as a number in a unit column can do so. Counting nulls per token, in the spelling found in the file, is the field accumulator's job (sq-05), not the classifier's.
+- **Types** (checked in this order, so the first match wins):
+  - `bool`: `true`, `false`, `yes`, `no`, ASCII case-insensitive. Numeric booleans (`0`/`1`) and `y`/`n`, `on`/`off` are not booleans.
+  - `int`: `^[+-]?[0-9]+$` (ASCII digits) and fits Int64. A longer run of digits is a `float`.
+  - `float`: `double.TryParse` with `NumberStyles.Float` and a finite result, on values made only of digits, signs, `e`/`E` and the decimal separator. With `,` as the decimal separator the value is parsed with `,` as the decimal point and no group separator, so `1.5` is then a `string`. Words such as `Infinity` and out-of-range exponents (`1e999`) are `string`.
+  - `date`: three numeric parts separated by the same `/`, `-` or `.`, with a 4-digit year (first or last) and 1–2 digit day and month. The value reports every **order** (`YMD`, `MDY`, `DMY`) under which it is a valid calendar date (year 1 and up, leap years by the Gregorian rule). A 4-digit first part allows only `YMD`. squalify never picks a locale. Two-digit years (`6/5/26`) stay `string`, because the century would have to be guessed.
+    - At field level (sq-05), a field's orders are the intersection over its values. More than one left means `ambiguous`; none left joins the field to `string`, with evidence.
+  - `datetime`: a date, then `T` or one space, then a time. `T` is only for the ISO date `yyyy-MM-dd`, with a 2-digit hour. A zone offset (`Z`, `+hh`, `+hhmm`, `+hh:mm`, or the same with `-`) is only allowed after the ISO date. An `AM`/`PM` marker is allowed only after a space, never after `T`: `2026-03-17T10:00 PM` is a `string`. The orders are the date's.
+  - `time`: `H:mm[:ss[.f+]]`. Minutes and seconds have two digits and the fraction needs seconds. An optional ASCII `AM`/`PM` marker (case-insensitive, with or without one space before it) makes the **clock** `12h` and limits the hour to 1–12 (hour 0 or an hour above 12 with a marker is a `string`, and so is a date followed by such a time). Without a marker the clock is `24h` and the hour is 0–23.
+  - `string`: anything else, including a date with a non-ASCII day-period marker.
+- **Pattern.** A `date`, `datetime` or `time` vote also carries a pattern, the layout that `patterns` counts. It is order-neutral: the pattern of `6/5/2026` is `n/n/yyyy` whichever of `MDY` and `DMY` it is. Tokens: `yyyy` for the year and `nn` or `n` for a 1–2 digit day or month (the separator is kept); `HH`/`H` or `hh`/`h` for the hour (24-hour or 12-hour), `:mm`, `:ss`, `.f+` for a fraction of any length, `tt` for the marker (with a space before it when the value has one); `Z`, `zz` (`+hh`), `zzzz` (`+hhmm`) and `zzz` (`+hh:mm`) for the offset; and the literal `T` or space between date and time. For example `nn/n/yyyy hh:mm:ss tt` and `yyyy-nn-nnTHH:mm:ssZ`.
+- **Flags:** `leadingZero` (an `int` or `float` whose integer part starts with `0` followed by another digit, such as `007` or `-00.5`) and `commaDecimalLike` (`^[+-]?[0-9]+,[0-9]+$`, whatever the separator and the vote: `1,5` is a `string` under `.` and a `float` under `,`, and has the flag in both).
 
 The type lattice:
 

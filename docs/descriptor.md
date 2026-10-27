@@ -75,7 +75,7 @@ From sq-02 the writer produces these bytes, and they are identical on every OS, 
   "budget": { "quantileValues": 10000000, "distinctValues": 2000000 }, "nullTokens": 1, "unitTable": 1 }
 ```
 
-`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `nullTokens` and `unitTable` are versions of fixed built-in tables.
+`distinctPerField` and `quantilePerField` are the effective caps after the global budget: min(cap, budget ÷ fields). `nullTokens` and `unitTable` are versions of fixed built-in tables. `nullTokens` is the version of the null vocabulary: version 1 is `""`, `NA`, `NA.`, `N/A`, `null`, `NaN` and `-`, matched ASCII case-insensitively after trimming U+0009 to U+000D, U+0020 and U+00A0 from both ends (a fixed set; other space characters, such as U+2028 and U+3000, are not trimmed). The vocabulary is never learned from the data; any change to it bumps this version. See [Value classification and types](design.md#value-classification-and-types).
 
 `charsetTolerance` sets how many invalid UTF-8 sequences a file may hold and still keep its `ascii` or `utf-8` charset (see [`encoding`](#encoding)). The number allowed for a file is `min(invalidSequences, ceil(size / perBytes))`: at most 8 per file and at most 1 per 64 KiB, and a file shorter than 64 KiB tolerates one. For example, a 100-byte file tolerates 1, a 65,537-byte file 2, and any file of 8 × 64 KiB or more 8.
 
@@ -214,7 +214,8 @@ Records are grouped by their set of non-null fields (sq-17). `fields` are inclus
 - `length` is null for a field that has no non-null values. `temporal.clock` is `12h` or `24h` for fields that carry a time of day and null for `date` fields.
 - `statsWithheld` is `"constant"` when every non-null value of the field is equal and values are not opted in for it; `numeric` and `temporal` are then null.
 - `nameHex` (present only when the name contains U+FFFD) is the hex of the name's original bytes.
-- `patterns` gives the counts of matched date and time patterns.
+- `patterns` gives the counts of matched date, datetime and time patterns, keyed by pattern; it is null for fields with no such value. A pattern is the order-neutral layout of a value: `yyyy` for a 4-digit year, `nn` or `n` for a 1–2 digit day or month, with the separator kept (`n/n/yyyy` for `6/5/2026`, whichever order it is; the orders are in `temporal.orders`); `HH`/`H` (24-hour) or `hh`/`h` (12-hour) for the hour with `:mm`, `:ss`, `.f+` (a fraction of any length) and `tt` (an `AM`/`PM` marker, preceded by a space when the value has one); `Z`, `zz` (`+hh`), `zzzz` (`+hhmm`) or `zzz` (`+hh:mm`) for a zone offset; and a literal `T` or space between date and time. For example `yyyy-nn-nn`, `nn/n/yyyy hh:mm:ss tt` and `yyyy-nn-nnTHH:mm:ssZ`. The classifier (sq-16) produces one pattern per value; filling the map is sq-05.
+- `nullTokens` counts null values by token. The classifier reports which vocabulary entry matched each null; the spelling of the keys is set by sq-05, which fills the map.
 - `distinct` past the cap, before sq-11: `{ "value": null, "exceeds": 10000 }`. From sq-11: `{ "value": n, "approximate": true, "errorBound": 0.0081 }`.
 - `sourceType` is the native type for Parquet (for example `DECIMAL(10,2)`).
 - `unit` is the unit from a units row. **Values tier.** Units parsed from header names are in `nameParts` and are always included.
