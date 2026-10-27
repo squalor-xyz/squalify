@@ -48,7 +48,7 @@ public sealed class MemoryBoundTests(ITestOutputHelper output)
         var growth = result.PeakWorkingSet - result.Baseline;
         Assert.True(
             growth <= result.CeilingBytes,
-            $"the peak working set grew {growth} bytes over the baseline of {result.Baseline}, above the ceiling {result.CeilingBytes} (estimated {result.EstimatedBytes} + allowance {MemoryBudget.AllowanceBytes}); {result.Seconds}s");
+            $"the peak working set grew {growth} bytes over the baseline of {result.Baseline}, above the ceiling {result.CeilingBytes} (estimated {result.EstimatedBytes} + allowance {MemoryBudget.AllowanceBytes}); {result.Seconds}s\n{result.Diagnostics}");
     }
 
     [Fact]
@@ -99,5 +99,6 @@ public sealed class MemoryBoundTests(ITestOutputHelper output)
     {
         output.WriteLine(
             $"peak working set {result.PeakWorkingSet / 1e6:F1} MB over a baseline of {result.Baseline / 1e6:F1} MB (growth {(result.PeakWorkingSet - result.Baseline) / 1e6:F1} MB), estimated {result.EstimatedBytes / 1e6:F1} MB, ceiling {result.CeilingBytes / 1e6:F1} MB, {result.Seconds} s, {result.Approximate} of {result.Fields} fields approximate");
+        output.WriteLine(result.Diagnostics);
     }
 }
