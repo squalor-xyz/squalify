@@ -25,7 +25,19 @@ squalify --version
 0.1.0
 ```
 
-Your version may be newer. To call squalify from C# instead, add the library to a project: `dotnet add package squalor.squalify` (see [section 6](#6-use-it-from-c)).
+Your version may be newer. If the shell says `squalify: command not found`, add `~/.dotnet/tools` to your `PATH` and open a new shell. Update later with `dotnet tool update -g squalor.squalify.Cli`.
+
+To pin the version per repository (for CI), use a local tool instead of `-g`. In the repository root:
+
+```bash
+dotnet new tool-manifest                      # once; writes .config/dotnet-tools.json
+dotnet tool install squalor.squalify.Cli
+dotnet tool run squalify --version            # or: dotnet squalify --version
+```
+
+CI then runs `dotnet tool restore` before `dotnet tool run squalify profile ...`.
+
+To call squalify from C# instead, add the library to a project: `dotnet add package squalor.squalify` (see [section 6](#6-use-it-from-c)).
 
 ## 2. Profile a file
 
@@ -104,15 +116,7 @@ The full descriptor is in [descriptor.md](descriptor.md).
 
 ## 4. Check the result in a script
 
-The exit code is 0 on success and 1 on any error (a missing file, a directory, an unreadable file), with a one-line message on stderr. Issues are not errors: the descriptor is still written and the exit code is 0. To fail a step when a file has issues:
-
-```bash
-squalify profile sweep-preamble.csv | jq -e '.issues == []' > /dev/null && echo clean
-```
-
-```text
-clean
-```
+The exit code is 0 on success and 1 on any error, and issues are not errors. To fail a step when a file has issues, see [Gate CI on issues](examples.md#gate-ci-on-issues).
 
 ## 5. Opt in to values
 
