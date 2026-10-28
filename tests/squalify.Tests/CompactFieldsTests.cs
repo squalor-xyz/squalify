@@ -332,6 +332,60 @@ public class CompactFieldsTests
         Assert.Contains("\"nullTokens\": {\n", Written(112), StringComparison.Ordinal);
     }
 
+    // Three elements: ["a", "b", "c"] is the three names, two quotes each, 2 + 2 * 2 separator characters and the
+    // brackets: sum of the name lengths + 12 characters. The ", " separators are part of the count.
+    [Theory]
+    [InlineData(35, true)] // 107 + 12 = 119
+    [InlineData(36, true)] // 108 + 12 = 120
+    [InlineData(37, false)] // 109 + 12 = 121
+    public void Inline_ArrayOfThree_SeparatorsAreCounted(int lastLength, bool oneLine)
+    {
+        var names = new[] { new string('a', 36), new string('b', 36), new string('c', lastLength) };
+        var text = Text(WithHeaderFields(names));
+        var inlineForm = "\"headerFields\": [\"" + names[0] + "\", \"" + names[1] + "\", \"" + names[2] + "\"]";
+        Assert.Equal(oneLine, text.Contains(inlineForm, StringComparison.Ordinal));
+        if (!oneLine)
+        {
+            Assert.Contains("\n    \"headerFields\": [\n      \"" + names[0] + "\",\n      \"" + names[1] + "\",\n      \"" + names[2] + "\"\n    ]", text, StringComparison.Ordinal);
+        }
+    }
+
+    // Three members: { "k": 1, "k": 2, "k": 3 } is the sum of the key lengths + 23 characters.
+    [Theory]
+    [InlineData(32, true)] // 96 + 23 = 119
+    [InlineData(33, true)] // 97 + 23 = 120
+    [InlineData(34, false)] // 98 + 23 = 121
+    public void Inline_ObjectOfThree_SeparatorsAreCounted(int lastLength, bool oneLine)
+    {
+        var keys = new[] { "a" + new string('k', 31), "b" + new string('k', 31), "c" + new string('k', lastLength - 1) };
+        var numeric = new NumericStats(DescriptorNumber.Int(1), DescriptorNumber.Int(1), 1.0, null, TestModels.IntQuantiles(1), false);
+        var field = TestModels.FloatField(numeric) with { NullTokens = CountMap.FromOrdinal([new(keys[0], 1), new(keys[1], 2), new(keys[2], 3)]) };
+        var text = Text(TestModels.Minimal([field]));
+        var inlineForm = "\"nullTokens\": { \"" + keys[0] + "\": 1, \"" + keys[1] + "\": 2, \"" + keys[2] + "\": 3 }";
+        Assert.Equal(oneLine, text.Contains(inlineForm, StringComparison.Ordinal));
+        if (!oneLine)
+        {
+            Assert.Contains("\"nullTokens\": {\n", text, StringComparison.Ordinal);
+        }
+    }
+
+    // An escape counts at its written length: U+0001 is the 6 characters \u0001, so a name that fits as literal
+    // characters (one for the control character) can still be too long as written.
+    [Theory]
+    [InlineData(110, true)] // 110 + 6 + 4 = 120 written (115 if the escape counted as one)
+    [InlineData(111, false)] // 111 + 6 + 4 = 121 written (116 if the escape counted as one)
+    public void Inline_EscapeCountsAtItsWrittenLength(int plainLength, bool oneLine)
+    {
+        var name = new string('a', plainLength) + "\u0001";
+        var text = Text(WithHeaderFields(name));
+        var written = new string('a', plainLength) + "\\u0001";
+        Assert.Equal(oneLine, text.Contains("\"headerFields\": [\"" + written + "\"]", StringComparison.Ordinal));
+        if (!oneLine)
+        {
+            Assert.Contains("\n    \"headerFields\": [\n      \"" + written + "\"\n    ]", text, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public void Inline_CountsCharactersNotBytes_AndKeepsEscapes()
     {
@@ -378,7 +432,7 @@ public class CompactFieldsTests
     }
 
     [Fact]
-    public void Inline_FullDelimited_LongArraysStayMultiLine()
+    public void Inline_FullBinaryStdf_LongArraysStayMultiLine()
     {
         // binary.histogram has 256 numbers: it is one element per line.
         var text = Text(TestModels.FullBinaryStdf());

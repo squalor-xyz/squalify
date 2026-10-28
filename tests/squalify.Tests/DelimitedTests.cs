@@ -361,8 +361,27 @@ public sealed class DelimitedTests
                 Assert.NotEqual(System.Text.Json.JsonValueKind.Null, value.ValueKind);
             }
 
-            // flags is written only when a count is not zero.
-            Assert.Equal(!field.TryGetProperty("flags", out _), !field.TryGetProperty("flags", out _));
+        }
+
+        // flags is written only when a count is above 0. Every field of this fixture has 9 padded values.
+        var written = json.RootElement.GetProperty("table").GetProperty("fields");
+        Assert.Equal(d.Table!.Fields.Count, written.GetArrayLength());
+        for (var i = 0; i < written.GetArrayLength(); i++)
+        {
+            var model = d.Table.Fields[i].Flags!;
+            Assert.True(model.Padded > 0);
+            Assert.True(written[i].TryGetProperty("flags", out var flags), "flags is missing although padded is above 0");
+            Assert.Equal(model.LeadingZero, flags.GetProperty("leadingZero").GetInt64());
+            Assert.Equal(model.CommaDecimalLike, flags.GetProperty("commaDecimalLike").GetInt64());
+            Assert.Equal(model.Padded, flags.GetProperty("padded").GetInt64());
+        }
+
+        // No count above 0: no flags member.
+        var plain = ProfileText("a,b\n1,2\n3,4\n5,6\n");
+        using var plainJson = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(plain));
+        foreach (var field in plainJson.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray())
+        {
+            Assert.False(field.TryGetProperty("flags", out _));
         }
 
         Assert.False(json.RootElement.GetProperty("table").GetProperty("fields")[0].TryGetProperty("unit", out _));

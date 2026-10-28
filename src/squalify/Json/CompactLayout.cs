@@ -6,9 +6,10 @@ namespace squalor.squalify;
 /// the output has two-space indentation and LF line ends, except that an object or an array whose one-line form is
 /// <see cref="MaxInlineCharacters"/> characters or fewer is written on one line, spaced: <c>{ "a": 1, "b": [1, 2] }</c>.
 /// The one-line form is the container alone (no indentation, key or trailing comma) and holds every nested container
-/// inline too. A character is one UTF-16 code unit of the text: the writer escapes everything outside the Basic
-/// Multilingual Plane, so a literal character is one code unit and one UTF-8 lead byte. Scalar tokens (numbers and
-/// strings) are copied byte for byte from the input, so the numbers and the escapes are the canonical ones.
+/// inline too. The length counts code points of the written text, an escape at its written length. That equals the
+/// count of UTF-16 code units, because the writer escapes everything outside the Basic Multilingual Plane, so a
+/// literal character is one code unit and one UTF-8 lead byte. Scalar tokens (numbers and strings) are copied byte
+/// for byte from the input, so the numbers and the escapes are the canonical ones.
 /// </summary>
 internal static class CompactLayout
 {
