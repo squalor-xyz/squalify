@@ -2426,7 +2426,7 @@
       "id": "sq-24",
       "title": "squalify must report invalid UTF-16 and UTF-32 data instead of replacing it silently",
       "short_title": "Invalid UTF-16/32 reporting",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-03"
