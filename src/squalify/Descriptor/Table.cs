@@ -57,7 +57,6 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="Constant">True when every non-null value is equal; null until sq-05.</param>
 /// <param name="Unique">True when every non-null value is distinct; null until sq-05.</param>
 /// <param name="NameHex">Hex of the original name bytes; present only when the name contains U+FFFD.</param>
-/// <param name="RawName">The header text as in the file: quotes removed per the dialect, nothing else changed (spaces kept); null when the table has no header.</param>
 /// <param name="Patterns">Counts of matched date and time patterns.</param>
 /// <param name="Numeric">Numeric statistics.</param>
 /// <param name="Temporal">Temporal statistics.</param>
@@ -65,6 +64,7 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="Unit">The unit from a units row. Values tier.</param>
 /// <param name="Top">Most common values. Values tier.</param>
 /// <param name="Text">Lexical minimum and maximum. Values tier.</param>
+/// <param name="RawName">The header text as in the file: quotes removed per the dialect, nothing else changed (spaces kept); null when the table has no header. Written right after <c>name</c>.</param>
 public sealed record FieldProfile(
     long Index,
     string? Name,
@@ -84,14 +84,14 @@ public sealed record FieldProfile(
     bool? Constant,
     bool? Unique,
     string? NameHex = null,
-    string? RawName = null,
     CountMap? Patterns = null,
     [property: ValueBearing] NumericStats? Numeric = null,
     [property: ValueBearing] TemporalStats? Temporal = null,
     string? StatsWithheld = null,
     [property: ValueBearing] string? Unit = null,
     [property: ValueBearing] TopValues? Top = null,
-    [property: ValueBearing] TextStats? Text = null);
+    [property: ValueBearing] TextStats? Text = null,
+    string? RawName = null);
 
 /// <summary>A header name split into base and unit.</summary>
 /// <param name="Base">The name without the unit.</param>

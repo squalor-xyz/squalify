@@ -3166,6 +3166,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "41fa6d89-0f75-4e81-b8aa-42c9ebf31474",
+          "kind": "",
+          "text": "**2026-10-28** — Owner decision (2026-10-28), verbatim: size \"Raise target to 1,050 (Recommended)\" (option text: \"rawName and nullSpellings are requested members (~4%); sq-32 real-file savings stay ~25%. The size test pins 1,050 B/field.\"). rawName stays written for every field.",
+          "created_at": "2026-10-28T16:02:09Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,

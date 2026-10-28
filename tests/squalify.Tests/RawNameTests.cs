@@ -78,6 +78,46 @@ public sealed class RawNameTests
     }
 
     [Fact]
+    public void Profile_BomOnTheFirstHeaderCell_IsNotPartOfRawName()
+    {
+        var bytes = TestBytes.Concat(TestBytes.Hex("EFBBBF"), TestBytes.Ascii(" a ,b,c,d,e\n" + Rows));
+        var d = Profiler.Profile(new BytesSource("bom.csv", bytes), ProfileOptions.Create(false, []));
+        Assert.Equal("utf-8", d.Encoding.Bom);
+        Assert.Equal(new string?[] { " a ", "b", "c", "d", "e" }, Raw(d));
+    }
+
+    [Fact]
+    public void Profile_CrlfInsideAQuotedHeaderCell_IsWrittenAsLf()
+    {
+        var d = ProfileText("a,\"Two\r\nlines\",c,d,e\r\n" + Rows.Replace("\n", "\r\n", StringComparison.Ordinal));
+        Assert.Equal(new string?[] { "a", "Two\nlines", "c", "d", "e" }, Raw(d));
+    }
+
+    [Fact]
+    public void Profile_SpacesAfterTheClosingQuote_AreNotPartOfRawName()
+    {
+        var d = ProfileText("a,\" b \"  ,c,d,e\n" + Rows);
+        Assert.Equal(new string?[] { "a", " b ", "c", "d", "e" }, Raw(d));
+    }
+
+    [Fact]
+    public void Profile_HeaderAfterAPreamble_RawNameIsTheHeaderLine()
+    {
+        var d = ProfileText("Site=A\nOperator=x\n x ,\"y \",z,w,v\n" + Rows);
+        Assert.Equal(new string?[] { " x ", "y ", "z", "w", "v" }, Raw(d));
+        Assert.Equal(new string?[] { "x", "y", "z", "w", "v" }, Names(d));
+    }
+
+    [Fact]
+    public void Profile_PaddedHeaderInALaterBlock_RawNameIsTheFirstBlocksHeader()
+    {
+        static string Block(string site, string header) => "Site=" + site + "\n" + header + "\n" + Rows;
+        var d = ProfileText(Block("A", "a,b,c,d,e") + Block("B", " a ,b ,c,d,e"));
+        Assert.Equal(2, ((DelimitedDialect)d.Format.Dialect!).Blocks);
+        Assert.Equal(new string?[] { "a", "b", "c", "d", "e" }, Raw(d));
+    }
+
+    [Fact]
     public void Descriptor_RawNameIsWrittenForEveryFieldAfterName()
     {
         var d = ProfileText("a,b ,c,d,e\n" + Rows);
