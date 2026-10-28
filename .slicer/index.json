@@ -3046,7 +3046,7 @@
       "id": "sq-35",
       "title": "Byte-limited profiling",
       "short_title": "Byte-limited profiling",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
