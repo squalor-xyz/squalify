@@ -2869,7 +2869,19 @@
       "depends_on": [
         "sq-11"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "e3c4cadb-7ba7-49d0-875a-eca7b0e18143",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decisions (2026-10-27) after the step 1 measurement, verbatim: set \"B2+A''+D2+D4 (Recommended)\" (option text: \"Small containers on one line, omit nulls not listed as nullable, omit all-zero flags, omit approximate:false. ~970 B/field, 38% smaller, no prism-read key removed. Target <=1,000 B/field.\"); style \"Spaced { \\\"a\\\": 1 } (Recommended)\". B2 = an object or array is written on one line, spaced, when that form is 120 characters or less. A'' = omit null-valued members at any depth inside a field, except nameParts.unit and statsWithheld (consumer-subset nullable). D2 = omit flags when all three counts are 0. D4 = omit approximate when false. Measurement: wide300 1,553 B/field; real median 1,624.",
+          "created_at": "2026-10-27T21:53:01Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -3057,7 +3069,19 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "55978dfc-8434-49cc-802f-69492357157c",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim, on whether whitespace-only differences are distinct spellings: \"trim whitespace, case insensitive for nulls. a null is a null.\" So exact spellings are not reported: NULL, Null, null and \" NULL \" stay one null. The exact-spellings part of this slice is dropped; what remains is re-scoped before it runs (the separator-row exclusion).",
+          "created_at": "2026-10-27T21:53:01Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -3087,7 +3111,19 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "99bb2f8e-519f-4485-9a00-dd4e161f7eeb",
+          "kind": "",
+          "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim: \"No, always written (Recommended)\" (option text: \"Header names are already written in name with no opt-in; raw text is the same kind of data. Always written. sq-37 runs after sq-32 in the same field block.\").",
+          "created_at": "2026-10-27T21:53:01Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
