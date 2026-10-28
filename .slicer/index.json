@@ -3342,14 +3342,34 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "8291a013-63fc-4a13-99d8-6b084dcc17f2",
+          "kind": "decision",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim: Q4 API shape \"Profiler.ProfilePrefix returning a record (Recommended)\" (option text: \"ProfilePrefix(source, options) returns a named record (descriptor, ReadOnlyMemory<byte> prefix, scope), not a bare tuple, so it can grow. One call; the descriptor describes the bytes by construction; one read; file.size from source.Length.\"). Q5 memory \"Require MaxBytes; document the bound (Recommended)\" (option text: \"ProfilePrefix rejects a null MaxBytes (it would buffer the whole file). The buffer is at most MaxBytes plus the overshoot, and sq-39 MaxFirstRecordBytes is the documented way to cap the overshoot. No new hard ceiling.\"). Q6 cut rule \"Yes, document it as a contract (Recommended)\" (option text: \"Document in the user guide: binary cut at the limit; text cut after the last LF, CR or CRLF in the charset code units inside the limit; a CR ending the window takes the LF after it; no terminator inside the limit reads on to the first terminator or the end. Any later change is a documented breaking change.\").",
+          "created_at": "2026-10-28T18:55:14Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "42cd1254-5ab1-4ee6-a2fd-d472ec457b04",
+          "kind": "",
+          "text": "**2026-10-28** — Consumer check (prism, 2026-10-28): no conflict. Prism cuts its own 1 MiB prefix (PrefixBytes.Read) and refuses a header over 1 MiB itself; if it migrates to ProfilePrefix, its equality tests in SqualifyDescriberTests would catch a cut-rule divergence. Keep IProfileSource public and unchanged.",
+          "created_at": "2026-10-28T18:55:25Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "M",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],
@@ -3381,6 +3401,17 @@
           "kind": "",
           "text": "**2026-10-28** — OPEN QUESTIONS for the owner (not decided; the failing tests marked pending depend on them).\nQ7. Limits.Default is public. (a) Make it internal: the caps stop being API, a consumer reads them from the descriptor limits section; breaking for a consumer that uses it, but cheapest now. (b) Keep it public and document it as API: every future cap change is then a documented API change.\nQ8. Descriptor equality is shallow (lists compare by reference). (a) Value equality on the model records, with list members compared in order: tests and consumers can compare descriptors directly; costs custom Equals/GetHashCode on the records that hold lists. (b) Leave it and document that equality is by reference; consumers compare the written JSON.\nQ9. A file name with a backslash on macOS and Linux. (a) Accept it: guard only / everywhere and a backslash only on Windows; the descriptor name then holds a backslash, so the name rule in descriptor.md and design.md changes. (b) Keep refusing it, with a clear message that names the backslash.",
           "created_at": "2026-10-28T18:36:10Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "c7a8ab6f-1153-47cd-bd60-665d69f3fa4e",
+          "kind": "",
+          "text": "**2026-10-28** — Consumer check (prism, 2026-10-28): prism uses CountMap.Empty and the key/value enumeration (SqualifyDescriber.cs:138,214,219) and catches SqualifyException; keep CountMap.Empty and the key/value enumeration public, and IProfileSource public. Limits.Default, Descriptor equality, FileSource empty path and backslash names are not used by prism.",
+          "created_at": "2026-10-28T18:55:26Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
