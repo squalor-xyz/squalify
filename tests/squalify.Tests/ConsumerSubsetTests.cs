@@ -23,6 +23,7 @@ public sealed class ConsumerSubsetTests
         "format.dialect.delimiter",
         "format.dialect.quote",
         "format.dialect.hasHeader",
+        "format.dialect.blocks",
         "encoding.bom",
         "encoding.lineEndings.crlf",
         "encoding.lineEndings.lf",
@@ -398,6 +399,36 @@ public sealed class ConsumerSubsetTests
         Assert.Equal(
             8,
             Resolve(labDoc.RootElement, "table.fields[].nameParts.unit".Split('.'), 0, string.Empty).Count());
+    }
+
+    [Fact]
+    public void Blocks_AreCounted_AndRowsAndRaggedRowsCoverOnlyTheProfiledBlocks()
+    {
+        static string Block(string site, string header, int rows)
+        {
+            var builder = new StringBuilder("Site=" + site + "\n" + header + "\n");
+            for (var i = 0; i < rows; i++)
+            {
+                builder.Append(i.ToString(CultureInfo.InvariantCulture)).Append(',').Append((i * 2).ToString(CultureInfo.InvariantCulture)).Append(",x\n");
+            }
+
+            return builder.ToString();
+        }
+
+        // Same header: one table, the rows of every block, the preambles of the later blocks are not ragged rows.
+        var same = ProfileText(Block("A", "a,b,c", 6) + Block("B", "a,b,c", 6));
+        Assert.Equal(2, ((DelimitedDialect)same.Format.Dialect!).Blocks);
+        Assert.Equal(12, same.Table!.Rows);
+        Assert.Equal(0, Ragged(same));
+        Assert.Equal(same.Table.Rows, Classes(same).Classes.Sum(static c => c.Count) + Classes(same).Truncated + Ragged(same));
+
+        // Another header in block 1: its records are in no member of the subset; the issue says so.
+        var other = ProfileText(Block("A", "a,b,c", 6) + Block("B", "d,e,f", 6));
+        Assert.Equal(2, ((DelimitedDialect)other.Format.Dialect!).Blocks);
+        Assert.Equal(6, other.Table!.Rows);
+        Assert.All(other.Table.Fields, static f => Assert.Equal(6, f.Count));
+        Assert.Contains(other.Issues, static i => i.Code == "heterogeneousBlocks");
+        Assert.Equal(1, ((DelimitedDialect)ProfileText(RaggedTable()).Format.Dialect!).Blocks);
     }
 
     [Fact]

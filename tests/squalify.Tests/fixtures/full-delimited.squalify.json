@@ -150,7 +150,6 @@
       {
         "kind": "block",
         "index": 1,
-        "label": "noise",
         "lines": [
           10,
           12
@@ -158,6 +157,30 @@
         "bytes": [
           700,
           760
+        ],
+        "regions": [
+          {
+            "kind": "header",
+            "lines": [
+              10,
+              10
+            ],
+            "bytes": [
+              700,
+              730
+            ]
+          },
+          {
+            "kind": "data",
+            "lines": [
+              11,
+              12
+            ],
+            "bytes": [
+              730,
+              760
+            ]
+          }
         ]
       }
     ],

@@ -356,7 +356,7 @@
     ]
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:58547ab7e0bfaa21caacdb3e7e43f9d33f0b4d0488fecb22c9a339883b8b8bd1",
     "layout": "sha256:50d17c0dc4ec1b6b3637d1a7e668e40b375de1755f4f8b7a742d4ab855210081",
     "typed": "sha256:cc473f326e2e87f41610d8f39f4bdc56b1f1bfccb2682da0ede6f3eac5e0573d",

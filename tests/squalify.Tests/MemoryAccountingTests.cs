@@ -137,6 +137,39 @@ public sealed class MemoryAccountingTests
         Assert.Equal(trace.PeakEstimatedBytes + MemoryBudget.AllowanceBytes, trace.CeilingBytes);
     }
 
+    // Blocks of a few rows, each with two preamble lines and the same header.
+    private static string BlockStream(int blocks, int rows)
+    {
+        var builder = new StringBuilder();
+        for (var b = 0; b < blocks; b++)
+        {
+            builder.Append("Site=S").Append(b.ToString(CultureInfo.InvariantCulture)).Append("\nTemp(C)=").Append((25 + b).ToString(CultureInfo.InvariantCulture)).Append("\nid,v\n");
+            for (var i = 0; i < rows; i++)
+            {
+                builder.Append(i.ToString(CultureInfo.InvariantCulture)).Append(',').Append((i * 7 % 1000).ToString(CultureInfo.InvariantCulture)).Append('\n');
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    [Fact]
+    public void EstimatedBytes_CountsTheStateOfRepeatedBlocks()
+    {
+        // Four times the blocks of the same shape: the estimate grows by what each block holds (its candidate, preamble and
+        // keys), well beyond what the extra rows of its field accumulators account for.
+        static long Peak(string text)
+        {
+            var trace = new MemoryTrace();
+            Profiler.Profile(new BytesSource("t.csv", Encoding.UTF8.GetBytes(text)), ProfileOptions.Create(false, []), ProfileLimits.Default, trace);
+            return trace.PeakEstimatedBytes;
+        }
+
+        var many = Peak(BlockStream(400, 5));
+        var few = Peak(BlockStream(100, 5));
+        Assert.True(many - few >= 300 * 256L, $"{many} bytes for 400 blocks, {few} for 100");
+    }
+
     [Fact]
     public void Distinct_PastTheCap_IsTheSketchOfTheExactSet()
     {

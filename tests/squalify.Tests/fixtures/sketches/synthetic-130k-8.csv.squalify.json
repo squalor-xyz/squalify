@@ -660,7 +660,7 @@
     ]
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:cbf546d81150b067d39eb659084f3cf59f7c3b872249f1e12718bd243bd0c900",
     "layout": "sha256:bf25ab44510997f18095826ce68a19c062550e6c987519ceff288b6a8de44b60",
     "typed": "sha256:86a43c122264c06b611ee75715c7bfa58133ca57b320c60eed482f129726eeae",

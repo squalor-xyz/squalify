@@ -30,7 +30,7 @@ public sealed class FingerprintTests
     {
         var a = Profile("Site,Vth(V),Name\n1,0.50,alpha\n2,0.51,beta\n3,0.52,gamma\n");
         var b = Profile("Site,Vth(V),Name\n7,0.90,delta\n8,0.80,eps\n9,0.70,zeta\n10,0.60,eta\n");
-        Assert.Equal(1, a.Fingerprint.Version);
+        Assert.Equal(2, a.Fingerprint.Version);
         Assert.Equal(a.Fingerprint, b.Fingerprint);
         Assert.StartsWith("sha256:", a.Fingerprint.Layout, StringComparison.Ordinal);
         Assert.Equal(71, a.Fingerprint.Layout.Length);
@@ -56,7 +56,7 @@ public sealed class FingerprintTests
         var a = Profile("Site,Vth,Idsat\n1,0.5,3\n2,0.6,4\n");
         var b = Profile("SITE,vth,IDSat\n1,0.5,3\n2,0.6,4\n");
         Assert.Equal(a.Fingerprint, b.Fingerprint);
-        Assert.Equal(1, b.Fingerprint.Version);
+        Assert.Equal(2, b.Fingerprint.Version);
         Assert.Contains("\"fields\":[\"site\",\"vth\",\"idsat\"]", Text(Projection.Layout(ProjectionInput.From(b))), StringComparison.Ordinal);
         Assert.Equal("[\"idsat\",\"site\",\"vth\"]", Text(Projection.Names(ProjectionInput.From(b))));
     }
@@ -168,7 +168,7 @@ public sealed class FingerprintTests
         Assert.Equal(layout, Text(Projection.Layout(input)));
         Assert.Equal(typed, Text(Projection.Typed(input)));
         Assert.Equal("[\"a\",\"b\"]", Text(Projection.Names(input)));
-        Assert.Equal(new Fingerprint(1, Sha(structure), Sha(layout), Sha(typed), Sha("[\"a\",\"b\"]")), d.Fingerprint);
+        Assert.Equal(new Fingerprint(2, Sha(structure), Sha(layout), Sha(typed), Sha("[\"a\",\"b\"]")), d.Fingerprint);
     }
 
     [Fact]
@@ -259,14 +259,14 @@ public sealed class FingerprintTests
     }
 
     [Fact]
-    public void Fingerprint_TextAndBinaryAndEmpty_HaveVersionOneHashes()
+    public void Fingerprint_TextAndBinaryAndEmpty_HaveVersionTwoHashes()
     {
         var text = Profile("hello world\n", name: "a.txt");
         var binary = ProfileBytes(TestBytes.Hex("00 01 02 03 04 05 06 07 08"), "a.bin");
         var empty = ProfileBytes([], "e.txt");
         foreach (var d in new[] { text, binary, empty })
         {
-            Assert.Equal(1, d.Fingerprint.Version);
+            Assert.Equal(2, d.Fingerprint.Version);
         }
 
         Assert.Contains("\"charsetFamily\":null", Text(Projection.Structure(ProjectionInput.From(binary))), StringComparison.Ordinal);

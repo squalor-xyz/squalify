@@ -16,12 +16,12 @@ public sealed record LayoutSection(
 /// <param name="LastLine">Last line, 1-based, inclusive.</param>
 /// <param name="StartByte">First byte offset, 0-based.</param>
 /// <param name="EndByte">End byte offset, exclusive.</param>
-/// <param name="Index">Block index, for <c>block</c> regions.</param>
-/// <param name="Label">Block label, for <c>block</c> regions.</param>
+/// <param name="Index">Block index (0-based), for <c>block</c> regions.</param>
 /// <param name="LineKinds">Line-kind counts.</param>
 /// <param name="Keys">Normalized keys (preamble).</param>
 /// <param name="Values">Values aligned with <paramref name="Keys"/>; an entry that is not opted in is null. Values tier.</param>
 /// <param name="Rows">Annotation rows.</param>
+/// <param name="Regions">The child regions of a <c>block</c> region (its preamble, header and data, and so on), in file order.</param>
 public sealed record Region(
     string Kind,
     long FirstLine,
@@ -29,11 +29,11 @@ public sealed record Region(
     long StartByte,
     long EndByte,
     long? Index = null,
-    string? Label = null,
     CountMap? LineKinds = null,
     IReadOnlyList<string>? Keys = null,
     [property: ValueBearing] IReadOnlyList<string?>? Values = null,
-    IReadOnlyList<AnnotationRow>? Rows = null);
+    IReadOnlyList<AnnotationRow>? Rows = null,
+    IReadOnlyList<Region>? Regions = null);
 
 /// <summary>One row of an annotation region.</summary>
 /// <param name="Line">The 1-based line.</param>
@@ -57,3 +57,51 @@ public sealed record AnnotationRow(
 /// <param name="Share">Its share of header names.</param>
 /// <param name="Counts">Counts per convention.</param>
 public sealed record HeaderConventionInfo(string Dominant, double Share, CountMap Counts);
+
+/// <summary>Walks the region tree of a layout: a <c>block</c> region holds its own child regions.</summary>
+internal static class RegionTree
+{
+    /// <summary>Every region of a layout, in file order: a block region, then its children, then the next region.</summary>
+    /// <param name="layout">The layout.</param>
+    /// <returns>The regions.</returns>
+    public static IEnumerable<Region> All(LayoutSection layout)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        foreach (var region in layout.Regions)
+        {
+            yield return region;
+            foreach (var child in region.Regions ?? [])
+            {
+                yield return child;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The regions of the file as one table sees them, for the fingerprint and the hints: the first block's child regions
+    /// in place of all the block regions, then the regions after the blocks (the footer). A file with one block has flat
+    /// regions and is unchanged. The result does not depend on the number of blocks.
+    /// </summary>
+    /// <param name="layout">The layout.</param>
+    /// <returns>The regions.</returns>
+    public static IReadOnlyList<Region> FirstBlockView(LayoutSection layout)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        var view = new List<Region>();
+        var seenBlock = false;
+        foreach (var region in layout.Regions)
+        {
+            if (region.Kind != "block")
+            {
+                view.Add(region);
+            }
+            else if (!seenBlock)
+            {
+                seenBlock = true;
+                view.AddRange(region.Regions ?? [region]);
+            }
+        }
+
+        return view;
+    }
+}

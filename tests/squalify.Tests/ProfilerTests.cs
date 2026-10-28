@@ -334,7 +334,7 @@ public sealed class ProfilerTests : IDisposable
         Assert.Equal("text", descriptor.Kind.Label);
         Assert.Equal("a{5}.a{3}", descriptor.Hints.FileNameShape);
         Assert.Equal(".txt", descriptor.Hints.Extension);
-        Assert.Equal(1, descriptor.Fingerprint.Version);
+        Assert.Equal(2, descriptor.Fingerprint.Version);
     }
 
     [Fact]

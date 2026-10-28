@@ -79,7 +79,7 @@
     "maxLineLength": 58
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:f041e9d8aa4a2a2221b1eedb386f9ba3759a89c865cf020a8ac25160cf44e92b",
     "layout": "sha256:ed6f53aefaaebe0f17573d75181d002ee079937ea5a8c9daa134ba815f7673c9",
     "typed": "sha256:aee8fadad8cd4860560fd85ecdde0dbb57b6f7640256530cb715b9c4b4953748",

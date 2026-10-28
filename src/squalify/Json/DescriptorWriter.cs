@@ -8,8 +8,9 @@ namespace squalor.squalify;
 /// Writes a <see cref="Descriptor"/> as canonical JSON: explicit key order (the order in <c>docs/descriptor.md</c>),
 /// two-space indentation, LF line endings, UTF-8 without a BOM, and a trailing LF. Printable BMP text is written
 /// literally; control characters, non-BMP characters and a few invisible code points are escaped (see
-/// <c>docs/descriptor.md</c>, "Canonical form"). The same model always gives the same bytes on every OS, CPU and
-/// culture. Nothing is sorted here: producers build every collection sorted by its documented key.
+/// <c>docs/descriptor.md</c>, "Canonical form"). The same model gives the same bytes on every OS, CPU and
+/// culture within one .NET runtime major version (the runtime's Unicode tables decide how unassigned code points are
+/// escaped). Nothing is sorted here: producers build every collection sorted by its documented key.
 /// </summary>
 public static class DescriptorWriter
 {
@@ -270,13 +271,13 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteString("kind", v.Kind);
         OptionalNumber(w, "index", v.Index);
-        OptionalString(w, "label", v.Label);
         Pair(w, "lines", v.FirstLine, v.LastLine);
         Pair(w, "bytes", v.StartByte, v.EndByte);
         Optional(w, "lineKinds", v.LineKinds, WriteMap);
         OptionalStrings(w, "keys", v.Keys);
         OptionalStrings(w, "values", v.Values);
         OptionalList(w, "rows", v.Rows, Write);
+        OptionalList(w, "regions", v.Regions, Write);
         w.WriteEndObject();
     }
 

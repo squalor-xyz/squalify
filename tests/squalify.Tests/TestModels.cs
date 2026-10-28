@@ -219,7 +219,7 @@ internal static class TestModels
                             new AnnotationRow(8, null, 0, CountMap.Empty, CountMap.Empty, "string"),
                         ]),
                     new Region("header", 9, 9, 655, 700),
-                    new Region("block", 10, 12, 700, 760, Index: 1, Label: "noise"),
+                    new Region("block", 10, 12, 700, 760, Index: 1, Regions: [new Region("header", 10, 10, 700, 730), new Region("data", 11, 12, 730, 760)]),
                 ],
                 new HeaderConventionInfo("nameParenUnit", 0.769, CountMap.FromOrdinal([new("none", 3), new("nameParenUnit", 10)])),
                 118),

@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Status (v0.1.x).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, and memory accounting with a tested ceiling. Still to come: the Touchstone, key=value and STDF profilers, repeated blocks and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Status (v0.1.x).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, and memory accounting with a tested ceiling. Still to come: the Touchstone, key=value and STDF profilers and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -134,10 +134,26 @@ flowchart TD
     R2 --> R3["Units row (optional): MHz, dBm<br/><small>text opt-in</small>"]
     R3 --> R4["Data rows (none in a header-only table)<br/><small>the steady run of k fields</small>"]
     R4 --> R5["Footer (optional)"]
-    R4 -. "same header again" .-> R6["Repeated blocks<br/><small>one per site or sweep</small>"]
+    R4 -. "a new header and table follow" .-> R6["Next block: its own preamble, header and data<br/><small>block region; see below</small>"]
 ```
 
-*Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`; `Delimited/BlockDetector.cs` (planned).*
+*Source: `Delimited/DelimitedPass.cs`, `Delimited/LineClassifier.cs`, `Delimited/DialectSelector.cs`, `Delimited/HeaderDetector.cs`, `Descriptor/Layout.cs`.*
+
+Lab exports often repeat a header and a table per site, temperature or sweep. A **block** is one such header and table. The field-count runs from the structure pass show where a later run of at least 5 rows with the table's field count follows rows with another field count, and squalify takes that run for a new block in one of two cases. Either one of its first 5 rows is **exactly the first block's header**, which works whatever the types are (a table of only text too), and the rows before it become the block's annotation. Or its first row is a header: names filled and different, and its values disagree with at least half of the typed columns below it, with a note, a `key=value` line or a one-field line before it (a short two-field row does not count). Otherwise the odd rows are ragged rows of one table, so one bad row cannot split a table. The rows between the last row of a block and the next header are the next block's preamble, not ragged rows. While a run is being decided its rows are held, a bounded number of them, and are then either processed as the table's own rows or turned into the new block.
+
+```mermaid
+flowchart TD
+    Runs["Field counts as runs, from the structure pass<br/><small>FieldCountRle</small>"] --> Cand["Candidates: a later run of 5 or more rows<br/>after rows with another field count<br/><small>BlockDetector.Candidates</small>"]
+    Cand --> Held["Rows of the gap and the first 100 of the run are held<br/><small>DelimitedPass, PendingBlock</small>"]
+    Held --> Q{"Does one of the first 5 rows repeat the first header exactly?<br/>Or is the first row a header that disagrees<br/>with half the typed columns, after a note or key=value line?<br/><small>DelimitedPass.ResolvePending, HeaderDetector.OpensWithHeader</small>"}
+    Q -- "no" --> Rag["The odd rows are ragged rows of one table<br/><small>raggedRows</small>"]
+    Q -- "yes" --> Blk["A new block: the held rows before the header are its preamble<br/>and annotation<br/><small>block region, dialect.blocks</small>"]
+    Blk --> Same{"Same header text as the first block?<br/><small>DelimitedPass.StartBlock</small>"}
+    Same -- "yes" --> Agg["Rows join the same fields and row classes,<br/>with no switch counted at the boundary<br/><small>RowClassAccumulator.Break</small>"]
+    Same -- "no" --> Het["This and later blocks are not profiled;<br/>their header lines are listed<br/><small>heterogeneousBlocks</small>"]
+```
+
+*Source: `Delimited/BlockDetector.cs`, `Delimited/DelimitedPass.cs`, `Delimited/HeaderDetector.cs`, `Delimited/FieldCountRle.cs`, `Fields/RowClassAccumulator.cs`.* The file is read once, so aggregation stops at the first block whose header differs from the first block's: the leading blocks with the same header are one table, and the block with another header and the blocks after it are not profiled, but their regions are still in the layout. The same stop applies after 1,000 blocks (the issue `blocksTruncated`). Blocks that are only separated by blank lines, with the header repeated inside one run of rows, are not recognised. With more than one block, `layout.regions` holds a `block` region per block, each with its own regions inside, and `dialect.blocks` is the count. A block region has only its index, its lines and its regions: squalify does not name a block, so a consumer reads the file for that. The fingerprint says that there are several blocks, never how many, so 3 blocks and 5 give the same hash.
 
 squalify also reports how the table is padded (fixed line length or not) and whether numbers use a decimal comma. It describes a fixed-width table but still reads every row through the tokenizer. Every data row is read a second time and handed to the field accumulators, one per column, so the descriptor says what each field holds; section 5 shows what they keep.
 
@@ -332,7 +348,7 @@ flowchart TD
 
 *Source: `Fingerprint/Projection.cs`, `Fingerprint/DelimitedFingerprint.cs`, `Determinism/Ordinal.cs`.*
 
-Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys today. The other families will add theirs when their profilers arrive.
+Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys today (for a file with several blocks, those of the first block, plus the fact that there are several). The other families will add theirs when their profilers arrive.
 
 ```mermaid
 flowchart TD
@@ -407,7 +423,7 @@ flowchart LR
 
 ## 9. Why the output never changes
 
-The same file and the same squalify version always give the same descriptor, byte for byte, on Windows, macOS and Linux. Five guardrails make that true.
+The same file, options and squalify version always give the same descriptor, byte for byte, on Windows, macOS and Linux, within one .NET runtime major version. (The one runtime-dependent detail is how the JSON writer escapes characters that the runtime's Unicode tables leave unassigned, so a new runtime major can change those bytes; consumers pin the package and the runtime. The fingerprint hashes do not depend on the runtime.) Five guardrails make that true.
 
 ```mermaid
 flowchart LR
@@ -416,7 +432,7 @@ flowchart LR
     G3["Fixed JSON writer: key order,<br/>LF newlines, number format<br/><small>DescriptorWriter, CanonicalNumber</small>"] --> Same
     G4["Platform-independent math and hashing<br/><small>DetMath, XxHash64</small>"] --> Same
     G5["Golden files compared<br/>on all three OSes<br/><small>Golden</small>"] --> Same
-    Same["Byte-identical descriptor"]
+    Same["Byte-identical descriptor<br/><small>within one .NET runtime major</small>"]
 ```
 
 *Source: `Determinism/Ordinal.cs`, `Determinism/DetMath.cs`, `Determinism/XxHash64.cs`, `Descriptor/CountMap.cs`, `Json/DescriptorWriter.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.*
@@ -441,11 +457,11 @@ flowchart TD
 
 *Source: `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`, `Descriptor/Table.cs`.*
 
-A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
+A group's name is a hash of the numbers of its filled columns, and nothing else: not the line, not the order of the rows, not the file. The same kind of row therefore gets the same name wherever it sits, as long as the column order is the same. An empty row is a group too (with no columns), and it is also counted on its own, so a consumer can take the rows of the table minus the empty ones. Rows with the wrong number of columns belong to no group. When a file has several blocks with the same header, a block boundary is never counted as a switch. Memory stays bounded: 64 groups are kept with exact counts, and the rows of any later group are only counted.
 
 ## 11. Writing the descriptor
 
-The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine.
+The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine, within one .NET runtime major version (the runtime decides how characters that its Unicode tables leave unassigned are escaped).
 
 ```mermaid
 flowchart TD

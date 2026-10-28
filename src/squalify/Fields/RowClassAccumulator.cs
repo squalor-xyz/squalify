@@ -126,6 +126,15 @@ internal sealed class RowClassAccumulator
         state.LastLine = line;
     }
 
+    /// <summary>
+    /// Ends the adjacency of records: the next record is not compared with the previous one, so a block boundary is never
+    /// a class transition. Classes, counts and the first and last lines span the blocks of a file.
+    /// </summary>
+    public void Break()
+    {
+        _hasPrevious = false;
+    }
+
     /// <summary>The number of nulls of a field in records where at least one field is not null.</summary>
     /// <param name="field">The field index.</param>
     /// <returns>The count.</returns>
