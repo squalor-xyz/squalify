@@ -76,6 +76,7 @@
         "nulls": 120,
         "nullsExcludingAllNullRows": 60,
         "nullTokens": { "null": 120 },
+        "nullSpellings": { "NULL": 60 },
         "distinct": { "value": 20 },
         "numeric": {
           "min": 10,
@@ -102,6 +103,7 @@
         "nulls": 120,
         "nullsExcludingAllNullRows": 60,
         "nullTokens": { "null": 120 },
+        "nullSpellings": { "NULL": 60 },
         "distinct": { "value": 20 },
         "numeric": {
           "min": 15,

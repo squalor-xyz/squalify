@@ -526,9 +526,13 @@ public sealed class FieldProfilingTests
 
         Assert.Equal(new[] { "Aa{2}-A9{2}" }, d.Table!.Fields[1].Shapes!.Select(static s => s.Mask).ToArray());
 
-        // A value that is not a vocabulary spelling never reaches the descriptor as a null-token key either.
+        // A value that is not a vocabulary spelling never reaches the descriptor as a null-token key either. The exact
+        // spelling of a null (nullSpellings, sq-36) is vocabulary text plus padding, never data: the key is NULL, not x.
         var tokens = ProfileText(Column("NULL", "Null", "x"));
-        Assert.DoesNotContain("NULL", Encoding.UTF8.GetString(DescriptorWriter.ToBytes(tokens)).Replace("\"null\"", string.Empty, StringComparison.Ordinal), StringComparison.Ordinal);
+        var tokenField = tokens.Table!.Fields[1];
+        Assert.Equal(new[] { "null" }, tokenField.NullTokens!.Select(static e => e.Key).ToArray());
+        Assert.Equal(new[] { "NULL", "Null" }, tokenField.NullSpellings!.Select(static e => e.Key).ToArray());
+        Assert.DoesNotContain("\"x\"", Encoding.UTF8.GetString(DescriptorWriter.ToBytes(tokens)), StringComparison.Ordinal);
     }
 
     [Fact]

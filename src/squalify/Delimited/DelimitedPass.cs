@@ -1052,7 +1052,18 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             _nullMask[c] = _accumulators[c].AddText(cells[c]) == ValueVote.Null;
         }
 
-        _rowClasses.Add(_nullMask, line);
+        // The exact spelling of a null is counted outside all-null records, which only the row-level accumulator can tell.
+        if (!_rowClasses.Add(_nullMask, line))
+        {
+            for (var c = 0; c < _k; c++)
+            {
+                if (_nullMask[c])
+                {
+                    _accumulators[c].AddNullSpelling(cells[c]);
+                }
+            }
+        }
+
         if ((_rows & 1023) == 0)
         {
             SampleMemory();

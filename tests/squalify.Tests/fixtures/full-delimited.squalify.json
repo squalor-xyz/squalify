@@ -113,6 +113,8 @@
         "nulls": 3,
         "nullsExcludingAllNullRows": 2,
         "nullTokens": { "-": 1, "NA": 2 },
+        "nullSpellings": { "na": 1 },
+        "nullSpellingsOther": 1,
         "flags": { "leadingZero": 0, "commaDecimalLike": 1, "padded": 4 },
         "distinct": { "value": 81 },
         "numeric": {

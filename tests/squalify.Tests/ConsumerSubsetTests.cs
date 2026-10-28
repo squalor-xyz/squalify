@@ -50,6 +50,13 @@ public sealed class ConsumerSubsetTests
         "issues[].count",
     ];
 
+    // Members of the subset that are absent when empty or 0 (absent means {} and 0), so not written for every field.
+    private static readonly string[] AbsentWhenEmptyPaths =
+    [
+        "table.fields[].nullSpellings",
+        "table.fields[].nullSpellingsOther",
+    ];
+
     private static ProfileOptions Options(bool includeValues = false) => ProfileOptions.Create(includeValues, Array.Empty<string>());
 
     private static Descriptor ProfileText(string text, bool includeValues = false, ProfileLimits? limits = null)
@@ -435,10 +442,24 @@ public sealed class ConsumerSubsetTests
     public void Document_ListsEveryMemberOfTheSubset()
     {
         var section = DocumentedSection();
-        foreach (var path in SubsetPaths)
+        foreach (var path in SubsetPaths.Concat(AbsentWhenEmptyPaths))
         {
             Assert.Contains("`" + path + "`", section, StringComparison.Ordinal);
         }
+    }
+
+    [Fact]
+    public void NullSpellings_AreAbsentWhenEmpty_AndWrittenWhenAFieldHasNullsOutsideSeparatorRows()
+    {
+        var d = ProfileText(RaggedTable());
+        using var doc = JsonDocument.Parse(DescriptorWriter.ToBytes(d));
+        var fields = doc.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray().ToArray();
+
+        // A(id) is null only in the separator record, so it has no spelling; B and C have nulls outside it.
+        Assert.False(fields[0].TryGetProperty("nullSpellings", out _));
+        Assert.Equal(JsonValueKind.Object, fields[1].GetProperty("nullSpellings").ValueKind);
+        Assert.Equal(JsonValueKind.Object, fields[2].GetProperty("nullSpellings").ValueKind);
+        Assert.All(fields, static f => Assert.False(f.TryGetProperty("nullSpellingsOther", out _)));
     }
 
     // ---- The derivation formulas --------------------------------------------------------------------------------------
@@ -647,6 +668,23 @@ public sealed class ConsumerSubsetTests
         Assert.False(NullOnly(mixed));
         Assert.Equal(2, Classes(mixed).AllNullRows);
         Assert.Contains(Field(mixed, "Err").NullTokens!, static e => e.Key == "-");
+    }
+
+    [Fact]
+    public void F9_ExactSpellings_GiveAConsumerWithItsOwnTokensItsCounts()
+    {
+        // A consumer that reads only NULL and the empty field as null; null, Null and NA are text to it.
+        var d = ProfileText("A(id),V\n1,NULL\n2,null\n3,Null\n4,\n5,NULL\n6,NA\nNULL,NULL\n7,x\n8, NULL \n");
+        var v = Field(d, "V");
+        string[] tokens = ["NULL", ""];
+        var own = tokens.Sum(t => v.NullSpellings!.SingleOrDefault(e => e.Key == t).Value);
+        Assert.Equal(0, v.NullSpellingsOther);
+        Assert.Equal(3, own);
+        Assert.Equal(v.NullsExcludingAllNullRows, v.NullSpellings!.Sum(static e => e.Value));
+        // null, Null, NA and " NULL " are text to the consumer.
+        Assert.Equal(4, v.NullsExcludingAllNullRows - own);
+        // The separator record's NULL is in nullTokens and in no spelling.
+        Assert.Equal(v.NullsExcludingAllNullRows + 1, v.Nulls);
     }
 
     [Fact]

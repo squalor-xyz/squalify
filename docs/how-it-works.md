@@ -188,15 +188,18 @@ Every column has its own **field accumulator**. It receives the column's values 
 flowchart TD
     V["One cell, as written"] --> C["Trim and classify<br/><small>FieldAccumulator.AddText, ValueClassifier.Classify</small>"]
     C -- "empty marker" --> N["Count the marker<br/><small>nullTokens, by entry in the empty list</small>"]
+    N --> Sp["Once the row is known not to be all empty,<br/>count the exact spelling, untrimmed<br/><small>FieldAccumulator.AddNullSpelling,<br/>called from DelimitedPass.ProcessData</small>"]
     C -- "a value" --> U["Count its vote and join the field's type<br/><small>TypeLattice.Join</small>"]
     U --> A["Every value: length, shape mask, flags,<br/>distinct count, same-as-the-first, repeats<br/><small>FieldAccumulator.AddValue</small>"]
     U --> Nu["Numbers: min, max, mean, spread,<br/>rising or falling, quantiles<br/><small>FieldAccumulator.AddNumeric,<br/>FieldAccumulator.BuildNumeric</small>"]
     U --> Te["Dates and times: possible orders, clock,<br/>range, rising or falling,<br/>quantiles<br/><small>FieldAccumulator.AddTemporalValue,<br/>FieldAccumulator.BuildTemporal</small>"]
 ```
 
-*Source: `Fields/FieldAccumulator.cs`, `Fields/TypeLattice.cs`, `Fields/TemporalMath.cs`, `Delimited/DelimitedPass.cs` (the hook is `DelimitedPass.ProcessData`).*
+*Source: `Fields/FieldAccumulator.cs`, `Fields/TypeLattice.cs`, `Fields/TemporalMath.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs` (the hook is `DelimitedPass.ProcessData`).*
 
 A field's type is the join of what its values vote for. Whole numbers join with decimal numbers, a date joins with a date and time, and any other mix is text. A value that is empty does not vote.
+
+The spelling of an empty marker is counted too (`nullSpellings`), exactly as written and not trimmed, so `NULL`, `Null` and ` NULL ` stay apart for a reader with its own idea of what is empty. The count waits until the whole row has been read, because rows in which every field is empty (separator rows) are left out of it, and the row-level counter is the one that knows.
 
 ```mermaid
 flowchart LR
@@ -462,7 +465,7 @@ A group's name is a hash of the numbers of its filled columns, and nothing else:
 
 ## 11. Writing the descriptor
 
-The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Inside the field profiles it leaves out what carries nothing (most members that are null, a flags group of zeros, an `approximate` that is false; a few members that consumers read, such as `name`, `nameParts`, `nullTokens`, `constant` and `statsWithheld`, stay as null), and a layout pass then puts every small object or list (120 characters or fewer) on one line, so a wide table stays compact. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine, within one .NET runtime major version (the runtime decides how characters that its Unicode tables leave unassigned are escaped).
+The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Inside the field profiles it leaves out what carries nothing (most members that are null, a flags group of zeros, an `approximate` that is false, an empty `nullSpellings`; a few members that consumers read, such as `name`, `nameParts`, `nullTokens`, `constant` and `statsWithheld`, stay as null), and a layout pass then puts every small object or list (120 characters or fewer) on one line, so a wide table stays compact. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine, within one .NET runtime major version (the runtime decides how characters that its Unicode tables leave unassigned are escaped).
 
 ```mermaid
 flowchart TD

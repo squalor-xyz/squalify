@@ -28,6 +28,12 @@ internal sealed record DateOrderCounts(long Values, long Dmy, long Mdy, long Ymd
 /// </remarks>
 internal sealed class FieldAccumulator
 {
+    /// <summary>The most distinct null spellings a field keeps; later new spellings are counted in <c>nullSpellingsOther</c>.</summary>
+    public const int MaxNullSpellings = 64;
+
+    /// <summary>The longest null spelling, in characters, that a field keeps; a longer one (a null padded with white space) is counted in <c>nullSpellingsOther</c>.</summary>
+    public const int MaxNullSpellingLength = 256;
+
     private const int VoteKinds = TypeLattice.VoteKinds;
     private const int Slots = 4;
     private const DateOrders AllOrders = DateOrders.YMD | DateOrders.MDY | DateOrders.DMY;
@@ -41,6 +47,9 @@ internal sealed class FieldAccumulator
     // Votes and types.
     private readonly long[] _votes = new long[VoteKinds];
     private readonly Dictionary<string, long> _nullTokens = new(StringComparer.Ordinal);
+    private Dictionary<string, long>? _nullSpellings;
+    private long _nullSpellingChars;
+    private long _nullSpellingsOther;
     private Dictionary<string, long>? _patterns;
     private ValueVote _joined = ValueVote.Null;
     private long _nonNull;
@@ -135,7 +144,7 @@ internal sealed class FieldAccumulator
     /// <summary>
     /// An estimate of the memory this accumulator holds, in bytes, for <see cref="MemoryBudget.CeilingBytes(long)"/>. It
     /// counts the exact-value buffers by their chunks (<see cref="ChunkedBuffer{T}"/>), a hash set at three times its entries
-    /// (it holds the old and the new table while it grows), the shape mask text, the top-k counters with their value
+    /// (it holds the old and the new table while it grows), the null spellings (their text at two bytes a character), the shape mask text, the top-k counters with their value
     /// text, the sketches, and a fixed share for the object and its small arrays. It is an estimate, not a bound and
     /// not a measurement: measured against the live heap after a forced collection it comes out within about 3 percent
     /// plus a constant 0.4 MB of state that belongs to the pass, not to a field. It moves while values stream, so the
@@ -148,6 +157,7 @@ internal sealed class FieldAccumulator
             // The object, its fixed arrays (votes, slots) and the lexical bounds.
             long bytes = 1_536;
             bytes += _nullTokens.Count * 100L;
+            bytes += ((_nullSpellings?.Count ?? 0) * 100L) + (_nullSpellingChars * 2);
             bytes += (_patterns?.Count ?? 0) * 140L;
             bytes += (_shapes.Count * 100L) + (_shapeChars * 2);
             bytes += (_distinct?.Count ?? 0) * 60L;
@@ -281,6 +291,34 @@ internal sealed class FieldAccumulator
         _nullTokens[token] = _nullTokens.GetValueOrDefault(token) + 1;
     }
 
+    /// <summary>
+    /// Counts the exact spelling of a null value that is not in an all-null record: the field text as the dialect
+    /// delivers it, not trimmed (so <c>NULL</c> and <c> NULL </c> are two spellings, and a blank field is the key
+    /// <c>""</c>). The caller decides which values count, because only the row-level owner knows whether a record is
+    /// all-null (<see cref="RowClassAccumulator.Add"/>); this accumulator sees values. A new spelling is kept while
+    /// the field holds fewer than <see cref="MaxNullSpellings"/> and the text is at most <see cref="MaxNullSpellingLength"/>
+    /// characters; any other new spelling is counted in <c>nullSpellingsOther</c>. A spelling already kept keeps counting.
+    /// </summary>
+    /// <param name="raw">The raw text of a value that was classified as null.</param>
+    public void AddNullSpelling(ReadOnlySpan<char> raw)
+    {
+        _nullSpellings ??= new Dictionary<string, long>(StringComparer.Ordinal);
+        var lookup = _nullSpellings.GetAlternateLookup<ReadOnlySpan<char>>();
+        if (lookup.TryGetValue(raw, out var count))
+        {
+            lookup[raw] = count + 1;
+        }
+        else if (raw.Length <= MaxNullSpellingLength && _nullSpellings.Count < MaxNullSpellings)
+        {
+            lookup[raw] = 1;
+            _nullSpellingChars += raw.Length;
+        }
+        else
+        {
+            _nullSpellingsOther++;
+        }
+    }
+
     /// <summary>The evidence entry that explains the fields that joined to string for lack of a common date order.</summary>
     /// <param name="conflicts">The field indexes and their counts, in ascending index order.</param>
     /// <returns>The entry, or null when there is no conflict.</returns>
@@ -359,7 +397,9 @@ internal sealed class FieldAccumulator
             Temporal: temporal,
             StatsWithheld: withheld,
             Top: _top?.Build(),
-            Text: _access.Text && type == ValueVote.String && _textMin is not null ? new TextStats(_textMin, _textMax!) : null);
+            Text: _access.Text && type == ValueVote.String && _textMin is not null ? new TextStats(_textMin, _textMax!) : null,
+            NullSpellings: CountMap.FromOrdinal(_nullSpellings ?? []),
+            NullSpellingsOther: _nullSpellingsOther);
     }
 
     // True when every non-null value is equal, which a field without a non-null value is too (it has one value, null);

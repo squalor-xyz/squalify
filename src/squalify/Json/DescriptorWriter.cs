@@ -381,6 +381,12 @@ public static class DescriptorWriter
         w.WriteNumber("nulls", v.Nulls);
         w.WriteNumber("nullsExcludingAllNullRows", v.NullsExcludingAllNullRows);
         Nullable(w, "nullTokens", v.NullTokens, WriteMap);
+        if (v.NullSpellings is { Count: > 0 } spellings)
+        {
+            Map(w, "nullSpellings", spellings);
+        }
+
+        OptionalNumber(w, "nullSpellingsOther", v.NullSpellingsOther > 0 ? v.NullSpellingsOther : null);
         if (v.Flags is { } flags && (flags.LeadingZero != 0 || flags.CommaDecimalLike != 0 || flags.Padded != 0))
         {
             w.WritePropertyName("flags");

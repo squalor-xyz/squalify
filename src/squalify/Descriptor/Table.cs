@@ -64,6 +64,8 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="Unit">The unit from a units row. Values tier.</param>
 /// <param name="Top">Most common values. Values tier.</param>
 /// <param name="Text">Lexical minimum and maximum. Values tier.</param>
+/// <param name="NullSpellings">The null values by exact spelling (the field text after dialect unquoting, not trimmed), outside all-null records; null reads as no entries. A spelling past the caps is counted in <paramref name="NullSpellingsOther"/>.</param>
+/// <param name="NullSpellingsOther">Null values outside all-null records whose spelling is not in <paramref name="NullSpellings"/> because the field already kept <see cref="FieldAccumulator.MaxNullSpellings"/> spellings, or the spelling is longer than <see cref="FieldAccumulator.MaxNullSpellingLength"/> characters.</param>
 public sealed record FieldProfile(
     long Index,
     string? Name,
@@ -89,7 +91,9 @@ public sealed record FieldProfile(
     string? StatsWithheld = null,
     [property: ValueBearing] string? Unit = null,
     [property: ValueBearing] TopValues? Top = null,
-    [property: ValueBearing] TextStats? Text = null);
+    [property: ValueBearing] TextStats? Text = null,
+    CountMap? NullSpellings = null,
+    long NullSpellingsOther = 0);
 
 /// <summary>A header name split into base and unit.</summary>
 /// <param name="Base">The name without the unit.</param>

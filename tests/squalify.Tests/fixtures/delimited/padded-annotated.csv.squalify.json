@@ -157,6 +157,7 @@
         "nulls": 2,
         "nullsExcludingAllNullRows": 2,
         "nullTokens": { "NA.": 2 },
+        "nullSpellings": { "NA.           ": 2 },
         "flags": { "leadingZero": 0, "commaDecimalLike": 0, "padded": 9 },
         "distinct": { "value": 7 },
         "numeric": {

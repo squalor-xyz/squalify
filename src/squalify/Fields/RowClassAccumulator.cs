@@ -84,8 +84,9 @@ internal sealed class RowClassAccumulator
     /// <summary>Adds one record.</summary>
     /// <param name="isNull">One entry per field, true when the field is null. The span is read, not kept.</param>
     /// <param name="line">The 1-based line of the record in the file (a row number for a format without lines); it only bounds the class's first and last line.</param>
+    /// <returns>True when every field of the record is null, so the caller knows whether the record is an all-null (separator) record.</returns>
     /// <exception cref="ArgumentException"><paramref name="isNull"/> does not have one entry per field.</exception>
-    public void Add(ReadOnlySpan<bool> isNull, long line)
+    public bool Add(ReadOnlySpan<bool> isNull, long line)
     {
         if (isNull.Length != _fieldCount)
         {
@@ -113,7 +114,7 @@ internal sealed class RowClassAccumulator
         if (_previousSlot < 0)
         {
             _truncated++;
-            return;
+            return allNull;
         }
 
         var state = _classes[_previousSlot];
@@ -124,6 +125,7 @@ internal sealed class RowClassAccumulator
 
         state.Count++;
         state.LastLine = line;
+        return allNull;
     }
 
     /// <summary>
