@@ -1,13 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "tool": {
-    "name": "squalify",
-    "version": "0.1.1"
-  },
-  "options": {
-    "includeValues": false,
-    "includeValuesFor": []
-  },
+  "tool": { "name": "squalify", "version": "0.1.1" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
   "limits": {
     "distinctPerField": 10000,
     "quantilePerField": 100000,
@@ -18,33 +12,18 @@
     "runawayQuote": 65536,
     "fieldCountRuns": 100000,
     "rowClasses": 64,
-    "charsetTolerance": {
-      "invalidSequences": 8,
-      "perBytes": 65536
-    },
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
     "stdfTests": 10000,
-    "budget": {
-      "quantileValues": 10000000,
-      "distinctValues": 2000000,
-      "shapeChars": 16000000
-    },
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
     "nullTokens": 1,
     "unitTable": 1
   },
-  "file": {
-    "name": "one-column.csv",
-    "size": 47,
-    "sha256": "586a237e769cfbbb34cd9c831af45207a14f57b4b824249e2bd790ddeb18a23d"
-  },
+  "file": { "name": "one-column.csv", "size": 47, "sha256": "586a237e769cfbbb34cd9c831af45207a14f57b4b824249e2bd790ddeb18a23d" },
   "encoding": {
     "kind": "text",
     "charset": "ascii",
     "bom": null,
-    "lineEndings": {
-      "crlf": 0,
-      "lf": 7,
-      "cr": 0
-    },
+    "lineEndings": { "crlf": 0, "lf": 7, "cr": 0 },
     "invalidBytes": 0,
     "controlBytes": 0
   },
@@ -56,157 +35,58 @@
       "hasHeader": true,
       "unitsRow": false,
       "decimalSeparator": ".",
-      "padding": {
-        "trim": false,
-        "paddedShare": 0,
-        "constantLineLength": false,
-        "lineLength": null
-      },
+      "padding": { "trim": false, "paddedShare": 0, "constantLineLength": false, "lineLength": null },
       "blocks": 1
     },
     "score": 0.5
   },
-  "kind": {
-    "label": "text",
-    "ruleId": "K09",
-    "confidence": 1
-  },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
   "layout": {
-    "regions": [
-      {
-        "kind": "header",
-        "lines": [
-          1,
-          1
-        ],
-        "bytes": [
-          0,
-          13
-        ]
-      },
-      {
-        "kind": "data",
-        "lines": [
-          2,
-          7
-        ],
-        "bytes": [
-          13,
-          47
-        ]
-      }
-    ],
-    "headerConvention": {
-      "dominant": "nameParenUnit",
-      "share": 1,
-      "counts": {
-        "nameParenUnit": 1
-      }
-    },
+    "regions": [{ "kind": "header", "lines": [1, 1], "bytes": [0, 13] }, { "kind": "data", "lines": [2, 7], "bytes": [13, 47] }],
+    "headerConvention": { "dominant": "nameParenUnit", "share": 1, "counts": { "nameParenUnit": 1 } },
     "maxLineLength": 12
   },
   "table": {
     "rows": 6,
-    "fieldCount": {
-      "min": 1,
-      "max": 1
-    },
+    "fieldCount": { "min": 1, "max": 1 },
     "rowClasses": {
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
       "truncated": 0,
-      "classes": [
-        {
-          "id": "rc:633457081244afec",
-          "count": 6,
-          "fields": [
-            [
-              0,
-              0
-            ]
-          ],
-          "firstLine": 2,
-          "lastLine": 7
-        }
-      ]
+      "classes": [{ "id": "rc:633457081244afec", "count": 6, "fields": [[0, 0]], "firstLine": 2, "lastLine": 7 }]
     },
     "fields": [
       {
         "index": 0,
         "name": "Reading(dBm)",
-        "nameParts": {
-          "base": "Reading",
-          "unit": "dBm",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Reading", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 1
-        },
-        "typeVotes": {
-          "float": 6
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 6 },
         "count": 6,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 6,
-          "approximate": false
-        },
+        "distinct": { "value": 6 },
         "numeric": {
           "min": -11.2,
           "max": -9.8,
           "mean": -10.366666666666667,
           "stddev": 0.5354126134736332,
-          "quantiles": {
-            "p01": -11.2,
-            "p05": -11.2,
-            "p25": -10.7,
-            "p50": -10.5,
-            "p75": -9.9,
-            "p95": -9.8,
-            "p99": -9.8
-          },
-          "approximate": false
+          "quantiles": { "p01": -11.2, "p05": -11.2, "p25": -10.7, "p50": -10.5, "p75": -9.9, "p95": -9.8, "p99": -9.8 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 4,
-          "max": 5,
-          "mean": 4.666666666666667
-        },
-        "shapes": [
-          {
-            "mask": "-9{2}.9",
-            "count": 4
-          },
-          {
-            "mask": "-9.9",
-            "count": 2
-          }
-        ],
+        "length": { "min": 4, "max": 5, "mean": 4.666666666666667 },
+        "shapes": [{ "mask": "-9{2}.9", "count": 4 }, { "mask": "-9.9", "count": 2 }],
         "monotonic": "none",
         "constant": false,
-        "unique": true,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": true
       }
     ]
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:10d086e508ee9655f5f8b2ca94f13cbd50c4c33179e9efb43e8c02d9670234fb",
     "layout": "sha256:689c149828d3587ecfed5c61d286a99864c8c08798364a952f82551e26d7a9ef",
     "typed": "sha256:baf042c2e9f7c477bf72e09bec1d150f53ef7b5644944172b39595f64358ae67",
@@ -215,29 +95,11 @@
   "hints": {
     "extension": ".csv",
     "magic": null,
-    "stableLines": [
-      {
-        "line": 0,
-        "regex": "^ *\"?Reading\\(dBm\\)\"? *"
-      },
-      {
-        "line": 0,
-        "regex": "^Reading\\(dBm\\)$"
-      }
-    ],
-    "headerFields": [
-      "Reading(dBm)"
-    ],
-    "headerPrefix": [
-      "Reading(dBm)"
-    ],
-    "nonNullFields": [
-      0
-    ],
-    "fieldCount": {
-      "min": 1,
-      "max": 1
-    },
+    "stableLines": [{ "line": 0, "regex": "^ *\"?Reading\\(dBm\\)\"? *" }, { "line": 0, "regex": "^Reading\\(dBm\\)$" }],
+    "headerFields": ["Reading(dBm)"],
+    "headerPrefix": ["Reading(dBm)"],
+    "nonNullFields": [0],
+    "fieldCount": { "min": 1, "max": 1 },
     "dataStartLine": 2,
     "delimiter": "none",
     "headerConvention": "nameParenUnit",
@@ -251,21 +113,9 @@
       "topic": "charset",
       "chosen": "ascii",
       "candidates": [
-        {
-          "value": "ascii",
-          "score": 1,
-          "reason": "no bytes at or above 0x80"
-        },
-        {
-          "value": "latin-1",
-          "score": 0,
-          "reason": "UTF-8 or ASCII decoding accepted"
-        },
-        {
-          "value": "utf-8",
-          "score": 0,
-          "reason": "no bytes at or above 0x80"
-        }
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
       ]
     },
     {
@@ -273,21 +123,9 @@
       "topic": "class",
       "chosen": "text",
       "candidates": [
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "empty",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "text",
-          "score": 1,
-          "reason": "rule 6: no NUL bytes; 0 of 47 bytes are control bytes"
-        }
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 47 bytes are control bytes" }
       ]
     },
     {
@@ -300,16 +138,8 @@
           "score": 0.5,
           "reason": "single column; 7 records; the header on line 1 fails the column's type"
         },
-        {
-          "value": "text",
-          "score": 0.1,
-          "reason": "text content"
-        },
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not binary: text content"
-        }
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
       ]
     },
     {
@@ -317,16 +147,8 @@
       "topic": "decimalSeparator",
       "chosen": ".",
       "candidates": [
-        {
-          "value": ",",
-          "score": 0,
-          "reason": "0 comma-decimal cells; one column, no delimiter"
-        },
-        {
-          "value": ".",
-          "score": 1,
-          "reason": "6 dot-decimal cells"
-        }
+        { "value": ",", "score": 0, "reason": "0 comma-decimal cells; one column, no delimiter" },
+        { "value": ".", "score": 1, "reason": "6 dot-decimal cells" }
       ]
     },
     {
@@ -334,31 +156,11 @@
       "topic": "delimiter",
       "chosen": "none",
       "candidates": [
-        {
-          "value": ",",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "\t",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": ";",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "|",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "whitespace",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        }
+        { "value": ",", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "\t", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": ";", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "|", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "whitespace", "score": 0, "reason": "k=1; no run; 0 quoted fields" }
       ]
     },
     {
@@ -366,11 +168,7 @@
       "topic": "shape",
       "chosen": "singleColumn",
       "candidates": [
-        {
-          "value": "headerOnly",
-          "score": 0,
-          "reason": "declined: no line has several fields"
-        },
+        { "value": "headerOnly", "score": 0, "reason": "declined: no line has several fields" },
         {
           "value": "singleColumn",
           "score": 1,
@@ -383,11 +181,7 @@
       "topic": "candidates",
       "chosen": "1",
       "candidates": [
-        {
-          "value": "1",
-          "score": 1,
-          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
-        },
+        { "value": "1", "score": 1, "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1" },
         {
           "value": "summary",
           "score": 0,
@@ -400,31 +194,11 @@
       "topic": "headerConvention",
       "chosen": "nameParenUnit",
       "candidates": [
-        {
-          "value": "nameParenUnit",
-          "score": 1,
-          "reason": "1 of 1 headers"
-        },
-        {
-          "value": "nameBracketUnit",
-          "score": 0,
-          "reason": "0 of 1 headers"
-        },
-        {
-          "value": "nameUnderscoreUnit",
-          "score": 0,
-          "reason": "0 of 1 headers"
-        },
-        {
-          "value": "unitsRow",
-          "score": 0,
-          "reason": "0 of 1 headers"
-        },
-        {
-          "value": "none",
-          "score": 0,
-          "reason": "0 of 1 headers"
-        }
+        { "value": "nameParenUnit", "score": 1, "reason": "1 of 1 headers" },
+        { "value": "nameBracketUnit", "score": 0, "reason": "0 of 1 headers" },
+        { "value": "nameUnderscoreUnit", "score": 0, "reason": "0 of 1 headers" },
+        { "value": "unitsRow", "score": 0, "reason": "0 of 1 headers" },
+        { "value": "none", "score": 0, "reason": "0 of 1 headers" }
       ]
     }
   ]

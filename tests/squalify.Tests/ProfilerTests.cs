@@ -48,8 +48,9 @@ public sealed class ProfilerTests : IDisposable
         Assert.Equal(a.Length, b.Length);
         var differing = a.Zip(b).Where(static pair => pair.First != pair.Second).ToArray();
         var pair = Assert.Single(differing);
-        Assert.Equal("    \"name\": \"alpha.txt\",", pair.First);
-        Assert.Equal("    \"name\": \"bravo.txt\",", pair.Second);
+        // The file object is small, so it is one line: the name is the only part of it that differs.
+        Assert.StartsWith("  \"file\": { \"name\": \"alpha.txt\", \"size\": 8,", pair.First, StringComparison.Ordinal);
+        Assert.StartsWith("  \"file\": { \"name\": \"bravo.txt\", \"size\": 8,", pair.Second, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -60,7 +61,7 @@ public sealed class ProfilerTests : IDisposable
         var b = TestBytes.ProfileText(new BytesSource("Bravo99.LOG", bytes)).Split('\n');
         Assert.Equal(a.Length, b.Length);
         var differing = a.Zip(b).Where(static pair => pair.First != pair.Second).Select(static pair => pair.First.TrimStart().Split(':')[0]).ToArray();
-        Assert.Equal(new[] { "\"name\"", "\"extension\"", "\"fileNameShape\"" }, differing);
+        Assert.Equal(new[] { "\"file\"", "\"extension\"", "\"fileNameShape\"" }, differing);
     }
 
     [Fact]
@@ -334,7 +335,7 @@ public sealed class ProfilerTests : IDisposable
         Assert.Equal("text", descriptor.Kind.Label);
         Assert.Equal("a{5}.a{3}", descriptor.Hints.FileNameShape);
         Assert.Equal(".txt", descriptor.Hints.Extension);
-        Assert.Equal(1, descriptor.Fingerprint.Version);
+        Assert.Equal(2, descriptor.Fingerprint.Version);
     }
 
     [Fact]

@@ -1,13 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "tool": {
-    "name": "squalify",
-    "version": "0.1.1"
-  },
-  "options": {
-    "includeValues": false,
-    "includeValuesFor": []
-  },
+  "tool": { "name": "squalify", "version": "0.1.1" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
   "limits": {
     "distinctPerField": 10000,
     "quantilePerField": 100000,
@@ -18,33 +12,18 @@
     "runawayQuote": 65536,
     "fieldCountRuns": 100000,
     "rowClasses": 64,
-    "charsetTolerance": {
-      "invalidSequences": 8,
-      "perBytes": 65536
-    },
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
     "stdfTests": 10000,
-    "budget": {
-      "quantileValues": 10000000,
-      "distinctValues": 2000000,
-      "shapeChars": 16000000
-    },
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
     "nullTokens": 1,
     "unitTable": 1
   },
-  "file": {
-    "name": "no-header.tsv",
-    "size": 90,
-    "sha256": "7535e32dcd72182e861b637f7a2061f914987216e2c59af639783fb4cbba173b"
-  },
+  "file": { "name": "no-header.tsv", "size": 90, "sha256": "7535e32dcd72182e861b637f7a2061f914987216e2c59af639783fb4cbba173b" },
   "encoding": {
     "kind": "text",
     "charset": "ascii",
     "bom": null,
-    "lineEndings": {
-      "crlf": 0,
-      "lf": 6,
-      "cr": 0
-    },
+    "lineEndings": { "crlf": 0, "lf": 6, "cr": 0 },
     "invalidBytes": 0,
     "controlBytes": 0
   },
@@ -56,62 +35,22 @@
       "hasHeader": false,
       "unitsRow": false,
       "decimalSeparator": ".",
-      "padding": {
-        "trim": false,
-        "paddedShare": 0,
-        "constantLineLength": true,
-        "lineLength": 14
-      },
+      "padding": { "trim": false, "paddedShare": 0, "constantLineLength": true, "lineLength": 14 },
       "blocks": 1
     },
     "score": 0.7
   },
-  "kind": {
-    "label": "text",
-    "ruleId": "K09",
-    "confidence": 1
-  },
-  "layout": {
-    "regions": [
-      {
-        "kind": "data",
-        "lines": [
-          1,
-          6
-        ],
-        "bytes": [
-          0,
-          90
-        ]
-      }
-    ],
-    "maxLineLength": 14
-  },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
+  "layout": { "regions": [{ "kind": "data", "lines": [1, 6], "bytes": [0, 90] }], "maxLineLength": 14 },
   "table": {
     "rows": 6,
-    "fieldCount": {
-      "min": 4,
-      "max": 4
-    },
+    "fieldCount": { "min": 4, "max": 4 },
     "rowClasses": {
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
       "truncated": 0,
-      "classes": [
-        {
-          "id": "rc:f84a18ec7f5e8c9a",
-          "count": 6,
-          "fields": [
-            [
-              0,
-              3
-            ]
-          ],
-          "firstLine": 1,
-          "lastLine": 6
-        }
-      ]
+      "classes": [{ "id": "rc:f84a18ec7f5e8c9a", "count": 6, "fields": [[0, 3]], "firstLine": 1, "lastLine": 6 }]
     },
     "fields": [
       {
@@ -119,253 +58,109 @@
         "name": null,
         "nameParts": null,
         "type": "int",
-        "dominant": {
-          "type": "int",
-          "share": 1
-        },
-        "typeVotes": {
-          "int": 6
-        },
-        "patterns": null,
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 6 },
         "count": 6,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 6,
-          "approximate": false
-        },
+        "distinct": { "value": 6 },
         "numeric": {
           "min": 1,
           "max": 6,
           "mean": 3.5,
           "stddev": 1.8708286933869707,
-          "quantiles": {
-            "p01": 1,
-            "p05": 1,
-            "p25": 2,
-            "p50": 3,
-            "p75": 5,
-            "p95": 6,
-            "p99": 6
-          },
-          "approximate": false
+          "quantiles": { "p01": 1, "p05": 1, "p25": 2, "p50": 3, "p75": 5, "p95": 6, "p99": 6 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 1,
-          "max": 1,
-          "mean": 1
-        },
-        "shapes": [
-          {
-            "mask": "9",
-            "count": 6
-          }
-        ],
+        "length": { "min": 1, "max": 1, "mean": 1 },
+        "shapes": [{ "mask": "9", "count": 6 }],
         "monotonic": "increasing",
         "constant": false,
-        "unique": true,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": true
       },
       {
         "index": 1,
         "name": null,
         "nameParts": null,
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 1
-        },
-        "typeVotes": {
-          "float": 6
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 6 },
         "count": 6,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 6,
-          "approximate": false
-        },
+        "distinct": { "value": 6 },
         "numeric": {
           "min": 1.25,
           "max": 3.75,
           "mean": 2.5,
           "stddev": 0.9354143466934853,
-          "quantiles": {
-            "p01": 1.25,
-            "p05": 1.25,
-            "p25": 1.75,
-            "p50": 2.25,
-            "p75": 3.25,
-            "p95": 3.75,
-            "p99": 3.75
-          },
-          "approximate": false
+          "quantiles": { "p01": 1.25, "p05": 1.25, "p25": 1.75, "p50": 2.25, "p75": 3.25, "p95": 3.75, "p99": 3.75 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 4,
-          "max": 4,
-          "mean": 4
-        },
-        "shapes": [
-          {
-            "mask": "9.9{2}",
-            "count": 6
-          }
-        ],
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9.9{2}", "count": 6 }],
         "monotonic": "increasing",
         "constant": false,
-        "unique": true,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": true
       },
       {
         "index": 2,
         "name": null,
         "nameParts": null,
         "type": "int",
-        "dominant": {
-          "type": "int",
-          "share": 1
-        },
-        "typeVotes": {
-          "int": 6
-        },
-        "patterns": null,
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 6 },
         "count": 6,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 6,
-          "approximate": false
-        },
+        "distinct": { "value": 6 },
         "numeric": {
           "min": 100,
           "max": 135,
           "mean": 117.5,
           "stddev": 13.095800853708795,
-          "quantiles": {
-            "p01": 100,
-            "p05": 100,
-            "p25": 107,
-            "p50": 114,
-            "p75": 128,
-            "p95": 135,
-            "p99": 135
-          },
-          "approximate": false
+          "quantiles": { "p01": 100, "p05": 100, "p25": 107, "p50": 114, "p75": 128, "p95": 135, "p99": 135 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 3,
-          "max": 3,
-          "mean": 3
-        },
-        "shapes": [
-          {
-            "mask": "9{3}",
-            "count": 6
-          }
-        ],
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9{3}", "count": 6 }],
         "monotonic": "increasing",
         "constant": false,
-        "unique": true,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": true
       },
       {
         "index": 3,
         "name": null,
         "nameParts": null,
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 1
-        },
-        "typeVotes": {
-          "float": 6
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 6 },
         "count": 6,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 6,
-          "approximate": false
-        },
+        "distinct": { "value": 6 },
         "numeric": {
           "min": 2.8,
           "max": 3.3,
           "mean": 3.05,
           "stddev": 0.1870828693386972,
-          "quantiles": {
-            "p01": 2.8,
-            "p05": 2.8,
-            "p25": 2.9,
-            "p50": 3,
-            "p75": 3.2,
-            "p95": 3.3,
-            "p99": 3.3
-          },
-          "approximate": false
+          "quantiles": { "p01": 2.8, "p05": 2.8, "p25": 2.9, "p50": 3, "p75": 3.2, "p95": 3.3, "p99": 3.3 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 3,
-          "max": 3,
-          "mean": 3
-        },
-        "shapes": [
-          {
-            "mask": "9.9",
-            "count": 6
-          }
-        ],
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 6 }],
         "monotonic": "decreasing",
         "constant": false,
-        "unique": true,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": true
       }
     ]
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:b46df5e149cb6645f6bffc6c4fa358210cd47381b5a66c4220ba7b13e63f111c",
     "layout": "sha256:45a06a580c74b8486535d804c725635b8707251c514d0c7bdbad0fcdb75c81ea",
     "typed": "sha256:bfeeb26724b193e58e32b7697e690ce9171274886f4e26b04ec4107d3c172b1f",
@@ -377,16 +172,8 @@
     "stableLines": [],
     "headerFields": null,
     "headerPrefix": null,
-    "nonNullFields": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "fieldCount": {
-      "min": 4,
-      "max": 4
-    },
+    "nonNullFields": [0, 1, 2, 3],
+    "fieldCount": { "min": 4, "max": 4 },
     "dataStartLine": 1,
     "delimiter": "\t",
     "headerConvention": null,
@@ -400,21 +187,9 @@
       "topic": "charset",
       "chosen": "ascii",
       "candidates": [
-        {
-          "value": "ascii",
-          "score": 1,
-          "reason": "no bytes at or above 0x80"
-        },
-        {
-          "value": "latin-1",
-          "score": 0,
-          "reason": "UTF-8 or ASCII decoding accepted"
-        },
-        {
-          "value": "utf-8",
-          "score": 0,
-          "reason": "no bytes at or above 0x80"
-        }
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
       ]
     },
     {
@@ -422,21 +197,9 @@
       "topic": "class",
       "chosen": "text",
       "candidates": [
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "empty",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "text",
-          "score": 1,
-          "reason": "rule 6: no NUL bytes; 0 of 90 bytes are control bytes"
-        }
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 90 bytes are control bytes" }
       ]
     },
     {
@@ -449,16 +212,8 @@
           "score": 0.7,
           "reason": "delimiter tab; k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields"
         },
-        {
-          "value": "text",
-          "score": 0.1,
-          "reason": "text content"
-        },
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not binary: text content"
-        }
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
       ]
     },
     {
@@ -466,16 +221,8 @@
       "topic": "decimalSeparator",
       "chosen": ".",
       "candidates": [
-        {
-          "value": ",",
-          "score": 0,
-          "reason": "0 comma-decimal cells"
-        },
-        {
-          "value": ".",
-          "score": 1,
-          "reason": "12 dot-decimal cells"
-        }
+        { "value": ",", "score": 0, "reason": "0 comma-decimal cells" },
+        { "value": ".", "score": 1, "reason": "12 dot-decimal cells" }
       ]
     },
     {
@@ -483,31 +230,11 @@
       "topic": "delimiter",
       "chosen": "\t",
       "candidates": [
-        {
-          "value": ",",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "\t",
-          "score": 1,
-          "reason": "k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields"
-        },
-        {
-          "value": ";",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "|",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "whitespace",
-          "score": 1,
-          "reason": "k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields"
-        }
+        { "value": ",", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "\t", "score": 1, "reason": "k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields" },
+        { "value": ";", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "|", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "whitespace", "score": 1, "reason": "k=4; 6/6 records; clean=1; run lines 1-6; 0 quoted fields" }
       ]
     },
     {

@@ -6,7 +6,7 @@ squalify profiles one data file and writes a **descriptor**: a versioned JSON do
 
 Other tools read the descriptor to decide what to do with the file: recognize a known file type, pick an import route, or draft a loader config. squalify only describes the file; it never converts or matches it.
 
-> **Status: early (0.1.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled; statistics are exact up to fixed caps, then deterministic sketches marked approximate. Every other file gets the generic text or binary profile. Touchstone, key=value and STDF profilers, repeated blocks and the `kind` label are still to come. The descriptor schema is a **draft** until the v1 schema freeze; before 1.0 a minor version may change it.
+> **Status: early (0.1.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled; statistics are exact up to fixed caps, then deterministic sketches marked approximate. Every other file gets the generic text or binary profile. Touchstone, key=value and STDF profilers and the `kind` label are still to come. The descriptor schema is a **draft** until the v1 schema freeze; before 1.0 a minor version may change it.
 
 ## Install
 
@@ -16,6 +16,10 @@ Both packages are on nuget.org (.NET 10):
 dotnet tool install -g squalor.squalify.Cli  # the CLI; the command is `squalify`
 dotnet add package squalor.squalify          # the library
 ```
+
+## Use as a library
+
+`squalor.squalify` runs the same profiler as the CLI. Descriptor bytes are identical for the same input, options and squalify version only within one .NET runtime major version: the JSON writer takes its text escaping of unassigned characters from the runtime, so moving to a new runtime major can change those bytes; pin the package version and the runtime. Fingerprint hashes do not depend on the runtime. Before 1.0 a minor squalify version may also change the descriptor. See the [user guide](https://github.com/squalor-xyz/squalify/blob/main/docs/user-guide.md#guarantees-and-stability).
 
 ## Quick start
 
@@ -37,7 +41,7 @@ squalify profile sweep-preamble.csv | jq -c '{family: .format.family, rows: .tab
 - **Catch schema drift:** fingerprints are the same for files with the same structure, whatever their values.
 - **Gate a pipeline:** fail a CI step when a file has issues such as ragged rows.
 - **Triage unknown files:** named magic (gzip, zip, pdf, sqlite, ...), encoding and line endings, without opening the file.
-- **Feed other tools:** the same deterministic JSON on any OS, with no data values unless you opt in.
+- **Feed other tools:** the same deterministic JSON on any OS (within one .NET runtime major version; see [Use as a library](#use-as-a-library)), with no data values unless you opt in.
 
 ## Docs
 

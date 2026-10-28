@@ -25,6 +25,12 @@ internal sealed class SampleRecord
     /// <summary>True when the record is a comment line.</summary>
     public required bool IsComment { get; init; }
 
+    /// <summary>
+    /// The classification of the record as a preamble line (kind, key and the value, only when it may be written), set for a
+    /// record that lies in the gap before a block candidate; the raw text is not kept. Null for other records.
+    /// </summary>
+    public LineClassification? GapClass { get; init; }
+
     /// <summary>The number of fields.</summary>
     public int FieldCount => Cells.Length;
 
@@ -228,6 +234,74 @@ internal static class HeaderDetector
         }
 
         return new HeaderDecision { HeaderIndex = header, UnitsIndex = units, Assumed = assumed, Relaxed = relaxed, Evidence = evidence };
+    }
+
+    /// <summary>
+    /// Whether the first record of a block candidate's sample is a header line: its fields are all non-blank and distinct,
+    /// and its values fail the column types below it (the strict join of the records after it, a units row directly after
+    /// the header left out) in at least <paramref name="minContrast"/> of the typed columns, and in one at least. This is
+    /// the eligibility test of <see cref="Detect"/> applied to the first record only, with a floor on the contrast (a real
+    /// header fails almost every typed column; a stray text row in a table fails few). The votes must be set (see
+    /// <see cref="Classify"/>).
+    /// </summary>
+    /// <param name="records">The sample: the first records of the candidate run.</param>
+    /// <param name="k">The field count of the table.</param>
+    /// <param name="minContrast">The least share of typed columns the record must fail.</param>
+    /// <param name="unitsRow">True when the record after the header is a units row.</param>
+    /// <returns>True when the sample opens with a header.</returns>
+    public static bool OpensWithHeader(IReadOnlyList<SampleRecord> records, int k, double minContrast, out bool unitsRow)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        unitsRow = false;
+        if (records.Count == 0 || records[0].IsComment || records[0].FieldCount != k)
+        {
+            return false;
+        }
+
+        var units = UnitsRowAfter(records, 0, k);
+        var types = JoinFrom(records, units ? 2 : 1, k);
+        var detail = Evaluate(records[0], types, k);
+        if (!detail.Eligible || detail.Contrast < minContrast)
+        {
+            return false;
+        }
+
+        unitsRow = units;
+        return true;
+    }
+
+    /// <summary>Whether the record after the header at <paramref name="header"/> is a units row. The votes must be set.</summary>
+    /// <param name="records">The sample.</param>
+    /// <param name="header">The sample index of the header.</param>
+    /// <param name="k">The field count of the table.</param>
+    /// <returns>True for a units row.</returns>
+    public static bool UnitsRowAfter(IReadOnlyList<SampleRecord> records, int header, int k)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        return header + 1 < records.Count
+            && records[header + 1] is { IsComment: false } next
+            && next.FieldCount == k
+            && IsUnitsRow(next, JoinFrom(records, header + 2, k), k);
+    }
+
+    // The column types over the participating records from `start` on.
+    private static ValueVote[] JoinFrom(IReadOnlyList<SampleRecord> records, int start, int k)
+    {
+        var types = new ValueVote[k];
+        for (var i = start; i < records.Count; i++)
+        {
+            if (!Participates(records[i], k))
+            {
+                continue;
+            }
+
+            for (var c = 0; c < k; c++)
+            {
+                types[c] = TypeLattice.Join(types[c], records[i].Votes[c]);
+            }
+        }
+
+        return types;
     }
 
     /// <summary>

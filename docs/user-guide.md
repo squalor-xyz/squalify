@@ -49,7 +49,7 @@ A complete program is in [Examples](examples.md#use-the-library-to-pick-an-impor
 
 | Family | Today | What is described |
 |---|---|---|
-| Delimited text | Fully profiled | CSV, TSV, `;`, `\|` or whitespace separated. Delimiter, quoting, padding and decimal separator; preamble, annotation rows (such as limits), header, units row, data and footer regions; row classes; per-field profiles (type, nulls and null tokens, statistics, shapes, units from header names). |
+| Delimited text | Fully profiled | CSV, TSV, `;`, `\|` or whitespace separated. Delimiter, quoting, padding and decimal separator; preamble, annotation rows (such as limits), header, units row, data and footer regions; repeated header-and-table blocks (one `block` region each, see [descriptor.md](descriptor.md#several-blocks)); row classes; per-field profiles (type, nulls and null tokens, statistics, shapes, units from header names). |
 | Plain text | Generic profile | Encoding, line endings, line kinds, longest line. |
 | Binary | Generic profile | Named magic (gzip, zip, pdf, sqlite, hdf5, `parquet` and others), byte histogram, entropy. Nothing is decompressed or unpacked. |
 | Empty | Generic profile | A zero-length file has family `empty`. |
@@ -57,7 +57,7 @@ A complete program is in [Examples](examples.md#use-the-library-to-pick-an-impor
 | Key=value / INI | Planned | Profiled as text for now. |
 | STDF V4 | Planned | Profiled as binary, with the `stdf-le` or `stdf-be` magic hint, for now. |
 
-Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint. Also planned: repeated blocks, and the `kind` label beyond `text`, `binary` and `empty`. Malformed content is described, not rejected: problems become `issues` and the descriptor is still written. The issue codes are listed in [descriptor.md](descriptor.md#issues).
+Parquet is not in v1: a Parquet file gets the binary profile and the `parquet` magic hint. Also planned: the `kind` label beyond `text`, `binary` and `empty`. Malformed content is described, not rejected: problems become `issues` and the descriptor is still written. The issue codes are listed in [descriptor.md](descriptor.md#issues).
 
 ## Values policy
 
@@ -76,7 +76,7 @@ Header names and preamble keys are always included, and can themselves identify 
 
 ## Guarantees and stability
 
-- **Deterministic.** The same bytes and the same squalify version give the same descriptor, byte for byte, on any OS, CPU or culture. Output never depends on time, path, machine or thread timing, and there is no machine learning, no LLM and no network access. One caveat: text escaping of unassigned characters comes from the .NET runtime's Unicode tables, so a .NET runtime major upgrade can change those bytes ([descriptor.md](descriptor.md#canonical-form)). Fingerprint hashes do not depend on the runtime.
+- **Deterministic.** The same input bytes, options and squalify version give the same descriptor, byte for byte, on any OS, CPU or culture, within one .NET runtime major version. The JSON writer takes its escaping of unassigned characters from the runtime's Unicode tables, so moving to another runtime major can change those bytes; squalify does not guard against that, so pin the package version and the runtime ([descriptor.md](descriptor.md#canonical-form)). Fingerprint hashes are identical across runtimes. Output never depends on time, path, machine or thread timing, and there is no machine learning, no LLM and no network access.
 - **Describe, don't decide.** squalify does not match files against known types, propose configs or convert anything. Consumers do that from the descriptor.
 - **Explainable.** Every inference has an `evidence` entry with its candidates and scores.
 - **Versions.** The package version, `squalify --version` and `tool.version` are one string. The schema is a draft until the v1 schema freeze: before 1.0 a minor version may change the descriptor. After the freeze, adding optional keys bumps the schema's minor version and removing or renaming one bumps the major. Consumers must ignore unknown keys. See [the versioning policy](descriptor.md#versioning-policy).
@@ -111,7 +111,7 @@ A global budget shrinks the first two caps, and the mask text, for very wide tab
 
 **My STDF, Touchstone or Parquet file looks wrong.** They are not profiled in 0.1.x. STDF and Parquet get the binary profile with a magic hint (`stdf-le`, `stdf-be`, `parquet`), and Touchstone gets the text profile.
 
-**A descriptor changed after an upgrade.** Expected before 1.0 while the schema is a draft. Pin the package version, and compare `tool.version` and `schemaVersion` in the descriptors.
+**A descriptor changed after an upgrade.** Expected before 1.0 while the schema is a draft. Pin the package version and the .NET runtime major version, and compare `tool.version` and `schemaVersion` in the descriptors.
 
 **Where is the data?** Not in the descriptor, unless you opt in ([values policy](#values-policy)).
 

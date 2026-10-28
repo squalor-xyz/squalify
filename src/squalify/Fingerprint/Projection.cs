@@ -34,7 +34,7 @@ internal sealed record ProjectionResult(Fingerprint Fingerprint, long Excluded);
 internal static class Projection
 {
     /// <summary>The projection version written as <c>fingerprint.version</c>.</summary>
-    public const long Version = 1;
+    public const long Version = 2;
 
     /// <summary>The bytes of the <c>structure</c> projection.</summary>
     /// <param name="input">The input.</param>
@@ -208,7 +208,7 @@ internal static class Projection
             w.Name("family").String(_input.Family);
             _contribution.Structure?.Invoke(w);
             w.Name("charsetFamily").StringOrNull(CharsetFamily(_input.Charset));
-            w.Name("regions").Strings(_input.Layout.Regions.Select(static r => r.Kind));
+            w.Name("regions").Strings(RegionTree.FirstBlockView(_input.Layout).Select(static r => r.Kind));
             return w.EndObject().ToBytes();
         }
 
@@ -218,7 +218,7 @@ internal static class Projection
             w.Name("family").String(_input.Family);
             _contribution.Layout?.Invoke(w);
             w.Name("charsetFamily").StringOrNull(CharsetFamily(_input.Charset));
-            w.Name("regions").Strings(_input.Layout.Regions.Select(static r => r.Kind));
+            w.Name("regions").Strings(RegionTree.FirstBlockView(_input.Layout).Select(static r => r.Kind));
 
             // Absent (no header, or a file that is not a table) is JSON null; the convention none is the string "none".
             w.Name("headerConvention").StringOrNull(_input.Layout.HeaderConvention?.Dominant);

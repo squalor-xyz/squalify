@@ -225,8 +225,9 @@ public sealed class ValuesTierTests
         Assert.False(plain.RootElement.GetProperty("options").GetProperty("includeValues").GetBoolean());
         Assert.All(plain.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray(), static f =>
         {
-            Assert.Equal(JsonValueKind.Null, f.GetProperty("top").ValueKind);
-            Assert.Equal(JsonValueKind.Null, f.GetProperty("text").ValueKind);
+            // Null members of a field are left out: without values there is no top and no text.
+            Assert.False(f.TryGetProperty("top", out _));
+            Assert.False(f.TryGetProperty("text", out _));
         });
     }
 
@@ -292,7 +293,7 @@ public sealed class ValuesTierTests
             var level = document.RootElement.GetProperty("table").GetProperty("fields")[3];
             Assert.Equal("level", level.GetProperty("name").GetString());
             Assert.Equal("constant", level.GetProperty("statsWithheld").GetString());
-            Assert.Equal(JsonValueKind.Null, level.GetProperty("numeric").ValueKind);
+            Assert.False(level.TryGetProperty("numeric", out _));
         }
 
         // Naming another column does not open it; naming this one, in any case, does.

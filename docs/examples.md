@@ -56,10 +56,10 @@ squalify profile tests/squalify.Tests/fixtures/consumer/lab-sweep.csv --include-
 ```
 
 ```json
-{"name":"Mode","top":{"items":[{"value":"OFDM","count":5},{"value":"CW","count":3}],"approximate":false},"text":{"min":"CW","max":"OFDM"}}
+{"name":"Mode","top":{"items":[{"value":"OFDM","count":5},{"value":"CW","count":3}]},"text":{"min":"CW","max":"OFDM"}}
 ```
 
-Without the option the same command prints `{"name":"Mode","top":null,"text":null}`. A name that matches nothing is reported as the issue `includeValuesForUnmatched` (`--include-values-for Nope` gives `[{"code":"includeValuesForUnmatched","count":1,"names":["Nope"]}]`). See [the values policy](user-guide.md#values-policy).
+Without the option the same command prints `{"name":"Mode","top":null,"text":null}` (the descriptor leaves both members out; `jq` prints a missing member as `null`). A name that matches nothing is reported as the issue `includeValuesForUnmatched` (`--include-values-for Nope` gives `[{"code":"includeValuesForUnmatched","count":1,"names":["Nope"]}]`). See [the values policy](user-guide.md#values-policy).
 
 ## Check for schema drift
 

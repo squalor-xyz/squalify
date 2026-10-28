@@ -6,18 +6,20 @@ namespace squalor.squalify;
 
 /// <summary>
 /// Writes a <see cref="Descriptor"/> as canonical JSON: explicit key order (the order in <c>docs/descriptor.md</c>),
-/// two-space indentation, LF line endings, UTF-8 without a BOM, and a trailing LF. Printable BMP text is written
+/// two-space indentation with small containers on one line (<see cref="CompactLayout"/>), LF line endings, UTF-8
+/// without a BOM, and a trailing LF. In <c>table.fields[]</c> a member that is null (except those the consumer subset
+/// lists as nullable), an all-zero <c>flags</c> and an <c>approximate</c> that is false are left out. Printable BMP text is written
 /// literally; control characters, non-BMP characters and a few invisible code points are escaped (see
-/// <c>docs/descriptor.md</c>, "Canonical form"). The same model always gives the same bytes on every OS, CPU and
-/// culture. Nothing is sorted here: producers build every collection sorted by its documented key.
+/// <c>docs/descriptor.md</c>, "Canonical form"). The same model gives the same bytes on every OS, CPU and
+/// culture within one .NET runtime major version (the runtime's Unicode tables decide how unassigned code points are
+/// escaped). Nothing is sorted here: producers build every collection sorted by its documented key.
 /// </summary>
 public static class DescriptorWriter
 {
+    // Written without white space; CompactLayout adds the indentation and the one-line small containers.
     private static readonly JsonWriterOptions Options = new()
     {
-        Indented = true,
-        IndentSize = 2,
-        NewLine = "\n",
+        Indented = false,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
@@ -41,8 +43,11 @@ public static class DescriptorWriter
                 Write(writer, descriptor);
             }
 
-            buffer.WriteByte((byte)'\n');
-            return buffer.ToArray();
+            var laidOut = CompactLayout.Apply(buffer.ToArray());
+            var bytes = new byte[laidOut.Length + 1];
+            laidOut.CopyTo(bytes, 0);
+            bytes[^1] = (byte)'\n';
+            return bytes;
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
@@ -270,13 +275,13 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteString("kind", v.Kind);
         OptionalNumber(w, "index", v.Index);
-        OptionalString(w, "label", v.Label);
         Pair(w, "lines", v.FirstLine, v.LastLine);
         Pair(w, "bytes", v.StartByte, v.EndByte);
         Optional(w, "lineKinds", v.LineKinds, WriteMap);
         OptionalStrings(w, "keys", v.Keys);
         OptionalStrings(w, "values", v.Values);
         OptionalList(w, "rows", v.Rows, Write);
+        OptionalList(w, "regions", v.Regions, Write);
         w.WriteEndObject();
     }
 
@@ -361,43 +366,33 @@ public static class DescriptorWriter
         Double(w, "share", v.Dominant.Share);
         w.WriteEndObject();
         Map(w, "typeVotes", v.TypeVotes);
-        Nullable(w, "patterns", v.Patterns, WriteMap);
+        Optional(w, "patterns", v.Patterns, WriteMap);
         w.WriteNumber("count", v.Count);
         w.WriteNumber("nulls", v.Nulls);
         w.WriteNumber("nullsExcludingAllNullRows", v.NullsExcludingAllNullRows);
         Nullable(w, "nullTokens", v.NullTokens, WriteMap);
-        Nullable(
-            w,
-            "flags",
-            v.Flags,
-            static (writer, flags) =>
-            {
-                writer.WriteStartObject();
-                writer.WriteNumber("leadingZero", flags.LeadingZero);
-                writer.WriteNumber("commaDecimalLike", flags.CommaDecimalLike);
-                writer.WriteNumber("padded", flags.Padded);
-                writer.WriteEndObject();
-            });
-        Nullable(w, "distinct", v.Distinct, Write);
-        Nullable(w, "numeric", v.Numeric, Write);
-        Nullable(w, "temporal", v.Temporal, Write);
-        w.WriteString("statsWithheld", v.StatsWithheld);
-        Nullable(w, "length", v.Length, Write);
-        if (v.Shapes is null)
+        if (v.Flags is { } flags && (flags.LeadingZero != 0 || flags.CommaDecimalLike != 0 || flags.Padded != 0))
         {
-            w.WriteNull("shapes");
-        }
-        else
-        {
-            List(w, "shapes", v.Shapes, Write);
+            w.WritePropertyName("flags");
+            w.WriteStartObject();
+            w.WriteNumber("leadingZero", flags.LeadingZero);
+            w.WriteNumber("commaDecimalLike", flags.CommaDecimalLike);
+            w.WriteNumber("padded", flags.Padded);
+            w.WriteEndObject();
         }
 
-        w.WriteString("monotonic", v.Monotonic);
+        Optional(w, "distinct", v.Distinct, Write);
+        Optional(w, "numeric", v.Numeric, Write);
+        Optional(w, "temporal", v.Temporal, Write);
+        w.WriteString("statsWithheld", v.StatsWithheld);
+        Optional(w, "length", v.Length, Write);
+        OptionalList(w, "shapes", v.Shapes, Write);
+        OptionalString(w, "monotonic", v.Monotonic);
         NullableBoolean(w, "constant", v.Constant);
-        NullableBoolean(w, "unique", v.Unique);
-        w.WriteString("unit", v.Unit);
-        Nullable(w, "top", v.Top, Write);
-        Nullable(w, "text", v.Text, Write);
+        OptionalBoolean(w, "unique", v.Unique);
+        OptionalString(w, "unit", v.Unit);
+        Optional(w, "top", v.Top, Write);
+        Optional(w, "text", v.Text, Write);
         w.WriteEndObject();
     }
 
@@ -405,7 +400,7 @@ public static class DescriptorWriter
     {
         w.WriteStartObject();
         w.WriteNumber("value", v.Value);
-        w.WriteBoolean("approximate", v.Approximate);
+        TrueOnly(w, "approximate", v.Approximate);
         OptionalDouble(w, "relativeStdError", v.RelativeStdError);
         w.WriteEndObject();
     }
@@ -415,27 +410,12 @@ public static class DescriptorWriter
         w.WriteStartObject();
         Number(w, "min", v.Min);
         Number(w, "max", v.Max);
-        if (v.Mean is { } mean)
-        {
-            Double(w, "mean", mean);
-        }
-        else
-        {
-            w.WriteNull("mean");
-        }
-
-        if (v.Stddev is { } stddev)
-        {
-            Double(w, "stddev", stddev);
-        }
-        else
-        {
-            w.WriteNull("stddev");
-        }
+        OptionalDouble(w, "mean", v.Mean);
+        OptionalDouble(w, "stddev", v.Stddev);
 
         w.WritePropertyName("quantiles");
         WriteQuantiles(w, v.Quantiles, static (inner, value) => Number(inner, value));
-        w.WriteBoolean("approximate", v.Approximate);
+        TrueOnly(w, "approximate", v.Approximate);
         OptionalDouble(w, "rankError", v.RankError);
         w.WriteEndObject();
     }
@@ -445,15 +425,15 @@ public static class DescriptorWriter
         w.WriteStartObject();
         Strings(w, "orders", v.Orders);
         w.WriteBoolean("ambiguous", v.Ambiguous);
-        w.WriteString("clock", v.Clock);
-        w.WriteString("min", v.Min);
-        w.WriteString("max", v.Max);
-        Nullable(
+        OptionalString(w, "clock", v.Clock);
+        OptionalString(w, "min", v.Min);
+        OptionalString(w, "max", v.Max);
+        Optional(
             w,
             "quantiles",
             v.Quantiles,
             static (writer, quantiles) => WriteQuantiles(writer, quantiles, static (inner, text) => inner.WriteStringValue(text)));
-        NullableBoolean(w, "approximate", v.Approximate);
+        TrueOnly(w, "approximate", v.Approximate is true);
         OptionalDouble(w, "rankError", v.RankError);
         w.WriteEndObject();
     }
@@ -499,7 +479,7 @@ public static class DescriptorWriter
     {
         w.WriteStartObject();
         List(w, "items", v.Items, Write);
-        w.WriteBoolean("approximate", v.Approximate);
+        TrueOnly(w, "approximate", v.Approximate);
         OptionalNumber(w, "maxError", v.MaxError);
         w.WriteEndObject();
     }
@@ -706,6 +686,23 @@ public static class DescriptorWriter
         }
 
         w.WriteEndObject();
+    }
+
+    private static void OptionalBoolean(Utf8JsonWriter w, string name, bool? value)
+    {
+        if (value is { } flag)
+        {
+            w.WriteBoolean(name, flag);
+        }
+    }
+
+    // A flag whose absence means false (approximate): written only when true.
+    private static void TrueOnly(Utf8JsonWriter w, string name, bool value)
+    {
+        if (value)
+        {
+            w.WriteBoolean(name, true);
+        }
     }
 
     private static void NullableBoolean(Utf8JsonWriter w, string name, bool? value)

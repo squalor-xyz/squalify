@@ -41,7 +41,7 @@ internal static class HintBuilder
         {
             // A field qualifies when it has no null outside the all-null (separator) rows, and at least one value.
             nonNull = table.Fields.Where(static f => f.NullsExcludingAllNullRows == 0 && f.Count > f.Nulls).Select(static f => f.Index).ToArray();
-            dataStart = layout.Regions.FirstOrDefault(static r => r.Kind == "data")?.FirstLine;
+            dataStart = RegionTree.FirstBlockView(layout).FirstOrDefault(static r => r.Kind == "data")?.FirstLine;
         }
 
         return new Hints(

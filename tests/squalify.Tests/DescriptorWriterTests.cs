@@ -63,7 +63,7 @@ public class DescriptorWriterTests
 
         Assert.Contains("\"numeric\": {\n          \"min\": 0,\n          \"max\": \"Infinity\",\n          \"mean\": \"NaN\",\n          \"stddev\": \"-Infinity\",", text);
         Assert.Contains(
-            "\"quantiles\": {\n            \"p01\": 0,\n            \"p05\": 0,\n            \"p25\": 0,\n            \"p50\": \"NaN\",\n            \"p75\": \"Infinity\",\n            \"p95\": \"-Infinity\",\n            \"p99\": 1.5\n          }",
+            "\"quantiles\": { \"p01\": 0, \"p05\": 0, \"p25\": 0, \"p50\": \"NaN\", \"p75\": \"Infinity\", \"p95\": \"-Infinity\", \"p99\": 1.5 }",
             text);
         Assert.DoesNotContain("-0", text);
     }
@@ -141,7 +141,7 @@ public class DescriptorWriterTests
         }
 
         Assert.Contains("\"schemaVersion\": \"1.0\"", text);
-        Assert.StartsWith("{\n  \"schemaVersion\": \"1.0\",\n  \"tool\": {", text);
+        Assert.StartsWith("{\n  \"schemaVersion\": \"1.0\",\n  \"tool\": { \"name\": \"squalify\", \"version\": \"0.1.0\" },\n  \"options\": {", text);
     }
 
     [Fact]
@@ -304,14 +304,15 @@ public class DescriptorWriterTests
                     0.9),
             });
         Assert.Contains(
-            "    \"dialect\": {\n      \"version\": \"2.0\",\n      \"ports\": 2,\n      \"frequencyUnit\": \"GHz\",\n      \"parameter\": \"S\",\n      \"dataFormat\": \"MA\",\n      \"referenceOhms\": 50,\n      \"twoPortOrder\": \"21_12\",\n      \"matrixFormat\": \"Full\",\n      \"keywords\": [\n        \"Number of Ports\",\n        \"Reference\"\n      ],\n      \"valuesPerLine\": {\n        \"2\": 5,\n        \"9\": 2,\n        \"10\": 1\n      },\n      \"noise\": true\n    },",
+            "    \"dialect\": {\n      \"version\": \"2.0\",\n      \"ports\": 2,\n      \"frequencyUnit\": \"GHz\",\n      \"parameter\": \"S\",\n      \"dataFormat\": \"MA\",\n      \"referenceOhms\": 50,\n      \"twoPortOrder\": \"21_12\",\n      \"matrixFormat\": \"Full\",\n      \"keywords\": [\"Number of Ports\", \"Reference\"],\n      \"valuesPerLine\": { \"2\": 5, \"9\": 2, \"10\": 1 },\n      \"noise\": true\n    },",
             touchstone);
 
         var keyValue = Text(TestModels.Minimal() with { Format = new FormatSection("keyValue", new KeyValueDialect("=", true), 0.6) });
-        Assert.Contains("    \"dialect\": {\n      \"separator\": \"=\",\n      \"hasSections\": true\n    },", keyValue);
+        // The whole format section is short enough for one line.
+        Assert.Contains("  \"format\": { \"family\": \"keyValue\", \"dialect\": { \"separator\": \"=\", \"hasSections\": true }, \"score\": 0.6 },", keyValue);
 
         var noDialect = Text(TestModels.Minimal());
-        Assert.Contains("    \"dialect\": null,", noDialect);
+        Assert.Contains("  \"format\": { \"family\": \"empty\", \"dialect\": null, \"score\": 1 },", noDialect);
     }
 
     private sealed class ThrowingStream : MemoryStream

@@ -1,13 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "tool": {
-    "name": "squalify",
-    "version": "0.1.1"
-  },
-  "options": {
-    "includeValues": false,
-    "includeValuesFor": []
-  },
+  "tool": { "name": "squalify", "version": "0.1.1" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
   "limits": {
     "distinctPerField": 10000,
     "quantilePerField": 100000,
@@ -18,68 +12,29 @@
     "runawayQuote": 65536,
     "fieldCountRuns": 100000,
     "rowClasses": 64,
-    "charsetTolerance": {
-      "invalidSequences": 8,
-      "perBytes": 65536
-    },
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
     "stdfTests": 10000,
-    "budget": {
-      "quantileValues": 10000000,
-      "distinctValues": 2000000,
-      "shapeChars": 16000000
-    },
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
     "nullTokens": 1,
     "unitTable": 1
   },
-  "file": {
-    "name": "plain.txt",
-    "size": 177,
-    "sha256": "035c84ff514aa8295fcee301ca9d47d1a27eddb1d674fbc3316aa271d894e78e"
-  },
+  "file": { "name": "plain.txt", "size": 177, "sha256": "035c84ff514aa8295fcee301ca9d47d1a27eddb1d674fbc3316aa271d894e78e" },
   "encoding": {
     "kind": "text",
     "charset": "ascii",
     "bom": null,
-    "lineEndings": {
-      "crlf": 0,
-      "lf": 5,
-      "cr": 0
-    },
+    "lineEndings": { "crlf": 0, "lf": 5, "cr": 0 },
     "invalidBytes": 0,
     "controlBytes": 0
   },
-  "format": {
-    "family": "text",
-    "dialect": null,
-    "score": 0.1
-  },
-  "kind": {
-    "label": "text",
-    "ruleId": "K09",
-    "confidence": 1
-  },
+  "format": { "family": "text", "dialect": null, "score": 0.1 },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
   "layout": {
-    "regions": [
-      {
-        "kind": "unknown",
-        "lines": [
-          1,
-          5
-        ],
-        "bytes": [
-          0,
-          177
-        ],
-        "lineKinds": {
-          "blank": 1,
-          "text": 4
-        }
-      }
-    ],
+    "regions": [{ "kind": "unknown", "lines": [1, 5], "bytes": [0, 177], "lineKinds": { "blank": 1, "text": 4 } }],
     "maxLineLength": 58
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:f041e9d8aa4a2a2221b1eedb386f9ba3759a89c865cf020a8ac25160cf44e92b",
     "layout": "sha256:ed6f53aefaaebe0f17573d75181d002ee079937ea5a8c9daa134ba815f7673c9",
     "typed": "sha256:aee8fadad8cd4860560fd85ecdde0dbb57b6f7640256530cb715b9c4b4953748",
@@ -106,21 +61,9 @@
       "topic": "charset",
       "chosen": "ascii",
       "candidates": [
-        {
-          "value": "ascii",
-          "score": 1,
-          "reason": "no bytes at or above 0x80"
-        },
-        {
-          "value": "latin-1",
-          "score": 0,
-          "reason": "UTF-8 or ASCII decoding accepted"
-        },
-        {
-          "value": "utf-8",
-          "score": 0,
-          "reason": "no bytes at or above 0x80"
-        }
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
       ]
     },
     {
@@ -128,21 +71,9 @@
       "topic": "class",
       "chosen": "text",
       "candidates": [
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "empty",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "text",
-          "score": 1,
-          "reason": "rule 6: no NUL bytes; 0 of 177 bytes are control bytes"
-        }
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 177 bytes are control bytes" }
       ]
     },
     {
@@ -150,21 +81,9 @@
       "topic": "family",
       "chosen": "text",
       "candidates": [
-        {
-          "value": "delimited",
-          "score": 0,
-          "reason": "no steady delimited run"
-        },
-        {
-          "value": "text",
-          "score": 0.1,
-          "reason": "text content"
-        },
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not binary: text content"
-        }
+        { "value": "delimited", "score": 0, "reason": "no steady delimited run" },
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
       ]
     }
   ]

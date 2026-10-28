@@ -25,7 +25,7 @@ public sealed class GoldenTests : IDisposable
         var descriptor = TestModels.FullDelimited();
         var good = DescriptorWriter.ToBytes(descriptor);
         var text = Encoding.UTF8.GetString(good);
-        var changed = text.Replace("\"label\": \"labSweepTable\"", "\"label\": \"genericTable\"", StringComparison.Ordinal);
+        var changed = text.Replace("        \"name\": \"Frequency(MHz)\",", "        \"name\": \"Frequency(GHz)\",", StringComparison.Ordinal);
         Assert.NotEqual(text, changed);
         File.WriteAllBytes(Path.Combine(_root, "sample.csv.squalify.json"), Encoding.UTF8.GetBytes(changed));
 
@@ -33,8 +33,8 @@ public sealed class GoldenTests : IDisposable
         Assert.Contains("sample.csv.squalify.json", error.Message);
         Assert.Contains("--- expected", error.Message);
         Assert.Contains("+++ actual", error.Message);
-        Assert.Contains("-    \"label\": \"genericTable\",", error.Message);
-        Assert.Contains("+    \"label\": \"labSweepTable\",", error.Message);
+        Assert.Contains("-        \"name\": \"Frequency(GHz)\",", error.Message);
+        Assert.Contains("+        \"name\": \"Frequency(MHz)\",", error.Message);
         Assert.Contains("@@", error.Message);
     }
 

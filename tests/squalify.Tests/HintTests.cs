@@ -285,7 +285,7 @@ public sealed class HintTests
         var parquet = Profiler.Profile(new BytesSource("a.parquet", TestBytes.Hex("50 41 52 31 00 00 50 41 52 31")), Options());
         Assert.Equal(new MagicHint("parquet", 0, "50415231"), parquet.Hints.Magic);
         var json = Encoding.UTF8.GetString(DescriptorWriter.ToBytes(gz));
-        Assert.Contains("\"magic\": {\n      \"name\": \"gzip\",\n      \"offset\": 0,\n      \"hex\": \"1f8b\"\n    }", json, StringComparison.Ordinal);
+        Assert.Contains("\"magic\": { \"name\": \"gzip\", \"offset\": 0, \"hex\": \"1f8b\" }", json, StringComparison.Ordinal);
     }
 
     [Fact]

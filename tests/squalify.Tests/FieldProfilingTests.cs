@@ -273,9 +273,9 @@ public sealed class FieldProfilingTests
 
         using var json = JsonDocument.Parse(DescriptorWriter.ToBytes(ProfileText(Column("6/5/2026", "6/5/2026", "7/5/2026"))));
         var written = json.RootElement.GetProperty("table").GetProperty("fields")[1].GetProperty("temporal");
-        Assert.Equal(JsonValueKind.Null, written.GetProperty("min").ValueKind);
-        Assert.Equal(JsonValueKind.Null, written.GetProperty("max").ValueKind);
-        Assert.Equal(JsonValueKind.Null, written.GetProperty("quantiles").ValueKind);
+        Assert.False(written.TryGetProperty("min", out _));
+        Assert.False(written.TryGetProperty("max", out _));
+        Assert.False(written.TryGetProperty("quantiles", out _));
         Assert.Equal(JsonValueKind.True, written.GetProperty("ambiguous").ValueKind);
     }
 
@@ -774,8 +774,8 @@ public sealed class FieldProfilingTests
         Assert.DoesNotContain("\"-Infinity\"", json, StringComparison.Ordinal);
         using var doc = JsonDocument.Parse(json);
         var numeric = doc.RootElement.GetProperty("table").GetProperty("fields")[1].GetProperty("numeric");
-        Assert.Equal(JsonValueKind.Null, numeric.GetProperty("mean").ValueKind);
-        Assert.Equal(JsonValueKind.Null, numeric.GetProperty("stddev").ValueKind);
+        Assert.False(numeric.TryGetProperty("mean", out _));
+        Assert.False(numeric.TryGetProperty("stddev", out _));
 
         // An ordinary field keeps both.
         var plain = Build(Accumulate(["1", "2", "4"])).Numeric!;

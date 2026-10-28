@@ -188,7 +188,7 @@ public sealed class DelimitedTests
         using var written = System.Text.Json.JsonDocument.Parse(DescriptorWriter.ToBytes(without));
         foreach (var field in written.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray())
         {
-            Assert.Equal(System.Text.Json.JsonValueKind.Null, field.GetProperty("unit").ValueKind);
+            Assert.False(field.TryGetProperty("unit", out _));
         }
 
         var with = ProfileFixture("lab/sweep-preamble.csv", includeValues: true);
@@ -346,20 +346,26 @@ public sealed class DelimitedTests
         {
             // top is values tier and the flag is on, so it is there; text is only for string fields.
             Assert.Equal(System.Text.Json.JsonValueKind.Object, field.GetProperty("top").ValueKind);
-            Assert.Equal(
-                field.GetProperty("type").GetString() == "string" ? System.Text.Json.JsonValueKind.Object : System.Text.Json.JsonValueKind.Null,
-                field.GetProperty("text").ValueKind);
+            if (field.GetProperty("type").GetString() == "string")
+            {
+                Assert.Equal(System.Text.Json.JsonValueKind.Object, field.GetProperty("text").ValueKind);
+            }
+            else
+            {
+                Assert.False(field.TryGetProperty("text", out _));
+            }
 
-            foreach (var member in new[] { "index", "name", "nameParts", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "nullTokens", "flags", "distinct", "shapes", "constant", "unique" })
+            foreach (var member in new[] { "index", "name", "nameParts", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "nullTokens", "distinct", "shapes", "constant", "unique" })
             {
                 Assert.True(field.TryGetProperty(member, out var value), member);
                 Assert.NotEqual(System.Text.Json.JsonValueKind.Null, value.ValueKind);
             }
 
-            Assert.True(field.TryGetProperty("unit", out _));
+            // flags is written only when a count is not zero.
+            Assert.Equal(!field.TryGetProperty("flags", out _), !field.TryGetProperty("flags", out _));
         }
 
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, json.RootElement.GetProperty("table").GetProperty("fields")[0].GetProperty("unit").ValueKind);
+        Assert.False(json.RootElement.GetProperty("table").GetProperty("fields")[0].TryGetProperty("unit", out _));
     }
 
     [Fact]

@@ -156,7 +156,7 @@ public sealed class CliTests : IDisposable
         Assert.False(options.GetProperty("includeValues").GetBoolean());
         Assert.Equal(new[] { "B", "b", "nothing" }, options.GetProperty("includeValuesFor").EnumerateArray().Select(static e => e.GetString()).ToArray());
         var fields = json.RootElement.GetProperty("table").GetProperty("fields");
-        Assert.Equal(JsonValueKind.Null, fields[1].GetProperty("top").ValueKind);
+        Assert.False(fields[1].TryGetProperty("top", out _));
         Assert.Equal("CANARY-2", fields[2].GetProperty("top").GetProperty("items")[0].GetProperty("value").GetString());
         var unmatched = json.RootElement.GetProperty("issues").EnumerateArray().Single(static i => i.GetProperty("code").GetString() == "includeValuesForUnmatched");
         Assert.Equal(new[] { "nothing" }, unmatched.GetProperty("names").EnumerateArray().Select(static e => e.GetString()).ToArray());

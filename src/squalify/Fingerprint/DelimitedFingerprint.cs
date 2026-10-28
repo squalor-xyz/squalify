@@ -5,7 +5,8 @@ namespace squalor.squalify;
 /// The fingerprint contribution of the delimited family. <c>structure</c> gets the whole dialect (delimiter, quote,
 /// hasHeader, unitsRow, decimal separator, constant line length) and the dominant preamble line kind. <c>layout</c>
 /// gets the dialect without the last two members, and the preamble keys: normalized, ASCII-case-folded, in file
-/// order, with a key that holds a control character or U+FFFD left out (and counted).
+/// order, with a key that holds a control character or U+FFFD left out (and counted). Both dialects add
+/// <c>"blocks": true</c> when the file has more than one block; the preamble is the first block's.
 /// </summary>
 internal sealed class DelimitedFingerprint : IFingerprintContributor
 {
@@ -23,7 +24,7 @@ internal sealed class DelimitedFingerprint : IFingerprintContributor
 
         var keys = new List<string>();
         long excluded = 0;
-        foreach (var region in input.Layout.Regions)
+        foreach (var region in RegionTree.FirstBlockView(input.Layout))
         {
             if (region.Kind != "preamble" || region.Keys is null)
             {
@@ -67,6 +68,13 @@ internal sealed class DelimitedFingerprint : IFingerprintContributor
         w.Name("quote").StringOrNull(dialect.Quote);
         w.Name("hasHeader").Bool(dialect.HasHeader);
         w.Name("unitsRow").Bool(dialect.UnitsRow);
+
+        // More than one block is a fact of the layout; the number of blocks is not (3 blocks and 5 give the same hash).
+        if (dialect.Blocks > 1)
+        {
+            w.Name("blocks").Bool(true);
+        }
+
         if (full)
         {
             w.Name("decimalSeparator").String(dialect.DecimalSeparator);
@@ -80,7 +88,7 @@ internal sealed class DelimitedFingerprint : IFingerprintContributor
     // (the line-kind map is ordered by key, ordinally). Null when there is no preamble or it has no such line.
     private static string? DominantPreambleKind(LayoutSection layout)
     {
-        foreach (var region in layout.Regions)
+        foreach (var region in RegionTree.FirstBlockView(layout))
         {
             if (region.Kind != "preamble" || region.LineKinds is null)
             {

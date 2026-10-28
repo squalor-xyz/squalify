@@ -248,9 +248,10 @@ public sealed class CapCrossingTests
         var exact = Profiler.Profile(new BytesSource("t.csv", Encoding.UTF8.GetBytes("id,n\n1,2\n2,3\n3,4\n")), ProfileOptions.Create(false, []));
         using var exactJson = JsonDocument.Parse(DescriptorWriter.ToBytes(exact));
         var exactField = exactJson.RootElement.GetProperty("table").GetProperty("fields")[1];
-        Assert.False(exactField.GetProperty("distinct").GetProperty("approximate").GetBoolean());
+        // approximate is written only when true: absent means exact.
+        Assert.False(exactField.GetProperty("distinct").TryGetProperty("approximate", out _));
         Assert.False(exactField.GetProperty("distinct").TryGetProperty("relativeStdError", out _));
-        Assert.False(exactField.GetProperty("numeric").GetProperty("approximate").GetBoolean());
+        Assert.False(exactField.GetProperty("numeric").TryGetProperty("approximate", out _));
         Assert.False(exactField.GetProperty("numeric").TryGetProperty("rankError", out _));
     }
 }

@@ -1,16 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "tool": {
-    "name": "squalify",
-    "version": "0.1.0"
-  },
-  "options": {
-    "includeValues": false,
-    "includeValuesFor": [
-      "Temp",
-      "Vdd"
-    ]
-  },
+  "tool": { "name": "squalify", "version": "0.1.0" },
+  "options": { "includeValues": false, "includeValuesFor": ["Temp", "Vdd"] },
   "limits": {
     "distinctPerField": 10000,
     "quantilePerField": 100000,
@@ -21,71 +12,27 @@
     "runawayQuote": 65536,
     "fieldCountRuns": 100000,
     "rowClasses": 64,
-    "charsetTolerance": {
-      "invalidSequences": 8,
-      "perBytes": 65536
-    },
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
     "stdfTests": 10000,
-    "budget": {
-      "quantileValues": 10000000,
-      "distinctValues": 2000000,
-      "shapeChars": 16000000
-    },
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
     "nullTokens": 1,
     "unitTable": 1
   },
-  "file": {
-    "name": "run.stdf",
-    "size": 65536,
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-  },
+  "file": { "name": "run.stdf", "size": 65536, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" },
   "encoding": {
     "kind": "binary",
     "charset": null,
     "bom": null,
-    "lineEndings": {
-      "crlf": 0,
-      "lf": 0,
-      "cr": 0
-    },
+    "lineEndings": { "crlf": 0, "lf": 0, "cr": 0 },
     "invalidBytes": 0,
     "controlBytes": 17
   },
-  "format": {
-    "family": "stdf",
-    "dialect": {
-      "cpuType": 2,
-      "endianness": "little",
-      "version": "V4"
-    },
-    "score": 1
-  },
-  "kind": {
-    "label": "stdfTestLog",
-    "ruleId": "K01",
-    "confidence": 1
-  },
-  "layout": {
-    "regions": []
-  },
+  "format": { "family": "stdf", "dialect": { "cpuType": 2, "endianness": "little", "version": "V4" }, "score": 1 },
+  "kind": { "label": "stdfTestLog", "ruleId": "K01", "confidence": 1 },
+  "layout": { "regions": [] },
   "sections": [
-    {
-      "name": "Setup",
-      "line": 1,
-      "keys": [
-        "Temp",
-        "Vdd"
-      ],
-      "values": [
-        "25",
-        "1.8"
-      ]
-    },
-    {
-      "name": "Empty",
-      "line": 4,
-      "keys": []
-    }
+    { "name": "Setup", "line": 1, "keys": ["Temp", "Vdd"], "values": ["25", "1.8"] },
+    { "name": "Empty", "line": 4, "keys": [] }
   ],
   "binary": {
     "bytes": {
@@ -352,76 +299,21 @@
       "high": 4000,
       "entropy": 7.5
     },
-    "blocks": {
-      "count": 16,
-      "min": 0.5,
-      "max": 7.9,
-      "mean": 6.25
-    },
-    "segments": [
-      0,
-      0.5,
-      1,
-      1.5,
-      2,
-      2.5,
-      3,
-      3.5,
-      4,
-      4.5,
-      5,
-      5.5,
-      6,
-      6.5,
-      7,
-      7.5
-    ]
+    "blocks": { "count": 16, "min": 0.5, "max": 7.9, "mean": 6.25 },
+    "segments": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5]
   },
   "stdf": {
-    "records": [
-      {
-        "name": "FAR",
-        "typ": 0,
-        "sub": 10,
-        "count": 1
-      },
-      {
-        "name": "PTR",
-        "typ": 15,
-        "sub": 10,
-        "count": 4210
-      }
-    ],
-    "firstOccurrenceOrder": [
-      "FAR",
-      "PTR"
-    ],
+    "records": [{ "name": "FAR", "typ": 0, "sub": 10, "count": 1 }, { "name": "PTR", "typ": 15, "sub": 10, "count": 4210 }],
+    "firstOccurrenceOrder": ["FAR", "PTR"],
     "farFirst": true,
     "mrrLast": false,
-    "tests": [
-      {
-        "testNum": 1000,
-        "kind": "P",
-        "name": "VDD_LEAK",
-        "occurrences": 4210
-      }
-    ],
+    "tests": [{ "testNum": 1000, "kind": "P", "name": "VDD_LEAK", "occurrences": 4210 }],
     "testsTruncated": 7
   },
-  "fingerprint": {
-    "version": 1,
-    "structure": "sha256:aa",
-    "layout": "sha256:bb",
-    "typed": "sha256:cc",
-    "names": "sha256:dd"
-  },
+  "fingerprint": { "version": 1, "structure": "sha256:aa", "layout": "sha256:bb", "typed": "sha256:cc", "names": "sha256:dd" },
   "hints": {
     "extension": ".stdf",
-    "magic": {
-      "name": "stdf-le",
-      "offset": 0,
-      "hex": "0200000a"
-    },
+    "magic": { "name": "stdf-le", "offset": 0, "hex": "0200000a" },
     "stableLines": [],
     "headerFields": null,
     "headerPrefix": null,
@@ -430,20 +322,9 @@
     "dataStartLine": null,
     "delimiter": null,
     "headerConvention": null,
-    "stdf": {
-      "cpuType": 2,
-      "version": "V4"
-    },
+    "stdf": { "cpuType": 2, "version": "V4" },
     "fileNameShape": "a{3}.a{4}"
   },
-  "issues": [
-    {
-      "code": "truncated",
-      "count": 1,
-      "offsets": [
-        65530
-      ]
-    }
-  ],
+  "issues": [{ "code": "truncated", "count": 1, "offsets": [65530] }],
   "evidence": []
 }

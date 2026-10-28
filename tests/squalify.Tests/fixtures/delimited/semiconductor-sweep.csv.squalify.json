@@ -1,13 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "tool": {
-    "name": "squalify",
-    "version": "0.1.1"
-  },
-  "options": {
-    "includeValues": false,
-    "includeValuesFor": []
-  },
+  "tool": { "name": "squalify", "version": "0.1.1" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
   "limits": {
     "distinctPerField": 10000,
     "quantilePerField": 100000,
@@ -18,16 +12,9 @@
     "runawayQuote": 65536,
     "fieldCountRuns": 100000,
     "rowClasses": 64,
-    "charsetTolerance": {
-      "invalidSequences": 8,
-      "perBytes": 65536
-    },
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
     "stdfTests": 10000,
-    "budget": {
-      "quantileValues": 10000000,
-      "distinctValues": 2000000,
-      "shapeChars": 16000000
-    },
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
     "nullTokens": 1,
     "unitTable": 1
   },
@@ -40,11 +27,7 @@
     "kind": "text",
     "charset": "ascii",
     "bom": null,
-    "lineEndings": {
-      "crlf": 82,
-      "lf": 0,
-      "cr": 0
-    },
+    "lineEndings": { "crlf": 82, "lf": 0, "cr": 0 },
     "invalidBytes": 0,
     "controlBytes": 0
   },
@@ -56,313 +39,114 @@
       "hasHeader": true,
       "unitsRow": false,
       "decimalSeparator": ".",
-      "padding": {
-        "trim": false,
-        "paddedShare": 0,
-        "constantLineLength": false,
-        "lineLength": null
-      },
+      "padding": { "trim": false, "paddedShare": 0, "constantLineLength": false, "lineLength": null },
       "blocks": 1
     },
     "score": 0.7
   },
-  "kind": {
-    "label": "text",
-    "ruleId": "K09",
-    "confidence": 1
-  },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
   "layout": {
-    "regions": [
-      {
-        "kind": "header",
-        "lines": [
-          1,
-          1
-        ],
-        "bytes": [
-          0,
-          131
-        ]
-      },
-      {
-        "kind": "data",
-        "lines": [
-          2,
-          82
-        ],
-        "bytes": [
-          131,
-          10294
-        ]
-      }
-    ],
-    "headerConvention": {
-      "dominant": "nameParenUnit",
-      "share": 0.8461538461538461,
-      "counts": {
-        "nameParenUnit": 11,
-        "none": 2
-      }
-    },
+    "regions": [{ "kind": "header", "lines": [1, 1], "bytes": [0, 131] }, { "kind": "data", "lines": [2, 82], "bytes": [131, 10294] }],
+    "headerConvention": { "dominant": "nameParenUnit", "share": 0.8461538461538461, "counts": { "nameParenUnit": 11, "none": 2 } },
     "maxLineLength": 132
   },
   "table": {
     "rows": 81,
-    "fieldCount": {
-      "min": 13,
-      "max": 13
-    },
+    "fieldCount": { "min": 13, "max": 13 },
     "rowClasses": {
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
       "truncated": 0,
-      "classes": [
-        {
-          "id": "rc:39d991009a72c46e",
-          "count": 81,
-          "fields": [
-            [
-              0,
-              12
-            ]
-          ],
-          "firstLine": 2,
-          "lastLine": 82
-        }
-      ]
+      "classes": [{ "id": "rc:39d991009a72c46e", "count": 81, "fields": [[0, 12]], "firstLine": 2, "lastLine": 82 }]
     },
     "fields": [
       {
         "index": 0,
         "name": "stimulusGrp(id)",
-        "nameParts": {
-          "base": "stimulusGrp",
-          "unit": "id",
-          "convention": "nameParenUnit",
-          "unknownUnit": true
-        },
+        "nameParts": { "base": "stimulusGrp", "unit": "id", "convention": "nameParenUnit", "unknownUnit": true },
         "type": "int",
-        "dominant": {
-          "type": "int",
-          "share": 1
-        },
-        "typeVotes": {
-          "int": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 27,
-          "approximate": false
-        },
+        "distinct": { "value": 27 },
         "numeric": {
           "min": 1,
           "max": 27,
           "mean": 14.000000000000002,
           "stddev": 7.837410286567879,
-          "quantiles": {
-            "p01": 1,
-            "p05": 2,
-            "p25": 7,
-            "p50": 14,
-            "p75": 21,
-            "p95": 26,
-            "p99": 27
-          },
-          "approximate": false
+          "quantiles": { "p01": 1, "p05": 2, "p25": 7, "p50": 14, "p75": 21, "p95": 26, "p99": 27 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 1,
-          "max": 2,
-          "mean": 1.6666666666666667
-        },
-        "shapes": [
-          {
-            "mask": "9{2}",
-            "count": 54
-          },
-          {
-            "mask": "9",
-            "count": 27
-          }
-        ],
+        "length": { "min": 1, "max": 2, "mean": 1.6666666666666667 },
+        "shapes": [{ "mask": "9{2}", "count": 54 }, { "mask": "9", "count": 27 }],
         "monotonic": "nonDecreasing",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 1,
         "name": "sweep(id)",
-        "nameParts": {
-          "base": "sweep",
-          "unit": "id",
-          "convention": "nameParenUnit",
-          "unknownUnit": true
-        },
+        "nameParts": { "base": "sweep", "unit": "id", "convention": "nameParenUnit", "unknownUnit": true },
         "type": "int",
-        "dominant": {
-          "type": "int",
-          "share": 1
-        },
-        "typeVotes": {
-          "int": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 3,
-          "approximate": false
-        },
+        "distinct": { "value": 3 },
         "numeric": {
           "min": 1,
           "max": 3,
           "mean": 1.9999999999999998,
           "stddev": 0.8215838362577494,
-          "quantiles": {
-            "p01": 1,
-            "p05": 1,
-            "p25": 1,
-            "p50": 2,
-            "p75": 3,
-            "p95": 3,
-            "p99": 3
-          },
-          "approximate": false
+          "quantiles": { "p01": 1, "p05": 1, "p25": 1, "p50": 2, "p75": 3, "p95": 3, "p99": 3 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 1,
-          "max": 1,
-          "mean": 1
-        },
-        "shapes": [
-          {
-            "mask": "9",
-            "count": 81
-          }
-        ],
+        "length": { "min": 1, "max": 1, "mean": 1 },
+        "shapes": [{ "mask": "9", "count": 81 }],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 2,
         "name": "SN",
-        "nameParts": {
-          "base": "SN",
-          "unit": null,
-          "convention": "none",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "SN", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
-        "dominant": {
-          "type": "string",
-          "share": 1
-        },
-        "typeVotes": {
-          "string": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "string", "share": 1 },
+        "typeVotes": { "string": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 1,
-          "approximate": false
-        },
-        "numeric": null,
-        "temporal": null,
+        "distinct": { "value": 1 },
         "statsWithheld": null,
-        "length": {
-          "min": 9,
-          "max": 9,
-          "mean": 9
-        },
-        "shapes": [
-          {
-            "mask": "a{2}Aa{2}-9{3}",
-            "count": 81
-          }
-        ],
-        "monotonic": null,
+        "length": { "min": 9, "max": 9, "mean": 9 },
+        "shapes": [{ "mask": "a{2}Aa{2}-9{3}", "count": 81 }],
         "constant": true,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 3,
         "name": "Date(date)",
-        "nameParts": {
-          "base": "Date",
-          "unit": "date",
-          "convention": "nameParenUnit",
-          "unknownUnit": true
-        },
+        "nameParts": { "base": "Date", "unit": "date", "convention": "nameParenUnit", "unknownUnit": true },
         "type": "date",
-        "dominant": {
-          "type": "date",
-          "share": 1
-        },
-        "typeVotes": {
-          "date": 81
-        },
-        "patterns": {
-          "yyyy-nn-nn": 81
-        },
+        "dominant": { "type": "date", "share": 1 },
+        "typeVotes": { "date": 81 },
+        "patterns": { "yyyy-nn-nn": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 75,
-          "approximate": false
-        },
-        "numeric": null,
+        "distinct": { "value": 75 },
         "temporal": {
-          "orders": [
-            "YMD"
-          ],
+          "orders": ["YMD"],
           "ambiguous": false,
-          "clock": null,
           "min": "2026-01-01",
           "max": "2026-12-26",
           "quantiles": {
@@ -373,388 +157,149 @@
             "p75": "2026-09-21",
             "p95": "2026-12-08",
             "p99": "2026-12-26"
-          },
-          "approximate": false
+          }
         },
         "statsWithheld": null,
-        "length": {
-          "min": 10,
-          "max": 10,
-          "mean": 10
-        },
-        "shapes": [
-          {
-            "mask": "9{4}-9{2}-9{2}",
-            "count": 81
-          }
-        ],
+        "length": { "min": 10, "max": 10, "mean": 10 },
+        "shapes": [{ "mask": "9{4}-9{2}-9{2}", "count": 81 }],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 4,
         "name": "Teststand",
-        "nameParts": {
-          "base": "Teststand",
-          "unit": null,
-          "convention": "none",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Teststand", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
-        "dominant": {
-          "type": "string",
-          "share": 1
-        },
-        "typeVotes": {
-          "string": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "string", "share": 1 },
+        "typeVotes": { "string": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 1,
-          "approximate": false
-        },
-        "numeric": null,
-        "temporal": null,
+        "distinct": { "value": 1 },
         "statsWithheld": null,
-        "length": {
-          "min": 11,
-          "max": 11,
-          "mean": 11
-        },
-        "shapes": [
-          {
-            "mask": "a{2}Aa{4}-9{3}",
-            "count": 81
-          }
-        ],
-        "monotonic": null,
+        "length": { "min": 11, "max": 11, "mean": 11 },
+        "shapes": [{ "mask": "a{2}Aa{4}-9{3}", "count": 81 }],
         "constant": true,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 5,
         "name": "Temp(degC)",
-        "nameParts": {
-          "base": "Temp",
-          "unit": "degC",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Temp", "unit": "degC", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 1
-        },
-        "typeVotes": {
-          "float": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 3,
-          "approximate": false
-        },
+        "distinct": { "value": 3 },
         "numeric": {
           "min": -40,
           "max": 85,
           "mean": 23.333333333333332,
           "stddev": 51.3626810047918,
-          "quantiles": {
-            "p01": -40,
-            "p05": -40,
-            "p25": -40,
-            "p50": 25,
-            "p75": 85,
-            "p95": 85,
-            "p99": 85
-          },
-          "approximate": false
+          "quantiles": { "p01": -40, "p05": -40, "p25": -40, "p50": 25, "p75": 85, "p95": 85, "p99": 85 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 4,
-          "max": 5,
-          "mean": 4.333333333333333
-        },
-        "shapes": [
-          {
-            "mask": "9{2}.9",
-            "count": 54
-          },
-          {
-            "mask": "-9{2}.9",
-            "count": 27
-          }
-        ],
+        "length": { "min": 4, "max": 5, "mean": 4.333333333333333 },
+        "shapes": [{ "mask": "9{2}.9", "count": 54 }, { "mask": "-9{2}.9", "count": 27 }],
         "monotonic": "nonDecreasing",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 6,
         "name": "Vcc(V)",
-        "nameParts": {
-          "base": "Vcc",
-          "unit": "V",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Vcc", "unit": "V", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 1
-        },
-        "typeVotes": {
-          "float": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 3,
-          "approximate": false
-        },
+        "distinct": { "value": 3 },
         "numeric": {
           "min": 3.3,
           "max": 5,
           "mean": 4.166666666666667,
           "stddev": 0.698748881931127,
-          "quantiles": {
-            "p01": 3.3,
-            "p05": 3.3,
-            "p25": 3.3,
-            "p50": 4.2,
-            "p75": 5,
-            "p95": 5,
-            "p99": 5
-          },
-          "approximate": false
+          "quantiles": { "p01": 3.3, "p05": 3.3, "p25": 3.3, "p50": 4.2, "p75": 5, "p95": 5, "p99": 5 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 3,
-          "max": 3,
-          "mean": 3
-        },
-        "shapes": [
-          {
-            "mask": "9.9",
-            "count": 81
-          }
-        ],
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 81 }],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 7,
         "name": "Frequency(MHz)",
-        "nameParts": {
-          "base": "Frequency",
-          "unit": "MHz",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Frequency", "unit": "MHz", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "int",
-        "dominant": {
-          "type": "int",
-          "share": 1
-        },
-        "typeVotes": {
-          "int": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 3,
-          "approximate": false
-        },
+        "distinct": { "value": 3 },
         "numeric": {
           "min": 2400,
           "max": 2500,
           "mean": 2450.0000000000005,
           "stddev": 41.07919181288746,
-          "quantiles": {
-            "p01": 2400,
-            "p05": 2400,
-            "p25": 2400,
-            "p50": 2450,
-            "p75": 2500,
-            "p95": 2500,
-            "p99": 2500
-          },
-          "approximate": false
+          "quantiles": { "p01": 2400, "p05": 2400, "p25": 2400, "p50": 2450, "p75": 2500, "p95": 2500, "p99": 2500 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 4,
-          "max": 4,
-          "mean": 4
-        },
-        "shapes": [
-          {
-            "mask": "9{4}",
-            "count": 81
-          }
-        ],
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9{4}", "count": 81 }],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 8,
         "name": "Pout(dBm)",
-        "nameParts": {
-          "base": "Pout",
-          "unit": "dBm",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Pout", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "int",
-        "dominant": {
-          "type": "int",
-          "share": 1
-        },
-        "typeVotes": {
-          "int": 81
-        },
-        "patterns": null,
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 81 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 3,
-          "approximate": false
-        },
+        "distinct": { "value": 3 },
         "numeric": {
           "min": 0,
           "max": 10,
           "mean": 5.000000000000001,
           "stddev": 4.107919181288746,
-          "quantiles": {
-            "p01": 0,
-            "p05": 0,
-            "p25": 0,
-            "p50": 5,
-            "p75": 10,
-            "p95": 10,
-            "p99": 10
-          },
-          "approximate": false
+          "quantiles": { "p01": 0, "p05": 0, "p25": 0, "p50": 5, "p75": 10, "p95": 10, "p99": 10 }
         },
-        "temporal": null,
         "statsWithheld": null,
-        "length": {
-          "min": 1,
-          "max": 2,
-          "mean": 1.3333333333333333
-        },
-        "shapes": [
-          {
-            "mask": "9",
-            "count": 54
-          },
-          {
-            "mask": "9{2}",
-            "count": 27
-          }
-        ],
+        "length": { "min": 1, "max": 2, "mean": 1.3333333333333333 },
+        "shapes": [{ "mask": "9", "count": 54 }, { "mask": "9{2}", "count": 27 }],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 9,
         "name": "Pin(dBm)",
-        "nameParts": {
-          "base": "Pin",
-          "unit": "dBm",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Pin", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 0.9012345679012346
-        },
-        "typeVotes": {
-          "float": 73,
-          "int": 8
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 0.9012345679012346 },
+        "typeVotes": { "float": 73, "int": 8 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 75,
-          "approximate": false
-        },
+        "distinct": { "value": 75 },
         "numeric": {
           "min": -25,
           "max": 15,
@@ -768,101 +313,39 @@
             "p75": 0.20522826502003255,
             "p95": 11.733746598312223,
             "p99": 15
-          },
-          "approximate": false
-        },
-        "temporal": null,
-        "statsWithheld": null,
-        "length": {
-          "min": 2,
-          "max": 20,
-          "mean": 17.11111111111111
-        },
-        "shapes": [
-          {
-            "mask": "-9.9{16}",
-            "count": 29
-          },
-          {
-            "mask": "-9{2}.9{15}",
-            "count": 18
-          },
-          {
-            "mask": "9.9{16}",
-            "count": 10
-          },
-          {
-            "mask": "-9{2}",
-            "count": 5
-          },
-          {
-            "mask": "9.9{15}",
-            "count": 5
-          },
-          {
-            "mask": "-9.9{15}",
-            "count": 3
-          },
-          {
-            "mask": "9.9{17}",
-            "count": 3
-          },
-          {
-            "mask": "9{2}",
-            "count": 3
-          },
-          {
-            "mask": "-9.9{17}",
-            "count": 2
-          },
-          {
-            "mask": "9{2}.9{15}",
-            "count": 2
-          },
-          {
-            "mask": "9.9{18}",
-            "count": 1
           }
+        },
+        "statsWithheld": null,
+        "length": { "min": 2, "max": 20, "mean": 17.11111111111111 },
+        "shapes": [
+          { "mask": "-9.9{16}", "count": 29 },
+          { "mask": "-9{2}.9{15}", "count": 18 },
+          { "mask": "9.9{16}", "count": 10 },
+          { "mask": "-9{2}", "count": 5 },
+          { "mask": "9.9{15}", "count": 5 },
+          { "mask": "-9.9{15}", "count": 3 },
+          { "mask": "9.9{17}", "count": 3 },
+          { "mask": "9{2}", "count": 3 },
+          { "mask": "-9.9{17}", "count": 2 },
+          { "mask": "9{2}.9{15}", "count": 2 },
+          { "mask": "9.9{18}", "count": 1 }
         ],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 10,
         "name": "Gain(dB)",
-        "nameParts": {
-          "base": "Gain",
-          "unit": "dB",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "Gain", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 0.8765432098765432
-        },
-        "typeVotes": {
-          "float": 71,
-          "int": 10
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 0.8765432098765432 },
+        "typeVotes": { "float": 71, "int": 10 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 73,
-          "approximate": false
-        },
+        "distinct": { "value": 73 },
         "numeric": {
           "min": 9.819184306194146,
           "max": 35,
@@ -876,77 +359,33 @@
             "p75": 25.633730379900143,
             "p95": 32.38080686470252,
             "p99": 35
-          },
-          "approximate": false
-        },
-        "temporal": null,
-        "statsWithheld": null,
-        "length": {
-          "min": 2,
-          "max": 18,
-          "mean": 15.925925925925926
-        },
-        "shapes": [
-          {
-            "mask": "9{2}.9{15}",
-            "count": 63
-          },
-          {
-            "mask": "9{2}",
-            "count": 10
-          },
-          {
-            "mask": "9{2}.9{14}",
-            "count": 6
-          },
-          {
-            "mask": "9.9{16}",
-            "count": 1
-          },
-          {
-            "mask": "9{2}.9{13}",
-            "count": 1
           }
+        },
+        "statsWithheld": null,
+        "length": { "min": 2, "max": 18, "mean": 15.925925925925926 },
+        "shapes": [
+          { "mask": "9{2}.9{15}", "count": 63 },
+          { "mask": "9{2}", "count": 10 },
+          { "mask": "9{2}.9{14}", "count": 6 },
+          { "mask": "9.9{16}", "count": 1 },
+          { "mask": "9{2}.9{13}", "count": 1 }
         ],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 11,
         "name": "I_Total(A)",
-        "nameParts": {
-          "base": "I_Total",
-          "unit": "A",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "I_Total", "unit": "A", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 0.9135802469135802
-        },
-        "typeVotes": {
-          "float": 74,
-          "int": 7
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 0.9135802469135802 },
+        "typeVotes": { "float": 74, "int": 7 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 76,
-          "approximate": false
-        },
+        "distinct": { "value": 76 },
         "numeric": {
           "min": 0,
           "max": 10,
@@ -960,81 +399,34 @@
             "p75": 6.782008453221278,
             "p95": 9.84988365168445,
             "p99": 10
-          },
-          "approximate": false
-        },
-        "temporal": null,
-        "statsWithheld": null,
-        "length": {
-          "min": 1,
-          "max": 19,
-          "mean": 16.48148148148148
-        },
-        "shapes": [
-          {
-            "mask": "9.9{16}",
-            "count": 66
-          },
-          {
-            "mask": "9.9{15}",
-            "count": 6
-          },
-          {
-            "mask": "9",
-            "count": 4
-          },
-          {
-            "mask": "9{2}",
-            "count": 3
-          },
-          {
-            "mask": "9.9{14}",
-            "count": 1
-          },
-          {
-            "mask": "9.9{17}",
-            "count": 1
           }
+        },
+        "statsWithheld": null,
+        "length": { "min": 1, "max": 19, "mean": 16.48148148148148 },
+        "shapes": [
+          { "mask": "9.9{16}", "count": 66 },
+          { "mask": "9.9{15}", "count": 6 },
+          { "mask": "9", "count": 4 },
+          { "mask": "9{2}", "count": 3 },
+          { "mask": "9.9{14}", "count": 1 },
+          { "mask": "9.9{17}", "count": 1 }
         ],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       },
       {
         "index": 12,
         "name": "EVM(dB)",
-        "nameParts": {
-          "base": "EVM",
-          "unit": "dB",
-          "convention": "nameParenUnit",
-          "unknownUnit": false
-        },
+        "nameParts": { "base": "EVM", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": {
-          "type": "float",
-          "share": 0.8641975308641975
-        },
-        "typeVotes": {
-          "float": 70,
-          "int": 11
-        },
-        "patterns": null,
+        "dominant": { "type": "float", "share": 0.8641975308641975 },
+        "typeVotes": { "float": 70, "int": 11 },
         "count": 81,
         "nulls": 0,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": {},
-        "flags": {
-          "leadingZero": 0,
-          "commaDecimalLike": 0,
-          "padded": 0
-        },
-        "distinct": {
-          "value": 72,
-          "approximate": false
-        },
+        "distinct": { "value": 72 },
         "numeric": {
           "min": -59.15170859192161,
           "max": 0,
@@ -1048,53 +440,26 @@
             "p75": -39.006913811680114,
             "p95": -5.017140158044736,
             "p99": 0
-          },
-          "approximate": false
-        },
-        "temporal": null,
-        "statsWithheld": null,
-        "length": {
-          "min": 1,
-          "max": 19,
-          "mean": 16.617283950617285
-        },
-        "shapes": [
-          {
-            "mask": "-9{2}.9{15}",
-            "count": 61
-          },
-          {
-            "mask": "-9{2}",
-            "count": 7
-          },
-          {
-            "mask": "-9{2}.9{14}",
-            "count": 7
-          },
-          {
-            "mask": "9",
-            "count": 4
-          },
-          {
-            "mask": "-9.9{16}",
-            "count": 1
-          },
-          {
-            "mask": "-9{2}.9{13}",
-            "count": 1
           }
+        },
+        "statsWithheld": null,
+        "length": { "min": 1, "max": 19, "mean": 16.617283950617285 },
+        "shapes": [
+          { "mask": "-9{2}.9{15}", "count": 61 },
+          { "mask": "-9{2}", "count": 7 },
+          { "mask": "-9{2}.9{14}", "count": 7 },
+          { "mask": "9", "count": 4 },
+          { "mask": "-9.9{16}", "count": 1 },
+          { "mask": "-9{2}.9{13}", "count": 1 }
         ],
         "monotonic": "none",
         "constant": false,
-        "unique": false,
-        "unit": null,
-        "top": null,
-        "text": null
+        "unique": false
       }
     ]
   },
   "fingerprint": {
-    "version": 1,
+    "version": 2,
     "structure": "sha256:cbf546d81150b067d39eb659084f3cf59f7c3b872249f1e12718bd243bd0c900",
     "layout": "sha256:004279fa0b4eb1668409d8e5d910ccf4cb216ccd9a5df3073c32cafbf6903bba",
     "typed": "sha256:7e854df72472740c89c65d3fb97c185a59b0ffdf5966555a38a0aaf1dc98e360",
@@ -1128,32 +493,9 @@
       "I_Total(A)",
       "EVM(dB)"
     ],
-    "headerPrefix": [
-      "stimulusGrp(id)",
-      "sweep(id)",
-      "SN",
-      "Date(date)",
-      "Teststand"
-    ],
-    "nonNullFields": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-    ],
-    "fieldCount": {
-      "min": 13,
-      "max": 13
-    },
+    "headerPrefix": ["stimulusGrp(id)", "sweep(id)", "SN", "Date(date)", "Teststand"],
+    "nonNullFields": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "fieldCount": { "min": 13, "max": 13 },
     "dataStartLine": 2,
     "delimiter": ",",
     "headerConvention": "nameParenUnit",
@@ -1167,21 +509,9 @@
       "topic": "charset",
       "chosen": "ascii",
       "candidates": [
-        {
-          "value": "ascii",
-          "score": 1,
-          "reason": "no bytes at or above 0x80"
-        },
-        {
-          "value": "latin-1",
-          "score": 0,
-          "reason": "UTF-8 or ASCII decoding accepted"
-        },
-        {
-          "value": "utf-8",
-          "score": 0,
-          "reason": "no bytes at or above 0x80"
-        }
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
       ]
     },
     {
@@ -1189,21 +519,9 @@
       "topic": "class",
       "chosen": "text",
       "candidates": [
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "empty",
-          "score": 0,
-          "reason": "not chosen"
-        },
-        {
-          "value": "text",
-          "score": 1,
-          "reason": "rule 6: no NUL bytes; 0 of 10294 bytes are control bytes"
-        }
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 10294 bytes are control bytes" }
       ]
     },
     {
@@ -1216,16 +534,8 @@
           "score": 0.7,
           "reason": "delimiter comma; k=13; 82/82 records; clean=1; run lines 1-82; 0 quoted fields"
         },
-        {
-          "value": "text",
-          "score": 0.1,
-          "reason": "text content"
-        },
-        {
-          "value": "binary",
-          "score": 0,
-          "reason": "not binary: text content"
-        }
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
       ]
     },
     {
@@ -1233,16 +543,8 @@
       "topic": "decimalSeparator",
       "chosen": ".",
       "candidates": [
-        {
-          "value": ",",
-          "score": 0,
-          "reason": "0 comma-decimal cells; the delimiter is a comma"
-        },
-        {
-          "value": ".",
-          "score": 1,
-          "reason": "450 dot-decimal cells"
-        }
+        { "value": ",", "score": 0, "reason": "0 comma-decimal cells; the delimiter is a comma" },
+        { "value": ".", "score": 1, "reason": "450 dot-decimal cells" }
       ]
     },
     {
@@ -1250,31 +552,11 @@
       "topic": "delimiter",
       "chosen": ",",
       "candidates": [
-        {
-          "value": ",",
-          "score": 1,
-          "reason": "k=13; 82/82 records; clean=1; run lines 1-82; 0 quoted fields"
-        },
-        {
-          "value": "\t",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": ";",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "|",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        },
-        {
-          "value": "whitespace",
-          "score": 0,
-          "reason": "k=1; no run; 0 quoted fields"
-        }
+        { "value": ",", "score": 1, "reason": "k=13; 82/82 records; clean=1; run lines 1-82; 0 quoted fields" },
+        { "value": "\t", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": ";", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "|", "score": 0, "reason": "k=1; no run; 0 quoted fields" },
+        { "value": "whitespace", "score": 0, "reason": "k=1; no run; 0 quoted fields" }
       ]
     },
     {
@@ -1282,11 +564,7 @@
       "topic": "candidates",
       "chosen": "1",
       "candidates": [
-        {
-          "value": "1",
-          "score": 1,
-          "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1"
-        },
+        { "value": "1", "score": 1, "reason": "eligible; nonEmpty=1; nonNumeric=1; unique=1; contrast=1" },
         {
           "value": "81",
           "score": 0.12587412587412586,
@@ -1304,31 +582,11 @@
       "topic": "headerConvention",
       "chosen": "nameParenUnit",
       "candidates": [
-        {
-          "value": "nameParenUnit",
-          "score": 0.8461538461538461,
-          "reason": "11 of 13 headers"
-        },
-        {
-          "value": "nameBracketUnit",
-          "score": 0,
-          "reason": "0 of 13 headers"
-        },
-        {
-          "value": "nameUnderscoreUnit",
-          "score": 0,
-          "reason": "0 of 13 headers"
-        },
-        {
-          "value": "unitsRow",
-          "score": 0,
-          "reason": "0 of 13 headers"
-        },
-        {
-          "value": "none",
-          "score": 0.15384615384615385,
-          "reason": "2 of 13 headers"
-        }
+        { "value": "nameParenUnit", "score": 0.8461538461538461, "reason": "11 of 13 headers" },
+        { "value": "nameBracketUnit", "score": 0, "reason": "0 of 13 headers" },
+        { "value": "nameUnderscoreUnit", "score": 0, "reason": "0 of 13 headers" },
+        { "value": "unitsRow", "score": 0, "reason": "0 of 13 headers" },
+        { "value": "none", "score": 0.15384615384615385, "reason": "2 of 13 headers" }
       ]
     }
   ]
