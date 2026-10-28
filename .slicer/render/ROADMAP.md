@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-38 items · — 12 · done 21 · parked 1 · later 1 · retired 2 · started 1
+38 items · — 12 · done 22 · parked 1 · later 1 · retired 2
 
 ## v1.0.0
 
@@ -39,7 +39,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
 | 3 | [sq-11](slices/sq-11.md) | Sketches and memory bounds | M | 2 | core |  | done |
-| 4 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | started |
+| 4 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | done |
 | 5 | [sq-22](slices/sq-22.md) | Runtime-stable escaping | S | 1 | core | sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02 | done |
 | 6 | [sq-24](slices/sq-24.md) | Invalid UTF-16/32 reporting | S | 1 | core | sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03 | — |
 | 7 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | — |
