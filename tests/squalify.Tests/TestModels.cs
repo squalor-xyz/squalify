@@ -101,8 +101,8 @@ internal static class TestModels
                     DescriptorNumber.Real(2700.5)),
                 false),
             Unit: "MHz",
-            NullSpellings: CountMap.FromOrdinal([new("na", 1)]),
-            NullSpellingsOther: 1);
+            NullSpellings: CountMap.FromOrdinal([new("NA", 2), new("-", 1)]),
+            NullSpellingsOther: 0);
 
         var f1 = new FieldProfile(
             Index: 1,

@@ -686,21 +686,37 @@ public sealed class ConsumerSubsetTests
 
         long Map(CountMap? map, string key) => map!.SingleOrDefault(e => e.Key == key).Value;
 
-        // Every token set is made of spellings that the vocabulary matches.
-        foreach (var tokens in new[] { new[] { "NULL" }, new[] { "NULL", string.Empty }, new[] { "NULL", "NA" }, new[] { "NA", string.Empty, "NULL" } })
+        // Each case is (null tokens T, separator tokens S), S a subset of T, all spellings that the vocabulary matches. The
+        // consumer of the last two counts "NULL" and the empty field as null, but only an all-NULL record is a separator.
+        var cases = new (string[] T, string[] S)[]
         {
-            bool IsSeparator(string[] row) => row.All(c => c == row[0]) && tokens.Contains(row[0]);
+            (["NULL"], ["NULL"]),
+            (["NULL", string.Empty], ["NULL", string.Empty]),
+            (["NULL", "NA"], ["NULL", "NA"]),
+            (["NA", string.Empty, "NULL"], ["NA", string.Empty, "NULL"]),
+            (["NULL", string.Empty], ["NULL"]),
+            (["NULL", "NA", string.Empty], ["NULL"]),
+            (["NULL", "NA", string.Empty], []),
+        };
+        foreach (var (tokens, separators) in cases)
+        {
+            bool IsSeparator(string[] row) => row.All(c => c == row[0]) && separators.Contains(row[0]);
 
             var bruteSeparators = cells.Count(IsSeparator);
-            Assert.Equal(bruteSeparators, tokens.Sum(t => Map(rc.AllNullRowSpellings, t)));
+            Assert.Equal(bruteSeparators, separators.Sum(t => Map(rc.AllNullRowSpellings, t)));
 
             for (var field = 0; field < 3; field++)
             {
+                long total = 0;
                 foreach (var t in tokens)
                 {
                     var brute = cells.Where(r => !IsSeparator(r)).Count(r => r[field] == t);
-                    Assert.Equal(brute, Map(d.Table.Fields[field].NullSpellings, t) - Map(rc.AllNullRowSpellings, t));
+                    var formula = Map(d.Table.Fields[field].NullSpellings, t) - (separators.Contains(t) ? Map(rc.AllNullRowSpellings, t) : 0);
+                    Assert.Equal(brute, formula);
+                    total += formula;
                 }
+
+                Assert.Equal(cells.Where(r => !IsSeparator(r)).Sum(r => tokens.Count(t => r[field] == t)), total);
             }
         }
 

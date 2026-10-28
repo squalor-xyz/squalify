@@ -3,7 +3,7 @@ namespace squalor.squalify;
 
 /// <summary>
 /// A bounded count of exact spellings (raw text, never trimmed): the first <see cref="MaxSpellings"/> distinct spellings
-/// of at most <see cref="MaxLength"/> characters are kept, in any order, and any other new spelling is counted in
+/// of at most <see cref="MaxLength"/> characters are kept (first seen first; the keys are written in ordinal order), and any other new spelling is counted in
 /// <see cref="Other"/>; a spelling already kept keeps counting. It serves a field's <c>nullSpellings</c> and the table's
 /// <c>allNullRowSpellings</c>, so the two bounds are the same.
 /// </summary>
