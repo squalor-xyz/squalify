@@ -29,10 +29,10 @@ internal sealed record DateOrderCounts(long Values, long Dmy, long Mdy, long Ymd
 internal sealed class FieldAccumulator
 {
     /// <summary>The most distinct null spellings a field keeps; later new spellings are counted in <c>nullSpellingsOther</c>.</summary>
-    public const int MaxNullSpellings = 64;
+    public const int MaxNullSpellings = SpellingCounter.MaxSpellings;
 
     /// <summary>The longest null spelling, in characters, that a field keeps; a longer one (a null padded with white space) is counted in <c>nullSpellingsOther</c>.</summary>
-    public const int MaxNullSpellingLength = 256;
+    public const int MaxNullSpellingLength = SpellingCounter.MaxLength;
 
     private const int VoteKinds = TypeLattice.VoteKinds;
     private const int Slots = 4;
@@ -47,9 +47,7 @@ internal sealed class FieldAccumulator
     // Votes and types.
     private readonly long[] _votes = new long[VoteKinds];
     private readonly Dictionary<string, long> _nullTokens = new(StringComparer.Ordinal);
-    private Dictionary<string, long>? _nullSpellings;
-    private long _nullSpellingChars;
-    private long _nullSpellingsOther;
+    private readonly SpellingCounter _nullSpellings = new();
     private Dictionary<string, long>? _patterns;
     private ValueVote _joined = ValueVote.Null;
     private long _nonNull;
@@ -157,7 +155,7 @@ internal sealed class FieldAccumulator
             // The object, its fixed arrays (votes, slots) and the lexical bounds.
             long bytes = 1_536;
             bytes += _nullTokens.Count * 100L;
-            bytes += ((_nullSpellings?.Count ?? 0) * 100L) + (_nullSpellingChars * 2);
+            bytes += _nullSpellings.EstimatedBytes;
             bytes += (_patterns?.Count ?? 0) * 140L;
             bytes += (_shapes.Count * 100L) + (_shapeChars * 2);
             bytes += (_distinct?.Count ?? 0) * 60L;
@@ -206,6 +204,7 @@ internal sealed class FieldAccumulator
         if (cls.Vote == ValueVote.Null)
         {
             AddNull(cls.NullToken ?? string.Empty);
+            AddNullSpelling(text);
             return ValueVote.Null;
         }
 
@@ -230,6 +229,7 @@ internal sealed class FieldAccumulator
     {
         if (double.IsNaN(value))
         {
+            // A typed NaN has no spelling in a file: no AddNullSpelling here (see AddNull for the invariant).
             AddNull("NaN");
             return;
         }
@@ -282,7 +282,12 @@ internal sealed class FieldAccumulator
         AddValue(in cls, TemporalMath.Iso(TemporalMath.Ticks(parts, DateOrders.YMD), kind));
     }
 
-    /// <summary>Adds a null value.</summary>
+    /// <summary>
+    /// Adds a null value by its vocabulary entry. It does not count a spelling: a typed value (<see cref="AddDouble"/>
+    /// with NaN) has none. The text path (<see cref="AddText"/>) counts both, which keeps <c>nullSpellings</c> plus
+    /// <c>nullSpellingsOther</c> equal to <c>nulls</c>; a future format that feeds a table through the typed methods must
+    /// keep that invariant (count a spelling, or document why the field has none) before it writes a table.
+    /// </summary>
     /// <param name="token">The null-vocabulary entry, in its vocabulary spelling.</param>
     public void AddNull(string token)
     {
@@ -292,31 +297,16 @@ internal sealed class FieldAccumulator
     }
 
     /// <summary>
-    /// Counts the exact spelling of a null value that is not in an all-null record: the field text as the dialect
-    /// delivers it, not trimmed (so <c>NULL</c> and <c> NULL </c> are two spellings, and a blank field is the key
-    /// <c>""</c>). The caller decides which values count, because only the row-level owner knows whether a record is
-    /// all-null (<see cref="RowClassAccumulator.Add"/>); this accumulator sees values. A new spelling is kept while
-    /// the field holds fewer than <see cref="MaxNullSpellings"/> and the text is at most <see cref="MaxNullSpellingLength"/>
-    /// characters; any other new spelling is counted in <c>nullSpellingsOther</c>. A spelling already kept keeps counting.
+    /// Counts the exact spelling of a null value: the field text as the dialect delivers it, not trimmed (so <c>NULL</c>
+    /// and <c> NULL </c> are two spellings, and a blank field is the key <c>""</c>). <see cref="AddText"/> calls it for
+    /// every null, all-null records included, so the spellings and <c>nullSpellingsOther</c> add up to <c>nulls</c>.
+    /// A new spelling is kept while the field holds fewer than <see cref="MaxNullSpellings"/> and the text is at most
+    /// <see cref="MaxNullSpellingLength"/> characters; any other new spelling is counted in <c>nullSpellingsOther</c>.
     /// </summary>
     /// <param name="raw">The raw text of a value that was classified as null.</param>
     public void AddNullSpelling(ReadOnlySpan<char> raw)
     {
-        _nullSpellings ??= new Dictionary<string, long>(StringComparer.Ordinal);
-        var lookup = _nullSpellings.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (lookup.TryGetValue(raw, out var count))
-        {
-            lookup[raw] = count + 1;
-        }
-        else if (raw.Length <= MaxNullSpellingLength && _nullSpellings.Count < MaxNullSpellings)
-        {
-            lookup[raw] = 1;
-            _nullSpellingChars += raw.Length;
-        }
-        else
-        {
-            _nullSpellingsOther++;
-        }
+        _nullSpellings.Add(raw);
     }
 
     /// <summary>The evidence entry that explains the fields that joined to string for lack of a common date order.</summary>
@@ -398,8 +388,8 @@ internal sealed class FieldAccumulator
             StatsWithheld: withheld,
             Top: _top?.Build(),
             Text: _access.Text && type == ValueVote.String && _textMin is not null ? new TextStats(_textMin, _textMax!) : null,
-            NullSpellings: CountMap.FromOrdinal(_nullSpellings ?? []),
-            NullSpellingsOther: _nullSpellingsOther);
+            NullSpellings: _nullSpellings.Build(),
+            NullSpellingsOther: _nullSpellings.Other);
     }
 
     // True when every non-null value is equal, which a field without a non-null value is too (it has one value, null);

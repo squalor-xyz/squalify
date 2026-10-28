@@ -30,10 +30,14 @@ public sealed class ConsumerSubsetTests
         "encoding.lineEndings.cr",
         "table.rows",
         "table.rowClasses.allNullRows",
+        "table.rowClasses.allNullRowSpellings",
+        "table.rowClasses.allNullRowSpellingsMixed",
+        "table.rowClasses.allNullRowSpellingsOther",
         "table.rowClasses.truncated",
         "table.rowClasses.classes[].count",
         "table.fields[].index",
         "table.fields[].name",
+        "table.fields[].rawName",
         "table.fields[].nameParts.base",
         "table.fields[].nameParts.unit",
         "table.fields[].nameParts.convention",
@@ -449,20 +453,17 @@ public sealed class ConsumerSubsetTests
     }
 
     [Fact]
-    public void NullSpellings_AreAbsentWhenEmpty_AndWrittenWhenAFieldHasNullsOutsideSeparatorRows()
+    public void NullSpellings_AreAbsentWhenEmpty_AndWrittenWhenAFieldHasNulls()
     {
-        var d = ProfileText(RaggedTable());
-        using var doc = JsonDocument.Parse(DescriptorWriter.ToBytes(d));
+        using var doc = JsonDocument.Parse(DescriptorWriter.ToBytes(ProfileText("A(id),B,C\n1,x,NULL\n2,y,Na\n3,z,y\n")));
         var fields = doc.RootElement.GetProperty("table").GetProperty("fields").EnumerateArray().ToArray();
 
-        // A(id) is null only in the separator record, so it has no spelling; B and C have nulls outside it.
+        // A(id) and B have no null, so no spelling members; C has two spellings.
         Assert.False(fields[0].TryGetProperty("nullSpellings", out _));
-        Assert.Equal(JsonValueKind.Object, fields[1].GetProperty("nullSpellings").ValueKind);
+        Assert.False(fields[1].TryGetProperty("nullSpellings", out _));
         Assert.Equal(JsonValueKind.Object, fields[2].GetProperty("nullSpellings").ValueKind);
         Assert.All(fields, static f => Assert.False(f.TryGetProperty("nullSpellingsOther", out _)));
     }
-
-    // ---- The derivation formulas --------------------------------------------------------------------------------------
 
     [Fact]
     public void DataRows_IsRowsMinusAllNullRows_AndMatchesTheNonSeparatorLinesOfTheFile()
@@ -671,20 +672,48 @@ public sealed class ConsumerSubsetTests
     }
 
     [Fact]
-    public void F9_ExactSpellings_GiveAConsumerWithItsOwnTokensItsCounts()
+    public void F9_ExactSpellings_MatchABruteForceCountOfAConsumersOwnSeparatorsAndNulls()
     {
-        // A consumer that reads only NULL and the empty field as null; null, Null and NA are text to it.
-        var d = ProfileText("A(id),V\n1,NULL\n2,null\n3,Null\n4,\n5,NULL\n6,NA\nNULL,NULL\n7,x\n8, NULL \n");
-        var v = Field(d, "V");
-        string[] tokens = ["NULL", ""];
-        var own = tokens.Sum(t => v.NullSpellings!.SingleOrDefault(e => e.Key == t).Value);
-        Assert.Equal(0, v.NullSpellingsOther);
-        Assert.Equal(3, own);
-        Assert.Equal(v.NullsExcludingAllNullRows, v.NullSpellings!.Sum(static e => e.Value));
-        // null, Null, NA and " NULL " are text to the consumer.
-        Assert.Equal(4, v.NullsExcludingAllNullRows - own);
-        // The separator record's NULL is in nullTokens and in no spelling.
-        Assert.Equal(v.NullsExcludingAllNullRows + 1, v.Nulls);
+        string[] rows =
+        [
+            "1,x,y", "6,None,y", "NULL,NULL,NULL", "2,NULL,y", "NA,NA,NA", ",,", "3,x,NULL", "NULL,NA,NULL", "NULL,NULL,NULL", "4,NULL,NA", ",,", "5,x,y", "7,None,y", "8,x,y",
+        ];
+        var d = ProfileText("A(id),B,C\n" + string.Join("\n", rows) + "\n");
+        var rc = Classes(d);
+        var cells = rows.Select(static r => r.Split(',')).ToArray();
+        Assert.Equal(0, rc.AllNullRowSpellingsOther);
+        Assert.All(d.Table!.Fields, static f => Assert.Equal(0, f.NullSpellingsOther));
+
+        long Map(CountMap? map, string key) => map!.SingleOrDefault(e => e.Key == key).Value;
+
+        // Every token set is made of spellings that the vocabulary matches.
+        foreach (var tokens in new[] { new[] { "NULL" }, new[] { "NULL", string.Empty }, new[] { "NULL", "NA" }, new[] { "NA", string.Empty, "NULL" } })
+        {
+            bool IsSeparator(string[] row) => row.All(c => c == row[0]) && tokens.Contains(row[0]);
+
+            var bruteSeparators = cells.Count(IsSeparator);
+            Assert.Equal(bruteSeparators, tokens.Sum(t => Map(rc.AllNullRowSpellings, t)));
+
+            for (var field = 0; field < 3; field++)
+            {
+                foreach (var t in tokens)
+                {
+                    var brute = cells.Where(r => !IsSeparator(r)).Count(r => r[field] == t);
+                    Assert.Equal(brute, Map(d.Table.Fields[field].NullSpellings, t) - Map(rc.AllNullRowSpellings, t));
+                }
+            }
+        }
+
+        // A token outside the vocabulary is never counted: the consumer's None cells are text to squalify, so they are in no spelling.
+        var bruteNone = cells.Count(static r => r[1] == "None");
+        Assert.Equal(2, bruteNone);
+        Assert.Equal(0, Map(d.Table.Fields[1].NullSpellings, "None"));
+        Assert.Equal(0, Map(rc.AllNullRowSpellings, "None"));
+
+        // The mixed all-null row (NULL,NA,NULL) is no uniform separator; the totals add up.
+        Assert.Equal(1, rc.AllNullRowSpellingsMixed);
+        Assert.Equal(rc.AllNullRows, rc.AllNullRowSpellings!.Sum(static e => e.Value) + rc.AllNullRowSpellingsMixed + rc.AllNullRowSpellingsOther);
+        Assert.All(d.Table.Fields, static f => Assert.Equal(f.Nulls, f.NullSpellings!.Sum(static e => e.Value) + f.NullSpellingsOther));
     }
 
     [Fact]

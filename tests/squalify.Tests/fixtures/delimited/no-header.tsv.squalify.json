@@ -49,6 +49,9 @@
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
+      "allNullRowSpellings": {},
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [{ "id": "rc:f84a18ec7f5e8c9a", "count": 6, "fields": [[0, 3]], "firstLine": 1, "lastLine": 6 }]
     },
@@ -56,6 +59,7 @@
       {
         "index": 0,
         "name": null,
+        "rawName": null,
         "nameParts": null,
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -82,6 +86,7 @@
       {
         "index": 1,
         "name": null,
+        "rawName": null,
         "nameParts": null,
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -108,6 +113,7 @@
       {
         "index": 2,
         "name": null,
+        "rawName": null,
         "nameParts": null,
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -134,6 +140,7 @@
       {
         "index": 3,
         "name": null,
+        "rawName": null,
         "nameParts": null,
         "type": "float",
         "dominant": { "type": "float", "share": 1 },

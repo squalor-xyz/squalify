@@ -334,6 +334,9 @@ public static class DescriptorWriter
         w.WriteNumber("count", v.Count);
         w.WriteNumber("transitions", v.Transitions);
         w.WriteNumber("allNullRows", v.AllNullRows);
+        Map(w, "allNullRowSpellings", v.AllNullRowSpellings ?? CountMap.Empty);
+        w.WriteNumber("allNullRowSpellingsMixed", v.AllNullRowSpellingsMixed);
+        w.WriteNumber("allNullRowSpellingsOther", v.AllNullRowSpellingsOther);
         w.WriteNumber("truncated", v.Truncated);
         List(w, "classes", v.Classes, Write);
         w.WriteEndObject();
@@ -355,6 +358,7 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteNumber("index", v.Index);
         w.WriteString("name", v.Name);
+        w.WriteString("rawName", v.RawName);
         OptionalString(w, "nameHex", v.NameHex);
         Nullable(
             w,

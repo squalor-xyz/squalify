@@ -69,6 +69,9 @@
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
+      "allNullRowSpellings": {},
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [{ "id": "rc:22dc4629eaf665af", "count": 20, "fields": [[0, 2]], "firstLine": 10, "lastLine": 29 }]
     },
@@ -76,6 +79,7 @@
       {
         "index": 0,
         "name": "Freq(MHz)",
+        "rawName": "Freq(MHz)",
         "nameParts": { "base": "Freq", "unit": "MHz", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -102,6 +106,7 @@
       {
         "index": 1,
         "name": "Pout(dBm)",
+        "rawName": "Pout(dBm)",
         "nameParts": { "base": "Pout", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -128,6 +133,7 @@
       {
         "index": 2,
         "name": "Gain(dB)",
+        "rawName": "Gain(dB)",
         "nameParts": { "base": "Gain", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },

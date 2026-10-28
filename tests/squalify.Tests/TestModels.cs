@@ -69,6 +69,7 @@ internal static class TestModels
         var f0 = new FieldProfile(
             Index: 0,
             Name: "Frequency(MHz)",
+            RawName: "Frequency(MHz)",
             NameParts: new NameParts("Frequency", "MHz", "nameParenUnit"),
             Type: "float",
             Dominant: new DominantType("float", 0.9998),
@@ -106,6 +107,7 @@ internal static class TestModels
         var f1 = new FieldProfile(
             Index: 1,
             Name: "Start",
+            RawName: "Start",
             NameParts: new NameParts("Start", null, "none"),
             Type: "datetime",
             Dominant: new DominantType("datetime", 1.0),
@@ -140,6 +142,7 @@ internal static class TestModels
         var f2 = new FieldProfile(
             Index: 2,
             Name: "Lot�",
+            RawName: " Lot\uFFFD ",
             NameParts: new NameParts("Lot�", null, "none"),
             Type: "string",
             Dominant: new DominantType("string", 1.0),
@@ -163,6 +166,7 @@ internal static class TestModels
         var f3 = new FieldProfile(
             Index: 3,
             Name: "Date",
+            RawName: "Date",
             NameParts: new NameParts("Date", null, "none"),
             Type: "date",
             Dominant: new DominantType("date", 1.0),
@@ -265,7 +269,8 @@ internal static class TestModels
                     [
                         new RowClass("rc:3f9a", 900, [new FieldRange(0, 3)], 3, 1002),
                         new RowClass("rc:7b01", 99, [new FieldRange(0, 0), new FieldRange(2, 3)], 4, 1001),
-                    ])));
+                    ],
+                    AllNullRowSpellings: CountMap.FromOrdinal([new("NULL", 1)]))));
     }
 
     /// <summary>A fully populated non-tabular descriptor: sections, binary and STDF profiles, hints, offsets.</summary>

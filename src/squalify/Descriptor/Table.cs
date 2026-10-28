@@ -18,12 +18,18 @@ public sealed record TableSection(
 /// <param name="AllNullRows">Number of all-null rows.</param>
 /// <param name="Truncated">Records counted past the class cap.</param>
 /// <param name="Classes">Classes; the caller sorts by count descending, then id.</param>
+/// <param name="AllNullRowSpellings">The all-null records whose every cell has one exact spelling (raw, not trimmed, quotes removed), by that spelling; null reads as no entries.</param>
+/// <param name="AllNullRowSpellingsMixed">All-null records whose cells do not share one spelling.</param>
+/// <param name="AllNullRowSpellingsOther">All-null records of one spelling that is not a key of <paramref name="AllNullRowSpellings"/> (past 64 spellings, or longer than 256 characters).</param>
 public sealed record RowClassesInfo(
     long Count,
     long Transitions,
     long AllNullRows,
     long Truncated,
-    IReadOnlyList<RowClass> Classes);
+    IReadOnlyList<RowClass> Classes,
+    CountMap? AllNullRowSpellings = null,
+    long AllNullRowSpellingsMixed = 0,
+    long AllNullRowSpellingsOther = 0);
 
 /// <summary>One row class.</summary>
 /// <param name="Id">The class id, <c>rc:</c> plus a hash.</param>
@@ -64,8 +70,9 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="Unit">The unit from a units row. Values tier.</param>
 /// <param name="Top">Most common values. Values tier.</param>
 /// <param name="Text">Lexical minimum and maximum. Values tier.</param>
-/// <param name="NullSpellings">The null values by exact spelling (the field text after dialect unquoting, not trimmed), outside all-null records; null reads as no entries. A spelling past the caps is counted in <paramref name="NullSpellingsOther"/>.</param>
-/// <param name="NullSpellingsOther">Null values outside all-null records whose spelling is not in <paramref name="NullSpellings"/> because the field already kept <see cref="FieldAccumulator.MaxNullSpellings"/> spellings, or the spelling is longer than <see cref="FieldAccumulator.MaxNullSpellingLength"/> characters.</param>
+/// <param name="RawName">The header text as in the file: quotes removed per the dialect, nothing else changed (spaces kept); null when the table has no header. Written right after <c>name</c>.</param>
+/// <param name="NullSpellings">The null values by exact spelling (the field text after dialect unquoting, not trimmed), over all data records, all-null records included; null reads as no entries.</param>
+/// <param name="NullSpellingsOther">Null values whose spelling is not in <paramref name="NullSpellings"/> because the field already kept 64 spellings, or the spelling is longer than 256 characters.</param>
 public sealed record FieldProfile(
     long Index,
     string? Name,
@@ -92,6 +99,7 @@ public sealed record FieldProfile(
     [property: ValueBearing] string? Unit = null,
     [property: ValueBearing] TopValues? Top = null,
     [property: ValueBearing] TextStats? Text = null,
+    string? RawName = null,
     CountMap? NullSpellings = null,
     long NullSpellingsOther = 0);
 

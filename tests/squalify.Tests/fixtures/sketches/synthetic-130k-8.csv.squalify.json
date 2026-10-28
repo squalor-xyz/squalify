@@ -60,6 +60,9 @@
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
+      "allNullRowSpellings": {},
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [{ "id": "rc:2edde50339310da6", "count": 130000, "fields": [[0, 7]], "firstLine": 2, "lastLine": 130001 }]
     },
@@ -67,6 +70,7 @@
       {
         "index": 0,
         "name": "c0",
+        "rawName": "c0",
         "nameParts": { "base": "c0", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -102,6 +106,7 @@
       {
         "index": 1,
         "name": "c1",
+        "rawName": "c1",
         "nameParts": { "base": "c1", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -130,6 +135,7 @@
       {
         "index": 2,
         "name": "c2",
+        "rawName": "c2",
         "nameParts": { "base": "c2", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -158,6 +164,7 @@
       {
         "index": 3,
         "name": "c3",
+        "rawName": "c3",
         "nameParts": { "base": "c3", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "date",
         "dominant": { "type": "date", "share": 1 },
@@ -195,6 +202,7 @@
       {
         "index": 4,
         "name": "c4",
+        "rawName": "c4",
         "nameParts": { "base": "c4", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
         "dominant": { "type": "string", "share": 1 },
@@ -213,6 +221,7 @@
       {
         "index": 5,
         "name": "c5",
+        "rawName": "c5",
         "nameParts": { "base": "c5", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
         "dominant": { "type": "string", "share": 1 },
@@ -230,6 +239,7 @@
       {
         "index": 6,
         "name": "c6",
+        "rawName": "c6",
         "nameParts": { "base": "c6", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "time",
         "dominant": { "type": "time", "share": 1 },
@@ -268,6 +278,7 @@
       {
         "index": 7,
         "name": "c7",
+        "rawName": "c7",
         "nameParts": { "base": "c7", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },

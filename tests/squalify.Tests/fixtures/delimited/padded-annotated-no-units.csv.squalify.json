@@ -77,6 +77,9 @@
       "count": 2,
       "transitions": 4,
       "allNullRows": 0,
+      "allNullRowSpellings": {},
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [
         { "id": "rc:653e7b9b016a9705", "count": 7, "fields": [[0, 4]], "firstLine": 10, "lastLine": 19 },
@@ -87,6 +90,7 @@
       {
         "index": 0,
         "name": "Site",
+        "rawName": "Site          ",
         "nameParts": { "base": "Site", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -114,6 +118,7 @@
       {
         "index": 1,
         "name": "Pout(dBm)",
+        "rawName": "Pout(dBm)     ",
         "nameParts": { "base": "Pout", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -141,6 +146,7 @@
       {
         "index": 2,
         "name": "Gain(dB)",
+        "rawName": "Gain(dB)      ",
         "nameParts": { "base": "Gain", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -169,6 +175,7 @@
       {
         "index": 3,
         "name": "Icc(mA)",
+        "rawName": "Icc(mA)       ",
         "nameParts": { "base": "Icc", "unit": "mA", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -196,6 +203,7 @@
       {
         "index": 4,
         "name": "Vcc(V)",
+        "rawName": "Vcc(V)        ",
         "nameParts": { "base": "Vcc", "unit": "V", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },

@@ -286,7 +286,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         var orderConflicts = new List<(long Index, DateOrderCounts Counts)>();
         for (var c = 0; c < _k; c++)
         {
-            fields.Add(BuildField(c, names[c], hex[c]) with { NameParts = conventions?.Parts[c] });
+            // rawName is the header cell as the tokenizer gave it (quotes removed, "" unescaped), before the trim that makes name.
+            fields.Add(BuildField(c, names[c], hex[c]) with { NameParts = conventions?.Parts[c], RawName = _headerRecord?.Cells[c] });
             if (_accumulators[c].OrderConflict is { } conflict)
             {
                 orderConflicts.Add((c, conflict));
@@ -1052,15 +1053,24 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             _nullMask[c] = _accumulators[c].AddText(cells[c]) == ValueVote.Null;
         }
 
-        // The exact spelling of a null is counted outside all-null records, which only the row-level accumulator can tell.
-        if (!_rowClasses.Add(_nullMask, line))
+        // The exact spelling of each null is counted by its field (AddText). An all-null record is also counted by the one
+        // spelling that every cell shares, or as mixed: only the pass sees the cells, and only the row accumulator
+        // knows the record is all-null.
+        if (_rowClasses.Add(_nullMask, line))
         {
-            for (var c = 0; c < _k; c++)
+            var uniform = true;
+            for (var c = 1; c < _k && uniform; c++)
             {
-                if (_nullMask[c])
-                {
-                    _accumulators[c].AddNullSpelling(cells[c]);
-                }
+                uniform = string.Equals(cells[c], cells[0], StringComparison.Ordinal);
+            }
+
+            if (uniform)
+            {
+                _rowClasses.AddAllNullSpelling(_k > 0 ? cells[0] : string.Empty);
+            }
+            else
+            {
+                _rowClasses.AddAllNullMixed();
             }
         }
 

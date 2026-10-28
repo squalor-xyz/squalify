@@ -45,6 +45,8 @@ internal sealed class RowClassAccumulator
     private long _transitions;
     private long _allNullRows;
     private long _truncated;
+    private long _allNullMixed;
+    private readonly SpellingCounter _allNullSpellings = new();
 
     /// <summary>Creates an accumulator.</summary>
     /// <param name="fieldCount">The number of fields in every mask.</param>
@@ -72,6 +74,7 @@ internal sealed class RowClassAccumulator
         {
             long bytes = 256 + _encoded.Length + _previous.Length + (_nullIndexes.Length * 4L) + (_nullsOutsideAllNull.Length * 8L);
             bytes += _slots.Count * 48L;
+            bytes += _allNullSpellings.EstimatedBytes;
             foreach (var state in _classes)
             {
                 bytes += 200 + (state.Fields.Length * 16L);
@@ -79,6 +82,23 @@ internal sealed class RowClassAccumulator
 
             return bytes;
         }
+    }
+
+    /// <summary>
+    /// Counts an all-null record whose every cell has the same exact spelling (raw, not trimmed, quotes removed). The
+    /// caller decides, because only it sees the cells; call it, or <see cref="AddAllNullMixed"/>, once for each record
+    /// that <see cref="Add"/> reported as all-null.
+    /// </summary>
+    /// <param name="spelling">The shared spelling; empty for a record of blank cells.</param>
+    public void AddAllNullSpelling(ReadOnlySpan<char> spelling)
+    {
+        _allNullSpellings.Add(spelling);
+    }
+
+    /// <summary>Counts an all-null record whose cells do not share one spelling.</summary>
+    public void AddAllNullMixed()
+    {
+        _allNullMixed++;
     }
 
     /// <summary>Adds one record.</summary>
@@ -154,7 +174,7 @@ internal sealed class RowClassAccumulator
             .OrderByDescending(static c => c.Count)
             .ThenBy(static c => c.Id, StringComparer.Ordinal)
             .ToArray();
-        return new RowClassesInfo(classes.Length, _transitions, _allNullRows, _truncated, classes);
+        return new RowClassesInfo(classes.Length, _transitions, _allNullRows, _truncated, classes, _allNullSpellings.Build(), _allNullMixed, _allNullSpellings.Other);
     }
 
     // The mask differs from the previous record's (or there is none): find its class.

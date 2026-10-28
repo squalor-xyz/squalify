@@ -57,6 +57,9 @@
       "count": 3,
       "transitions": 120,
       "allNullRows": 60,
+      "allNullRowSpellings": { "NULL": 60 },
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [
         { "id": "rc:6021b5621680598b", "count": 60, "fields": [[2, 2]], "firstLine": 3, "lastLine": 121 },
@@ -68,6 +71,7 @@
       {
         "index": 0,
         "name": "Pout(dBm)",
+        "rawName": "Pout(dBm)",
         "nameParts": { "base": "Pout", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -76,7 +80,7 @@
         "nulls": 120,
         "nullsExcludingAllNullRows": 60,
         "nullTokens": { "null": 120 },
-        "nullSpellings": { "NULL": 60 },
+        "nullSpellings": { "NULL": 120 },
         "distinct": { "value": 20 },
         "numeric": {
           "min": 10,
@@ -95,6 +99,7 @@
       {
         "index": 1,
         "name": "Gain(dB)",
+        "rawName": "Gain(dB)",
         "nameParts": { "base": "Gain", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -103,7 +108,7 @@
         "nulls": 120,
         "nullsExcludingAllNullRows": 60,
         "nullTokens": { "null": 120 },
-        "nullSpellings": { "NULL": 60 },
+        "nullSpellings": { "NULL": 120 },
         "distinct": { "value": 20 },
         "numeric": {
           "min": 15,
@@ -122,6 +127,7 @@
       {
         "index": 2,
         "name": "Status",
+        "rawName": "Status",
         "nameParts": { "base": "Status", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
         "dominant": { "type": "string", "share": 1 },
@@ -130,6 +136,7 @@
         "nulls": 60,
         "nullsExcludingAllNullRows": 0,
         "nullTokens": { "null": 60 },
+        "nullSpellings": { "NULL": 60 },
         "distinct": { "value": 2 },
         "statsWithheld": null,
         "length": { "min": 2, "max": 7, "mean": 5.75 },

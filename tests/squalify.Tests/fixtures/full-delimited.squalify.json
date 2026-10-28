@@ -94,6 +94,9 @@
       "count": 2,
       "transitions": 4,
       "allNullRows": 1,
+      "allNullRowSpellings": { "NULL": 1 },
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [
         { "id": "rc:3f9a", "count": 900, "fields": [[0, 3]], "firstLine": 3, "lastLine": 1002 },
@@ -104,6 +107,7 @@
       {
         "index": 0,
         "name": "Frequency(MHz)",
+        "rawName": "Frequency(MHz)",
         "nameParts": { "base": "Frequency", "unit": "MHz", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 0.9998 },
@@ -135,6 +139,7 @@
       {
         "index": 1,
         "name": "Start",
+        "rawName": "Start",
         "nameParts": { "base": "Start", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "datetime",
         "dominant": { "type": "datetime", "share": 1 },
@@ -170,6 +175,7 @@
       {
         "index": 2,
         "name": "Lot�",
+        "rawName": " Lot� ",
         "nameHex": "4c6f74ff",
         "nameParts": { "base": "Lot�", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
@@ -192,6 +198,7 @@
       {
         "index": 3,
         "name": "Date",
+        "rawName": "Date",
         "nameParts": { "base": "Date", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "date",
         "dominant": { "type": "date", "share": 1 },

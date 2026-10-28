@@ -53,6 +53,9 @@
       "count": 1,
       "transitions": 0,
       "allNullRows": 0,
+      "allNullRowSpellings": {},
+      "allNullRowSpellingsMixed": 0,
+      "allNullRowSpellingsOther": 0,
       "truncated": 0,
       "classes": [{ "id": "rc:633457081244afec", "count": 6, "fields": [[0, 0]], "firstLine": 2, "lastLine": 7 }]
     },
@@ -60,6 +63,7 @@
       {
         "index": 0,
         "name": "Reading(dBm)",
+        "rawName": "Reading(dBm)",
         "nameParts": { "base": "Reading", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },

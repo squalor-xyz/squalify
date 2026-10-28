@@ -51,7 +51,7 @@ A complete program is in [Examples](examples.md#use-the-library-to-pick-an-impor
 
 | Family | Today | What is described |
 |---|---|---|
-| Delimited text | Fully profiled | CSV, TSV, `;`, `\|` or whitespace separated. Delimiter, quoting, padding and decimal separator; preamble, annotation rows (such as limits), header, units row, data and footer regions; repeated header-and-table blocks (one `block` region each, see [descriptor.md](descriptor.md#several-blocks)); row classes; per-field profiles (type, nulls, null tokens and exact null spellings, statistics, shapes, units from header names). |
+| Delimited text | Fully profiled | CSV, TSV, `;`, `\|` or whitespace separated. Delimiter, quoting, padding and decimal separator; preamble, annotation rows (such as limits), header, units row, data and footer regions; repeated header-and-table blocks (one `block` region each, see [descriptor.md](descriptor.md#several-blocks)); row classes; per-field profiles (type, nulls, null tokens and exact null spellings, statistics, shapes, units from header names); the exact spelling of all-null rows. |
 | Plain text | Generic profile | Encoding, line endings, line kinds, longest line. |
 | Binary | Generic profile | Named magic (gzip, zip, pdf, sqlite, hdf5, `parquet` and others), byte histogram, entropy. Nothing is decompressed or unpacked. |
 | Empty | Generic profile | A zero-length file has family `empty`. |
@@ -68,13 +68,13 @@ By default a descriptor holds names, structure and statistics, but no literal da
 | Always included | Only with `--include-values` |
 |---|---|
 | Header names, preamble keys, annotation labels | Preamble values, annotation-row cells, comment text |
-| Counts, nulls, null spellings, types, shapes, lengths | Top values and text min/max of a column |
+| Counts, nulls, null spellings (also of all-null rows), types, shapes, lengths | Top values and text min/max of a column |
 | Numeric and temporal min, max, mean, quantiles (not for a constant column) | Units-row text, statistics of a constant column |
 | Units parsed from header names | Value-bearing `hints.stableLines` regexes (comment and text lines) |
 
 `--include-values-for <name>` opens only the named preamble key, annotation label or column, compared whole with ASCII case folding. A name that matches several members opens all of them; a name that matches nothing is reported as the issue `includeValuesForUnmatched`. The complete list is in [descriptor.md](descriptor.md#values-tier), and the reasoning in [design.md](design.md#values-tier). A value that may not be written is never held in memory.
 
-Header names and preamble keys are always included, and can themselves identify a file. Review a descriptor before sharing it.
+Header names (trimmed as `name`, and exactly as written as `rawName`) and preamble keys are always included, and can themselves identify a file. Review a descriptor before sharing it.
 
 ## Guarantees and stability
 
@@ -83,7 +83,7 @@ Header names and preamble keys are always included, and can themselves identify 
 - **Explainable.** Every inference has an `evidence` entry with its candidates and scores.
 - **Versions.** The package version, `squalify --version` and `tool.version` are one string. The schema is a draft until the v1 schema freeze: before 1.0 a minor version may change the descriptor. After the freeze, adding optional keys bumps the schema's minor version and removing or renaming one bumps the major. Consumers must ignore unknown keys. See [the versioning policy](descriptor.md#versioning-policy).
 - **Fingerprints.** `fingerprint.version` changes whenever a projection changes. Compare hashes only when it matches.
-- **Breaking changes in 0.2.0 (library).** `ProfileOptions` and `ProfileOptions.Create` gained a `maxBytes` parameter (optional, so source-compatible; the signatures changed, so a compiled consumer must be recompiled). `FileSection.Sha256` is now nullable: it is absent when only a prefix was read. A descriptor made without a byte limit is unchanged. `FieldProfile` gained the trailing optional members `NullSpellings` (the null values by exact spelling, outside all-null records; never null from the profiler, empty when there is none) and `NullSpellingsOther`; a compiled consumer that constructs a `FieldProfile` must be recompiled, and `NullTokens` is unchanged.
+- **Breaking changes in 0.2.0 (library).** `ProfileOptions` and `ProfileOptions.Create` gained a `maxBytes` parameter (optional, so source-compatible; the signatures changed, so a compiled consumer must be recompiled). `FileSection.Sha256` is now nullable: it is absent when only a prefix was read. A descriptor made without a byte limit is unchanged. `FieldProfile` gained the trailing optional members `NullSpellings` (the null values by exact spelling, over all data records; never null from the profiler, empty when there is none) and `NullSpellingsOther`; `RowClassesInfo` gained `AllNullRowSpellings`, `AllNullRowSpellingsMixed` and `AllNullRowSpellingsOther` (the all-null records by their one shared spelling); a compiled consumer that constructs a `FieldProfile` must be recompiled, and `NullTokens` is unchanged.
 
 ## Limits and large files
 
@@ -97,7 +97,7 @@ The whole file is streamed in bounded memory and nothing is sampled (unless you 
 | Regions | 1,000 |
 | Header-detection sample | 1,000 records |
 | Row classes | 64 |
-| Null spellings per column | 64 spellings of at most 256 characters (fixed; the rest are counted in `nullSpellingsOther`) |
+| Null spellings per column, and all-null row spellings per table | 64 spellings of at most 256 characters each (fixed; the rest are counted in `nullSpellingsOther` and `allNullRowSpellingsOther`) |
 
 A global budget shrinks the first two caps, and the mask text, for very wide tables (100 columns or fewer keep the full caps); `limits.distinctPerField`, `limits.quantilePerField` and `limits.shapeCharsPerField` show the effective values. Past a cap a deterministic sketch takes over and the descriptor says so: `distinct` is a HyperLogLog estimate with `approximate: true` and `relativeStdError` (0.008125, one standard error), and `numeric` and `temporal` quantiles come from a Greenwald-Khanna summary with `approximate: true` and `rankError` (a sibling of `quantiles` and `approximate`, 0.001, the worst-case rank error as a fraction of the values). Both members are absent while the value is exact. `min`, `max`, `mean` and `stddev` do not depend on the caps. The sketches have a fixed size per column, so a very wide table pays for them in memory. See [design.md](design.md#bounded-memory-and-sketches).
 
