@@ -38,6 +38,8 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 | 2026-10-27 | Clones run `slicer setup-git` and its git config, so `.slicer` files merge without conflicts | sq-26 |
 | 2026-10-27 | Check CI with `gh run list` after every push to main | sq-29 |
 | 2026-10-27 | Gates and implementers also run the suite with `GITHUB_ACTIONS=true` | sq-29 |
+| 2026-10-28 | Briefs give the test filter `Category!=Corpus&Category!=Large`, `find -type f` for samples, and ask for every test project's summary line | v0.2.0 wave |
+| 2026-10-28 | Before a release tag, the consumer's open slices are checked against the release | v0.2.0 wave |
 
 ## Proposed upstream (slicer)
 
@@ -50,6 +52,27 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 - A Check item that needs another slice to land first (sq-18's corpus run after sq-04) has no place in the contract. The finish step was deferred until after the merge.
 
 ## Entries
+
+### v0.1.1 to v0.2.0 wave: sq-33, sq-34, sq-11, sq-13, sq-22, sq-24, sq-35, sq-32, sq-37, sq-36 (2026-10-27 to 2026-10-28)
+
+- Lineup: implementer sonnet/high; reviewer opus/medium; architect opus/high (M slices: sq-11, sq-13, sq-32); gate opus/medium. Up to four slices ran in parallel, each in its own worktree, and landed one at a time.
+- Metrics:
+  - **Gate verdicts:** sq-13 FAIL, PASS; sq-22 FAIL, PASS; sq-24 FAIL, PASS; sq-35 FAIL, PASS; sq-32 PASS; sq-37 FAIL, PASS. Every first-round FAIL was doc wording or doc drift (a duplicated merge sentence, an unqualified byte-identical claim, a missing pipeline read, an overstated `bytesRead` bound, text contradicting a new member) or one test gap. None was a code defect.
+  - **Owner decisions:** about 20, all asked mid-run. Two reversed earlier answers once a consumer check showed the cost: sq-36 was retired, then revived as an additive member when the consumer's open slice turned out to need it; sq-36's "outside separator rows" became "all rows plus a table-level map" once the reviewer showed the counts could not be exact.
+- Frictions:
+  - **Grep false pass.** A `grep "Passed!"` matched one test project and hid 11 failures in another, so the v0.1.1 prep commit was pushed red. Briefs now ask for every project's summary line.
+  - **Real samples in subdirectories.** Implementers profiled 8 of 11 samples. Briefs now say `find -type f`.
+  - **Unfiltered suites.** Agents ran the suite without `Category!=Large`; the 4 GB memory probe sat for hours and slowed every parallel worktree (one CI-mode run took 34 min against 8 s). CONTRIBUTING.md listed an outdated CI filter. Briefs now give the filter explicitly.
+  - **Windows memory flake.** A process-memory test grew 89 MB on one Windows run; the owner moved it to `Category=Large` (run by hand).
+  - **Interruptions.** Plan mode twice stopped a subagent mid-merge, and a network outage killed three agents at once. Resuming each with "check git status, then continue" recovered all of them without lost work.
+  - **History rewrite.** Removing a confidential name needed git-filter-repo, a blob callback for 14 historic PDFs, the user's own force-push, and a tag push that re-ran Release (harmless: `--skip-duplicate`, and the v0.1.0 assets were replaced by clean rebuilds).
+  - **Combined review+gate on S slices** was recorded under the gate role only, so `ork` showed "review 0". Record the reviewer step separately.
+  - **Size target collisions.** Two parallel slices each added a field member against sq-32's bytes-per-field test; neither alone failed it, together they did. Reviewers caught it by measuring both branches.
+- Wins:
+  - **Consumer check before tagging** found that a retired slice was still needed by the consumer's open work, before the release went out.
+  - **Reviewers measuring instead of reading:** golden diffs re-derived by script, layout rules re-implemented independently, brute-force checks of the consumer formulas, CLI probes for edge cases.
+  - **Small doc-only gate fixes done by the orchestrator** (sq-37 round 1) saved a fix round.
+- Changes: briefs carry the CI test filter, `find -type f` for samples, and "read every project's summary line"; record reviewer steps separately even when combined with the gate; before tagging, check the consumer's open slices against the release.
 
 ### sq-29, sq-07, sq-31: Release workflow, values tier, drop Parquet; v0.1.0 published (2026-10-27)
 
