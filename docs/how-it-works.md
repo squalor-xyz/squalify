@@ -461,7 +461,7 @@ flowchart TD
 
 ## 12. Text, binary or empty?
 
-The byte pass counts every byte of the file once and then applies seven rules, in order. The first rule that fits decides. A file is never rejected: odd bytes are counted, and invalid UTF-8 in ascii or utf-8 text is also reported as an issue. A few stray invalid bytes in an otherwise plain text file do not change its encoding, because a single bad byte in a large log should not turn it into "Latin-1" or "binary"; the allowance is at most 8 per file and at most 1 per 64 KiB.
+The byte pass counts every byte of the file once and then applies seven rules, in order. The first rule that fits decides. A file is never rejected: odd bytes are counted, and invalid UTF-8 in ascii or utf-8 text is also reported as an issue (`invalidUtf8`). Invalid UTF-16 or UTF-32 (a lone surrogate, a stray last byte, an impossible UTF-32 value) is found by a second look at those files, counted in the same invalid-bytes number and reported as `invalidUnicode`; there is no allowance for it, because the byte order mark or the NUL pattern already fixed the encoding. A few stray invalid bytes in an otherwise plain text file do not change its encoding, because a single bad byte in a large log should not turn it into "Latin-1" or "binary"; the allowance is at most 8 per file and at most 1 per 64 KiB.
 
 ```mermaid
 flowchart LR

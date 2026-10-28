@@ -105,6 +105,8 @@ A global budget shrinks the first two caps, and the mask text, for very wide tab
 
 **The encoding is `latin-1`, or I see `invalidUtf8`.** A file that is not valid UTF-8 is called `latin-1` (the evidence notes "possibly windows-1252" when bytes 0x80 to 0x9F occur). A few stray invalid bytes in otherwise valid UTF-8 or ASCII are tolerated (at most 8, and at most one per 64 KiB), reported as the issue `invalidUtf8` with byte offsets, and decoded as U+FFFD.
 
+**I see `invalidUnicode`.** The file is UTF-16 or UTF-32 and holds a lone surrogate, a stray last byte or an impossible UTF-32 value. `encoding.invalidBytes` counts their bytes and the issue lists the byte offsets of the first 10. Unlike `invalidUtf8` there is no allowance: even one invalid unit is reported.
+
 **The file is empty.** A zero-length file gets family `empty` and kind `empty`, with no error.
 
 **I passed a directory.** Directories are not supported: the run fails with exit code 1. Loop over the files ([example](examples.md#profile-a-directory)).
