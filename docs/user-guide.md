@@ -74,7 +74,7 @@ By default a descriptor holds names, structure and statistics, but no literal da
 
 `--include-values-for <name>` opens only the named preamble key, annotation label or column, compared whole with ASCII case folding. A name that matches several members opens all of them; a name that matches nothing is reported as the issue `includeValuesForUnmatched`. The complete list is in [descriptor.md](descriptor.md#values-tier), and the reasoning in [design.md](design.md#values-tier). A value that may not be written is never held in memory.
 
-Header names and preamble keys are always included, and can themselves identify a file. Review a descriptor before sharing it.
+Header names (trimmed as `name`, and exactly as written as `rawName`) and preamble keys are always included, and can themselves identify a file. Review a descriptor before sharing it.
 
 ## Guarantees and stability
 

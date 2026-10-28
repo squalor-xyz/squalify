@@ -34,6 +34,7 @@ public sealed class ConsumerSubsetTests
         "table.rowClasses.classes[].count",
         "table.fields[].index",
         "table.fields[].name",
+        "table.fields[].rawName",
         "table.fields[].nameParts.base",
         "table.fields[].nameParts.unit",
         "table.fields[].nameParts.convention",

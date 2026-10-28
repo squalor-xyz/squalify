@@ -64,6 +64,7 @@
       {
         "index": 0,
         "name": "stimulusGrp(id)",
+        "rawName": "stimulusGrp(id)",
         "nameParts": { "base": "stimulusGrp", "unit": "id", "convention": "nameParenUnit", "unknownUnit": true },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -90,6 +91,7 @@
       {
         "index": 1,
         "name": "sweep(id)",
+        "rawName": "sweep(id)",
         "nameParts": { "base": "sweep", "unit": "id", "convention": "nameParenUnit", "unknownUnit": true },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -116,6 +118,7 @@
       {
         "index": 2,
         "name": "SN",
+        "rawName": "SN",
         "nameParts": { "base": "SN", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
         "dominant": { "type": "string", "share": 1 },
@@ -134,6 +137,7 @@
       {
         "index": 3,
         "name": "Date(date)",
+        "rawName": "Date(date)",
         "nameParts": { "base": "Date", "unit": "date", "convention": "nameParenUnit", "unknownUnit": true },
         "type": "date",
         "dominant": { "type": "date", "share": 1 },
@@ -169,6 +173,7 @@
       {
         "index": 4,
         "name": "Teststand",
+        "rawName": "Teststand",
         "nameParts": { "base": "Teststand", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
         "dominant": { "type": "string", "share": 1 },
@@ -187,6 +192,7 @@
       {
         "index": 5,
         "name": "Temp(degC)",
+        "rawName": "Temp(degC)",
         "nameParts": { "base": "Temp", "unit": "degC", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -213,6 +219,7 @@
       {
         "index": 6,
         "name": "Vcc(V)",
+        "rawName": "Vcc(V)",
         "nameParts": { "base": "Vcc", "unit": "V", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -239,6 +246,7 @@
       {
         "index": 7,
         "name": "Frequency(MHz)",
+        "rawName": "Frequency(MHz)",
         "nameParts": { "base": "Frequency", "unit": "MHz", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -265,6 +273,7 @@
       {
         "index": 8,
         "name": "Pout(dBm)",
+        "rawName": "Pout(dBm)",
         "nameParts": { "base": "Pout", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -291,6 +300,7 @@
       {
         "index": 9,
         "name": "Pin(dBm)",
+        "rawName": "Pin(dBm)",
         "nameParts": { "base": "Pin", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 0.9012345679012346 },
@@ -337,6 +347,7 @@
       {
         "index": 10,
         "name": "Gain(dB)",
+        "rawName": "Gain(dB)",
         "nameParts": { "base": "Gain", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 0.8765432098765432 },
@@ -377,6 +388,7 @@
       {
         "index": 11,
         "name": "I_Total(A)",
+        "rawName": "I_Total(A)",
         "nameParts": { "base": "I_Total", "unit": "A", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 0.9135802469135802 },
@@ -418,6 +430,7 @@
       {
         "index": 12,
         "name": "EVM(dB)",
+        "rawName": "EVM(dB)",
         "nameParts": { "base": "EVM", "unit": "dB", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 0.8641975308641975 },

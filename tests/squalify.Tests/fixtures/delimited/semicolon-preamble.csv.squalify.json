@@ -74,6 +74,7 @@
       {
         "index": 0,
         "name": "Site",
+        "rawName": "Site",
         "nameParts": { "base": "Site", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "int",
         "dominant": { "type": "int", "share": 1 },
@@ -100,6 +101,7 @@
       {
         "index": 1,
         "name": "Vth(V)",
+        "rawName": "Vth(V)",
         "nameParts": { "base": "Vth", "unit": "V", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },
@@ -126,6 +128,7 @@
       {
         "index": 2,
         "name": "Idsat(uA)",
+        "rawName": "Idsat(uA)",
         "nameParts": { "base": "Idsat", "unit": "uA", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },

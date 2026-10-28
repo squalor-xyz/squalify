@@ -60,6 +60,7 @@
       {
         "index": 0,
         "name": "Reading(dBm)",
+        "rawName": "Reading(dBm)",
         "nameParts": { "base": "Reading", "unit": "dBm", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
         "dominant": { "type": "float", "share": 1 },

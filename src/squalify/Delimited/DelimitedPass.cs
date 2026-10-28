@@ -286,7 +286,8 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         var orderConflicts = new List<(long Index, DateOrderCounts Counts)>();
         for (var c = 0; c < _k; c++)
         {
-            fields.Add(BuildField(c, names[c], hex[c]) with { NameParts = conventions?.Parts[c] });
+            // rawName is the header cell as the tokenizer gave it (quotes removed, "" unescaped), before the trim that makes name.
+            fields.Add(BuildField(c, names[c], hex[c]) with { NameParts = conventions?.Parts[c], RawName = _headerRecord?.Cells[c] });
             if (_accumulators[c].OrderConflict is { } conflict)
             {
                 orderConflicts.Add((c, conflict));

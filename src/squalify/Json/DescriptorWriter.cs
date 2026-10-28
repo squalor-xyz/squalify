@@ -355,6 +355,7 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteNumber("index", v.Index);
         w.WriteString("name", v.Name);
+        w.WriteString("rawName", v.RawName);
         OptionalString(w, "nameHex", v.NameHex);
         Nullable(
             w,
