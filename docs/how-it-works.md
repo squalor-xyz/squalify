@@ -407,7 +407,7 @@ flowchart LR
 
 ## 9. Why the output never changes
 
-The same file and the same squalify version always give the same descriptor, byte for byte, on Windows, macOS and Linux. Five guardrails make that true.
+The same file, options and squalify version always give the same descriptor, byte for byte, on Windows, macOS and Linux, within one .NET runtime major version. (The one runtime-dependent detail is how the JSON writer escapes characters that the runtime's Unicode tables leave unassigned, so a new runtime major can change those bytes; consumers pin the package and the runtime. The fingerprint hashes do not depend on the runtime.) Five guardrails make that true.
 
 ```mermaid
 flowchart LR
@@ -416,7 +416,7 @@ flowchart LR
     G3["Fixed JSON writer: key order,<br/>LF newlines, number format<br/><small>DescriptorWriter, CanonicalNumber</small>"] --> Same
     G4["Platform-independent math and hashing<br/><small>DetMath, XxHash64</small>"] --> Same
     G5["Golden files compared<br/>on all three OSes<br/><small>Golden</small>"] --> Same
-    Same["Byte-identical descriptor"]
+    Same["Byte-identical descriptor<br/><small>within one .NET runtime major</small>"]
 ```
 
 *Source: `Determinism/Ordinal.cs`, `Determinism/DetMath.cs`, `Determinism/XxHash64.cs`, `Descriptor/CountMap.cs`, `Json/DescriptorWriter.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.*
@@ -445,7 +445,7 @@ A group's name is a hash of the numbers of its filled columns, and nothing else:
 
 ## 11. Writing the descriptor
 
-The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine.
+The finished descriptor is a tree of plain model objects. The writer turns it into bytes in one fixed way: it writes each object's keys in the order the schema document lists, and it never sorts, because the model already holds every list and map in order. Numbers and text go through fixed rules, so the same model gives the same bytes on every machine, within one .NET runtime major version (the runtime decides how characters that its Unicode tables leave unassigned are escaped).
 
 ```mermaid
 flowchart TD
