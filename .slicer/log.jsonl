@@ -443,3 +443,4 @@
 {"when": "2026-10-28T16:02:09Z", "item": "sq-37", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-28), verbatim: size \"Raise target to", "by": "Jon Robbins"}
 {"when": "2026-10-28T14:35:08Z", "item": "sq-36", "action": "set", "from": "retired", "to": "open", "note": "status retired→open"}
 {"when": "2026-10-28T14:35:08Z", "item": "sq-36", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-28), verbatim: \"Revive sq-36, additi", "by": "Jon Robbins"}
+{"when": "2026-10-28T16:09:47Z", "item": "sq-37", "action": "status", "from": "open", "to": "done", "note": "rawName: exact header text per field (after dialect unquoting, untrimmed; LF for line breaks in quoted cells; first block's header in multi-block files); null with no header; always written. Size test retargeted to 1,050 B/field (owner). Gate PASS round 2. Later: on long padded headers rawName adds ~9% of descriptor bytes.", "by": "Jon Robbins"}
