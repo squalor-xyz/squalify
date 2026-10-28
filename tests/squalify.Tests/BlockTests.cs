@@ -119,6 +119,15 @@ public sealed class BlockTests
         var evidence = Assert.Single(d.Evidence, static e => e is { Stage: "dialect", Topic: "blocks" });
         Assert.Equal("3", evidence.Chosen);
         Assert.Equal(new[] { "0", "1", "2", "summary" }, evidence.Candidates.Select(static c => c.Value).ToArray());
+
+        // A fourth group of only four records (its header and three rows) is too short to be a block: the file still has
+        // three, and the short group's records are rows of the third (its two preamble lines are ragged rows, and the repeated header is a text vote in a number column).
+        var shortTail = ProfileText(Blocks(3).Replace("Rows=18\n", string.Empty, StringComparison.Ordinal) + Block("S3", 85, 3));
+        Assert.Equal(3, Dialect(shortTail).Blocks);
+        Assert.Equal(18 + 2 + 4, shortTail.Table!.Rows);
+        Assert.Equal(2, Assert.Single(shortTail.Issues, static i => i.Code == "raggedRows").Count);
+        Assert.All(shortTail.Table.Fields, static f => Assert.Equal(22, f.Count));
+        Assert.Equal(1, shortTail.Table.Fields[0].TypeVotes.Single(static e => e.Key == "string").Value);
     }
 
     [Fact]
@@ -596,6 +605,19 @@ public sealed class BlockTests
         Assert.Equal("a rather long note about the second site", preamble.Values![0]);
         Assert.Equal(1, preamble.LineKinds!.Single(static e => e.Key == "blank").Value);
         Assert.Equal(3, preamble.LineKinds!.Single(static e => e.Key == "keyValue").Value);
+    }
+
+    [Fact]
+    public void Blocks_SeparatedByBlankLinesAndAKeyLine_AreFound_AndTheBlankLinesBelongToTheBlockBefore()
+    {
+        // Blank lines before a block's first record belong to the region before it; a blank line after that record is its.
+        var text = "# export\n" + Block("A", 25, 6) + "\n\n" + Block("B", 45, 6) + "\n" + Block("C", 65, 6);
+        var d = ProfileText(text);
+        Assert.Equal(3, Dialect(d).Blocks);
+        Assert.Equal(18, d.Table!.Rows);
+        var blocks = d.Layout.Regions.Where(static r => r.Kind == "block").ToArray();
+        Assert.Equal(new[] { (1L, 12L), (13L, 22L), (23L, 31L) }, blocks.Select(static b => (b.FirstLine, b.LastLine)).ToArray());
+        Assert.Equal(blocks[0].EndByte, blocks[1].StartByte);
     }
 
     [Fact]

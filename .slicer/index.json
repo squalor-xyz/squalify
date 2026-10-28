@@ -1723,6 +1723,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "b66ebb21-1013-4b39-8651-23eaf38ea33e",
+          "kind": "",
+          "text": "**2026-10-27** — Gate 1 later note: the Files text \"the block region with index and label\" is superseded by the owner decision \"Drop label; index only (Recommended)\"; block regions carry index only.",
+          "created_at": "2026-10-27T21:53:12Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {
