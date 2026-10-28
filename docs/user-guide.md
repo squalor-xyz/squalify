@@ -11,7 +11,8 @@ squalify profile <path> [options]
   --include-values                           Include literal data values in the descriptor
   --include-values-for <include-values-for>  Include literal values only for the named preamble key, annotation label,
                                              key=value key or column (repeatable; matched whole, ASCII case-folded)
-  --max-bytes <max-bytes>                    Read at most this many bytes (see Reading only a prefix)
+  --max-bytes <max-bytes>                    Read at most this many bytes, cut at a whole line; adds a scope section, and
+                                             no file.sha256 unless the whole file was read (see Reading only a prefix)
   --verbose                                  Print full exception details
   -?, -h, --help                             Show help and usage information
 
@@ -82,6 +83,7 @@ Header names and preamble keys are always included, and can themselves identify 
 - **Explainable.** Every inference has an `evidence` entry with its candidates and scores.
 - **Versions.** The package version, `squalify --version` and `tool.version` are one string. The schema is a draft until the v1 schema freeze: before 1.0 a minor version may change the descriptor. After the freeze, adding optional keys bumps the schema's minor version and removing or renaming one bumps the major. Consumers must ignore unknown keys. See [the versioning policy](descriptor.md#versioning-policy).
 - **Fingerprints.** `fingerprint.version` changes whenever a projection changes. Compare hashes only when it matches.
+- **Breaking changes in 0.2.0 (library).** `ProfileOptions` and `ProfileOptions.Create` gained a `maxBytes` parameter (optional, so source-compatible; the signatures changed, so a compiled consumer must be recompiled). `FileSection.Sha256` is now nullable: it is absent when only a prefix was read. A descriptor made without a byte limit is unchanged.
 
 ## Limits and large files
 
@@ -100,7 +102,7 @@ A global budget shrinks the first two caps, and the mask text, for very wide tab
 
 ## Reading only a prefix
 
-`--max-bytes <n>` (library: `ProfileOptions.MaxBytes`) profiles the start of a file instead of all of it, for a quick look at a large file or a classification that a longer read will confirm. squalify reads at most `n` bytes and cuts at the last whole line (a binary file is cut at `n` exactly), so the profile ends on a whole record. A first line longer than `n` is read to its end, so the profile is never empty for a file that has data; `scope.bytesRead` then exceeds `n`. The descriptor says what it read in a top-level `scope`, and `file.size` stays the size of the whole file:
+`--max-bytes <n>` (library: `ProfileOptions.MaxBytes`) profiles the start of a file instead of all of it, for a quick look at a large file or a classification that a longer read will confirm. squalify reads at most `n` bytes and cuts at the last whole line, so the profile ends on a whole record; a file whose first `n` bytes are binary is cut at `n` exactly. There are two exceptions to "at most `n`": a CRLF that straddles the limit adds one code unit, and **a first line longer than `n` is read to its end, however long, with no ceiling** (a file with no line terminator is read whole). The profile is therefore never empty for a file that has data, and `scope.bytesRead` then exceeds `n`. The descriptor says what it read in a top-level `scope`, and `file.size` stays the length of the whole file:
 
 ```bash
 squalify profile sweep-preamble.csv --max-bytes 310 | jq -c '{file, scope, rows: .table.rows, regions: [.layout.regions[] | [.kind, .lines[0], .lines[1]]]}'
@@ -110,8 +112,8 @@ squalify profile sweep-preamble.csv --max-bytes 310 | jq -c '{file, scope, rows:
 {"file":{"name":"sweep-preamble.csv","size":448},"scope":{"maxBytes":310,"bytesRead":300,"complete":false},"rows":11,"regions":[["preamble",1,7],["header",8,8],["units",9,9],["data",10,20]]}
 ```
 
-- **Everything describes the prefix.** Rows, statistics, layout offsets, fingerprints and hints are those of a file that holds just the first `scope.bytesRead` bytes. A `footer` that the file has past the cut is not seen.
-- **`file.sha256` is absent** while `scope.complete` is false, because the hash of the whole file needs a read of all of it. With a limit at or above the file size, `scope.complete` is true, `sha256` is written and the rest of the descriptor equals the unlimited one.
+- **Everything describes the prefix.** Every section, including the text-or-binary decision and the charset, is computed from the first `scope.bytesRead` bytes alone, as for a file that holds just those bytes. A `footer` that the file has past the cut is not seen. The record caps in `limits` limit how a record is profiled, not how much of it is read.
+- **`file.sha256` is absent unless the whole file was read.** It is absent while `scope.complete` is false, because the hash of the whole file needs a read of all of it. With a limit at or above the file size, `scope.complete` is true, `sha256` is written and the rest of the descriptor equals the unlimited one.
 - **No limit, no `scope`.** Without `--max-bytes` the descriptor has no `scope` member and is unchanged.
 - **A zero or negative limit is an error.** The library needs `IProfileSource.Length` to be the whole size; a source that cannot report it should not be limited.
 - **A quoted field with line breaks** that straddles the limit is cut at a line break inside it, so the last record of the prefix is a short one.

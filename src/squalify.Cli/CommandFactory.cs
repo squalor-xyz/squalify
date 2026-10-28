@@ -60,7 +60,7 @@ public static class CommandFactory
         };
         var maxBytes = new Option<long?>("--max-bytes")
         {
-            Description = "Read at most this many bytes: a text file is cut after its last whole line (past the limit when the first line is longer), a binary file at the limit. The descriptor gets a scope section and no file.sha256",
+            Description = "Read at most this many bytes: a text file is cut after its last whole line (past the limit when the first line is longer), a binary file at the limit. The descriptor gets a scope section, and no file.sha256 unless the whole file was read",
         };
         var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor, maxBytes };
         command.SetAction(async (result, _) => await CliApp.ProfileAsync(

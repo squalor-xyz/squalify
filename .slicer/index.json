@@ -3060,6 +3060,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "b3cd518b-305a-45d5-8a1b-ca406c4b5960",
+          "kind": "",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim, after gate 1: overshoot \"No ceiling, document it\" (option text: \"Keep reading the first record to its end however long; say so plainly in the docs. Matches the Read it whole decision literally.\"); API \"Break, note in release\" (option text: \"Leave the break; call it out in the v0.2.0 release notes. Recompile fixes it.\").",
+          "created_at": "2026-10-28T14:25:34Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,

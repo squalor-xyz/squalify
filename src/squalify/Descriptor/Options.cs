@@ -6,8 +6,9 @@ namespace squalor.squalify;
 /// <param name="IncludeValuesFor">Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</param>
 /// <param name="MaxBytes">
 /// The byte limit, or null to read the whole source. A positive limit makes squalify read at most that many bytes, cut
-/// at the last whole line of a text file (past the limit when the first record is longer), and write the
-/// <c>scope</c> section; a limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
+/// at the last whole line of a text file, and write the <c>scope</c> section. Two exceptions to "at most": a CRLF that
+/// straddles the limit adds one code unit, and a first record longer than the limit is read to its end, however long
+/// (no ceiling). A limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
 /// <c>options</c> section: <c>scope.maxBytes</c> carries it.
 /// </param>
 public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null)

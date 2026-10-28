@@ -184,6 +184,39 @@ public sealed class ScopeTests
     }
 
     [Fact]
+    public void Limit_Utf16OddLimit_FirstLineLongerThanLimit_ReadsToTheEndOfThatLine()
+    {
+        var first = "id," + new string('x', 300) + "\n";
+        var rest = string.Concat(Enumerable.Range(1, 30).Select(static i => i.ToString(CultureInfo.InvariantCulture) + ",5\n"));
+        var bytes = Encoding.Unicode.GetPreamble().Concat(Encoding.Unicode.GetBytes(first + rest)).ToArray();
+        var descriptor = Profiler.Profile(new BytesSource("u.csv", bytes), Limit(101));
+
+        var scope = Assert.IsType<ScopeSection>(descriptor.Scope);
+        Assert.Equal("utf-16le", descriptor.Encoding.Charset);
+        Assert.Equal(2 + (first.Length * 2), scope.BytesRead);
+        Assert.False(scope.Complete);
+    }
+
+    [Fact]
+    public void Limit_Utf16OddLimit_CrEndsTheWindow_TakesTheLfAfterIt()
+    {
+        var bytes = Encoding.Unicode.GetPreamble().Concat(Encoding.Unicode.GetBytes(Encoding.ASCII.GetString(Csv(200, "\r\n")))).ToArray();
+        var cr = 400;
+        while (!(bytes[cr] == 0x0D && bytes[cr + 1] == 0x00 && bytes[cr + 2] == 0x0A && bytes[cr + 3] == 0x00))
+        {
+            cr += 2;
+        }
+
+        // The window, rounded down to a code unit, ends exactly after the CR; the limit itself is odd.
+        var descriptor = Profiler.Profile(new BytesSource("u.csv", bytes), Limit(cr + 3));
+        var scope = Assert.IsType<ScopeSection>(descriptor.Scope);
+        Assert.Equal("utf-16le", descriptor.Encoding.Charset);
+        Assert.Equal(cr + 4, scope.BytesRead);
+        Assert.Equal(0, descriptor.Encoding.LineEndings.Cr);
+        Assert.Equal(0, descriptor.Encoding.LineEndings.Lf);
+    }
+
+    [Fact]
     public void Limit_FingerprintsEqualThoseOfTheExactPrefixFile_AndDoNotDependOnTheLimit()
     {
         var bytes = Csv(500);
