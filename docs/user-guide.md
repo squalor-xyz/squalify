@@ -11,6 +11,7 @@ squalify profile <path> [options]
   --include-values                           Include literal data values in the descriptor
   --include-values-for <include-values-for>  Include literal values only for the named preamble key, annotation label,
                                              key=value key or column (repeatable; matched whole, ASCII case-folded)
+  --max-bytes <max-bytes>                    Read at most this many bytes (see Reading only a prefix)
   --verbose                                  Print full exception details
   -?, -h, --help                             Show help and usage information
 
@@ -38,9 +39,9 @@ byte[] json = DescriptorWriter.ToBytes(descriptor);   // the exact bytes the CLI
 |---|---|
 | `Profiler.Profile(string path, ProfileOptions options)` | Profile a file. |
 | `Profiler.Profile(IProfileSource source, ProfileOptions options)` | Profile other bytes. An `IProfileSource` has a bare `Name` (no `/` or `\`; it is the only name that reaches the descriptor), a `Length`, and `Open()`, which returns a fresh stream for each pass. |
-| `ProfileOptions.Create(includeValues, includeValuesFor)` | The options; the allow-list is stored as a sorted set. |
+| `ProfileOptions.Create(includeValues, includeValuesFor, maxBytes)` | The options; the allow-list is stored as a sorted set. `maxBytes` is optional (null reads the whole source); see [Reading only a prefix](#reading-only-a-prefix). |
 | `DescriptorWriter.ToBytes(descriptor)`, `DescriptorWriter.Write(descriptor, stream)` | Write the canonical JSON bytes. |
-| `Descriptor` | The model: `Tool`, `Options`, `Limits`, `File`, `Encoding`, `Format`, `Kind`, `Layout`, `Fingerprint`, `Hints`, `Issues`, `Evidence`, and `Table`, `Sections`, `Binary` or `Stdf` when they apply. Plain records, mirroring [descriptor.md](descriptor.md). |
+| `Descriptor` | The model: `Tool`, `Options`, `Limits`, `File`, `Encoding`, `Format`, `Kind`, `Layout`, `Fingerprint`, `Hints`, `Issues`, `Evidence`, and `Table`, `Sections`, `Binary`, `Stdf` or `Scope` when they apply. Plain records, mirroring [descriptor.md](descriptor.md). |
 | `SqualifyException` | Every public failure: a missing file, a directory, an unreadable source, an invalid source name. Lower-level IO exceptions are wrapped. |
 
 A complete program is in [Examples](examples.md#use-the-library-to-pick-an-import-route). The library reads the file; it does no network access and holds no state between calls.
@@ -84,7 +85,7 @@ Header names and preamble keys are always included, and can themselves identify 
 
 ## Limits and large files
 
-The whole file is streamed in bounded memory and nothing is sampled: counts, min, max, mean, standard deviation and nulls are exact for any size. The expensive per-column statistics are exact up to fixed caps, recorded in the descriptor's `limits`:
+The whole file is streamed in bounded memory and nothing is sampled (unless you set `--max-bytes`, which reads only a prefix; see [Reading only a prefix](#reading-only-a-prefix)): counts, min, max, mean, standard deviation and nulls are exact for any size. The expensive per-column statistics are exact up to fixed caps, recorded in the descriptor's `limits`:
 
 | Statistic | Exact up to |
 |---|---|
@@ -96,6 +97,24 @@ The whole file is streamed in bounded memory and nothing is sampled: counts, min
 | Row classes | 64 |
 
 A global budget shrinks the first two caps, and the mask text, for very wide tables (100 columns or fewer keep the full caps); `limits.distinctPerField`, `limits.quantilePerField` and `limits.shapeCharsPerField` show the effective values. Past a cap a deterministic sketch takes over and the descriptor says so: `distinct` is a HyperLogLog estimate with `approximate: true` and `relativeStdError` (0.008125, one standard error), and `numeric` and `temporal` quantiles come from a Greenwald-Khanna summary with `approximate: true` and `rankError` (a sibling of `quantiles` and `approximate`, 0.001, the worst-case rank error as a fraction of the values). Both members are absent while the value is exact. `min`, `max`, `mean` and `stddev` do not depend on the caps. The sketches have a fixed size per column, so a very wide table pays for them in memory. See [design.md](design.md#bounded-memory-and-sketches).
+
+## Reading only a prefix
+
+`--max-bytes <n>` (library: `ProfileOptions.MaxBytes`) profiles the start of a file instead of all of it, for a quick look at a large file or a classification that a longer read will confirm. squalify reads at most `n` bytes and cuts at the last whole line (a binary file is cut at `n` exactly), so the profile ends on a whole record. A first line longer than `n` is read to its end, so the profile is never empty for a file that has data; `scope.bytesRead` then exceeds `n`. The descriptor says what it read in a top-level `scope`, and `file.size` stays the size of the whole file:
+
+```bash
+squalify profile sweep-preamble.csv --max-bytes 310 | jq -c '{file, scope, rows: .table.rows, regions: [.layout.regions[] | [.kind, .lines[0], .lines[1]]]}'
+```
+
+```json
+{"file":{"name":"sweep-preamble.csv","size":448},"scope":{"maxBytes":310,"bytesRead":300,"complete":false},"rows":11,"regions":[["preamble",1,7],["header",8,8],["units",9,9],["data",10,20]]}
+```
+
+- **Everything describes the prefix.** Rows, statistics, layout offsets, fingerprints and hints are those of a file that holds just the first `scope.bytesRead` bytes. A `footer` that the file has past the cut is not seen.
+- **`file.sha256` is absent** while `scope.complete` is false, because the hash of the whole file needs a read of all of it. With a limit at or above the file size, `scope.complete` is true, `sha256` is written and the rest of the descriptor equals the unlimited one.
+- **No limit, no `scope`.** Without `--max-bytes` the descriptor has no `scope` member and is unchanged.
+- **A zero or negative limit is an error.** The library needs `IProfileSource.Length` to be the whole size; a source that cannot report it should not be limited.
+- **A quoted field with line breaks** that straddles the limit is cut at a line break inside it, so the last record of the prefix is a short one.
 
 ## Troubleshooting
 

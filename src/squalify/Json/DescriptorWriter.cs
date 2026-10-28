@@ -85,6 +85,7 @@ public static class DescriptorWriter
         Write(w, d.Limits);
         w.WritePropertyName("file");
         Write(w, d.File);
+        Optional(w, "scope", d.Scope, Write);
         w.WritePropertyName("encoding");
         Write(w, d.Encoding);
         w.WritePropertyName("format");
@@ -156,7 +157,16 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteString("name", v.Name);
         w.WriteNumber("size", v.Size);
-        w.WriteString("sha256", v.Sha256);
+        OptionalString(w, "sha256", v.Sha256);
+        w.WriteEndObject();
+    }
+
+    private static void Write(Utf8JsonWriter w, ScopeSection v)
+    {
+        w.WriteStartObject();
+        w.WriteNumber("maxBytes", v.MaxBytes);
+        w.WriteNumber("bytesRead", v.BytesRead);
+        w.WriteBoolean("complete", v.Complete);
         w.WriteEndObject();
     }
 

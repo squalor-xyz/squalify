@@ -11,7 +11,10 @@ public static class Profiler
     /// <param name="source">The source.</param>
     /// <param name="options">The options that affect output.</param>
     /// <returns>The descriptor.</returns>
-    /// <exception cref="SqualifyException">The source cannot be read, or its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>.</exception>
+    /// <exception cref="SqualifyException">
+    /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>, or
+    /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative.
+    /// </exception>
     public static Descriptor Profile(IProfileSource source, ProfileOptions options)
     {
         return Profile(source, options, ProfileLimits.Default);
@@ -31,6 +34,11 @@ public static class Profiler
         if (string.IsNullOrEmpty(source.Name) || source.Name.AsSpan().IndexOfAny('/', '\\') >= 0)
         {
             throw new SqualifyException("The source name must be a bare file name, with no directory part and not empty; a path never reaches the descriptor.");
+        }
+
+        if (options.MaxBytes is <= 0)
+        {
+            throw new SqualifyException("The byte limit (--max-bytes) must be a positive number of bytes.");
         }
 
         try
@@ -56,7 +64,23 @@ public static class Profiler
     private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits, MemoryTrace? trace)
     {
         var limits = fieldLimits.ApplyTo(Limits.Default);
-        var sniff = ByteSniffer.Sniff(source, limits.CharsetTolerance);
+
+        // A byte limit profiles a prefix view of the source: every pass below reads the view, so no stage reads past the cut.
+        var whole = source;
+        ScopeSection? scope = null;
+        SniffResult sniff;
+        if (options.MaxBytes is { } maxBytes)
+        {
+            var scoped = ScopeCut.Apply(source, maxBytes, limits.CharsetTolerance);
+            source = scoped.Source;
+            sniff = scoped.Sniff;
+            scope = scoped.Scope;
+        }
+        else
+        {
+            sniff = ByteSniffer.Sniff(source, limits.CharsetTolerance);
+        }
+
         var context = new ProfileContext(options, limits, trace);
         var choice = FormatRegistry.Default.Detect(source, sniff, context);
         var profile = choice.Profiler?.Profile(source, sniff, context, choice.ProfilerScore!)
@@ -93,7 +117,9 @@ public static class Profiler
             Tool: new ToolSection(ToolInfo.Name, ToolInfo.Version),
             Options: options,
             Limits: profile.EffectiveLimits ?? limits,
-            File: new FileSection(source.Name, facts.Length, facts.Sha256),
+            File: scope is { Complete: false }
+                ? new FileSection(whole.Name, whole.Length, null)
+                : new FileSection(source.Name, facts.Length, facts.Sha256),
             Encoding: new EncodingSection(
                 sniff.Kind,
                 sniff.Charset,
@@ -109,7 +135,8 @@ public static class Profiler
             Issues: Ordinal.SortedBy(issues, static i => i.Code),
             Evidence: SortEvidence(evidence),
             Table: profile.Table,
-            Binary: profile.Binary);
+            Binary: profile.Binary,
+            Scope: scope);
 
         // An allow-list name that matches no key, label or field is reported. The names come from the command line, not
         // from the data, so they are safe to write.

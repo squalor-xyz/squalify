@@ -4,16 +4,23 @@ namespace squalor.squalify;
 /// <summary>The <c>options</c> section: the options that affect output.</summary>
 /// <param name="IncludeValues">True when literal values are included.</param>
 /// <param name="IncludeValuesFor">Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</param>
-public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor)
+/// <param name="MaxBytes">
+/// The byte limit, or null to read the whole source. A positive limit makes squalify read at most that many bytes, cut
+/// at the last whole line of a text file (past the limit when the first record is longer), and write the
+/// <c>scope</c> section; a limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
+/// <c>options</c> section: <c>scope.maxBytes</c> carries it.
+/// </param>
+public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null)
 {
     /// <summary>Creates options with the allow-list as a sorted set: sorted ordinally, exact duplicates dropped.</summary>
     /// <param name="includeValues">True to include all literal values.</param>
     /// <param name="includeValuesFor">Allow-listed names, in any order.</param>
+    /// <param name="maxBytes">The byte limit, or null for none.</param>
     /// <returns>The options.</returns>
-    public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor)
+    public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor, long? maxBytes = null)
     {
         ArgumentNullException.ThrowIfNull(includeValuesFor);
-        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)));
+        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes);
     }
 }
 

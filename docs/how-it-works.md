@@ -23,10 +23,11 @@ flowchart LR
 
 ## 2. One profile run
 
-Every file goes through the same steps. A step that reads the file reads all of it, start to end (the one exception is the hint step, which re-reads only the first lines, up to the header), and keeps only bounded summaries in memory. The file can be far larger than RAM.
+Every file goes through the same steps. A step that reads the file reads all of it, start to end (the exceptions are the hint step, which re-reads only the first lines, up to the header, and a run with a byte limit, which reads only the start of the file: step 0, then every step sees just that prefix), and keeps only bounded summaries in memory. The file can be far larger than RAM.
 
 ```mermaid
 flowchart TD
+    Z["0. Only with a byte limit:<br/>cut at the last whole line<br/><small>ScopeCut</small>"] -.-> A
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
     B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
     C --> D["4. Profile every field:<br/>types and statistics, and group the rows<br/><small>FieldAccumulator, RowClassAccumulator</small>"]
@@ -34,7 +35,7 @@ flowchart TD
     E --> F["6. Check the values policy,<br/>then write canonical JSON<br/><small>ValuesPolicy.Verify, DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines. A UTF-16 or UTF-32 file gets one more streaming read, right after the byte pass, that counts invalid units (section 12).
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sources/ScopeCut.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines. A UTF-16 or UTF-32 file gets one more streaming read, right after the byte pass, that counts invalid units (section 12).
 
 ## 3. Choosing a format
 
