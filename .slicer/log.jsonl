@@ -461,3 +461,6 @@
 {"when": "2026-10-28T18:36:10Z", "item": "sq-41", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
 {"when": "2026-10-28T18:36:10Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "Split 2026-10-28: the public-API items moved to sq-41 (v1.0.", "by": "Jon Robbins"}
 {"when": "2026-10-28T18:50:52Z", "item": "sq-19", "action": "set", "from": "", "to": "", "note": "depends_on sq-11→sq-11,sq-38"}
+{"when": "2026-10-28T18:52:53Z", "item": "sq-39", "action": "decide", "from": "", "to": "", "note": "Owner decisions (2026-10-28), verbatim: Q1 outcome \"Squalify", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:53:02Z", "item": "sq-39", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-28T18:53:02Z", "item": "sq-39", "action": "edit", "from": "", "to": "", "note": "Implement"}

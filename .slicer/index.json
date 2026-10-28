@@ -3287,14 +3287,23 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "59f573ad-b7ad-42bc-b040-555f7ba894d1",
+          "kind": "decision",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim: Q1 outcome \"SqualifyException (Recommended)\" (option text: \"Fail with a clear message, nothing profiled; the CLI exits non-zero with the message. Simplest, and matches a consumer that wants to refuse the file. No descriptor member or issue code is added, so the schema is untouched before the freeze.\"). Q2 \"Reject it without --max-bytes (Recommended)\" (option text: \"It is a companion of the byte limit. A whole-file run has no first-record overshoot to bound, and the whole-file path never goes through ScopeCut today, so this adds no new early read.\"). Q3 \"Accept as proposed (Recommended)\" (proposal: N counts bytes of the first record including its terminator in the charset code units (CRLF = 2, UTF-16 unit = 2, UTF-32 = 4); a bare CR as byte N reads one more unit to see whether an LF follows (the record is N+1 if it is CRLF); UTF-16/32 stop at the first whole unit past N; binary files (cut exactly at the limit, no records) are not subject; the check runs before the window sniff when N is below --max-bytes).",
+          "created_at": "2026-10-28T18:52:53Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "S",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],
