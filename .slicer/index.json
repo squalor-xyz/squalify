@@ -3417,14 +3417,23 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "c2887e1f-c1f7-49d1-a7a2-8096cac0e778",
+          "kind": "decision",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim: Q7 \"Make it internal (Recommended)\" (option text: \"The caps stop being API; consumers read them from the descriptor limits section. Breaking only for a consumer that uses it (prism does not), and cheapest before 1.0.\"). Q8 \"Value equality on the records (Recommended)\" (option text: \"Records holding lists compare members in order, so tests and consumers can compare descriptors directly; costs custom Equals/GetHashCode on those records.\"). Q9 \"Keep refusing, clear message (Recommended)\" (option text: \"Descriptor names stay free of backslashes, so the documented name rule does not change; the message names the backslash.\").",
+          "created_at": "2026-10-28T18:56:31Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "S",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],

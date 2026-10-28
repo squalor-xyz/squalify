@@ -34,7 +34,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 3 | [sq-38](slices/sq-38.md) | Sketches under the memory budget | M | 2 | core | discovered from sq-11 | — |
 | 4 | [sq-39](slices/sq-39.md) | First-record ceiling | S | 1 | core | discovered from sq-35 | — |
 | 5 | [sq-40](slices/sq-40.md) | Shared prefix reader | M | 2 | core | discovered from sq-35 | — |
-| 6 | [sq-41](slices/sq-41.md) | API surface before 1.0 | S `[needs-owner]` | 1 | core | discovered from sq-23 | — |
+| 6 | [sq-41](slices/sq-41.md) | API surface before 1.0 | S | 1 | core | discovered from sq-23 | — |
 
 ---
 
