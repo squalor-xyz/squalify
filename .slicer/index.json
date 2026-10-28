@@ -2237,6 +2237,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "70aaaab5-bfa1-451f-ae4d-a3176ad5ee41",
+          "kind": "",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), from the spec check, verbatim: S12-1 (unit table U2 and B4) \"Keep v1, document the false positives\" (option text: \"No code or hash change; the limitation is written into descriptor.md and frozen with the schema. Cheapest, but Site_A stays amps in a frozen v1.\"); the degC alias stays as documented. S12-6 \"Only what is produced; rest is 1.x minor (Recommended)\" (option text: \"The schema describes what 1.0.0 emits. Touchstone, keyValue, STDF and kind arrive as additive minor changes (adding optional keys bumps the minor), and descriptor.md marks the unproduced members as planned, not v1.\"). S12-7 \"Closed, checks producer output of that exact minor (Recommended)\" (option text: \"additionalProperties false everywhere, closed enums for issue codes and evidence stages; documented as validating squalify own output at schema 1.N. Consumers still ignore unknown keys. A new key or enum value is a minor schema release.\"). S12-10 \"Amend: size M, architect, retarget tests (Recommended)\" (option text: \"I rewrite the spec: size M with the architect, define what test 4 checks beyond key order, retarget test 5 (schemaVersion in the written descriptor equals the schema const), and add the choices above to the slice. You see the rewritten Failing tests before the worktree is cut.\"). S12-5 \"Fix delimited model; drop the stdf model from test 2 (Recommended)\" (option text: \"Make the delimited writer model consistent and keep it in test 2. The stdf model stays only as a key-order pin (the schema covers only what 1.0.0 produces, per S12-6).\"). S12-3, S12-4, S12-8, S12-9 \"Accept all four (Recommended)\" (option text: \"No descriptor bytes change: document ? and the 65-token + rule, add the enum-minor rule, copy docs and schema into test output.\"). S12-11 \"Move it to sq-41 (Recommended)\" (option text: \"sq-41 is already the pre-1.0 public-surface slice; keeps sq-12 about the schema.\"). TODO before the sq-12 worktree: rewrite the spec per S12-10 and show the owner the Failing tests.",
+          "created_at": "2026-10-28T18:59:29Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
@@ -3364,14 +3375,34 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "8291a013-63fc-4a13-99d8-6b084dcc17f2",
+          "kind": "decision",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim: Q4 API shape \"Profiler.ProfilePrefix returning a record (Recommended)\" (option text: \"ProfilePrefix(source, options) returns a named record (descriptor, ReadOnlyMemory<byte> prefix, scope), not a bare tuple, so it can grow. One call; the descriptor describes the bytes by construction; one read; file.size from source.Length.\"). Q5 memory \"Require MaxBytes; document the bound (Recommended)\" (option text: \"ProfilePrefix rejects a null MaxBytes (it would buffer the whole file). The buffer is at most MaxBytes plus the overshoot, and sq-39 MaxFirstRecordBytes is the documented way to cap the overshoot. No new hard ceiling.\"). Q6 cut rule \"Yes, document it as a contract (Recommended)\" (option text: \"Document in the user guide: binary cut at the limit; text cut after the last LF, CR or CRLF in the charset code units inside the limit; a CR ending the window takes the LF after it; no terminator inside the limit reads on to the first terminator or the end. Any later change is a documented breaking change.\").",
+          "created_at": "2026-10-28T18:55:14Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "42cd1254-5ab1-4ee6-a2fd-d472ec457b04",
+          "kind": "",
+          "text": "**2026-10-28** — Consumer check (prism, 2026-10-28): no conflict. Prism cuts its own 1 MiB prefix (PrefixBytes.Read) and refuses a header over 1 MiB itself; if it migrates to ProfilePrefix, its equality tests in SqualifyDescriberTests would catch a cut-rule divergence. Keep IProfileSource public and unchanged.",
+          "created_at": "2026-10-28T18:55:25Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "M",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],
@@ -3408,14 +3439,34 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "c7a8ab6f-1153-47cd-bd60-665d69f3fa4e",
+          "kind": "",
+          "text": "**2026-10-28** — Consumer check (prism, 2026-10-28): prism uses CountMap.Empty and the key/value enumeration (SqualifyDescriber.cs:138,214,219) and catches SqualifyException; keep CountMap.Empty and the key/value enumeration public, and IProfileSource public. Limits.Default, Descriptor equality, FileSource empty path and backslash names are not used by prism.",
+          "created_at": "2026-10-28T18:55:26Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "c2887e1f-c1f7-49d1-a7a2-8096cac0e778",
+          "kind": "decision",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim: Q7 \"Make it internal (Recommended)\" (option text: \"The caps stop being API; consumers read them from the descriptor limits section. Breaking only for a consumer that uses it (prism does not), and cheapest before 1.0.\"). Q8 \"Value equality on the records (Recommended)\" (option text: \"Records holding lists compare members in order, so tests and consumers can compare descriptors directly; costs custom Equals/GetHashCode on those records.\"). Q9 \"Keep refusing, clear message (Recommended)\" (option text: \"Descriptor names stay free of backslashes, so the documented name rule does not change; the message names the backslash.\").",
+          "created_at": "2026-10-28T18:56:31Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "S",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],

@@ -468,3 +468,14 @@
 {"when": "2026-10-28T20:28:12Z", "item": "sq-39", "action": "note", "from": "", "to": "", "note": "Verified outcome: MaxFirstRecordBytes / --max-first-record-b", "by": "Jon Robbins"}
 {"when": "2026-10-28T20:28:12Z", "item": "sq-39", "action": "status", "from": "started", "to": "done", "note": "First-record ceiling: opt-in MaxFirstRecordBytes / --max-first-record-bytes; SqualifyException when the first record is longer than N; rejected without --max-bytes; default off; no descriptor change. Gate PASS.", "by": "Jon Robbins"}
 {"when": "2026-10-28T20:28:18Z", "item": "sq-39", "action": "note", "from": "", "to": "", "note": "Later (from review and gate): (1) Breaking-change notes shou", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:55:14Z", "item": "sq-40", "action": "decide", "from": "", "to": "", "note": "Owner decisions (2026-10-28), verbatim: Q4 API shape \"Profil", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:55:25Z", "item": "sq-40", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-28T18:55:25Z", "item": "sq-40", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-28T18:55:25Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "Consumer check (prism, 2026-10-28): no conflict. Prism cuts ", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:55:26Z", "item": "sq-41", "action": "note", "from": "", "to": "", "note": "Consumer check (prism, 2026-10-28): prism uses CountMap.Empt", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:56:31Z", "item": "sq-41", "action": "decide", "from": "", "to": "", "note": "Owner decisions (2026-10-28), verbatim: Q7 \"Make it internal", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:56:31Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-28T18:56:31Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-28T18:59:29Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-28), from the spec check, verbatim:", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:59:29Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-28T18:59:29Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Implement"}
