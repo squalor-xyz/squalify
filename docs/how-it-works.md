@@ -34,7 +34,7 @@ flowchart TD
     E --> F["6. Check the values policy,<br/>then write canonical JSON<br/><small>ValuesPolicy.Verify, DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines. A UTF-16 or UTF-32 file gets one more streaming read, right after the byte pass, that counts invalid units (section 12).
 
 ## 3. Choosing a format
 
@@ -477,7 +477,7 @@ flowchart TD
 
 ## 12. Text, binary or empty?
 
-The byte pass counts every byte of the file once and then applies seven rules, in order. The first rule that fits decides. A file is never rejected: odd bytes are counted, and invalid UTF-8 in ascii or utf-8 text is also reported as an issue. A few stray invalid bytes in an otherwise plain text file do not change its encoding, because a single bad byte in a large log should not turn it into "Latin-1" or "binary"; the allowance is at most 8 per file and at most 1 per 64 KiB.
+The byte pass counts every byte of the file once and then applies seven rules, in order. The first rule that fits decides. A file is never rejected: odd bytes are counted, and invalid UTF-8 in ascii or utf-8 text is also reported as an issue (`invalidUtf8`). Invalid UTF-16 or UTF-32 (a lone surrogate, a stray last byte, an impossible UTF-32 value) is found by a second look at those files, counted in the same invalid-bytes number and reported as `invalidUnicode`; there is no allowance for it, because the byte order mark or the NUL pattern already fixed the encoding. A few stray invalid bytes in an otherwise plain text file do not change its encoding, because a single bad byte in a large log should not turn it into "Latin-1" or "binary"; the allowance is at most 8 per file and at most 1 per 64 KiB.
 
 ```mermaid
 flowchart LR
@@ -492,7 +492,8 @@ flowchart LR
     R5 -. "yes" .-> B
     R3 -. "yes" .-> T16["text: UTF-16 or UTF-32"]
     R4 -. "yes" .-> T16
+    T16 -. "second read" .-> V["Count invalid units into invalidBytes<br/>and the invalidUnicode issue<br/><small>InvalidUnicodeScanner, TextDecoder</small>"]
     R6 --> T["text: ascii, utf-8 or latin-1"]
 ```
 
-*Source: `Sniff/ByteSniffer.cs`, `Sniff/SniffResult.cs`, `Sniff/MagicTable.cs`.* The exact thresholds and the magic table are in [descriptor.md](descriptor.md#encoding).
+*Source: `Sniff/ByteSniffer.cs`, `Sniff/SniffResult.cs`, `Sniff/MagicTable.cs`, `Text/InvalidUnicodeScanner.cs`, `Text/TextDecoder.cs`.* The exact thresholds and the magic table are in [descriptor.md](descriptor.md#encoding).

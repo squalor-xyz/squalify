@@ -8,13 +8,16 @@ namespace squalor.squalify;
 /// Streams the characters of a text file in its charset and reports, for each character, the byte offset where it
 /// starts in the file (BOM included). A supplementary code point is two characters with the same offset. Invalid input
 /// decodes to U+FFFD: one replacement per maximal invalid UTF-8 sequence, per lone UTF-16 surrogate or truncated unit,
-/// and per invalid UTF-32 value. The result never contains a lone surrogate.
+/// and per invalid UTF-32 value. The result never contains a lone surrogate. Each such replacement is also counted
+/// (<see cref="InvalidUnits"/>, <see cref="InvalidBytes"/>, <see cref="InvalidOffsets"/>), so a real U+FFFD in the input is
+/// never confused with one the decoder made.
 /// </summary>
 internal sealed class TextDecoder
 {
     private const int BufferSize = 64 * 1024;
     private const int MaxUnit = 4;
     private const char Replacement = '\uFFFD';
+    private const int MaxInvalidOffsets = 10;
 
     private readonly Stream _stream;
     private readonly Kind _kind;
@@ -26,6 +29,7 @@ internal sealed class TextDecoder
     private bool _hasPendingLow;
     private char _pendingLow;
     private long _pendingOffset;
+    private readonly List<long> _invalidOffsets = new();
 
     private enum Kind
     {
@@ -61,6 +65,15 @@ internal sealed class TextDecoder
         _position = Math.Min(bomLength, _end);
     }
 
+    /// <summary>The invalid units decoded so far: invalid UTF-8 sequences, lone UTF-16 surrogates or odd trailing bytes, invalid UTF-32 values or truncated trailing units.</summary>
+    public long InvalidUnits { get; private set; }
+
+    /// <summary>The bytes in the invalid units decoded so far.</summary>
+    public long InvalidBytes { get; private set; }
+
+    /// <summary>The file byte offsets where the first 10 invalid units start, ascending.</summary>
+    public IReadOnlyList<long> InvalidOffsets => _invalidOffsets;
+
     /// <summary>Decodes up to <c>chars.Length</c> characters.</summary>
     /// <param name="chars">Receives the characters.</param>
     /// <param name="offsets">Receives the byte offset of each character; at least as long as <paramref name="chars"/>.</param>
@@ -95,8 +108,18 @@ internal sealed class TextDecoder
             }
 
             var offset = _bufferOffset + _position;
-            var (value, used) = DecodeOne(_buffer.AsSpan(_position, _end - _position));
+            var (value, used, valid) = DecodeOne(_buffer.AsSpan(_position, _end - _position));
             _position += used;
+            if (!valid)
+            {
+                InvalidUnits++;
+                InvalidBytes += used;
+                if (_invalidOffsets.Count < MaxInvalidOffsets)
+                {
+                    _invalidOffsets.Add(offset);
+                }
+            }
+
             if (value < 0x10000)
             {
                 chars[count] = (char)value;
@@ -143,23 +166,23 @@ internal sealed class TextDecoder
         }
     }
 
-    // Decodes one code point. At least MaxUnit bytes are available unless the file ends sooner.
-    private (int Value, int Used) DecodeOne(ReadOnlySpan<byte> data)
+    // Decodes one code point; Valid is false for the U+FFFD that replaces invalid input. At least MaxUnit bytes are available unless the file ends sooner.
+    private (int Value, int Used, bool Valid) DecodeOne(ReadOnlySpan<byte> data)
     {
         switch (_kind)
         {
             case Kind.Latin1:
-                return (data[0], 1);
+                return (data[0], 1, true);
 
             case Kind.Utf8:
                 {
                     if (data[0] < 0x80)
                     {
-                        return (data[0], 1);
+                        return (data[0], 1, true);
                     }
 
                     var status = Rune.DecodeFromUtf8(data, out var rune, out var consumed);
-                    return status == System.Buffers.OperationStatus.Done ? (rune.Value, consumed) : (Replacement, Math.Max(consumed, 1));
+                    return status == System.Buffers.OperationStatus.Done ? (rune.Value, consumed, true) : (Replacement, Math.Max(consumed, 1), false);
                 }
 
             case Kind.Utf16Le:
@@ -170,20 +193,20 @@ internal sealed class TextDecoder
                 {
                     if (data.Length < 4)
                     {
-                        return (Replacement, data.Length);
+                        return (Replacement, data.Length, false);
                     }
 
                     var value = _kind == Kind.Utf32Be ? BinaryPrimitives.ReadUInt32BigEndian(data) : BinaryPrimitives.ReadUInt32LittleEndian(data);
-                    return value <= 0x10FFFF && (value < 0xD800 || value > 0xDFFF) ? ((int)value, 4) : (Replacement, 4);
+                    return value <= 0x10FFFF && (value < 0xD800 || value > 0xDFFF) ? ((int)value, 4, true) : (Replacement, 4, false);
                 }
         }
     }
 
-    private static (int Value, int Used) DecodeUtf16(ReadOnlySpan<byte> data, bool bigEndian)
+    private static (int Value, int Used, bool Valid) DecodeUtf16(ReadOnlySpan<byte> data, bool bigEndian)
     {
         if (data.Length < 2)
         {
-            return (Replacement, data.Length);
+            return (Replacement, data.Length, false);
         }
 
         int first = Unit(data, 0, bigEndian);
@@ -194,14 +217,14 @@ internal sealed class TextDecoder
                 int second = Unit(data, 2, bigEndian);
                 if (second is >= 0xDC00 and <= 0xDFFF)
                 {
-                    return (0x10000 + ((first - 0xD800) << 10) + (second - 0xDC00), 4);
+                    return (0x10000 + ((first - 0xD800) << 10) + (second - 0xDC00), 4, true);
                 }
             }
 
-            return (Replacement, 2);
+            return (Replacement, 2, false);
         }
 
-        return first is >= 0xDC00 and <= 0xDFFF ? (Replacement, 2) : (first, 2);
+        return first is >= 0xDC00 and <= 0xDFFF ? (Replacement, 2, false) : (first, 2, true);
     }
 
     private static ushort Unit(ReadOnlySpan<byte> data, int at, bool bigEndian)

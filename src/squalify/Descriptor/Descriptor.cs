@@ -60,7 +60,7 @@ public sealed record FileSection(string Name, long Size, string Sha256);
 /// <param name="Charset">The charset, or null when the file is not text.</param>
 /// <param name="Bom">The BOM name, or null when there is none.</param>
 /// <param name="LineEndings">Line-ending counts.</param>
-/// <param name="InvalidBytes">Count of bytes in invalid UTF-8 sequences.</param>
+/// <param name="InvalidBytes">Count of bytes in invalid UTF-8 sequences (UTF-8, ASCII and latin-1 files) or in invalid UTF-16 or UTF-32 units (those charsets).</param>
 /// <param name="ControlBytes">Count of control bytes.</param>
 public sealed record EncodingSection(
     string Kind,

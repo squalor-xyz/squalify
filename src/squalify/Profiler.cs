@@ -71,6 +71,14 @@ public static class Profiler
             issues.Add(new Issue("invalidUtf8", facts.InvalidSequences, Offsets: facts.InvalidOffsets));
         }
 
+        // A UTF-16 or UTF-32 charset comes from the BOM or the NUL pattern, so it has no latin-1 fallback and no tolerance:
+        // every invalid unit is counted and reported.
+        var unicode = InvalidUnicodeScanner.Scan(source, sniff);
+        if (unicode.Units > 0)
+        {
+            issues.Add(new Issue("invalidUnicode", unicode.Units, Offsets: unicode.Offsets));
+        }
+
         var evidence = new List<Evidence>(sniff.Evidence) { choice.Evidence };
         evidence.AddRange(profile.Evidence);
         evidence.AddRange(choice.NotChosenEvidence ?? []);
@@ -91,7 +99,7 @@ public static class Profiler
                 sniff.Charset,
                 sniff.Bom,
                 profile.LineEndings,
-                utf8Family ? facts.InvalidBytes : 0,
+                utf8Family ? facts.InvalidBytes : unicode.Bytes,
                 facts.ControlBytes),
             Format: new FormatSection(choice.Family, profile.Dialect, choice.Score),
             Kind: InterimKind(sniff.Kind),
