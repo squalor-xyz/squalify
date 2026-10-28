@@ -199,6 +199,51 @@ public sealed class FirstRecordCeilingTests
         Assert.True(whole.Scope!.Complete);
     }
 
+    [Fact]
+    public void Head_SniffedAsBinary_ButWindowIsText_IsStillSubject_AndReadsNoMoreThanTheLimit()
+    {
+        // Two ESC bytes in the first 20 make the head binary (10% control); in the 1,000,000-byte window they are 0.0002%.
+        const long length = 20L * 1024 * 1024;
+        var source = new TrackingSource(new GeneratedSource("esc.txt", length, static i => i < 2 ? (byte)0x1B : (byte)'a'));
+
+        var ex = Refused(source, 1_000_000, 20);
+
+        Assert.Contains("--max-first-record-bytes", ex.Message, StringComparison.Ordinal);
+        Assert.True(source.MaxPosition <= 1_000_000, "read to " + source.MaxPosition);
+    }
+
+    [Fact]
+    public void Head_SniffedAsBinary_AndSoIsTheWindow_IsNotSubject()
+    {
+        var bytes = new byte[10_000];
+        new Random(5).NextBytes(bytes);
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            if (bytes[i] is 0x0A or 0x0D)
+            {
+                bytes[i] = 0x41;
+            }
+        }
+
+        bytes[0] = 0;
+        var descriptor = Profiler.Profile(new BytesSource("blob.bin", bytes), Ceiling(5000, 20));
+        Assert.Equal("binary", descriptor.Encoding.Kind);
+        Assert.Equal(5000, descriptor.Scope!.BytesRead);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void Utf32BeWithBom_NSmallerThanTheBom_IsRefused_ThoughTheHeadLooksBinary(long n)
+    {
+        // The BOM is 00 00 FE FF; the first N bytes alone (00 00 ...) sniff as binary, the window is UTF-32BE text.
+        var bytes = Encoded(new UTF32Encoding(true, true), "id,value\n1,2\n3,4\n");
+        var ex = Refused(new BytesSource("u.csv", bytes), 100_000, n);
+        Assert.Contains("longer", ex.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(500)]
     [InlineData(1000)]

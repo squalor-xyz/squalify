@@ -107,21 +107,28 @@ internal static class ScopeCut
         var total = source.Length;
         var windowLength = Math.Min(total, maxBytes);
 
-        // The ceiling check comes first and reads at most the ceiling (plus one unit): it sniffs only the head of the file,
-        // so a huge first record is refused before the window is read. When the head is the whole window, its sniff is reused.
+        // The ceiling check comes first and reads at most the ceiling (plus one unit) when the head is text: it sniffs only the
+        // head of the file, so a huge first record is refused before the window is read. When the head is the whole window,
+        // its sniff is reused. A head that is binary (or empty) says nothing about the file, because a file is binary only
+        // when its window is: then the window (at most maxBytes) is sniffed, and a text window is subject to the check.
         SniffResult? sniffed = null;
         if (maxFirstRecordBytes is { } ceiling)
         {
             var headLength = Math.Min(windowLength, ceiling);
-            var head = ByteSniffer.Sniff(headLength == total ? source : new PrefixSource(source, headLength), tolerance);
-            if (head.Kind == "text" && head.Charset is { } headCharset)
-            {
-                CheckFirstRecord(source, ceiling, UnitWidth(headCharset), BigEndian(headCharset), total);
-            }
-
+            var checkedSniff = ByteSniffer.Sniff(headLength == total ? source : new PrefixSource(source, headLength), tolerance);
             if (headLength == windowLength)
             {
-                sniffed = head;
+                sniffed = checkedSniff;
+            }
+            else if (checkedSniff.Kind != "text")
+            {
+                checkedSniff = ByteSniffer.Sniff(windowLength == total ? source : new PrefixSource(source, windowLength), tolerance);
+                sniffed = checkedSniff;
+            }
+
+            if (checkedSniff.Kind == "text" && checkedSniff.Charset is { } checkedCharset)
+            {
+                CheckFirstRecord(source, ceiling, UnitWidth(checkedCharset), BigEndian(checkedCharset), total);
             }
         }
 
