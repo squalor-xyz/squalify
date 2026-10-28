@@ -56,8 +56,8 @@ public sealed class RawNameTests
         var bytes = TestBytes.Concat(TestBytes.Ascii("Freq, P"), TestBytes.Hex("FF"), TestBytes.Ascii("out ,c,d,e\n"), TestBytes.Ascii(Rows));
         var d = Profiler.Profile(new BytesSource("bad.csv", bytes), ProfileOptions.Create(false, []));
         var field = d.Table!.Fields[1];
-        Assert.Equal("P�out", field.Name);
-        Assert.Equal(" P�out ", field.RawName);
+        Assert.Equal("P\uFFFDout", field.Name);
+        Assert.Equal(" P\uFFFDout ", field.RawName);
         Assert.NotNull(field.NameHex);
         Assert.Equal("Freq", d.Table.Fields[0].RawName);
     }

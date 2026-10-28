@@ -649,7 +649,7 @@ Each row is a difference, and the formulas that follow are the consumer's way to
 | Big integers | An integer that fits in 64 bits is `int`; a longer one, up to 309 digits, is `float`; one of more than 309 digits is `string`. | `Int64`. | A `(id)` column is an `Int64` column only when `type` is `int`. |
 | `constant` | Compared as parsed values for `int`, `float`, `date`, `datetime` and `time` fields (`1`, `1.0` and `01` are equal), and as trimmed text otherwise. Nulls are ignored, and a field of only nulls is constant. | The same text in every data row, `NULL` counting as a value. | [F3](#derivation-formulas) for the NULL-as-a-value view (a necessary condition), [F7](#derivation-formulas) for the text. |
 | `allNullRows` | Every field null by the vocabulary (blank, `NULL`, `NA`, `N/A`, `NaN`, `-` and the rest). | Every field the token `NULL`. | [F5](#derivation-formulas). |
-| Names | Trimmed, and split by the DataBall grammar below. | The exact header text, and its own split. | [F6](#derivation-formulas) for the convention; the consumer keeps its exact-name checks on the header it parsed itself. |
+| Names | Trimmed, and split by the DataBall grammar below. | The exact header text, and its own split. | [F6](#derivation-formulas) for the convention; `rawName` gives the exact header text of each field, so exact-name checks need no re-parse of the header. |
 | Ragged records | Counted in `table.rows`, in no row class, and in no field's `count` or `nulls`. | A record of another width fails the parse. | [F2](#derivation-formulas): `issues[]` `raggedRows` is the count, and a consumer that does not accept ragged records rejects the file when it is not 0. |
 | Types | A vote from the values. | A type from the name convention. | [Types](#types-and-the-name-convention). |
 | Scope | The whole file, or the prefix named by `scope` when a byte limit was given. | A bounded prefix. | None needed without `scope`; with it, a prefix against a prefix is the same view. |
@@ -659,7 +659,7 @@ Each row is a difference, and the formulas that follow are the consumer's way to
 | Header cell | squalify `base`, `unit`, `convention` |
 |---|---|
 | `RowID( id )` | `RowID`, `id`, `nameParenUnit` (the unit is trimmed) |
-| `RowID(id) ` | `RowID`, `id`, `nameParenUnit`, and `name` is `RowID(id)` (the trailing space is trimmed, so an exact-name near miss is invisible in the descriptor) |
+| `RowID(id) ` | `RowID`, `id`, `nameParenUnit`, and `name` is `RowID(id)` (the trailing space is trimmed in `name` and kept in `rawName`) |
 | `X( )` | `X( )`, `null`, `none` (blank unit text is no unit) |
 | `A(b(c))` | `A(b`, `c)`, `nameParenUnit` (the last `(` opens the unit) |
 | `X(1)` | `X`, `1`, `nameParenUnit`, `unknownUnit` true (digit-only text is still a paren unit) |
