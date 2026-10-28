@@ -2886,7 +2886,7 @@
       "id": "sq-32",
       "title": "Compact field profiles",
       "short_title": "Compact field profiles",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-11"

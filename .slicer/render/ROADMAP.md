@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-38 items · — 9 · done 24 · parked 1 · later 1 · retired 3
+38 items · — 8 · done 25 · parked 1 · later 1 · retired 3
 
 ## v1.0.0
 
@@ -42,7 +42,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 4 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | done |
 | 5 | [sq-22](slices/sq-22.md) | Runtime-stable escaping | S | 1 | core | sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02 | done |
 | 6 | [sq-24](slices/sq-24.md) | Invalid UTF-16/32 reporting | S | 1 | core | sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03 | done |
-| 7 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | — |
+| 7 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | done |
 | 8 | [sq-34](slices/sq-34.md) | Claim degenerate delimited tables | M | 2 | core |  | done |
 | 9 | [sq-35](slices/sq-35.md) | Byte-limited profiling | S | 1 | core |  | done |
 | 10 | [sq-36](slices/sq-36.md) | Exact null spellings | S | 1 | core | Owner decision (2026-10-28), verbatim: "Retire it (Recommended)". The exact-spellings part was dropped by the owner ("trim whitespace, case insensitive for nulls. a null is a null."); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows. | retired |
