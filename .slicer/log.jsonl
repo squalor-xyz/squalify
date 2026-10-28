@@ -428,3 +428,4 @@
 {"when": "2026-10-27T21:53:01Z", "item": "sq-32", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-27) after the step 1 measurement, v", "by": "Jon Robbins"}
 {"when": "2026-10-27T21:53:01Z", "item": "sq-36", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim, on whether whitespace", "by": "Jon Robbins"}
 {"when": "2026-10-27T21:53:01Z", "item": "sq-37", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-27), verbatim: \"No, always written (", "by": "Jon Robbins"}
+{"when": "2026-10-28T13:39:30Z", "item": "sq-22", "action": "status", "from": "open", "to": "done", "note": "Docs: descriptor bytes guaranteed within one .NET runtime major; fingerprints across runtimes. Gate PASS round 2.", "by": "Jon Robbins"}

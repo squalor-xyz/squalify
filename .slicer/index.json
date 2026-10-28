@@ -2294,7 +2294,7 @@
       "id": "sq-22",
       "title": "squalify must state, or own, how text escaping depends on the .NET runtime",
       "short_title": "Runtime-stable escaping",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-02"
