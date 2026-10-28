@@ -3110,7 +3110,7 @@
       "id": "sq-36",
       "title": "Exact null spellings",
       "short_title": "Exact null spellings",
-      "status": "retired",
+      "status": "open",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3119,6 +3119,17 @@
           "kind": "",
           "text": "**2026-10-27** — Owner decision (2026-10-27), verbatim, on whether whitespace-only differences are distinct spellings: \"trim whitespace, case insensitive for nulls. a null is a null.\" So exact spellings are not reported: NULL, Null, null and \" NULL \" stay one null. The exact-spellings part of this slice is dropped; what remains is re-scoped before it runs (the separator-row exclusion).",
           "created_at": "2026-10-27T21:53:01Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "054ea05c-369b-4566-9ec6-ba6c5bbc405f",
+          "kind": "",
+          "text": "**2026-10-28** — Owner decision (2026-10-28), verbatim: \"Revive sq-36, additive (Recommended)\" (option text: \"Keep nullTokens as is (a null is a null) and add a separate map of exact spellings as seen, counted outside separator rows, for consumers with their own token rules. Small (S). Goes in v0.2.0; unblocks prism S29.\"). This supersedes the retirement; the earlier \"a null is a null\" decision still governs nullTokens and classification. Whitespace: the exact spelling is the raw field text with quotes removed per the dialect, nothing trimmed (decide and state if the classifier trims before matching: then the spelling is the untrimmed raw text of a value that matched).",
+          "created_at": "2026-10-28T14:35:08Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
