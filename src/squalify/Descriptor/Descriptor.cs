@@ -22,6 +22,7 @@ namespace squalor.squalify;
 /// <param name="Sections">Key=value sections, for key=value documents.</param>
 /// <param name="Binary">The binary profile, for binary files.</param>
 /// <param name="Stdf">The STDF profile, for STDF files.</param>
+/// <param name="Scope">What was read, written only when a byte limit was given.</param>
 public sealed record Descriptor(
     ToolSection Tool,
     ProfileOptions Options,
@@ -38,7 +39,8 @@ public sealed record Descriptor(
     TableSection? Table = null,
     IReadOnlyList<KeyValueSection>? Sections = null,
     BinarySection? Binary = null,
-    StdfSection? Stdf = null)
+    StdfSection? Stdf = null,
+    ScopeSection? Scope = null)
 {
     /// <summary>The descriptor schema version written as <c>schemaVersion</c>.</summary>
     public const string SchemaVersion = "1.0";
@@ -51,9 +53,15 @@ public sealed record ToolSection(string Name, string Version);
 
 /// <summary>The <c>file</c> section. The name is never a path.</summary>
 /// <param name="Name">The file name without directories.</param>
-/// <param name="Size">Size in bytes.</param>
-/// <param name="Sha256">Lower-case hex SHA-256 of the content.</param>
-public sealed record FileSection(string Name, long Size, string Sha256);
+/// <param name="Size">Size of the whole file in bytes, also when only a prefix was profiled.</param>
+/// <param name="Sha256">Lower-case hex SHA-256 of the whole content, or null when only a prefix was read.</param>
+public sealed record FileSection(string Name, long Size, string? Sha256);
+
+/// <summary>The <c>scope</c> section: what a byte-limited profile read. It is written only when a limit was given.</summary>
+/// <param name="MaxBytes">The byte limit.</param>
+/// <param name="BytesRead">The bytes that the profile covers: the limit cut at a record end, or more when the first record is longer.</param>
+/// <param name="Complete">True when the profile covers the whole file.</param>
+public sealed record ScopeSection(long MaxBytes, long BytesRead, bool Complete);
 
 /// <summary>The <c>encoding</c> section.</summary>
 /// <param name="Kind"><c>empty</c>, <c>text</c> or <c>binary</c>.</param>

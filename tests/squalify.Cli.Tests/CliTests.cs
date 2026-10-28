@@ -175,6 +175,48 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public async Task Cli_Profile_MaxBytes_ProfilesAPrefix_AndWritesTheScope()
+    {
+        var path = WriteInput("rows.csv", "id,v\n" + string.Concat(Enumerable.Range(1, 400).Select(static i => i + "," + (i * 2) + "\n")));
+        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", "500");
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(0, code);
+        var expected = Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>(), 500));
+        Assert.Equal(Encoding.UTF8.GetString(DescriptorWriter.ToBytes(expected)), output);
+        using var json = JsonDocument.Parse(output);
+        var scope = json.RootElement.GetProperty("scope");
+        Assert.Equal(500, scope.GetProperty("maxBytes").GetInt64());
+        Assert.InRange(scope.GetProperty("bytesRead").GetInt64(), 1, 500);
+        Assert.False(scope.GetProperty("complete").GetBoolean());
+        var file = json.RootElement.GetProperty("file");
+        Assert.Equal(new FileInfo(path).Length, file.GetProperty("size").GetInt64());
+        Assert.False(file.TryGetProperty("sha256", out _));
+    }
+
+    [Fact]
+    public async Task Cli_Profile_WithoutMaxBytes_WritesNoScope()
+    {
+        var path = WriteInput("rows.csv", "id,v\n1,2\n");
+        var (code, output, _) = await RunAsync("profile", path);
+        Assert.Equal(0, code);
+        Assert.DoesNotContain("\"scope\"", output, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("0", "positive")]
+    [InlineData("-5", "positive")]
+    [InlineData("abc", "--max-bytes")]
+    public async Task Cli_Profile_MaxBytes_NotAPositiveNumber_ExitsOne(string value, string expectedInMessage)
+    {
+        var path = WriteInput("rows.csv", "id,v\n1,2\n");
+        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", value);
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Contains(expectedInMessage, error, StringComparison.Ordinal);
+        Assert.DoesNotContain("Unrecognized", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Cli_Profile_TwiceGivesIdenticalOutput()
     {
         var path = WriteInput("sample.txt", "x\ny\n");

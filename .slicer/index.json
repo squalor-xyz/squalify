@@ -3057,7 +3057,7 @@
       "id": "sq-35",
       "title": "Byte-limited profiling",
       "short_title": "Byte-limited profiling",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3066,6 +3066,17 @@
           "kind": "",
           "text": "**2026-10-27** — Owner decisions (2026-10-27), verbatim: scope \"Scope block, no sha (Recommended)\" (option text: \"Top-level `scope` {maxBytes, bytesRead, complete}; file.size stays the whole-file size; file.sha256 omitted when partial. Draft schema addition, no bump, like earlier slices.\"). Long first record \"Read it whole (Recommended)\" (option text: \"Read past the limit to the end of that one record (existing record caps still apply); scope.bytesRead shows the overshoot. Never an empty profile for a file with data.\").",
           "created_at": "2026-10-27T21:43:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "b3cd518b-305a-45d5-8a1b-ca406c4b5960",
+          "kind": "",
+          "text": "**2026-10-28** — Owner decisions (2026-10-28), verbatim, after gate 1: overshoot \"No ceiling, document it\" (option text: \"Keep reading the first record to its end however long; say so plainly in the docs. Matches the Read it whole decision literally.\"); API \"Break, note in release\" (option text: \"Leave the break; call it out in the v0.2.0 release notes. Recompile fixes it.\").",
+          "created_at": "2026-10-28T14:25:34Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
