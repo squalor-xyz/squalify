@@ -13,7 +13,9 @@ public static class Profiler
     /// <returns>The descriptor.</returns>
     /// <exception cref="SqualifyException">
     /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>, or
-    /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative.
+    /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
+    /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
+    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled).
     /// </exception>
     public static Descriptor Profile(IProfileSource source, ProfileOptions options)
     {
@@ -39,6 +41,16 @@ public static class Profiler
         if (options.MaxBytes is <= 0)
         {
             throw new SqualifyException("The byte limit (--max-bytes) must be a positive number of bytes.");
+        }
+
+        if (options.MaxFirstRecordBytes is <= 0)
+        {
+            throw new SqualifyException("The first-record ceiling (--max-first-record-bytes) must be a positive number of bytes.");
+        }
+
+        if (options.MaxFirstRecordBytes is not null && options.MaxBytes is null)
+        {
+            throw new SqualifyException("The first-record ceiling (--max-first-record-bytes) needs a byte limit (--max-bytes).");
         }
 
         try
@@ -71,7 +83,7 @@ public static class Profiler
         SniffResult sniff;
         if (options.MaxBytes is { } maxBytes)
         {
-            var scoped = ScopeCut.Apply(source, maxBytes, limits.CharsetTolerance);
+            var scoped = ScopeCut.Apply(source, maxBytes, limits.CharsetTolerance, options.MaxFirstRecordBytes);
             source = scoped.Source;
             sniff = scoped.Sniff;
             scope = scoped.Scope;

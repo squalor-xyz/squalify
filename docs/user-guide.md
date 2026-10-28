@@ -13,6 +13,8 @@ squalify profile <path> [options]
                                              key=value key or column (repeatable; matched whole, ASCII case-folded)
   --max-bytes <max-bytes>                    Read at most this many bytes, cut at a whole line; adds a scope section, and
                                              no file.sha256 unless the whole file was read (see Reading only a prefix)
+  --max-first-record-bytes <n>               With --max-bytes: fail, profiling nothing, when the first record (line
+                                             terminator included) is longer than n bytes (see Reading only a prefix)
   --verbose                                  Print full exception details
   -?, -h, --help                             Show help and usage information
 
@@ -40,10 +42,10 @@ byte[] json = DescriptorWriter.ToBytes(descriptor);   // the exact bytes the CLI
 |---|---|
 | `Profiler.Profile(string path, ProfileOptions options)` | Profile a file. |
 | `Profiler.Profile(IProfileSource source, ProfileOptions options)` | Profile other bytes. An `IProfileSource` has a bare `Name` (no `/` or `\`; it is the only name that reaches the descriptor), a `Length`, and `Open()`, which returns a fresh stream for each pass. |
-| `ProfileOptions.Create(includeValues, includeValuesFor, maxBytes)` | The options; the allow-list is stored as a sorted set. `maxBytes` is optional (null reads the whole source); see [Reading only a prefix](#reading-only-a-prefix). |
+| `ProfileOptions.Create(includeValues, includeValuesFor, maxBytes, maxFirstRecordBytes)` | The options; the allow-list is stored as a sorted set. `maxBytes` is optional (null reads the whole source) and `maxFirstRecordBytes` is optional (null: no ceiling; it needs `maxBytes`); see [Reading only a prefix](#reading-only-a-prefix). |
 | `DescriptorWriter.ToBytes(descriptor)`, `DescriptorWriter.Write(descriptor, stream)` | Write the canonical JSON bytes. |
 | `Descriptor` | The model: `Tool`, `Options`, `Limits`, `File`, `Encoding`, `Format`, `Kind`, `Layout`, `Fingerprint`, `Hints`, `Issues`, `Evidence`, and `Table`, `Sections`, `Binary`, `Stdf` or `Scope` when they apply. Plain records, mirroring [descriptor.md](descriptor.md). |
-| `SqualifyException` | Every public failure: a missing file, a directory, an unreadable source, an invalid source name. Lower-level IO exceptions are wrapped. |
+| `SqualifyException` | Every public failure: a missing file, a directory, an unreadable source, an invalid source name, an invalid option, a first record longer than `maxFirstRecordBytes`. Lower-level IO exceptions are wrapped. |
 
 A complete program is in [Examples](examples.md#use-the-library-to-pick-an-import-route). The library reads the file; it does no network access and holds no state between calls.
 
@@ -83,6 +85,7 @@ Header names (trimmed as `name`, and exactly as written as `rawName`) and preamb
 - **Explainable.** Every inference has an `evidence` entry with its candidates and scores.
 - **Versions.** The package version, `squalify --version` and `tool.version` are one string. The schema is a draft until the v1 schema freeze: before 1.0 a minor version may change the descriptor. After the freeze, adding optional keys bumps the schema's minor version and removing or renaming one bumps the major. Consumers must ignore unknown keys. See [the versioning policy](descriptor.md#versioning-policy).
 - **Fingerprints.** `fingerprint.version` changes whenever a projection changes. Compare hashes only when it matches.
+- **Breaking changes in 1.0.0 (library, unreleased).** `ProfileOptions` and `ProfileOptions.Create` gained a trailing `maxFirstRecordBytes` parameter (optional, so source-compatible; the signatures changed, so a compiled consumer must be recompiled). A descriptor is unchanged: the option is not written to it.
 - **Breaking changes in 0.2.0 (library).** `ProfileOptions` and `ProfileOptions.Create` gained a `maxBytes` parameter (optional, so source-compatible; the signatures changed, so a compiled consumer must be recompiled). `FileSection.Sha256` is now nullable: it is absent when only a prefix was read. A descriptor made without a byte limit is unchanged. `FieldProfile` gained the trailing optional members `NullSpellings` (the null values by exact spelling, over all data records; never null from the profiler, empty when there is none) and `NullSpellingsOther`; `RowClassesInfo` gained `AllNullRowSpellings`, `AllNullRowSpellingsMixed` and `AllNullRowSpellingsOther` (the all-null records by their one shared spelling); a compiled consumer that constructs a `FieldProfile` must be recompiled, and `NullTokens` is unchanged.
 
 ## Limits and large files
@@ -103,7 +106,7 @@ A global budget shrinks the first two caps, and the mask text, for very wide tab
 
 ## Reading only a prefix
 
-`--max-bytes <n>` (library: `ProfileOptions.MaxBytes`) profiles the start of a file instead of all of it, for a quick look at a large file or a classification that a longer read will confirm. squalify reads at most `n` bytes and cuts at the last whole line, so the profile ends on a whole record; a file whose first `n` bytes are binary is cut at `n` exactly. There are two exceptions to "at most `n`": a CRLF that straddles the limit adds one code unit, and **a first line longer than `n` is read to its end, however long, with no ceiling** (a file with no line terminator is read whole). The profile is therefore never empty for a file that has data, and `scope.bytesRead` then exceeds `n`. The descriptor says what it read in a top-level `scope`, and `file.size` stays the length of the whole file:
+`--max-bytes <n>` (library: `ProfileOptions.MaxBytes`) profiles the start of a file instead of all of it, for a quick look at a large file or a classification that a longer read will confirm. squalify reads at most `n` bytes and cuts at the last whole line, so the profile ends on a whole record; a file whose first `n` bytes are binary is cut at `n` exactly. There are two exceptions to "at most `n`": a CRLF that straddles the limit adds one code unit, and **a first line longer than `n` is read to its end, however long, with no ceiling** unless you set `--max-first-record-bytes` (below); a file with no line terminator is read whole. The profile is therefore never empty for a file that has data, and `scope.bytesRead` then exceeds `n`. The descriptor says what it read in a top-level `scope`, and `file.size` stays the length of the whole file:
 
 ```bash
 squalify profile sweep-preamble.csv --max-bytes 310 | jq -c '{file, scope, rows: .table.rows, regions: [.layout.regions[] | [.kind, .lines[0], .lines[1]]]}'
@@ -115,6 +118,7 @@ squalify profile sweep-preamble.csv --max-bytes 310 | jq -c '{file, scope, rows:
 
 - **Everything describes the prefix.** Every section, including the text-or-binary decision and the charset, is computed from the first `scope.bytesRead` bytes alone, as for a file that holds just those bytes. A `footer` that the file has past the cut is not seen. The record caps in `limits` limit how a record is profiled, not how much of it is read.
 - **`file.sha256` is absent unless the whole file was read.** It is absent while `scope.complete` is false, because the hash of the whole file needs a read of all of it. With a limit at or above the file size, `scope.complete` is true, `sha256` is written and the rest of the descriptor equals the unlimited one.
+- **A ceiling on the first line is opt-in.** `--max-first-record-bytes <n>` (library: `ProfileOptions.MaxFirstRecordBytes`) refuses a file whose first record, line terminator included, is longer than `n` bytes, instead of reading that record to its end. squalify then stops reading at `n` bytes (one more code unit when a CR ends there, to see whether an LF follows), prints a message that names the option and `n`, profiles nothing and exits 1 (the library throws `SqualifyException`). Use it when you know your files have short first lines, to turn away a huge file with no line breaks without reading it. It is off by default, so nothing above changes, and it is rejected without `--max-bytes` (zero or less is rejected too). `n` counts bytes of the code units of the charset: a CRLF is 2 bytes, a UTF-16 unit 2, a UTF-32 unit 4; a BOM counts, as part of the first bytes of the file. A record of exactly `n` bytes is accepted; a CR that is byte `n` is accepted unless an LF follows it. A binary file has no records and is not subject, and no record after the first is checked. A file that passes gives the same descriptor as without the option, which is not recorded in it. The check decides text or binary and the charset from the first `n` bytes (or the limit, if that is smaller) rather than from the whole window, so a head with no BOM and no UTF-16 or UTF-32 NUL pattern is counted one byte per unit.
 - **No limit, no `scope`.** Without `--max-bytes` the descriptor has no `scope` member and is unchanged.
 - **A zero or negative limit is an error.** The library needs `IProfileSource.Length` to be the whole size; a source that cannot report it should not be limited.
 - **A quoted field with line breaks** that straddles the limit is cut at a line break inside it, so the last record of the prefix is a short one.

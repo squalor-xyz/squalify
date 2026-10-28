@@ -3273,7 +3273,7 @@
       "id": "sq-39",
       "title": "First-record ceiling for byte-limited profiling",
       "short_title": "First-record ceiling",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3300,7 +3300,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-28T18:53:29Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -3319,7 +3322,7 @@
         "importance": 2,
         "urgency": 1,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

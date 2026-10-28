@@ -62,13 +62,18 @@ public static class CommandFactory
         {
             Description = "Read at most this many bytes: a text file is cut after its last whole line (past the limit when the first line is longer), a binary file at the limit. The descriptor gets a scope section, and no file.sha256 unless the whole file was read",
         };
-        var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor, maxBytes };
+        var maxFirstRecordBytes = new Option<long?>("--max-first-record-bytes")
+        {
+            Description = "With --max-bytes: fail, profiling nothing, when the first record (line terminator included) is longer than this many bytes, instead of reading it to its end. Off by default",
+        };
+        var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor, maxBytes, maxFirstRecordBytes };
         command.SetAction(async (result, _) => await CliApp.ProfileAsync(
             result.GetValue(path)!,
             result.GetValue(output),
             result.GetValue(includeValues),
             result.GetValue(includeValuesFor) ?? [],
             result.GetValue(maxBytes),
+            result.GetValue(maxFirstRecordBytes),
             stdout,
             stderr,
             result.GetValue(verboseOption)));

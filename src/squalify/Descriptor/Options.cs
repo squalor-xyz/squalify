@@ -11,17 +11,27 @@ namespace squalor.squalify;
 /// (no ceiling). A limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
 /// <c>options</c> section: <c>scope.maxBytes</c> carries it.
 /// </param>
-public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null)
+/// <param name="MaxFirstRecordBytes">
+/// The first-record ceiling, or null for none (the default). It is a companion of <paramref name="MaxBytes"/> and is
+/// rejected by <see cref="Profiler"/> without it. When the first record of a text file, its line terminator included, is
+/// longer than this many bytes, <see cref="Profiler"/> throws <see cref="SqualifyException"/> and profiles nothing; it
+/// reads no further than this many bytes plus the one code unit that tells a CR from a CRLF. A CRLF counts 2 bytes, a
+/// UTF-16 unit 2 and a UTF-32 unit 4. A binary file is not subject. A value of zero or less is rejected by
+/// <see cref="Profiler"/>. A profile that is not refused is the same as one without the ceiling, so it is not written
+/// to the <c>options</c> section.
+/// </param>
+public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null, long? MaxFirstRecordBytes = null)
 {
     /// <summary>Creates options with the allow-list as a sorted set: sorted ordinally, exact duplicates dropped.</summary>
     /// <param name="includeValues">True to include all literal values.</param>
     /// <param name="includeValuesFor">Allow-listed names, in any order.</param>
     /// <param name="maxBytes">The byte limit, or null for none.</param>
+    /// <param name="maxFirstRecordBytes">The first-record ceiling, or null for none; needs <paramref name="maxBytes"/>.</param>
     /// <returns>The options.</returns>
-    public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor, long? maxBytes = null)
+    public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor, long? maxBytes = null, long? maxFirstRecordBytes = null)
     {
         ArgumentNullException.ThrowIfNull(includeValuesFor);
-        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes);
+        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes, maxFirstRecordBytes);
     }
 }
 
