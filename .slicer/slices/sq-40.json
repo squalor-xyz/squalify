@@ -1,0 +1,43 @@
+{
+  "id": "sq-40",
+  "title": "Shared prefix reading",
+  "lead": [
+    "Offer one public API that returns the descriptor and the exact prefix bytes it describes, cut by the same rule as `scope`, from one read of the file. Today a consumer that profiles a bounded prefix writes its own prefix reader (cut after the last LF inside the budget, read on to finish an over-long first line, report whether the end of the file was reached) and feeds those bytes back through a custom `IProfileSource`. **Not in this slice:** sampling from the middle or end of a file; changing the cut rule itself (sq-35 fixed it); raw header names (sq-37 added them)."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [
+    "needs-owner"
+  ],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "The same consumer as sq-35 needs the exact bytes squalify profiled for its own parser, to re-read the header and check the first rows. With sq-37's `rawName` it no longer has to re-split the header for column names, but it still needs the bytes for the first rows, and the two reads must agree byte for byte or its check is meaningless. A private copy of the cut rule can drift from `ScopeCut`: the consumer cuts after the last LF, while `ScopeCut` also takes CR, CRLF and UTF-16/32 terminators. Today the source is opened several times (the window sniff, `FindLineCut`, the sniff of the cut, then the passes), so a consumer cannot get a single read from `Profiler.Profile` with `MaxBytes` either."
+    },
+    {
+      "heading": "Files",
+      "body": "- A new public type or method in `src/squalify/` (shape pending Q4), `ScopeCut` (`src/squalify/Sources/ScopeCut.cs`, to read once into a buffer and share the cut), `Profiler`, a buffer-backed `IProfileSource` (internal, under `src/squalify/Sources/`)\n- design.md, user-guide.md (\"Reading only a prefix\" and the library table), README, descriptor.md if the cut rule becomes a contract (Q6); how-it-works.md for the pipeline change (one read into a buffer)"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **Descriptor describes the returned bytes:** for a matrix of fixtures (LF, CRLF, CR, UTF-16LE and BE, UTF-32, binary, a first line longer than the limit, no terminator, a file smaller than the limit), profiling the returned bytes through an in-memory source with no limit gives the same descriptor as the returned one, apart from the `file` and `scope` sections.\n- **Same cut as `scope`:** the returned prefix length equals `scope.bytesRead` of `Profiler.Profile` with the same `MaxBytes` on the same fixtures, and the bytes equal the first `bytesRead` bytes of the file.\n- **Read once:** a counting `IProfileSource` sees one `Open` and no more than `MaxBytes` plus the overshoot (the CRLF unit, or the rest of a long first line) bytes read; no second open.\n- **File facts:** `file.size` is the whole file's size when a prefix was read; `scope.complete` is true exactly when the end of the file was reached, and then the prefix is the whole file and `file.sha256` is present as for an unlimited run.\n- **Bounded by the ceiling:** with item 1's `MaxFirstRecordBytes` exceeded, the call fails or reports as item 1 decides, and the buffer never holds more than N+1 bytes of that record.\n- **Ownership:** mutating the returned memory does not change the descriptor, and the descriptor is the same on a second call (determinism).\n- **Failure shape (pending Q4):** the API's behavior for a source with an unknown length, and for a `MaxBytes` of null (whole file buffered, or rejected).\n- Mutation-check: cutting at the limit instead of the last terminator, and returning the window instead of the cut, each fail a test above."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

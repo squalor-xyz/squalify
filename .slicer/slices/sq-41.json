@@ -1,0 +1,43 @@
+{
+  "id": "sq-41",
+  "title": "Public API surface before 1.0.0",
+  "lead": [
+    "Settles the public-API items from the sq-02 and sq-03 review nits (sq-23) while a change is still not a breaking one. **Not in this slice:** the rest of sq-23 (doc text, the golden-switch test, `CanonicalNumber.FormatFinite`, `IProfileSource.Length`, which sq-35 now uses)."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [
+    "needs-owner"
+  ],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "After 1.0.0 each of these is a breaking change to the library. Four items: `Limits.Default` is public and pins the caps as API; `CountMap.FromOrdinal` and `FromNumeric` throw `ArgumentException` where the library otherwise throws `SqualifyException`; the model records compare their lists by reference, so `Descriptor` equality is shallow; `FileSource` throws a raw `ArgumentException` on an empty path, which the CLI prints as is, and the `Profiler` name guard rejects a file whose name legally contains a backslash on macOS and Linux, so such a file cannot be profiled through the CLI."
+    },
+    {
+      "heading": "Files",
+      "body": "- `Limits.Default` (`src/squalify/Descriptor/Options.cs`), `CountMap` (`CountMap.cs`), the model records (`Descriptor.cs` and the section records), `FileSource` (`src/squalify/Sources/FileSource.cs`), `Profiler` (the source-name guard), the CLI\n- user-guide.md (the library table and the breaking-changes list), design.md if a rule changes"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **Limits:** the answer to Q7 is pinned: either `Limits.Default` is not public and a consumer-visible `limits` section still reads the same, or it stays public and is documented as API.\n- **CountMap:** a duplicate key in `FromOrdinal` or `FromNumeric` raises `SqualifyException`, not `ArgumentException`.\n- **Equality (pending Q8):** two descriptors built from the same bytes compare equal under the chosen rule, and differ when one list member differs.\n- **FileSource:** an empty path raises `SqualifyException` with a plain message, and the CLI prints it without the parameter name.\n- **Backslash (pending Q9):** a file whose name contains a backslash is profiled, or refused with a clear message, per the answer; a name with `/` is still refused.\n- Mutation-check each test against the old behavior."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

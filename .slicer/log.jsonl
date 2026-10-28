@@ -446,3 +446,18 @@
 {"when": "2026-10-28T16:09:47Z", "item": "sq-37", "action": "status", "from": "open", "to": "done", "note": "rawName: exact header text per field (after dialect unquoting, untrimmed; LF for line breaks in quoted cells; first block's header in multi-block files); null with no header; always written. Size test retargeted to 1,050 B/field (owner). Gate PASS round 2. Later: on long padded headers rawName adds ~9% of descriptor bytes.", "by": "Jon Robbins"}
 {"when": "2026-10-28T16:02:09Z", "item": "sq-36", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-28), verbatim: \"All rows + allNullR", "by": "Jon Robbins"}
 {"when": "2026-10-28T17:44:53Z", "item": "sq-36", "action": "status", "from": "open", "to": "done", "note": "Gate round 2 PASS. fields[].nullSpellings/nullSpellingsOther and table.rowClasses.allNullRowSpellings/Mixed/Other with F9 consumer formulas (null set T, separator set S). Suite 1122+26 green; 11 real samples: invariants OK, fingerprints unchanged, F9 0 mismatches.", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:29:46Z", "item": "sq-39", "action": "add", "from": "", "to": "open", "note": "First-record ceiling for byte-limited profiling"}
+{"when": "2026-10-28T18:29:46Z", "item": "sq-40", "action": "add", "from": "", "to": "open", "note": "Shared prefix reading"}
+{"when": "2026-10-28T18:30:05Z", "item": "sq-39", "action": "note", "from": "", "to": "", "note": "OPEN QUESTIONS for the owner (not decided; the failing tests", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:30:05Z", "item": "sq-39", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
+{"when": "2026-10-28T18:30:10Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "OPEN QUESTIONS for the owner (not decided; the failing tests", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:30:10Z", "item": "sq-40", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
+{"when": "2026-10-28T18:32:50Z", "item": "sq-39", "action": "set", "from": "", "to": "", "note": "pass_key -→v1.0.0"}
+{"when": "2026-10-28T18:32:50Z", "item": "sq-40", "action": "set", "from": "", "to": "", "note": "pass_key -→v1.0.0"}
+{"when": "2026-10-28T18:36:03Z", "item": "sq-41", "action": "add", "from": "", "to": "open", "note": "Public API surface before 1.0.0"}
+{"when": "2026-10-28T18:36:09Z", "item": "sq-38", "action": "set", "from": "", "to": "", "note": "pass_key v1.x→v1.0.0"}
+{"when": "2026-10-28T18:36:10Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32→sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32,sq-38,sq-39,sq-40,sq-41"}
+{"when": "2026-10-28T18:36:10Z", "item": "sq-41", "action": "note", "from": "", "to": "", "note": "OPEN QUESTIONS for the owner (not decided; the failing tests", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:36:10Z", "item": "sq-41", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
+{"when": "2026-10-28T18:36:10Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "Split 2026-10-28: the public-API items moved to sq-41 (v1.0.", "by": "Jon Robbins"}
+{"when": "2026-10-28T18:50:52Z", "item": "sq-19", "action": "set", "from": "", "to": "", "note": "depends_on sq-11→sq-11,sq-38"}
