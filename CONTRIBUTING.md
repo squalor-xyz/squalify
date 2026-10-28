@@ -31,7 +31,7 @@ Run the first three before you send a change; CI runs them on all three operatin
 
 ## Tests
 
-- **Categories.** `Category=Package` tests pack both NuGet packages and check them (they run `dotnet`, so CI runs them as their own step). `Category=Corpus` tests profile a private directory and are excluded from CI. Everything else is plain xUnit. CI's test step is `--filter "Category!=Corpus&Category!=Package"`.
+- **Categories.** `Category=Package` tests pack both NuGet packages and check them (they run `dotnet`, so CI runs them as their own step). `Category=Corpus` tests profile a private directory and are excluded from CI. `Category=Large` tests stream gigabytes to bound process memory; they take a long time and are run by hand. Everything else is plain xUnit. CI's test step is `--filter "Category!=Corpus&Category!=Package&Category!=Large"`; locally, `--filter "Category!=Corpus&Category!=Large"` runs everything CI runs.
 - **Golden descriptors.** Every supported format has golden tests: the descriptor for a fixture is compared byte for byte with `<fixture>.squalify.json`. After an intended output change, rewrite them with `SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release`, then review the diff before you commit it.
 - **Determinism tests** profile the same fixture twice, and under a different culture, and compare the bytes.
 - **Fixtures.** No GB-scale fixtures in the repository; large-file behavior is tested with generated streams. Real samples never enter the repository: write findings up generically under `docs/reviews/`.
