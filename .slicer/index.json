@@ -3088,7 +3088,7 @@
       "id": "sq-36",
       "title": "Exact null spellings",
       "short_title": "Exact null spellings",
-      "status": "open",
+      "status": "retired",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3119,7 +3119,7 @@
         "key": "null-token-exact-spellings",
         "pass": "v0.2.0",
         "group": "",
-        "reason": "",
+        "reason": "Owner decision (2026-10-28), verbatim: \"Retire it (Recommended)\". The exact-spellings part was dropped by the owner (\"trim whitespace, case insensitive for nulls. a null is a null.\"); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows.",
         "importance": 2,
         "urgency": 2,
         "effort": 1,

@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-38 items · — 11 · done 23 · parked 1 · later 1 · retired 2
+38 items · — 10 · done 23 · parked 1 · later 1 · retired 3
 
 ## v1.0.0
 
@@ -45,7 +45,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 7 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | — |
 | 8 | [sq-34](slices/sq-34.md) | Claim degenerate delimited tables | M | 2 | core |  | done |
 | 9 | [sq-35](slices/sq-35.md) | Byte-limited profiling | S | 1 | core |  | — |
-| 10 | [sq-36](slices/sq-36.md) | Exact null spellings | S | 1 | core |  | — |
+| 10 | [sq-36](slices/sq-36.md) | Exact null spellings | S | 1 | core | Owner decision (2026-10-28), verbatim: "Retire it (Recommended)". The exact-spellings part was dropped by the owner ("trim whitespace, case insensitive for nulls. a null is a null."); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows. | retired |
 | 11 | [sq-37](slices/sq-37.md) | Raw header names | S | 1 | core |  | — |
 
 ---
