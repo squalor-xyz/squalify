@@ -313,6 +313,38 @@ public class InvalidUnicodeTests
         Assert.Equal(1, utf8.Encoding.InvalidBytes);
         Assert.Null(InvalidUnicode(utf8));
         Assert.Contains(utf8.Issues, static i => i.Code == "invalidUtf8");
+
+        // Three invalid UTF-8 sequences exceed the tolerance, so the file is latin-1: its bytes are counted but no issue is raised.
+        var latin1 = Profile(TestBytes.Concat(TestBytes.Ascii("a"), TestBytes.Hex("89"), TestBytes.Ascii("b"), TestBytes.Hex("8A"), TestBytes.Ascii("c"), TestBytes.Hex("8B"), TestBytes.Ascii("d\n")));
+        Assert.Equal("latin-1", latin1.Encoding.Charset);
+        Assert.Equal(3, latin1.Encoding.InvalidBytes);
+        Assert.Null(InvalidUnicode(latin1));
+        Assert.DoesNotContain(latin1.Issues, static i => i.Code == "invalidUtf8");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Utf16_ReversedSurrogatePair_IsTwoInvalidUnits(bool bigEndian)
+    {
+        // A low surrogate followed by a high one is not a pair: both are lone.
+        var descriptor = Profile(Utf16(bigEndian, true, "ab", 0xDC00, 0xD800, "cd\n"));
+        Assert.Equal(4, descriptor.Encoding.InvalidBytes);
+        var issue = InvalidUnicode(descriptor)!;
+        Assert.Equal(2, issue.Count);
+        Assert.Equal(new long[] { 6, 8 }, issue.Offsets);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Utf16_LoneHighSurrogateAsTheLastTwoBytes_IsOneInvalidUnit(bool bigEndian)
+    {
+        var descriptor = Profile(Utf16(bigEndian, true, "ab\n", 0xD800));
+        Assert.Equal(2, descriptor.Encoding.InvalidBytes);
+        var issue = InvalidUnicode(descriptor)!;
+        Assert.Equal(1, issue.Count);
+        Assert.Equal(new long[] { 8 }, issue.Offsets);
     }
 
     private sealed class OneBytePerReadSource(string name, byte[] bytes) : IProfileSource
