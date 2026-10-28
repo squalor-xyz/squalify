@@ -480,7 +480,7 @@ public sealed class FieldProfilingTests
         Assert.Equal(new FieldCaps(10_000, 100_000, 64, 53_312), MemoryBudget.Effective(nominal, 3));
         Assert.Equal(new FieldCaps(10_000, 100_000, 64, 53_312), MemoryBudget.Effective(nominal, 100));
         Assert.Equal(new FieldCaps(10_000, 99_009, 64, 53_312), MemoryBudget.Effective(nominal, 101));
-        Assert.Equal(new FieldCaps(1_000, 5_000, 64, 8_000), MemoryBudget.Effective(nominal, 2000));
+        Assert.Equal(new FieldCaps(1_000, 5_000, 64, 8_000, HllPrecision: 12, GkInverseEpsilon: 250), MemoryBudget.Effective(nominal, 2000));
         Assert.Equal(new FieldCaps(10_000, 100_000, 64, 53_312), MemoryBudget.Effective(nominal, 0));
 
         var small = ProfileLimits.Default with { Budget = new Budget(8, 4, 16_000_000) };

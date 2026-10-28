@@ -40,6 +40,7 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 /// <param name="Budget">Global exact-value budget.</param>
 /// <param name="NullTokens">Version of the null-token vocabulary.</param>
 /// <param name="UnitTable">Version of the unit table.</param>
+/// <param name="Sketches">The precision of the per-field sketches when it is scaled below the default by the field count; null, and not written, for a table that keeps the full precision.</param>
 public sealed record Limits(
     long DistinctPerField,
     long QuantilePerField,
@@ -54,7 +55,8 @@ public sealed record Limits(
     long StdfTests,
     Budget Budget,
     long NullTokens,
-    long UnitTable)
+    long UnitTable,
+    SketchLimits? Sketches = null)
 {
     /// <summary>The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>.</summary>
     public static Limits Default { get; } = new(
@@ -73,6 +75,12 @@ public sealed record Limits(
         NullTokens: ValueClassifier.NullVocabularyVersion,
         UnitTable: squalor.squalify.UnitTable.Version);
 }
+
+/// <summary>The effective precision of the sketches of every field, written to <c>limits.sketches</c> only when it is below the default.</summary>
+/// <param name="HllPrecision">The index bits of the HyperLogLog sketch of each field: 2^this registers (14 is the default).</param>
+/// <param name="RankError">The epsilon of the Greenwald-Khanna summaries of each field, as a fraction of the value count (0.001 is the default).</param>
+/// <param name="BudgetBytes">The allowance, in bytes, that the sketches of all the fields were scaled to fit.</param>
+public sealed record SketchLimits(long HllPrecision, double RankError, long BudgetBytes);
 
 /// <summary>Tolerated stray invalid UTF-8 sequences.</summary>
 /// <param name="InvalidSequences">Maximum invalid sequences tolerated.</param>

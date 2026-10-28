@@ -375,7 +375,7 @@ internal sealed class FieldAccumulator
             NullsExcludingAllNullRows: nullsExcludingAllNullRows,
             NullTokens: CountMap.FromOrdinal(_nullTokens),
             Flags: new FieldFlags(_leadingZero, _commaDecimalLike, _padded),
-            Distinct: _hll is { } hll ? new DistinctInfo(Math.Max(hll.Estimate(), _caps.Distinct + 1), true, HyperLogLog.RelativeStdError) : new DistinctInfo(_distinct?.Count ?? 0, false),
+            Distinct: _hll is { } hll ? new DistinctInfo(Math.Max(hll.Estimate(), _caps.Distinct + 1), true, hll.StdError) : new DistinctInfo(_distinct?.Count ?? 0, false),
             Length: _nonNull == 0 ? null : new LengthStats(_lengthMin, _lengthMax, _lengthSum / (double)_nonNull),
             Shapes: BuildShapes(),
             Monotonic: MonotonicOf(type),
@@ -558,7 +558,7 @@ internal sealed class FieldAccumulator
         {
             // The exact set moves into the sketch, which keeps the maximum of each register, so the order in which the
             // set is read does not matter. The set is then freed.
-            _hll = new HyperLogLog();
+            _hll = new HyperLogLog(_caps.HllPrecision);
             foreach (var seen in _distinct)
             {
                 _hll.Add(seen);
@@ -687,7 +687,7 @@ internal sealed class FieldAccumulator
     // every value is an integer, and the ordered keys of the doubles otherwise.
     private void StartNumericSketch()
     {
-        var sketch = new GreenwaldKhanna();
+        var sketch = new GreenwaldKhanna(_caps.GkInverseEpsilon);
         if (_allInt)
         {
             foreach (var value in _ints!.InOrder())
@@ -746,7 +746,7 @@ internal sealed class FieldAccumulator
             var sketched = integer
                 ? PickSketch(sketch, static key => DescriptorNumber.Int(key))
                 : PickSketch(sketch, static key => DescriptorNumber.Real(GreenwaldKhanna.DoubleOfKey(key)));
-            return new NumericStats(min, max, mean, stddev, sketched, true, GreenwaldKhanna.Epsilon);
+            return new NumericStats(min, max, mean, stddev, sketched, true, GreenwaldKhanna.EpsilonOf(_caps.GkInverseEpsilon));
         }
 
         Quantiles<DescriptorNumber> quantiles;
@@ -892,7 +892,7 @@ internal sealed class FieldAccumulator
                 continue;
             }
 
-            var sketch = new GreenwaldKhanna();
+            var sketch = new GreenwaldKhanna(_caps.GkInverseEpsilon);
             foreach (var code in _codes!.InOrder())
             {
                 sketch.Add(TemporalMath.Ticks(Decode(code, _joined), SlotOrders[slot]));
@@ -975,7 +975,7 @@ internal sealed class FieldAccumulator
         var max = TemporalMath.Iso(_slotMax[slot], type);
         if (_slotSketch[slot] is { } sketch)
         {
-            return new TemporalStats(orders, false, clock, min, max, PickSketch(sketch, key => TemporalMath.Iso(key, type)), true, GreenwaldKhanna.Epsilon);
+            return new TemporalStats(orders, false, clock, min, max, PickSketch(sketch, key => TemporalMath.Iso(key, type)), true, GreenwaldKhanna.EpsilonOf(_caps.GkInverseEpsilon));
         }
 
         var order = SlotOrders[slot];

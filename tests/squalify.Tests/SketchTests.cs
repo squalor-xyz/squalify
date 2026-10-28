@@ -207,4 +207,172 @@ public sealed class SketchTests
 
         return low;
     }
+
+    [Theory]
+    [InlineData(7)]
+    [InlineData(9)]
+    [InlineData(12)]
+    [InlineData(13)]
+    public void Hll_BelowTheDefaultPrecision_StaysWithin3Sigma_AndHoldsItsRegisters(int precision)
+    {
+        var hll = new HyperLogLog(precision);
+        Assert.Equal(precision, hll.PrecisionBits);
+        Assert.Equal((1L << precision) + 64, hll.EstimatedBytes);
+        Assert.Equal(1.04 / Math.Sqrt(1 << precision), hll.StdError);
+        Assert.Equal(hll.StdError, HyperLogLog.RelativeStdErrorOf(precision));
+
+        // Over the range of linear counting and of the raw estimate, at every fifth power of the register count.
+        var m = 1L << precision;
+        double worst = 0;
+        long added = 0;
+        foreach (var n in new[] { m / 4, m, 3 * m, 10 * m, 100 * m, 2_000 * m })
+        {
+            if (n > 400_000)
+            {
+                break;
+            }
+
+            for (; added < n; added++)
+            {
+                hll.Add(HashOf(added));
+            }
+
+            worst = Math.Max(worst, Math.Abs(hll.Estimate() - n) / (double)n);
+        }
+
+        Assert.True(worst <= 3 * hll.StdError + 0.02, $"precision {precision}: worst relative error {worst:G4}, one sigma {hll.StdError:G4}");
+    }
+
+    [Fact]
+    public void Hll_AtAScaledPrecision_SameSetDifferentOrder_SameEstimate_AndSmallRangeIsLinearCounting()
+    {
+        const int P = 10;
+        var forward = new HyperLogLog(P);
+        var backward = new HyperLogLog(P);
+        foreach (var id in LongRange(0, 50_000))
+        {
+            forward.Add(HashOf(id));
+        }
+
+        foreach (var id in LongRange(0, 50_000).Reverse().Concat(LongRange(0, 10_000)))
+        {
+            backward.Add(HashOf(id));
+        }
+
+        Assert.Equal(forward.Estimate(), backward.Estimate());
+
+        // Below 3.5 m the estimate is m * ln(m / V) for the empty registers V, with this sketch's own m.
+        var small = new HyperLogLog(P);
+        foreach (var id in LongRange(0, 300))
+        {
+            small.Add(HashOf(id));
+        }
+
+        var expected = (long)Math.Round(1024.0 * DetMath.Ln(1024.0 / small.EmptyRegisters), MidpointRounding.ToEven);
+        Assert.Equal(expected, small.Estimate());
+    }
+
+    [Fact]
+    public void Hll_PrecisionOutsideTheSupportedRange_IsRejected()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new HyperLogLog(HyperLogLog.MinPrecision - 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new HyperLogLog(HyperLogLog.Precision + 1));
+        Assert.Equal(HyperLogLog.Precision, new HyperLogLog().PrecisionBits);
+    }
+
+    [Theory]
+    [InlineData(1_000)]
+    [InlineData(500)]
+    [InlineData(250)]
+    [InlineData(125)]
+    [InlineData(64)]
+    [InlineData(32)]
+    [InlineData(16)]
+    public void Gk_ScaledEpsilon_KeepsItsRankError_AndItsNominalSize(int inverseEpsilon)
+    {
+        const int N = 200_000;
+        var sketch = new GreenwaldKhanna(inverseEpsilon);
+        var state = 99UL;
+        var keys = new long[N];
+        for (var i = 0; i < N; i++)
+        {
+            state = (state * 6364136223846793005UL) + 1442695040888963407UL;
+            keys[i] = (long)(state >> 30);
+            sketch.Add(keys[i]);
+        }
+
+        var sorted = keys.OrderBy(static k => k).ToArray();
+        var allowed = N / inverseEpsilon;
+        foreach (var rank in new long[] { 1, N / 100, N / 4, N / 2, (3 * N) / 4, (99 * N) / 100, N })
+        {
+            var answer = sketch.Query(rank);
+            var low = Array.BinarySearch(sorted, answer);
+            while (low > 0 && sorted[low - 1] == answer)
+            {
+                low--;
+            }
+
+            var high = low;
+            while (high + 1 < N && sorted[high + 1] == answer)
+            {
+                high++;
+            }
+
+            var distance = rank < low + 1 ? low + 1 - rank : rank > high + 1 ? rank - (high + 1) : 0;
+            Assert.True(distance <= allowed, $"1/eps {inverseEpsilon}, rank {rank}: off by {distance}, allowed {allowed}");
+        }
+
+        Assert.Equal(1.0 / inverseEpsilon, GreenwaldKhanna.EpsilonOf(inverseEpsilon));
+        Assert.True(sketch.EstimatedBytes <= GreenwaldKhanna.NominalBytes(inverseEpsilon), $"{sketch.EstimatedBytes} bytes, nominal {GreenwaldKhanna.NominalBytes(inverseEpsilon)}");
+    }
+
+    [Theory]
+    [InlineData(1_000)]
+    [InlineData(250)]
+    [InlineData(64)]
+    [InlineData(16)]
+    public void Gk_NominalBytes_HoldsForSortedAndShuffledKeys_OverALongStream(int inverseEpsilon)
+    {
+        // Keys that are mostly distinct, in the three orders a column comes in. (Keys with few distinct values hold more;
+        // see the remark on GreenwaldKhanna.NominalBytes.)
+        foreach (var order in new[] { "ascending", "descending", "shuffled" })
+        {
+            var sketch = new GreenwaldKhanna(inverseEpsilon);
+            var state = 5UL;
+            long peak = 0;
+            const long N = 1_000_000;
+            for (long i = 0; i < N; i++)
+            {
+                state = (state * 6364136223846793005UL) + 1442695040888963407UL;
+                sketch.Add(order == "ascending" ? i : order == "descending" ? N - i : (long)(state >> 30));
+                if ((i & 8191) == 0)
+                {
+                    peak = Math.Max(peak, sketch.EstimatedBytes);
+                }
+            }
+
+            peak = Math.Max(peak, sketch.EstimatedBytes);
+            Assert.True(peak <= GreenwaldKhanna.NominalBytes(inverseEpsilon), $"{order}, 1/eps {inverseEpsilon}: {peak} bytes, nominal {GreenwaldKhanna.NominalBytes(inverseEpsilon)}");
+        }
+    }
+
+    [Theory]
+    [InlineData(7)]
+    [InlineData(9)]
+    [InlineData(14)]
+    public void Hll_RawEstimate_UsesTheConstantOfItsOwnRegisterCount(int precision)
+    {
+        // One hash per register with rank 1 (the first bit after the index is set): no register is empty, so the raw
+        // estimate alpha * m^2 / sum(2^-M) = alpha * m * 2 is used, with alpha = 0.7213 / (1 + 1.079 / m).
+        var hll = new HyperLogLog(precision);
+        var m = 1UL << precision;
+        for (ulong index = 0; index < m; index++)
+        {
+            hll.Add((index << (64 - precision)) | (1UL << (63 - precision)));
+        }
+
+        Assert.Equal(0, hll.EmptyRegisters);
+        var expected = (long)Math.Round(0.7213 / (1.0 + (1.079 / m)) * m * 2.0, MidpointRounding.ToEven);
+        Assert.Equal(expected, hll.Estimate());
+    }
 }

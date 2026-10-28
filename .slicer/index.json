@@ -3243,11 +3243,14 @@
       "id": "sq-38",
       "title": "Sketches under the memory budget",
       "short_title": "Sketches under the memory budget",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-28T18:51:57Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -3266,7 +3269,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
