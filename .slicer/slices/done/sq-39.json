@@ -1,0 +1,41 @@
+{
+  "id": "sq-39",
+  "title": "First-record ceiling for byte-limited profiling",
+  "lead": [
+    "With a byte limit, squalify reads a first record that is longer than the limit to its end, however long (sq-35, owner decision 2026-10-28: \"No ceiling, document it\"). Add an opt-in ceiling, `ProfileOptions.MaxFirstRecordBytes` and `--max-first-record-bytes N`: when the first record, line terminator included, is longer than N, squalify stops reading at N+1 bytes instead of reading on. **Not in this slice:** a ceiling on any record after the first; a default ceiling (off by default, so today's behavior and descriptors are unchanged); sampling from the middle or end of a file."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "A consumer that knows its format has short header lines (a sweep-table splitter that classifies a file from its first 1 MiB) wants to refuse a huge file with no line breaks without reading all of it. Today `ScopeCut.FindLineCut` keeps reading in 4 KiB chunks until it finds a terminator or the end of the file, so a multi-gigabyte file with no line breaks is read whole. Follows sq-35, which chose \"read it whole, no ceiling\" as the default and said the overshoot is documented, not capped; this adds the opt-in without reopening that decision."
+    },
+    {
+      "heading": "Files",
+      "body": "- `ProfileOptions` and `ProfileOptions.Create` (`src/squalify/Descriptor/Options.cs`), `ScopeCut` (`src/squalify/Sources/ScopeCut.cs`), `Profiler` (validation), the CLI option in `src/squalify.Cli/CommandFactory.cs`\n- descriptor.md and `src/squalify/Json/DescriptorWriter.cs` only if the answer to Q1 adds a scope member or an issue code\n- design.md (the \"Byte limit\" paragraph), user-guide.md (\"Reading only a prefix\" and the CLI usage block), README; how-it-works.md if the pipeline text changes"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **Off by default:** a file whose first line is longer than `--max-bytes`, profiled without a ceiling, gives the same descriptor as before (golden; `scope.bytesRead` is the whole first line).\n- **Boundary:** a first record of exactly N bytes (terminator included) is accepted; N+1 bytes raises the ceiling error.\n- **Reads at most N+1 bytes:** a counting `IProfileSource` over a large file with no line break, with `MaxFirstRecordBytes` N, shows that no more than N+1 bytes were read in total (plus the lookahead units of the cut rule below), including when `MaxBytes` is larger than N+1: the ceiling check runs before the sniff of the window.\n- **Only the first record:** a first record that ends inside N does not trigger it, even when a later record is longer than N.\n- **Failure:** the ceiling raises `SqualifyException` whose message names `--max-first-record-bytes`, N and that the first record is longer; no descriptor is produced; the CLI prints the message and exits non-zero like other `SqualifyException`s.\n- **Validation:** N of zero or less raises `SqualifyException`, like `MaxBytes`; the CLI parses `--max-first-record-bytes` and rejects a non-positive or non-numeric value; **without `--max-bytes` the option is rejected** (`SqualifyException` in the library, a usage error in the CLI).\n- **Cuts (owner decision Q3):** a bare CR as the N-th byte reads one more unit: the record is N bytes when no LF follows and N+1 (ceiling error) when it is CRLF; a CRLF whose LF is byte N+1 raises the error; UTF-16LE, UTF-16BE and UTF-32 first lines count terminator and code units in bytes and stop at the first whole unit past N (so N not a multiple of the unit width is covered); a binary file with no CR or LF is not subject to the ceiling.\n- Mutation-check: changing the comparison at the boundary (> to >=) and dropping the early stop (reading on to the end) each fail a test above."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the failing tests above.\n2. Add `MaxFirstRecordBytes` (long?) to `ProfileOptions` and `ProfileOptions.Create`, optional trailing parameter (source-compatible; recompile needed, like sq-35); validate in `Profiler` (positive; rejected without `MaxBytes`).\n3. In `ScopeCut`, run the first-record check before the window sniff, reading at most N plus the lookahead unit(s), and throw `SqualifyException` when the first record is longer than N. A file at or below `MaxBytes` whose first record is longer than N is still subject; a binary file is not.\n4. CLI: `--max-first-record-bytes <n>` in `CommandFactory.cs`, with help text; update the CLI usage block in docs/user-guide.md.\n5. Docs in the same change: design.md Byte limit paragraph, user-guide.md Reading only a prefix, README line, the ProfileOptions XML doc, and the descriptor.md versioning note (no descriptor member is added, so no schema change; `scope` and the options section are unchanged)."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

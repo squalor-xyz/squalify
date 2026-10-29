@@ -217,6 +217,65 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public async Task Cli_Profile_MaxFirstRecordBytes_IsParsed_AndAnAcceptedFileGivesTheSameDescriptor()
+    {
+        var path = WriteInput("rows.csv", "id,v\n" + string.Concat(Enumerable.Range(1, 400).Select(static i => i + "," + (i * 2) + "\n")));
+        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", "500", "--max-first-record-bytes", "5");
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(0, code);
+        var plain = await RunAsync("profile", path, "--max-bytes", "500");
+        Assert.Equal(plain.Out, output);
+        var expected = Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>(), 500, 5));
+        Assert.Equal(Encoding.UTF8.GetString(DescriptorWriter.ToBytes(expected)), output);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_MaxFirstRecordBytes_FirstRecordTooLong_PrintsTheMessage_ExitsOne_WritesNothing()
+    {
+        var path = WriteInput("rows.csv", "id,value,label\n1,2,x\n");
+        var target = Path.Combine(_root, "out.json");
+        File.WriteAllText(target, "keep");
+        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10", "-o", target);
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        var refused = Assert.Throws<SqualifyException>(() => Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>(), 100, 10)));
+        Assert.Contains("--max-first-record-bytes", refused.Message, StringComparison.Ordinal);
+        Assert.Equal(refused.Message + Environment.NewLine, error);
+        Assert.Equal("keep", File.ReadAllText(target));
+        Assert.False(File.Exists(target + ".tmp"));
+
+        var (code2, output2, error2) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10");
+        Assert.Equal(1, code2);
+        Assert.Equal(string.Empty, output2);
+        Assert.Equal(error, error2);
+    }
+
+    [Theory]
+    [InlineData("0", "positive")]
+    [InlineData("-5", "positive")]
+    [InlineData("abc", "--max-first-record-bytes")]
+    public async Task Cli_Profile_MaxFirstRecordBytes_NotAPositiveNumber_ExitsOne(string value, string expectedInMessage)
+    {
+        var path = WriteInput("rows.csv", "id,v\n1,2\n");
+        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", value);
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Contains(expectedInMessage, error, StringComparison.Ordinal);
+        Assert.DoesNotContain("Unrecognized", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_MaxFirstRecordBytes_WithoutMaxBytes_ExitsOne()
+    {
+        var path = WriteInput("rows.csv", "id,v\n1,2\n");
+        var (code, output, error) = await RunAsync("profile", path, "--max-first-record-bytes", "100");
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Contains("--max-bytes", error, StringComparison.Ordinal);
+        Assert.DoesNotContain("Unrecognized", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Cli_Profile_TwiceGivesIdenticalOutput()
     {
         var path = WriteInput("sample.txt", "x\ny\n");

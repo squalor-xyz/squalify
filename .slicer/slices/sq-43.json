@@ -1,0 +1,43 @@
+{
+  "id": "sq-43",
+  "title": "Count the distinct spellings in the other counters",
+  "lead": [
+    "`nullSpellingsOther` and `allNullRowSpellingsOther` give the number of cells or rows whose spelling went past the bounds, not how many different spellings they hold. Add a distinct count for fields and for all-null rows (for example `nullSpellingsOtherDistinct` and `allNullRowSpellingsOtherDistinct`), exact or capped and marked as such. **Not in this slice:** keeping the dropped spellings themselves in the descriptor; changing the 64 and 256 bounds; configurable bounds."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [
+    "needs-owner"
+  ],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "A consumer cannot tell \"one long spelling\" from \"many\" when some spellings went past the bounds. Use case: decide whether a column of nulls has a single spelling when some of its spellings are in the \"other\" counter. With the count, `keys(nullSpellings) + nullSpellingsOtherDistinct` is the number of distinct spellings, and a column is single-spelled when that is 1. Today `SpellingCounter` keeps only a total in `Other`, so it forgets the dropped spellings and the distinct count cannot be recovered. Related: sq-36 (the members), sq-38 (sketch budget, if the answer to Q3 is a sketch), sq-32 (bytes-per-field target; a new per-field member costs bytes only for fields that spill)."
+    },
+    {
+      "heading": "Files",
+      "body": "- `SpellingCounter` (`src/squalify/Fields/SpellingCounter.cs`), `FieldAccumulator`, `RowClassAccumulator`, the field profile and `RowClassesInfo` records (`src/squalify/Descriptor/`), `DescriptorWriter`\n- docs/descriptor.md (the `nullSpellings`, `nullSpellingsOther`, `allNullRowSpellings` paragraphs, the consumer subset and the invariants in F9), design.md (memory of the counter), user-guide.md, README if it names the members; how-it-works.md if the diagram text changes; goldens that spill"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **One long spelling:** 1,000 nulls that all use one 300-character spelling give `nullSpellingsOther == 1000` and a distinct count of 1.\n- **Many spellings:** a field with 200 distinct null spellings (64 kept) gives `nullSpellingsOther` equal to the cells of the other 136 and a distinct count of 136.\n- **Mixed causes:** a column with spellings past the 64 bound and spellings over 256 characters counts each distinct spelling once, however often it recurs.\n- **All-null rows:** the same three cases for `allNullRowSpellingsOther` and its distinct count.\n- **No spill, no member:** a field or table with nothing in \"other\" has distinct count 0 and the per-field member is left out (as `nullSpellingsOther` is), unless Q2 says otherwise; narrow goldens are unchanged.\n- **Cap or approximation (pending Q1):** the chosen behavior is pinned at its boundary: either the exact count past the capped number, or the marked-approximate flag and its error.\n- **Memory (pending Q1):** the counter's `EstimatedBytes` covers whatever it now remembers, and a 2,000-column stream where every field spills stays inside the memory allowance (sq-11, sq-38); the sq-32 bytes-per-field size test still holds.\n- **Invariants:** `sum(nullSpellings) + nullSpellingsOther == nulls` and the all-null-row equivalent are unchanged; the distinct count never exceeds the \"other\" count and is at least 1 when that count is positive.\n- Mutation-check: counting a recurring spelling twice, dropping the long-spelling case, and not counting spellings past the 64 bound each fail a test above."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

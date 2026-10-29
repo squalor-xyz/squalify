@@ -23,11 +23,11 @@ flowchart LR
 
 ## 2. One profile run
 
-Every file goes through the same steps. A step that reads the file reads all of it, start to end (the exceptions are the hint step, which re-reads only the first lines, up to the header, and a run with a byte limit, which reads only the start of the file: step 0, then every step sees just that prefix), and keeps only bounded summaries in memory. The file can be far larger than RAM.
+Every file goes through the same steps. A step that reads the file reads all of it, start to end (the exceptions are the hint step, which re-reads only the first lines, up to the header, and a run with a byte limit, which reads only the start of the file: step 0, then every step sees just that prefix; if you set a first-record ceiling, step 0 first reads at most that many bytes to check the first line, and stops the run when it is too long), and keeps only bounded summaries in memory. The file can be far larger than RAM.
 
 ```mermaid
 flowchart TD
-    Z["0. Only with a byte limit:<br/>cut at the last whole line<br/><small>ScopeCut</small>"] -.-> A
+    Z["0. Only with a byte limit:<br/>cut at the last whole line,<br/>or refuse a first line over the ceiling<br/><small>ScopeCut</small>"] -.-> A
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
     B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
     C --> D["4. Profile every field:<br/>types and statistics, and group the rows<br/><small>FieldAccumulator, RowClassAccumulator</small>"]

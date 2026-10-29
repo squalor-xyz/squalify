@@ -1,0 +1,43 @@
+{
+  "id": "sq-42",
+  "title": "Publish the null-spelling bounds in limits",
+  "lead": [
+    "`fields[].nullSpellings` and `table.rowClasses.allNullRowSpellings` keep at most 64 distinct spellings of at most 256 characters each (`SpellingCounter.MaxSpellings`, `MaxLength`) and count the rest in `nullSpellingsOther` and `allNullRowSpellingsOther`. Both bounds are internal constants. Publish them in the descriptor's `limits` block and document them in docs/descriptor.md. **Not in this slice:** making the bounds configurable; changing their values; counting the distinct spellings in the \"other\" counters (the next item)."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [
+    "needs-owner"
+  ],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "A downstream consumer that must know whether a spelling was dropped has to hard-code 64 and 256 and re-check them on every squalify version bump. sq-36 shipped them as fixed and unpublished, and descriptor.md says so (\"these two bounds are fixed, they are not in `limits`\"); a consumer that reads `limits` is the one place it already looks for caps (`nullTokens`, `unitTable`, `shapeCharsPerField`, `budget`, the sq-38 sketch levels)."
+    },
+    {
+      "heading": "Files",
+      "body": "- `Limits` and `Limits.Default` (`src/squalify/Descriptor/Options.cs`), `SpellingCounter` and `FieldAccumulator` (`src/squalify/Fields/`, the constants), `DescriptorWriter` (`src/squalify/Json/DescriptorWriter.cs`)\n- docs/descriptor.md (the `limits` section, the `nullSpellings` and `allNullRowSpellings` paragraphs that say the bounds are not in `limits`, the consumer subset and versioning policy), design.md, user-guide.md; every golden descriptor if the members are always written\n- This record is also edited by sq-38 and sq-41; the later of them merges main first"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **Published:** a profiled descriptor's `limits` carries the 64 and 256 under the chosen names, and they equal the constants the counter enforces (one source of truth: the test reads the counter's constants, so changing one without the other fails).\n- **Enforced:** a field with 65 distinct null spellings keeps 64 and counts the 65th in `nullSpellingsOther`, and a spelling of 257 characters is counted there too, so the published bounds are the real ones (guards against the limits drifting from the behavior).\n- **Documented:** a docs test, in the style of the existing descriptor.md tests, checks the two members are described, and the stale sentence \"not in `limits`\" is gone from descriptor.md and design.md.\n- **Goldens:** every golden is rewritten once and the diff is only the new `limits` members (review the diff); fingerprints are unchanged (check whether `limits` enters any projection; it must not move a hash).\n- **Schema/consumer subset (pending Q1, Q2):** the members are listed in the consumer-subset table with their stability class, as the existing limits members are.\n- Mutation-check: changing one published value, and publishing the wrong constant, each fail a test above."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

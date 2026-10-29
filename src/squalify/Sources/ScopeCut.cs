@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+using System.Globalization;
+
 namespace squalor.squalify;
 
 /// <summary>A byte-limited view of a source: the first <c>length</c> bytes, so every pass sees the prefix and nothing more.</summary>
@@ -85,7 +87,8 @@ internal sealed record ScopedSource(IProfileSource Source, SniffResult Sniff, Sc
 /// limit; a text file is cut after its last line terminator (LF, CR or CRLF, in the charset's own code units) that fits
 /// in the limit. A text file with no terminator in the limit is read to the end of its first line, so a file with data
 /// never gives an empty profile. The cut is a byte offset only; no format is decided here, so a quoted field that spans
-/// lines and straddles the limit is cut at a line break inside it.
+/// lines and straddles the limit is cut at a line break inside it. With <see cref="ProfileOptions.MaxFirstRecordBytes"/>
+/// set, a text file whose first record is longer than that ceiling is refused before the window is read.
 /// </summary>
 internal static class ScopeCut
 {
@@ -96,19 +99,48 @@ internal static class ScopeCut
     /// <param name="source">The whole source.</param>
     /// <param name="maxBytes">The limit; positive.</param>
     /// <param name="tolerance">The tolerated stray invalid UTF-8 sequences.</param>
+    /// <param name="maxFirstRecordBytes">The first-record ceiling, or null for none; positive.</param>
     /// <returns>The view to profile, its byte-pass result and the scope.</returns>
-    public static ScopedSource Apply(IProfileSource source, long maxBytes, CharsetTolerance tolerance)
+    /// <exception cref="SqualifyException">The first record of a text file is longer than <paramref name="maxFirstRecordBytes"/>.</exception>
+    public static ScopedSource Apply(IProfileSource source, long maxBytes, CharsetTolerance tolerance, long? maxFirstRecordBytes = null)
     {
         var total = source.Length;
+        var windowLength = Math.Min(total, maxBytes);
+
+        // The ceiling check comes first and reads at most the ceiling (plus one unit) when the head is text: it sniffs only the
+        // head of the file, so a huge first record is refused before the window is read. When the head is the whole window,
+        // its sniff is reused. A head that is binary (or empty) says nothing about the file, because a file is binary only
+        // when its window is: then the window (at most maxBytes) is sniffed, and a text window is subject to the check.
+        SniffResult? sniffed = null;
+        if (maxFirstRecordBytes is { } ceiling)
+        {
+            var headLength = Math.Min(windowLength, ceiling);
+            var checkedSniff = ByteSniffer.Sniff(headLength == total ? source : new PrefixSource(source, headLength), tolerance);
+            if (headLength == windowLength)
+            {
+                sniffed = checkedSniff;
+            }
+            else if (checkedSniff.Kind != "text")
+            {
+                checkedSniff = ByteSniffer.Sniff(windowLength == total ? source : new PrefixSource(source, windowLength), tolerance);
+                sniffed = checkedSniff;
+            }
+
+            if (checkedSniff.Kind == "text" && checkedSniff.Charset is { } checkedCharset)
+            {
+                CheckFirstRecord(source, ceiling, UnitWidth(checkedCharset), BigEndian(checkedCharset), total);
+            }
+        }
+
         if (total <= maxBytes)
         {
-            var whole = ByteSniffer.Sniff(source, tolerance);
+            var whole = sniffed ?? ByteSniffer.Sniff(source, tolerance);
             return new ScopedSource(source, whole, new ScopeSection(maxBytes, whole.Length, true));
         }
 
         // The class of the content (text or binary) and the charset come from the bytes inside the limit.
         var window = new PrefixSource(source, maxBytes);
-        var sniff = ByteSniffer.Sniff(window, tolerance);
+        var sniff = sniffed ?? ByteSniffer.Sniff(window, tolerance);
         var cut = maxBytes;
         if (sniff.Kind == "text" && sniff.Charset is { } charset)
         {
@@ -121,6 +153,63 @@ internal static class ScopeCut
         }
 
         return new ScopedSource(window, sniff, new ScopeSection(maxBytes, sniff.Length, sniff.Length >= total));
+    }
+
+    // Throws when the first record, its terminator included, is longer than ceiling bytes. Counts in the charset's code
+    // units, so a terminator unit that ends past the ceiling makes the record too long. It reads whole units inside the
+    // ceiling and, only when a CR ends within one unit of it, the one unit after the CR to see whether it is a CRLF.
+    private static void CheckFirstRecord(IProfileSource source, long ceiling, int width, bool bigEndian, long total)
+    {
+        var inside = ceiling - (ceiling % width);
+        var buffer = new byte[LookaheadChunk - (LookaheadChunk % width)];
+        long position = 0;
+        using var stream = source.Open();
+        while (position < inside)
+        {
+            var want = (int)Math.Min(buffer.Length, inside - position);
+            var read = ReadUnits(stream, buffer.AsSpan(0, want), width);
+            if (read == 0)
+            {
+                break;
+            }
+
+            for (var index = 0; index < read; index += width)
+            {
+                var kind = Terminator(buffer.AsSpan(index, width), bigEndian);
+                if (kind == '\0')
+                {
+                    continue;
+                }
+
+                var end = position + index + width;
+                if (kind == '\r' && end + width > ceiling)
+                {
+                    // The CR ends within one unit of the ceiling: an LF after it makes the record end past the ceiling.
+                    var next = new byte[width];
+                    if (ReadUnits(stream, next, width) == width && Terminator(next, bigEndian) == '\n')
+                    {
+                        throw TooLong(source, ceiling);
+                    }
+                }
+
+                return;
+            }
+
+            position += read;
+        }
+
+        // No terminator inside the ceiling: the record is the whole file when that fits, and longer than the ceiling otherwise.
+        if (total > ceiling)
+        {
+            throw TooLong(source, ceiling);
+        }
+    }
+
+    private static SqualifyException TooLong(IProfileSource source, long ceiling)
+    {
+        return new SqualifyException(
+            $"The first record of '{source.Name}' is longer than {ceiling.ToString(CultureInfo.InvariantCulture)} bytes, its line terminator included "
+            + "(--max-first-record-bytes); nothing was profiled.");
     }
 
     private static int UnitWidth(string charset)
