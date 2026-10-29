@@ -37,11 +37,14 @@ public sealed class ThroughputTests(ITestOutputHelper output)
     [Trait("Category", "Large")]
     public void Bench_PaddedWide_4Gb()
     {
-        // Recorded only: the figures go into the slicer note, nothing is asserted about them.
+        // Recorded only: the figures go into the slicer note, and no ceiling or timing is asserted about them.
         foreach (var pass in Enum.GetValues<BenchPass>())
         {
             var result = ThroughputBench.Run(BenchShape.PaddedWide, pass, 4 * Gib, TimeSpan.FromHours(6));
             output.WriteLine(ThroughputBench.Describe(result));
+
+            // Not a memory assertion: it keeps a six-hour run from recording a pass that did nothing.
+            ThroughputBench.AssertRan(result);
         }
     }
 
@@ -74,6 +77,23 @@ public sealed class ThroughputTests(ITestOutputHelper output)
         Assert.ThrowsAny<XunitException>(() => ThroughputBench.AssertWithinCeiling(result, ceilingBytes: 1));
         Assert.ThrowsAny<XunitException>(() => ThroughputBench.AssertWithinCeiling(result, ceilingBytes: growth - 1));
         ThroughputBench.AssertWithinCeiling(result, ceilingBytes: growth);
+    }
+
+    [Fact]
+    public void Bench_RecordsTheRunContext()
+    {
+        // A recorded figure is only comparable with a later one (a changed profiler, another machine) when the run says
+        // where it came from, and a GC-mode failure then explains itself.
+        var result = ThroughputBench.Run(BenchShape.PaddedWide, BenchPass.Drain, 1 * Mib, TimeSpan.FromMinutes(5));
+        foreach (var key in new[] { "os=", "arch=", "runtime=", "cpus=", "serverGC=", "gcLatency=", "gcServerEnv=", "gcConcurrentEnv=", "version=", "commit=" })
+        {
+            Assert.Contains(key, result.Context, StringComparison.Ordinal);
+        }
+
+        var description = ThroughputBench.Describe(result);
+        Assert.Contains(result.Context, description, StringComparison.Ordinal);
+        Assert.Contains(result.Raw, description, StringComparison.Ordinal);
+        Assert.Contains("bytes=", result.Raw, StringComparison.Ordinal);
     }
 
     [Fact]

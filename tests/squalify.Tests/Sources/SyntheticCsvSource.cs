@@ -20,7 +20,7 @@ internal sealed class SyntheticCsvSource : IProfileSource
     // The fixed width of each kind, in bytes.
     private static readonly int[] KindWidths = [9, 6, 8, 10, 3, 8, 8, 3];
 
-    private const int MaxValueWidth = 10;
+    private const int MinCellWidth = 11; // the widest data value is 10; the annotation label "Upper_limit" is 11
     private const int AnnotationRows = 4;
 
     private static readonly byte[][] Dates = BuildDates();
@@ -106,12 +106,12 @@ internal sealed class SyntheticCsvSource : IProfileSource
     /// </summary>
     /// <param name="rows">The number of data rows.</param>
     /// <param name="columns">The number of columns, at least 1.</param>
-    /// <param name="cellWidth">The width of every cell in bytes, at least 10 (the widest value).</param>
+    /// <param name="cellWidth">The width of every cell in bytes, at least 11 (the label "Upper_limit").</param>
     /// <param name="seed">The seed of the generator, not 0.</param>
     /// <returns>The source.</returns>
     public static SyntheticCsvSource PaddedWide(long rows, int columns, int cellWidth, ulong seed = 1)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(cellWidth, MaxValueWidth);
+        ArgumentOutOfRangeException.ThrowIfLessThan(cellWidth, MinCellWidth);
         return new SyntheticCsvSource(rows, columns, seed, cellWidth);
     }
 

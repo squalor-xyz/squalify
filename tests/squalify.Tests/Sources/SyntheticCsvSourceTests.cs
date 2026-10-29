@@ -61,6 +61,23 @@ public sealed class SyntheticCsvSourceTests
         Assert.NotEqual(a, other);
     }
 
+    [Theory]
+    [InlineData(10)]
+    [InlineData(1)]
+    public void SyntheticCsvSource_PaddedWide_CellNarrowerThanTheLabels_IsRejected(int cellWidth)
+    {
+        // "Upper_limit" and "Lower_limit" are 11 characters: a narrower cell would make the head lines longer than the data rows.
+        Assert.Throws<ArgumentOutOfRangeException>(() => SyntheticCsvSource.PaddedWide(5, 4, cellWidth));
+    }
+
+    [Fact]
+    public void SyntheticCsvSource_PaddedWide_NarrowestCell_KeepsEveryTableLineTheSameLength()
+    {
+        var source = SyntheticCsvSource.PaddedWide(5, 9, 11);
+        var lines = Encoding.ASCII.GetString(ReadAll(source))[..^1].Split('\n').Skip(source.PreambleLineCount).ToArray();
+        Assert.Single(lines.Select(static l => l.Length).Distinct());
+    }
+
     private static byte[] ReadAll(IProfileSource source)
     {
         using var stream = source.Open();

@@ -69,6 +69,8 @@ internal static class ThroughputBench
     /// <param name="Baseline">The peak working set of the child after the baseline run.</param>
     /// <param name="EstimatedBytes">The peak of the accumulators' estimated bytes (0 unless the pass is <see cref="BenchPass.Full"/>).</param>
     /// <param name="CeilingBytes">The ceiling for the growth of the peak working set over the baseline.</param>
+    /// <param name="Raw">The child's figures as one line of <c>key=value</c> pairs, to paste into a note.</param>
+    /// <param name="Context">The run context as one line of <c>key=value</c> pairs: OS, architecture, runtime, CPU count, GC mode, library version and commit.</param>
     /// <param name="Counted">The bytes the pass itself counted: read by Drain, counted by the byte pass, the file size of the full profile. It equals <paramref name="Bytes"/> when the pass read the whole stream.</param>
     public sealed record Result(
         BenchShape Shape,
@@ -84,7 +86,9 @@ internal static class ThroughputBench
         long Baseline,
         long EstimatedBytes,
         long CeilingBytes,
-        long Counted)
+        long Counted,
+        string Raw = "",
+        string Context = "")
     {
         /// <summary>The growth of the peak working set over the baseline.</summary>
         public long Growth => PeakWorkingSet - Baseline;
@@ -134,7 +138,9 @@ internal static class ThroughputBench
             L("baseline"),
             L("estimated"),
             L("ceiling"),
-            L("counted"));
+            L("counted"),
+            lines[0],
+            lines.Length > 1 ? lines[1] : string.Empty);
     }
 
     /// <summary>
@@ -166,9 +172,27 @@ internal static class ThroughputBench
     /// <returns>The line.</returns>
     public static string Describe(Result result)
     {
-        return string.Create(
+        var summary = string.Create(
             CultureInfo.InvariantCulture,
             $"{result.Shape,-10} {result.Pass,-8} {result.Bytes / 1048576.0,8:F0} MiB  {result.Seconds,8:F2} s  {result.MegabytesPerSecond,8:F1} MB/s  {result.CellsPerSecond / 1e6,7:F2} Mcells/s  peak {result.PeakWorkingSet / 1e6:F1} MB  baseline {result.Baseline / 1e6:F1} MB  growth {result.Growth / 1e6:F1} MB  estimated {result.EstimatedBytes / 1e6:F1} MB  ceiling {result.CeilingBytes / 1e6:F1} MB  rows {result.Rows}  tableRows {result.TableRows}  fields {result.Fields}  constantLineLength {result.ConstantLineLength}");
+
+        // The raw lines are for pasting into a note and comparing later: the figures, then where they were measured.
+        return $"{summary}\n    raw: shape={result.Shape} pass={result.Pass} {result.Raw}\n    context: {result.Context}";
+    }
+
+    // Where a figure was measured, as key=value pairs: the machine, the runtime, the GC mode the child ran under (a
+    // server or non-concurrent GC changes the peak working set by GC slack), the library version and the commit. The
+    // commit is not in the assembly (Directory.Build.props leaves the source revision out of the version, for
+    // determinism) and the test does not run git, so the caller gives it in SQUALIFY_BENCH_COMMIT.
+    private static string RunContext()
+    {
+        static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? "unset";
+        static string Word(string text) => text.Replace(' ', '_');
+        var version = typeof(Profiler).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion ?? "unknown";
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"os={Word(System.Runtime.InteropServices.RuntimeInformation.OSDescription)} arch={System.Runtime.InteropServices.RuntimeInformation.OSArchitecture} runtime={Environment.Version} cpus={Environment.ProcessorCount} serverGC={System.Runtime.GCSettings.IsServerGC} gcLatency={System.Runtime.GCSettings.LatencyMode} gcServerEnv={Env("DOTNET_gcServer")} gcConcurrentEnv={Env("DOTNET_gcConcurrent")} gcgen0sizeEnv={Env("DOTNET_GCgen0size")} version={Word(version)} commit={Word(Env("SQUALIFY_BENCH_COMMIT"))}");
     }
 
     /// <summary>The child's entry point: <c>--throughput-probe PASS SHAPE BYTES</c>. Writes one line of <c>key=value</c> figures.</summary>
@@ -201,6 +225,7 @@ internal static class ThroughputBench
             string.Create(
                 CultureInfo.InvariantCulture,
                 $"bytes={source.Length} rows={source.Rows} tableRows={descriptor?.Table?.Rows ?? 0} fields={descriptor?.Table?.Fields.Count ?? 0} constantLineLength={(padding?.ConstantLineLength == true ? "true" : "false")} cells={source.Rows * source.Columns} seconds={clock.Elapsed.TotalSeconds:F3} peak={peak} baseline={baseline} estimated={trace.PeakEstimatedBytes} ceiling={trace.CeilingBytes} counted={counted}"));
+        Console.Out.WriteLine(RunContext());
         return 0;
     }
 
