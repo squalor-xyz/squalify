@@ -121,7 +121,7 @@ public sealed record Limits(
 public sealed record SketchLimits(long HllPrecision, double RankError, long BudgetBytes)
 {
     /// <summary>The full precision of a table that is not scaled: precision 14, epsilon 0.001, and the sketch budget of this tool version.</summary>
-    public static SketchLimits Default { get; } = new(HyperLogLog.Precision, GreenwaldKhanna.Epsilon, MemoryBudget.SketchBudgetBytes);
+    internal static SketchLimits Default { get; } = new(HyperLogLog.Precision, GreenwaldKhanna.Epsilon, MemoryBudget.SketchBudgetBytes);
 }
 
 /// <summary>

@@ -39,6 +39,34 @@ public sealed class ApiSurfaceTests : IDisposable
     }
 
     [Fact]
+    public void SketchLimits_Default_IsNotPublic()
+    {
+        // The caps are not API (sq-41): a consumer reads the sketch precision from limits.sketches.
+        const BindingFlags publicStatic = BindingFlags.Public | BindingFlags.Static;
+        Assert.Null(typeof(SketchLimits).GetProperty("Default", publicStatic));
+        Assert.Null(typeof(SketchLimits).GetField("Default", publicStatic));
+        Assert.Null(typeof(SketchLimits).GetMethod("get_Default", publicStatic));
+
+        var internalDefault = typeof(SketchLimits).GetProperty("Default", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(internalDefault);
+        Assert.Same(SketchLimits.Default, internalDefault.GetValue(null));
+    }
+
+    [Fact]
+    public void NullSpellingLimits_Default_IsNotPublic()
+    {
+        // sq-42: the bounds on the null spellings are not API either; a consumer reads them from limits.nullSpellings.
+        const BindingFlags publicStatic = BindingFlags.Public | BindingFlags.Static;
+        Assert.Null(typeof(NullSpellingLimits).GetProperty("Default", publicStatic));
+        Assert.Null(typeof(NullSpellingLimits).GetField("Default", publicStatic));
+        Assert.Null(typeof(NullSpellingLimits).GetMethod("get_Default", publicStatic));
+
+        var internalDefault = typeof(NullSpellingLimits).GetProperty("Default", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(internalDefault);
+        Assert.Same(NullSpellingLimits.Default, internalDefault.GetValue(null));
+    }
+
+    [Fact]
     public void PublicSurface_NoStaticMemberExposesTheDefaultCaps()
     {
         const BindingFlags publicStatic = BindingFlags.Public | BindingFlags.Static;

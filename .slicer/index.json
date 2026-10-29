@@ -3651,6 +3651,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "894be378-7afb-4366-94c4-b892824cba34",
+          "kind": "",
+          "text": "**2026-10-29** — Owner decision (2026-10-29), verbatim, after the review: R2 \"Make SketchLimits.Default internal too (Recommended)\" (option text: \"All default caps are internal (sq-41 rule: the caps are not API); consumers read them from the descriptor limits block. A one-line change in a small follow-up fix added to sq-42 branch, plus a breaking-changes line (SketchLimits.Default was public in unreleased 1.0.0 work only, so it is not breaking against 0.2.0).\"). Later from the review: R3 (real-file golden coverage confirmed, 24 failures under a bad writer; the implementer M1 to M10 run was narrower), R4 (sq-43 adds the cap as a third positional member of NullSpellingLimits, required, API added not breaking; keep always written; add the key to the limits.nullSpellings key-order row and the consumer subset).",
+          "created_at": "2026-10-29T20:51:22Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {
