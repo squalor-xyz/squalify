@@ -15,7 +15,8 @@ public static class Profiler
     /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>, or
     /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
     /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
-    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled).
+    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled), or a limit is given and the source reports
+    /// a negative <see cref="IProfileSource.Length"/>.
     /// </exception>
     public static Descriptor Profile(IProfileSource source, ProfileOptions options)
     {
@@ -46,12 +47,14 @@ public static class Profiler
     /// <summary>
     /// Profiles the start of a source and returns the descriptor together with the exact bytes it describes, from one read of
     /// the source: the cut is the one <see cref="ProfileOptions.MaxBytes"/> gives to <see cref="Profile(IProfileSource, ProfileOptions)"/>
-    /// (a binary file at the limit; a text file after its last LF, CR or CRLF, in the charset's own code units, inside the
-    /// limit; a CR that ends the limit takes the LF after it; with no terminator inside the limit, to the first terminator or
-    /// the end), so the descriptor equals the one <see cref="Profile(IProfileSource, ProfileOptions)"/> gives for the same options.
+    /// (a file whose bytes inside the limit sniff as binary at the limit; otherwise after the last LF, CR or CRLF, in the
+    /// code units of the charset sniffed from the bytes inside the limit, inside the limit; a CR that ends the limit takes the
+    /// LF after it; with no terminator inside the limit, to the first terminator or the end; a limit shorter than a byte order
+    /// mark can sniff differently from the whole file), so the descriptor equals the one <see cref="Profile(IProfileSource, ProfileOptions)"/> gives for the same options.
     /// The source is opened once. The bytes are buffered, up to <see cref="ProfileOptions.MaxBytes"/> plus the overshoot (one
     /// code unit when a CR ends the limit; the rest of the first record when it is longer than the limit);
-    /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>.
+    /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>,
+    /// and is never read past it.
     /// </summary>
     /// <param name="source">The source.</param>
     /// <param name="options">The options that affect output; <see cref="ProfileOptions.MaxBytes"/> is required.</param>

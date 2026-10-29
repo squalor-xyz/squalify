@@ -41,7 +41,7 @@ squalify profile sweep-preamble.csv | jq -c '{family: .format.family, rows: .tab
 - **Catch schema drift:** fingerprints are the same for files with the same structure, whatever their values.
 - **Gate a pipeline:** fail a CI step when a file has issues such as ragged rows.
 - **Triage unknown files:** named magic (gzip, zip, pdf, sqlite, ...), encoding and line endings, without opening the file.
-- **Look at a large file cheaply:** `--max-bytes` profiles just the start, cut at the last whole line, and the descriptor says how much it read. `--max-first-record-bytes` refuses a file whose first line is longer than that, without reading it. In code, `Profiler.ProfilePrefix` returns the descriptor and the exact prefix bytes it describes, from one read.
+- **Look at a large file cheaply:** `--max-bytes` profiles just the start, cut at the last whole line, and the descriptor says how much it read. `--max-first-record-bytes` refuses a file whose first line is longer than that, without reading it. In code, `Profiler.ProfilePrefix` returns the descriptor and the exact prefix bytes it describes, from one read; the cut rule (decided from the bytes inside the limit) is documented in the user guide as a contract.
 - **Feed other tools:** the same deterministic JSON on any OS (within one .NET runtime major version; see [Use as a library](#use-as-a-library)), with no data values unless you opt in.
 
 ## Docs

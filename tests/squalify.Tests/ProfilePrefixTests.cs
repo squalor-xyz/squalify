@@ -307,6 +307,14 @@ public sealed class ProfilePrefixTests
     }
 
     [Fact]
+    public void Profile_WithALimit_AndANegativeLength_IsRejected_AsProfilePrefixDoes()
+    {
+        var source = new CountingSource("t.csv", Cases["lf"].Bytes, reportedLength: -1);
+        Assert.Throws<SqualifyException>(() => Profiler.Profile(source, Limit(1000)));
+        Assert.Equal(0, source.Opens);
+    }
+
+    [Fact]
     public void SourceReportingMoreThanItHolds_GivesTheBytesItHad_AndTheDescriptorDescribesThem()
     {
         var bytes = Cases["lf"].Bytes;
@@ -316,6 +324,106 @@ public sealed class ProfilePrefixTests
         Assert.True(result.Prefix.Span.SequenceEqual(bytes.AsSpan(0, result.Prefix.Length)));
         Assert.Equal(result.Prefix.Length, result.Scope.BytesRead);
         Assert.Equal(bytes.Length + 5000, result.Descriptor.File.Size);
+    }
+
+    [Fact]
+    public void DeclaredLength_IsNeverReadPast_EvenWhenTheSourceHoldsMore()
+    {
+        // The source declares 10 bytes and holds 7.4 MB: the bytes beyond the declared length are not part of the file.
+        var bytes = Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("ab,cd,ef\n", 740_000)));
+        var source = new CountingSource("t.csv", bytes, reportedLength: 10);
+        var result = Profiler.ProfilePrefix(source, Limit(100));
+
+        Assert.True(source.BytesRead <= 10, "the inner stream was read to " + source.BytesRead);
+        Assert.Equal(1, source.Opens);
+        Assert.True(result.Prefix.Length <= 10);
+        Assert.Equal(result.Prefix.Length, result.Scope.BytesRead);
+        Assert.Equal(10, result.Descriptor.File.Size);
+        Assert.True(result.Prefix.Span.SequenceEqual(bytes.AsSpan(0, result.Prefix.Length)));
+        Assert.True(MemoryMarshal.TryGetArray(result.Prefix, out var segment));
+        Assert.True(segment.Array!.Length <= 10, "the buffer holds at most the declared length: " + segment.Array.Length);
+    }
+
+    [Fact]
+    public void DeclaredLength_ShorterThanTheLimit_WithMoreBehindIt_IsStillNotReadPast()
+    {
+        var bytes = Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("ab,cd,ef\n", 100_000)));
+        var source = new CountingSource("t.csv", bytes, reportedLength: 3000);
+        var result = Profiler.ProfilePrefix(source, Limit(1_000_000));
+        Assert.True(source.BytesRead <= 3000, "read " + source.BytesRead);
+        Assert.Equal(3000, result.Descriptor.File.Size);
+        Assert.True(result.Prefix.Length <= 3000);
+    }
+
+    [Fact]
+    public void Capacity_WhenACrEndsTheWindow_StaysWithinTheWindowPlusAFewKiB()
+    {
+        // 16-byte lines ("0123456789ABCD" and CRLF): a limit of 999,999 ends on a CR, and the LF after it is the overshoot.
+        var bytes = Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("0123456789ABCD\r\n", 100_000)));
+        const long max = 999_999;
+        Assert.Equal((byte)'\r', bytes[max - 1]);
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Limit(max));
+
+        Assert.Equal(1_000_000, result.Prefix.Length);
+        Assert.True(MemoryMarshal.TryGetArray(result.Prefix, out var segment));
+        Assert.True(segment.Array!.Length <= max + 4096, "the backing array is " + segment.Array.Length + " bytes");
+    }
+
+    [Fact]
+    public void Capacity_NeverExceedsTheSourceLength_WhenTheOvershootIsTheLastByte()
+    {
+        // The LF after the CR that ends the window is the last byte of the file: the buffer is exactly the file.
+        var bytes = Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("0123456789ABCD\r\n", 62_500)));
+        Assert.Equal(1_000_000, bytes.Length);
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Limit(999_999));
+
+        Assert.Equal(1_000_000, result.Prefix.Length);
+        Assert.True(result.Scope.Complete);
+        Assert.True(MemoryMarshal.TryGetArray(result.Prefix, out var segment));
+        Assert.True(segment.Array!.Length <= bytes.Length, "the backing array is " + segment.Array.Length + " bytes");
+    }
+
+    [Fact]
+    public void TheInnerStream_IsDisposedExactlyOnce_OnSuccess_OnARefusal_AndOnAnException()
+    {
+        var bytes = Cases["lf"].Bytes;
+
+        var ok = new DisposeTrackingSource("t.csv", bytes);
+        Profiler.ProfilePrefix(ok, Limit(1000));
+        Assert.Equal(1, ok.Opens);
+        Assert.Equal(1, ok.Disposed);
+
+        var refused = new DisposeTrackingSource("t.csv", bytes);
+        Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(refused, Limit(1000, 5)));
+        Assert.Equal(1, refused.Opens);
+        Assert.Equal(1, refused.Disposed);
+
+        // The failure comes while the search for the cut reads past the window, a read that no sniff wraps.
+        var failing = new DisposeTrackingSource("t.csv", Cases["long-first-line"].Bytes, failAfter: 500);
+        Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(failing, Limit(100)));
+        Assert.Equal(1, failing.Opens);
+        Assert.Equal(1, failing.Disposed);
+    }
+
+    [Fact]
+    public void AnIOException_FromTheSourceStream_IsWrappedAsSqualifyException()
+    {
+        // Fails past the window (100 bytes), in the search for the end of the first line.
+        var source = new DisposeTrackingSource("t.csv", Cases["long-first-line"].Bytes, failAfter: 500);
+        var ex = Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(source, Limit(100)));
+        Assert.IsType<IOException>(ex.InnerException);
+        Assert.Contains("Cannot read 't.csv'", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("disk went away", ex.Message, StringComparison.Ordinal);
+        Assert.Equal(1, source.Disposed);
+    }
+
+    [Fact]
+    public void AnIOException_InsideTheWindowSniff_IsAlsoWrapped_AndTheStreamDisposed()
+    {
+        var source = new DisposeTrackingSource("t.csv", Cases["lf"].Bytes, failAfter: 300);
+        var ex = Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(source, Limit(1000)));
+        Assert.IsType<IOException>(ex.InnerException);
+        Assert.Equal(1, source.Disposed);
     }
 
     [Fact]
@@ -384,6 +492,72 @@ public sealed class ProfilePrefixTests
 
         var members = typeof(IProfileSource).GetMembers().Select(static m => m.Name).Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(new[] { "Length", "Name", "Open", "get_Length", "get_Name" }, members);
+    }
+
+    /// <summary>A source that counts the disposals of its streams and can fail with an IOException after some bytes.</summary>
+    private sealed class DisposeTrackingSource(string name, byte[] bytes, long failAfter = -1) : IProfileSource
+    {
+        public string Name { get; } = name;
+
+        public long Length => bytes.Length;
+
+        public int Opens { get; private set; }
+
+        public int Disposed { get; private set; }
+
+        public Stream Open()
+        {
+            Opens++;
+            return new Tracking(this, new MemoryStream(bytes, writable: false), failAfter);
+        }
+
+        private sealed class Tracking(DisposeTrackingSource owner, MemoryStream inner, long failAfter) : Stream
+        {
+            public override bool CanRead => true;
+
+            public override bool CanSeek => false;
+
+            public override bool CanWrite => false;
+
+            public override long Length => inner.Length;
+
+            public override long Position
+            {
+                get => inner.Position;
+                set => throw new NotSupportedException();
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (failAfter >= 0 && inner.Position >= failAfter)
+                {
+                    throw new IOException("disk went away");
+                }
+
+                var room = failAfter >= 0 ? (int)Math.Min(count, failAfter - inner.Position) : count;
+                return inner.Read(buffer, offset, room);
+            }
+
+            public override void Flush()
+            {
+            }
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    owner.Disposed++;
+                }
+
+                base.Dispose(disposing);
+            }
+        }
     }
 
     /// <summary>A source that counts its opens and the bytes handed out, and hands them out in short reads.</summary>

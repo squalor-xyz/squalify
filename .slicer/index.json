@@ -3397,6 +3397,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "6ee9bfe0-cfca-4860-ac49-bc66190d21ac",
+          "kind": "",
+          "text": "**2026-10-29** — Owner decisions (2026-10-29), verbatim, after the review: R2 \"Never read past Length (Recommended)\" (option text: \"BufferedSource stops at the declared Length, so memory stays bounded and the descriptor still describes exactly Prefix. file.size is the reported Length, as documented. Bytes beyond Length are simply not part of the file as the source declares it.\"). R4 \"Contract includes the window sniff (Recommended)\" (option text: \"Reword to a file whose bytes inside the limit sniff as binary / the charset sniffed from the bytes inside the limit, state that a limit shorter than a BOM can sniff differently, and that a sniff change that moves a cut is a documented breaking change. Keeps your Q6 decision.\").",
+          "created_at": "2026-10-29T19:13:01Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {
