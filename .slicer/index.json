@@ -2283,6 +2283,28 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "2668b4bf-503b-4cc0-a6f5-c59e85b5e70c",
+          "kind": "",
+          "text": "**2026-10-29** — Large run after sq-43 (2026-10-29, main at caf2973, alone, same machine class as the sq-19 note): all 3 passed in 6.8 min. PADDED WIDE 256 x 64, 1 GiB (asserted): full profile 61.7 s (17.4 MB/s), growth 146.5 MB vs ceiling 159.1 MB (margin 12.6 MB; was 13.5 MB before sq-42 and sq-43; estimate unchanged at 92.0 MB, the 256-field shape spills no null spellings). 4 GiB (recorded): full profile 244.9 s (17.5 MB/s), growth 148.0 MB. PLAIN 12 columns, 1 GiB (asserted): full profile 82.8 s (13.0 MB/s), growth 8.5 MB vs ceiling 76.5 MB. Byte pass 1.7 to 2.3 s per GiB. No unbounded component; re-run the Large category once more at the release.",
+          "created_at": "2026-10-29T21:36:39Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "3aa9e7e4-f84c-4e22-87af-98570cba33b5",
+          "kind": "",
+          "text": "**2026-10-29** — Inputs for this slice from the landed slices (later items filed on them; read them with slicer show): sq-38 (limits.sketches always written: required in the schema), sq-39 (no descriptor member; ProfileOptions.MaxFirstRecordBytes is not written), sq-40 (A9: the versioning policy should name the cut rule and the window sniff: a change that moves scope.bytesRead is a change of meaning), sq-41 (value equality, internal defaults), sq-42 and sq-43 (limits.nullSpellings { max, maxChars, maxDistinctOther } always written; fields nullSpellingsOtherDistinct optional integer minimum 1 and nullSpellingsOtherDistinctCapped optional const true; rowClasses allNullRowSpellingsOtherDistinct required integer minimum 0 and allNullRowSpellingsOtherDistinctCapped optional const true; the subset has no dependentRequired, so the cross-member rules (Distinct present exactly when Other is; Distinct <= Other; Capped implies Distinct == maxDistinctOther) go to the validator and the docs, and the schema must not pin maximum or const 64; the writer model should gain a spilling field and a capped rowClasses; mark the spelling-hash description informative).",
+          "created_at": "2026-10-29T21:36:39Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,

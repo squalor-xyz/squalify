@@ -530,3 +530,5 @@
 {"when": "2026-10-29T21:29:22Z", "item": "sq-43", "action": "note", "from": "", "to": "", "note": "Verified outcome: distinct count of dropped null spellings (", "by": "Jon Robbins"}
 {"when": "2026-10-29T21:29:23Z", "item": "sq-43", "action": "note", "from": "", "to": "", "note": "Later (from review and architect): (1) Add a small golden fi", "by": "Jon Robbins"}
 {"when": "2026-10-29T21:29:23Z", "item": "sq-43", "action": "status", "from": "started", "to": "done", "note": "Distinct count of dropped null spellings, capped exact; limits.nullSpellings.maxDistinctOther. Gate PASS.", "by": "Jon Robbins"}
+{"when": "2026-10-29T21:36:39Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Large run after sq-43 (2026-10-29, main at caf2973, alone, s", "by": "Jon Robbins"}
+{"when": "2026-10-29T21:36:39Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Inputs for this slice from the landed slices (later items fi", "by": "Jon Robbins"}
