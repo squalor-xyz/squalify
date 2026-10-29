@@ -12,7 +12,8 @@ public static class Profiler
     /// <param name="options">The options that affect output.</param>
     /// <returns>The descriptor.</returns>
     /// <exception cref="SqualifyException">
-    /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>, or
+    /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c> (a backslash is
+    /// refused on every platform, also where a file name may hold one), or
     /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
     /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
     /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled).
@@ -33,10 +34,7 @@ public static class Profiler
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(fieldLimits);
         ArgumentNullException.ThrowIfNull(options);
-        if (string.IsNullOrEmpty(source.Name) || source.Name.AsSpan().IndexOfAny('/', '\\') >= 0)
-        {
-            throw new SqualifyException("The source name must be a bare file name, with no directory part and not empty; a path never reaches the descriptor.");
-        }
+        SourceNameGuard.Check(source.Name);
 
         if (options.MaxBytes is <= 0)
         {

@@ -10,6 +10,7 @@ public interface IProfileSource
     /// <summary>
     /// The file name, without any directory: not empty, and containing neither <c>/</c> nor <c>\</c>.
     /// <see cref="Profiler"/> rejects any other name with a <see cref="SqualifyException"/>, because a path must never reach the descriptor.
+    /// A backslash is refused on every platform, also where a file name may hold one (macOS and Linux): the descriptor name never holds one.
     /// </summary>
     string Name { get; }
 

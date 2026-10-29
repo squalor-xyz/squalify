@@ -3461,7 +3461,7 @@
       "id": "sq-41",
       "title": "Public API surface before 1.0.0",
       "short_title": "API surface before 1.0",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3499,7 +3499,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-29T19:18:59Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -3518,7 +3521,7 @@
         "importance": 2,
         "urgency": 1,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

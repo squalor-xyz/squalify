@@ -134,6 +134,34 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public async Task Cli_Profile_EmptyPath_PrintsAPlainMessageWithoutTheParameterName()
+    {
+        var (code, output, error) = await RunAsync("profile", string.Empty);
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Equal("Cannot profile an empty path: give the path of a data file." + Environment.NewLine, error);
+        Assert.DoesNotContain("Parameter", error, StringComparison.Ordinal);
+        Assert.DoesNotContain("(path)", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_FileNameWithABackslash_ExitsOneAndNamesTheBackslash()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            // A backslash is a path separator there and cannot be in a file name.
+            return;
+        }
+
+        var path = WriteInput("left\\right.csv", "a,b\n1,2\n");
+        var (code, output, error) = await RunAsync("profile", path);
+        Assert.Equal(1, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Contains("backslash", error, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(_root, error, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Cli_Profile_IncludeValues_IsRecordedInOptions()
     {
         var path = WriteInput("sample.txt", "a\n");

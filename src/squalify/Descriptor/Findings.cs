@@ -15,14 +15,62 @@ public sealed record Issue(
     long Count,
     IReadOnlyList<long>? FirstLines = null,
     IReadOnlyList<long>? Offsets = null,
-    IReadOnlyList<string>? Names = null);
+    IReadOnlyList<string>? Names = null)
+{
+    /// <inheritdoc />
+    public bool Equals(Issue? other)
+    {
+        return other is not null
+            && EqualityComparer<string>.Default.Equals(Code, other.Code)
+            && EqualityComparer<long>.Default.Equals(Count, other.Count)
+            && ValueEquality.ListEquals(FirstLines, other.FirstLines)
+            && ValueEquality.ListEquals(Offsets, other.Offsets)
+            && ValueEquality.ListEquals(Names, other.Names);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Code);
+        hash.Add(Count);
+        ValueEquality.AddList(ref hash, FirstLines);
+        ValueEquality.AddList(ref hash, Offsets);
+        ValueEquality.AddList(ref hash, Names);
+        return hash.ToHashCode();
+    }
+}
+
 
 /// <summary>An entry of <c>evidence[]</c>: one inference and the candidates considered.</summary>
 /// <param name="Stage">The pipeline stage.</param>
 /// <param name="Topic">The topic within the stage.</param>
 /// <param name="Chosen">The chosen value, or null when nothing was chosen.</param>
 /// <param name="Candidates">The candidates in scoring order.</param>
-public sealed record Evidence(string Stage, string Topic, string? Chosen, IReadOnlyList<Candidate> Candidates);
+public sealed record Evidence(string Stage, string Topic, string? Chosen, IReadOnlyList<Candidate> Candidates)
+{
+    /// <inheritdoc />
+    public bool Equals(Evidence? other)
+    {
+        return other is not null
+            && EqualityComparer<string>.Default.Equals(Stage, other.Stage)
+            && EqualityComparer<string>.Default.Equals(Topic, other.Topic)
+            && EqualityComparer<string?>.Default.Equals(Chosen, other.Chosen)
+            && ValueEquality.ListEquals(Candidates, other.Candidates);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Stage);
+        hash.Add(Topic);
+        hash.Add(Chosen);
+        ValueEquality.AddList(ref hash, Candidates);
+        return hash.ToHashCode();
+    }
+}
+
 
 /// <summary>One candidate of an evidence entry.</summary>
 /// <param name="Value">The candidate value.</param>
@@ -55,7 +103,46 @@ public sealed record Hints(
     string? Delimiter,
     string? HeaderConvention,
     StdfHints? Stdf,
-    string FileNameShape);
+    string FileNameShape)
+{
+    /// <inheritdoc />
+    public bool Equals(Hints? other)
+    {
+        return other is not null
+            && EqualityComparer<string?>.Default.Equals(Extension, other.Extension)
+            && EqualityComparer<MagicHint?>.Default.Equals(Magic, other.Magic)
+            && ValueEquality.ListEquals(StableLines, other.StableLines)
+            && ValueEquality.ListEquals(HeaderFields, other.HeaderFields)
+            && ValueEquality.ListEquals(HeaderPrefix, other.HeaderPrefix)
+            && ValueEquality.ListEquals(NonNullFields, other.NonNullFields)
+            && EqualityComparer<MinMax?>.Default.Equals(FieldCount, other.FieldCount)
+            && EqualityComparer<long?>.Default.Equals(DataStartLine, other.DataStartLine)
+            && EqualityComparer<string?>.Default.Equals(Delimiter, other.Delimiter)
+            && EqualityComparer<string?>.Default.Equals(HeaderConvention, other.HeaderConvention)
+            && EqualityComparer<StdfHints?>.Default.Equals(Stdf, other.Stdf)
+            && EqualityComparer<string>.Default.Equals(FileNameShape, other.FileNameShape);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Extension);
+        hash.Add(Magic);
+        ValueEquality.AddList(ref hash, StableLines);
+        ValueEquality.AddList(ref hash, HeaderFields);
+        ValueEquality.AddList(ref hash, HeaderPrefix);
+        ValueEquality.AddList(ref hash, NonNullFields);
+        hash.Add(FieldCount);
+        hash.Add(DataStartLine);
+        hash.Add(Delimiter);
+        hash.Add(HeaderConvention);
+        hash.Add(Stdf);
+        hash.Add(FileNameShape);
+        return hash.ToHashCode();
+    }
+}
+
 
 /// <summary>The structured form of <c>hints.magic</c>: a named byte string at a fixed offset.</summary>
 /// <param name="Name">The magic name, for example <c>gzip</c>.</param>

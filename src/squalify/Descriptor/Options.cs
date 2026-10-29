@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 namespace squalor.squalify;
 
-/// <summary>The <c>options</c> section: the options that affect output.</summary>
+/// <summary>The <c>options</c> section: the options that affect output. Equality is by value, the allow-list compared in order.</summary>
 /// <param name="IncludeValues">True when literal values are included.</param>
 /// <param name="IncludeValuesFor">Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</param>
 /// <param name="MaxBytes">
@@ -32,6 +32,27 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
     {
         ArgumentNullException.ThrowIfNull(includeValuesFor);
         return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes, maxFirstRecordBytes);
+    }
+
+    /// <inheritdoc />
+    public bool Equals(ProfileOptions? other)
+    {
+        return other is not null
+            && IncludeValues == other.IncludeValues
+            && ValueEquality.ListEquals(IncludeValuesFor, other.IncludeValuesFor)
+            && MaxBytes == other.MaxBytes
+            && MaxFirstRecordBytes == other.MaxFirstRecordBytes;
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(IncludeValues);
+        ValueEquality.AddList(ref hash, IncludeValuesFor);
+        hash.Add(MaxBytes);
+        hash.Add(MaxFirstRecordBytes);
+        return hash.ToHashCode();
     }
 }
 
@@ -68,8 +89,11 @@ public sealed record Limits(
     long UnitTable,
     SketchLimits? Sketches = null)
 {
-    /// <summary>The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>.</summary>
-    public static Limits Default { get; } = new(
+    /// <summary>
+    /// The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>. Internal: the caps are not API;
+    /// a consumer reads the ones in effect from the <c>limits</c> section of a descriptor.
+    /// </summary>
+    internal static Limits Default { get; } = new(
         DistinctPerField: ProfileLimits.Default.DistinctPerField,
         QuantilePerField: ProfileLimits.Default.QuantilePerField,
         ShapesPerField: ProfileLimits.Default.ShapesPerField,

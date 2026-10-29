@@ -8,7 +8,28 @@ namespace squalor.squalify;
 public sealed record LayoutSection(
     IReadOnlyList<Region> Regions,
     HeaderConventionInfo? HeaderConvention = null,
-    long? MaxLineLength = null);
+    long? MaxLineLength = null)
+{
+    /// <inheritdoc />
+    public bool Equals(LayoutSection? other)
+    {
+        return other is not null
+            && ValueEquality.ListEquals(Regions, other.Regions)
+            && EqualityComparer<HeaderConventionInfo?>.Default.Equals(HeaderConvention, other.HeaderConvention)
+            && EqualityComparer<long?>.Default.Equals(MaxLineLength, other.MaxLineLength);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        ValueEquality.AddList(ref hash, Regions);
+        hash.Add(HeaderConvention);
+        hash.Add(MaxLineLength);
+        return hash.ToHashCode();
+    }
+}
+
 
 /// <summary>One region of the file.</summary>
 /// <param name="Kind">The region kind, for example <c>preamble</c> or <c>data</c>.</param>
@@ -33,7 +54,44 @@ public sealed record Region(
     IReadOnlyList<string>? Keys = null,
     [property: ValueBearing] IReadOnlyList<string?>? Values = null,
     IReadOnlyList<AnnotationRow>? Rows = null,
-    IReadOnlyList<Region>? Regions = null);
+    IReadOnlyList<Region>? Regions = null)
+{
+    /// <inheritdoc />
+    public bool Equals(Region? other)
+    {
+        return other is not null
+            && EqualityComparer<string>.Default.Equals(Kind, other.Kind)
+            && EqualityComparer<long>.Default.Equals(FirstLine, other.FirstLine)
+            && EqualityComparer<long>.Default.Equals(LastLine, other.LastLine)
+            && EqualityComparer<long>.Default.Equals(StartByte, other.StartByte)
+            && EqualityComparer<long>.Default.Equals(EndByte, other.EndByte)
+            && EqualityComparer<long?>.Default.Equals(Index, other.Index)
+            && EqualityComparer<CountMap?>.Default.Equals(LineKinds, other.LineKinds)
+            && ValueEquality.ListEquals(Keys, other.Keys)
+            && ValueEquality.ListEquals(Values, other.Values)
+            && ValueEquality.ListEquals(Rows, other.Rows)
+            && ValueEquality.ListEquals(Regions, other.Regions);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Kind);
+        hash.Add(FirstLine);
+        hash.Add(LastLine);
+        hash.Add(StartByte);
+        hash.Add(EndByte);
+        hash.Add(Index);
+        hash.Add(LineKinds);
+        ValueEquality.AddList(ref hash, Keys);
+        ValueEquality.AddList(ref hash, Values);
+        ValueEquality.AddList(ref hash, Rows);
+        ValueEquality.AddList(ref hash, Regions);
+        return hash.ToHashCode();
+    }
+}
+
 
 /// <summary>One row of an annotation region.</summary>
 /// <param name="Line">The 1-based line.</param>
@@ -50,7 +108,36 @@ public sealed record AnnotationRow(
     CountMap NullTokens,
     CountMap TypeVotes,
     string Type,
-    [property: ValueBearing] IReadOnlyList<string?>? Values = null);
+    [property: ValueBearing] IReadOnlyList<string?>? Values = null)
+{
+    /// <inheritdoc />
+    public bool Equals(AnnotationRow? other)
+    {
+        return other is not null
+            && EqualityComparer<long>.Default.Equals(Line, other.Line)
+            && EqualityComparer<string?>.Default.Equals(Label, other.Label)
+            && EqualityComparer<long>.Default.Equals(BlankFields, other.BlankFields)
+            && EqualityComparer<CountMap>.Default.Equals(NullTokens, other.NullTokens)
+            && EqualityComparer<CountMap>.Default.Equals(TypeVotes, other.TypeVotes)
+            && EqualityComparer<string>.Default.Equals(Type, other.Type)
+            && ValueEquality.ListEquals(Values, other.Values);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Line);
+        hash.Add(Label);
+        hash.Add(BlankFields);
+        hash.Add(NullTokens);
+        hash.Add(TypeVotes);
+        hash.Add(Type);
+        ValueEquality.AddList(ref hash, Values);
+        return hash.ToHashCode();
+    }
+}
+
 
 /// <summary>The <c>layout.headerConvention</c> object.</summary>
 /// <param name="Dominant">The most common convention.</param>

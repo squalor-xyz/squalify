@@ -8,10 +8,15 @@ public sealed class FileSource : IProfileSource
 
     /// <summary>Creates a source for a file.</summary>
     /// <param name="path">The path of an existing file.</param>
-    /// <exception cref="SqualifyException">The path is a directory, or the file does not exist.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null (a programming error, not a user input).</exception>
+    /// <exception cref="SqualifyException">The path is empty, or is a directory, or the file does not exist.</exception>
     public FileSource(string path)
     {
-        ArgumentException.ThrowIfNullOrEmpty(path);
+        ArgumentNullException.ThrowIfNull(path);
+        if (path.Length == 0)
+        {
+            throw new SqualifyException("Cannot profile an empty path: give the path of a data file.");
+        }
         if (Directory.Exists(path))
         {
             throw new SqualifyException($"Cannot profile '{path}': it is a directory, and directory input is not supported.");
