@@ -2,7 +2,7 @@
   "id": "sq-19",
   "title": "squalify must measure its throughput on GB-scale wide files",
   "lead": [
-    "Adds a manual benchmark on generated GB-scale streams, including wide, right-padded fixed-width tables. It measures the three-pass design with five candidate tokenizers and records figures that inform any later decision to fuse passes. It changes no design by itself."
+    "Adds a manual benchmark on generated GB-scale streams, including wide, right-padded fixed-width tables. It measures the three-pass design and records figures that inform any later decision to fuse passes. It changes no design by itself."
   ],
   "depends_note": null,
   "findings_note": "",

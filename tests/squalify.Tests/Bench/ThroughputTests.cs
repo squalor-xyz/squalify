@@ -9,7 +9,8 @@ namespace squalor.squalify.Tests;
 /// reading of the source alone, the byte pass alone and the full profile, with the peak working set of each. The Large
 /// tests are run by hand (<c>--filter Category=Large</c>); the small ones run the same code on a few MiB, so that the
 /// machinery and its assertions are checked on every run. A 1 GiB run asserts that the peak working set stays within
-/// <see cref="MemoryBudget.CeilingBytes(long)"/>; the 4 GiB run only records its figures. Timings are never asserted.
+/// <see cref="MemoryBudget.CeilingBytes(long)"/> (under the default workstation concurrent GC); the 4 GiB run only records its figures. The small runs
+/// assert that every pass counted every byte, not the ceiling. Timings are never asserted.
 /// </summary>
 [Collection("MemoryProbe")]
 public sealed class ThroughputTests(ITestOutputHelper output)
@@ -44,16 +45,19 @@ public sealed class ThroughputTests(ITestOutputHelper output)
         }
     }
 
+    // The small runs check the machinery, not the memory: the peak working set depends on the GC mode (server or
+    // non-concurrent GC adds slack that the default workstation concurrent GC does not), so the ceiling is asserted
+    // only by the 1 GiB Large tests.
     [Fact]
-    public void Bench_PaddedWide_SmallStream_RunsWithinTheCeiling()
+    public void Bench_PaddedWide_SmallStream_RunsAndReportsItsPeak()
     {
-        RunAsserted(BenchShape.PaddedWide, SmallBytes, TimeSpan.FromMinutes(5));
+        RunSmall(BenchShape.PaddedWide);
     }
 
     [Fact]
-    public void Bench_Plain_SmallStream_RunsWithinTheCeiling()
+    public void Bench_Plain_SmallStream_RunsAndReportsItsPeak()
     {
-        RunAsserted(BenchShape.Plain, SmallBytes, TimeSpan.FromMinutes(5));
+        RunSmall(BenchShape.Plain);
     }
 
     [Theory]
@@ -64,6 +68,7 @@ public sealed class ThroughputTests(ITestOutputHelper output)
         // The assertion is live: the growth of a full profile over its baseline is more than a ceiling of one byte, and
         // more than the ceiling of the same run minus the whole of its growth.
         var result = ThroughputBench.Run(shape, BenchPass.Full, SmallBytes, TimeSpan.FromMinutes(5));
+        ThroughputBench.AssertRan(result);
         var growth = result.PeakWorkingSet - result.Baseline;
         Assert.True(growth > 0, "the peak working set did not grow over the baseline, so the probe measures nothing");
         Assert.ThrowsAny<XunitException>(() => ThroughputBench.AssertWithinCeiling(result, ceilingBytes: 1));
@@ -85,6 +90,16 @@ public sealed class ThroughputTests(ITestOutputHelper output)
         var plain = ThroughputBench.Run(BenchShape.Plain, BenchPass.Full, SmallBytes, TimeSpan.FromMinutes(5));
         Assert.Equal(plain.Rows, plain.TableRows);
         Assert.Equal(ThroughputBench.PlainColumns, plain.Fields);
+    }
+
+    private void RunSmall(BenchShape shape)
+    {
+        foreach (var pass in Enum.GetValues<BenchPass>())
+        {
+            var result = ThroughputBench.Run(shape, pass, SmallBytes, TimeSpan.FromMinutes(5));
+            output.WriteLine(ThroughputBench.Describe(result));
+            ThroughputBench.AssertRan(result);
+        }
     }
 
     // The reading of the source alone is the reference for the generator's own cost; the byte pass and the full profile are

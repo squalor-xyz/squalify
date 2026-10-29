@@ -1625,6 +1625,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "b021cc53-efbe-453b-a195-514bb4099542",
+          "kind": "",
+          "text": "**2026-10-29** — Owner decision (2026-10-29), verbatim, after the review: R3 \"Edit the lead, drop the tokenizers (Recommended)\" (option text: \"The lead is corrected to match the spec body: the benchmark measures the three-pass design on generated GB-scale streams and records figures; no tokenizer comparison.\"). The lead has been edited.",
+          "created_at": "2026-10-29T19:46:33Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {

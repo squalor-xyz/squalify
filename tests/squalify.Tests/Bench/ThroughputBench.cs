@@ -69,6 +69,7 @@ internal static class ThroughputBench
     /// <param name="Baseline">The peak working set of the child after the baseline run.</param>
     /// <param name="EstimatedBytes">The peak of the accumulators' estimated bytes (0 unless the pass is <see cref="BenchPass.Full"/>).</param>
     /// <param name="CeilingBytes">The ceiling for the growth of the peak working set over the baseline.</param>
+    /// <param name="Counted">The bytes the pass itself counted: read by Drain, counted by the byte pass, the file size of the full profile. It equals <paramref name="Bytes"/> when the pass read the whole stream.</param>
     public sealed record Result(
         BenchShape Shape,
         BenchPass Pass,
@@ -82,7 +83,8 @@ internal static class ThroughputBench
         long PeakWorkingSet,
         long Baseline,
         long EstimatedBytes,
-        long CeilingBytes)
+        long CeilingBytes,
+        long Counted)
     {
         /// <summary>The growth of the peak working set over the baseline.</summary>
         public long Growth => PeakWorkingSet - Baseline;
@@ -131,7 +133,8 @@ internal static class ThroughputBench
             L("peak"),
             L("baseline"),
             L("estimated"),
-            L("ceiling"));
+            L("ceiling"),
+            L("counted"));
     }
 
     /// <summary>
@@ -143,11 +146,19 @@ internal static class ThroughputBench
     /// <param name="ceilingBytes">A ceiling to use in place of the measured one; tests give a low one to see the assertion fail.</param>
     public static void AssertWithinCeiling(Result result, long? ceilingBytes = null)
     {
-        Assert.True(result.PeakWorkingSet > 0 && result.Baseline > 0, "the probe could not read its peak working set");
+        AssertRan(result);
         var ceiling = ceilingBytes ?? result.CeilingBytes;
         Assert.True(
             result.Growth <= ceiling,
             $"the peak working set grew {result.Growth} bytes over the baseline of {result.Baseline}, above the ceiling {ceiling}; {Describe(result)}");
+    }
+
+    /// <summary>Asserts that the probe could read its peak and that the pass counted every byte of the stream, so a pass that did nothing cannot pass for a fast one.</summary>
+    /// <param name="result">The figures.</param>
+    public static void AssertRan(Result result)
+    {
+        Assert.True(result.PeakWorkingSet > 0 && result.Baseline > 0, "the probe could not read its peak working set");
+        Assert.True(result.Counted == result.Bytes, $"the {result.Pass} pass counted {result.Counted} bytes of a stream of {result.Bytes}; {Describe(result)}");
     }
 
     /// <summary>One line of figures, for the test output.</summary>
@@ -176,43 +187,47 @@ internal static class ThroughputBench
         var bytes = long.Parse(args[3], CultureInfo.InvariantCulture);
 
         // The baseline: the same pass on a small stream of the same shape. The peak working set only ever grows.
-        Execute(pass, Source(shape, BaselineBytes), new MemoryTrace(), out _);
+        Execute(pass, Source(shape, BaselineBytes), new MemoryTrace(), out _, out _);
         var baseline = MemoryProbe.PeakWorkingSet();
 
         var source = Source(shape, bytes);
         var trace = new MemoryTrace();
         var clock = Stopwatch.StartNew();
-        Execute(pass, source, trace, out var descriptor);
+        Execute(pass, source, trace, out var descriptor, out var counted);
         clock.Stop();
         var peak = MemoryProbe.PeakWorkingSet();
         var padding = (descriptor?.Format.Dialect as DelimitedDialect)?.Padding;
         Console.Out.WriteLine(
             string.Create(
                 CultureInfo.InvariantCulture,
-                $"bytes={source.Length} rows={source.Rows} tableRows={descriptor?.Table?.Rows ?? 0} fields={descriptor?.Table?.Fields.Count ?? 0} constantLineLength={(padding?.ConstantLineLength == true ? "true" : "false")} cells={source.Rows * source.Columns} seconds={clock.Elapsed.TotalSeconds:F3} peak={peak} baseline={baseline} estimated={trace.PeakEstimatedBytes} ceiling={trace.CeilingBytes}"));
+                $"bytes={source.Length} rows={source.Rows} tableRows={descriptor?.Table?.Rows ?? 0} fields={descriptor?.Table?.Fields.Count ?? 0} constantLineLength={(padding?.ConstantLineLength == true ? "true" : "false")} cells={source.Rows * source.Columns} seconds={clock.Elapsed.TotalSeconds:F3} peak={peak} baseline={baseline} estimated={trace.PeakEstimatedBytes} ceiling={trace.CeilingBytes} counted={counted}"));
         return 0;
     }
 
-    private static void Execute(BenchPass pass, SyntheticCsvSource source, MemoryTrace trace, out Descriptor? descriptor)
+    private static void Execute(BenchPass pass, SyntheticCsvSource source, MemoryTrace trace, out Descriptor? descriptor, out long counted)
     {
         descriptor = null;
+        counted = 0;
         switch (pass)
         {
             case BenchPass.Drain:
                 using (var stream = source.Open())
                 {
                     var buffer = new byte[64 * 1024];
-                    while (stream.Read(buffer) > 0)
+                    int read;
+                    while ((read = stream.Read(buffer)) > 0)
                     {
+                        counted += read;
                     }
                 }
 
                 break;
             case BenchPass.BytePass:
-                ByteSniffer.Sniff(source, ProfileLimits.Default.ApplyTo(Limits.Default).CharsetTolerance);
+                counted = ByteSniffer.Sniff(source, ProfileLimits.Default.ApplyTo(Limits.Default).CharsetTolerance).Length;
                 break;
             default:
                 descriptor = Profiler.Profile(source, ProfileOptions.Create(false, []), ProfileLimits.Default, trace);
+                counted = descriptor.File.Size;
                 break;
         }
     }
