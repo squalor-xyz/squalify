@@ -7,9 +7,7 @@
   "depends_note": null,
   "findings_note": "",
   "size": "M",
-  "flags": [
-    "needs-owner"
-  ],
+  "flags": [],
   "trees_note": "core",
   "trees_plural": false,
   "boundary": "**Not in this slice:**",
@@ -24,11 +22,11 @@
     },
     {
       "heading": "Failing tests",
-      "body": "- **One long spelling:** 1,000 nulls that all use one 300-character spelling give `nullSpellingsOther == 1000` and a distinct count of 1.\n- **Many spellings:** a field with 200 distinct null spellings (64 kept) gives `nullSpellingsOther` equal to the cells of the other 136 and a distinct count of 136.\n- **Mixed causes:** a column with spellings past the 64 bound and spellings over 256 characters counts each distinct spelling once, however often it recurs.\n- **All-null rows:** the same three cases for `allNullRowSpellingsOther` and its distinct count.\n- **No spill, no member:** a field or table with nothing in \"other\" has distinct count 0 and the per-field member is left out (as `nullSpellingsOther` is), unless Q2 says otherwise; narrow goldens are unchanged.\n- **Cap or approximation (pending Q1):** the chosen behavior is pinned at its boundary: either the exact count past the capped number, or the marked-approximate flag and its error.\n- **Memory (pending Q1):** the counter's `EstimatedBytes` covers whatever it now remembers, and a 2,000-column stream where every field spills stays inside the memory allowance (sq-11, sq-38); the sq-32 bytes-per-field size test still holds.\n- **Invariants:** `sum(nullSpellings) + nullSpellingsOther == nulls` and the all-null-row equivalent are unchanged; the distinct count never exceeds the \"other\" count and is at least 1 when that count is positive.\n- Mutation-check: counting a recurring spelling twice, dropping the long-spelling case, and not counting spellings past the 64 bound each fail a test above."
+      "body": "- **One long spelling:** 1,000 nulls that all use one 300-character spelling give `nullSpellingsOther == 1000` and `nullSpellingsOtherDistinct == 1`.\n- **Many spellings:** a field with 200 distinct null spellings (64 kept) gives `nullSpellingsOther` equal to the cells of the other 136 and `nullSpellingsOtherDistinct == 64` with `nullSpellingsOtherDistinctCapped` true (K = 64); with 100 distinct (36 dropped) the count is exactly 36 and no capped marker is written.\n- **Recurrence and causes:** a dropped spelling that recurs counts once; spellings dropped by the 64 bound and spellings over 256 characters each count once, compared as exact text (not trimmed: ` NULL` and `NULL` differ).\n- **All-null rows:** the same cases for `allNullRowSpellingsOther` and `allNullRowSpellingsOtherDistinct` (always written, 0 when none); the row marker is written only when the cap is hit (state the choice in descriptor.md).\n- **No spill, no member:** a field with nothing in \"other\" leaves out `nullSpellingsOtherDistinct` (and the marker); narrow goldens change only by the limits member below.\n- **limits:** `limits.nullSpellings` (from sq-42) gains the cap (name it, for example `maxDistinctOther`: 64), always written; the test reads the counter constant.\n- **Memory:** the counter `EstimatedBytes` covers the remembered hashes; a 2,000-column stream where every field spills stays inside the memory allowance (sq-11, sq-38); the sq-32 bytes-per-field size test still holds.\n- **Invariants:** `sum(nullSpellings) + nullSpellingsOther == nulls` and the all-null-row equivalent are unchanged; the distinct count is at most the other count, and at least 1 when the other count is positive.\n- Mutation-check: counting a recurring spelling twice, dropping the long-spelling case, not counting spellings past the 64 bound, an off-by-one at K, and the capped marker, each fail a test above."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the failing tests above (after sq-42 has landed, so limits.nullSpellings exists).\n2. `SpellingCounter`: remember a hash (XxHash64 of the UTF-16 text, plus the length so equal hashes of different lengths differ) of up to 64 further distinct dropped spellings, count them, and set a capped flag past that; charge them in `EstimatedBytes`. Field profile and `RowClassesInfo` gain the members (trailing optional, like sq-36 did); the writer writes `nullSpellingsOtherDistinct` (omitted at 0) and `nullSpellingsOtherDistinctCapped` (only when true) per field, and `allNullRowSpellingsOtherDistinct` (always) with its marker (only when true) in `table.rowClasses`.\n3. Add the cap to `limits.nullSpellings` (always written).\n4. Docs in the same change: descriptor.md (the nullSpellings, nullSpellingsOther and allNullRowSpellings paragraphs, the invariants in F9, the consumer subset, the key-order rows, the versioning-policy sentence), design.md (the counter memory), user-guide.md, how-it-works.md if text changes; rewrite and review the goldens."
     },
     {
       "heading": "Check",
