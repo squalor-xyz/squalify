@@ -15,7 +15,8 @@ public static class Profiler
     /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>, or
     /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
     /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
-    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled).
+    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled), or a limit is given and the source reports
+    /// a negative <see cref="IProfileSource.Length"/>.
     /// </exception>
     public static Descriptor Profile(IProfileSource source, ProfileOptions options)
     {
@@ -30,8 +31,87 @@ public static class Profiler
     /// <returns>The descriptor.</returns>
     internal static Descriptor Profile(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits, MemoryTrace? trace = null)
     {
-        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(fieldLimits);
+        Validate(source, options);
+
+        try
+        {
+            return ProfileCore(source, options, fieldLimits, trace);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new SqualifyException($"Cannot read '{source.Name}': {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Profiles the start of a source and returns the descriptor together with the exact bytes it describes, from one read of
+    /// the source: the cut is the one <see cref="ProfileOptions.MaxBytes"/> gives to <see cref="Profile(IProfileSource, ProfileOptions)"/>
+    /// (a file whose bytes inside the limit sniff as binary at the limit; otherwise after the last LF, CR or CRLF, in the
+    /// code units of the charset sniffed from the bytes inside the limit, inside the limit; a CR that ends the limit takes the
+    /// LF after it; with no terminator inside the limit, to the first terminator or the end; a limit shorter than a byte order
+    /// mark can sniff differently from the whole file), so the descriptor equals the one <see cref="Profile(IProfileSource, ProfileOptions)"/> gives for the same options, for a source whose
+    /// <see cref="IProfileSource.Length"/> is its true size (<see cref="Profile(IProfileSource, ProfileOptions)"/> reads past a
+    /// <see cref="IProfileSource.Length"/> that is shorter than the data when the limit is at least that length; this method never does).
+    /// The source is opened once. The bytes are buffered, up to <see cref="ProfileOptions.MaxBytes"/> plus the overshoot (one
+    /// code unit when a CR ends the limit; the rest of the first record when it is longer than the limit);
+    /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>,
+    /// and is never read past it.
+    /// </summary>
+    /// <param name="source">The source.</param>
+    /// <param name="options">The options that affect output; <see cref="ProfileOptions.MaxBytes"/> is required.</param>
+    /// <returns>The descriptor, the prefix it describes and the scope; <c>file.size</c> is the length of the whole source.</returns>
+    /// <exception cref="SqualifyException">
+    /// Anything <see cref="Profile(IProfileSource, ProfileOptions)"/> rejects, and in addition: <see cref="ProfileOptions.MaxBytes"/>
+    /// is null (it would buffer the whole source), the source reports a negative length, or the bytes to buffer would not fit
+    /// in one array (about 2 GiB).
+    /// </exception>
+    public static ProfiledPrefix ProfilePrefix(IProfileSource source, ProfileOptions options)
+    {
+        Validate(source, options);
+        if (options.MaxBytes is not { } maxBytes)
+        {
+            throw new SqualifyException("ProfilePrefix needs a byte limit (MaxBytes): without one it would buffer the whole source.");
+        }
+
+        var window = Math.Min(source.Length, maxBytes);
+        if (window > Array.MaxLength)
+        {
+            throw new SqualifyException($"The byte limit of '{source.Name}' is too large to buffer: ProfilePrefix holds the prefix in memory, at most {Array.MaxLength} bytes.");
+        }
+
+        using var buffered = new BufferedSource(source, window);
+        var descriptor = ProfileBuffered(buffered, options);
+        var scope = descriptor.Scope!;
+        return new ProfiledPrefix(descriptor, buffered.Prefix((int)scope.BytesRead));
+    }
+
+    /// <summary>Profiles a file.</summary>
+    /// <param name="path">The path of a file.</param>
+    /// <param name="options">The options that affect output.</param>
+    /// <returns>The descriptor.</returns>
+    /// <exception cref="SqualifyException">The path is a directory, or the file cannot be read.</exception>
+    public static Descriptor Profile(string path, ProfileOptions options)
+    {
+        return Profile(new FileSource(path), options);
+    }
+
+    private static Descriptor ProfileBuffered(BufferedSource source, ProfileOptions options)
+    {
+        try
+        {
+            return ProfileCore(source, options, ProfileLimits.Default, null);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new SqualifyException($"Cannot read '{source.Name}': {ex.Message}", ex);
+        }
+    }
+
+    // The checks that need no read.
+    private static void Validate(IProfileSource source, ProfileOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(options);
         if (string.IsNullOrEmpty(source.Name) || source.Name.AsSpan().IndexOfAny('/', '\\') >= 0)
         {
@@ -53,24 +133,10 @@ public static class Profiler
             throw new SqualifyException("The first-record ceiling (--max-first-record-bytes) needs a byte limit (--max-bytes).");
         }
 
-        try
+        if (options.MaxBytes is not null && source.Length < 0)
         {
-            return ProfileCore(source, options, fieldLimits, trace);
+            throw new SqualifyException($"The length of '{source.Name}' is not known: a source must report its length to be limited by a byte limit.");
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            throw new SqualifyException($"Cannot read '{source.Name}': {ex.Message}", ex);
-        }
-    }
-
-    /// <summary>Profiles a file.</summary>
-    /// <param name="path">The path of a file.</param>
-    /// <param name="options">The options that affect output.</param>
-    /// <returns>The descriptor.</returns>
-    /// <exception cref="SqualifyException">The path is a directory, or the file cannot be read.</exception>
-    public static Descriptor Profile(string path, ProfileOptions options)
-    {
-        return Profile(new FileSource(path), options);
     }
 
     private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits, MemoryTrace? trace)

@@ -480,6 +480,8 @@
 {"when": "2026-10-28T18:59:29Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-28), from the spec check, verbatim:", "by": "Jon Robbins"}
 {"when": "2026-10-28T18:59:29Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
 {"when": "2026-10-28T18:59:29Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-28T20:31:05Z", "item": "sq-40", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:13:01Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-29), verbatim, after the review: R2", "by": "Jon Robbins"}
 {"when": "2026-10-28T20:26:20Z", "item": "sq-42", "action": "add", "from": "", "to": "open", "note": "Publish the null-spelling bounds in limits"}
 {"when": "2026-10-28T20:26:20Z", "item": "sq-43", "action": "add", "from": "", "to": "open", "note": "Count the distinct spellings in the other counters"}
 {"when": "2026-10-28T20:26:32Z", "item": "sq-42", "action": "note", "from": "", "to": "", "note": "OPEN QUESTIONS for the owner (not decided; the failing tests", "by": "Jon Robbins"}
@@ -497,3 +499,7 @@
 {"when": "2026-10-29T19:19:00Z", "item": "sq-19", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
 {"when": "2026-10-29T19:46:33Z", "item": "sq-19", "action": "edit", "from": "", "to": "", "note": "lead"}
 {"when": "2026-10-29T19:46:33Z", "item": "sq-19", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-29), verbatim, after the review: R3 ", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:35:52Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-29), verbatim, after the architect: ", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:45:52Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "Verified outcome: Profiler.ProfilePrefix returns a ProfiledP", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:45:52Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "Later (from review and architect): (1) Wrap or document non-", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:45:53Z", "item": "sq-40", "action": "status", "from": "started", "to": "done", "note": "ProfilePrefix and ProfiledPrefix: one read into a buffer, the cut rule as a documented contract. Gate PASS.", "by": "Jon Robbins"}
