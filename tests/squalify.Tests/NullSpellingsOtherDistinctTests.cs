@@ -231,7 +231,8 @@ public sealed class NullSpellingsOtherDistinctTests
         Assert.Equal(3, f.NullSpellingsOtherDistinct);
 
         // The same by the 64 bound.
-        var byCount = FieldOf(Fill().Concat([" NULL", "NULL", "NULL ", "NULL", "\tNULL", " NULL"]));
+        // The last spelling starts with U+00A0 (no-break space), not a plain space: it is a trim-set character the vocabulary accepts but another spelling, so it counts as a fifth.
+        var byCount = FieldOf(Fill().Concat([" NULL", "NULL", "NULL ", "NULL", "\tNULL", "\u00A0NULL"]));
         Assert.Equal(6, byCount.NullSpellingsOther);
         Assert.Equal(5, byCount.NullSpellingsOtherDistinct);
     }
@@ -250,7 +251,7 @@ public sealed class NullSpellingsOtherDistinctTests
     {
         // UTF-8 would turn each lone surrogate into U+FFFD; the exact text is what counts.
         var pad = new string(' ', MaxChars + 10);
-        var f = FieldOf([pad + "\uD800", pad + "\uD801", pad + "�", pad + "\uD800"]);
+        var f = FieldOf([pad + "\uD800", pad + "\uD801", pad + "\uFFFD", pad + "\uD800"]);
         Assert.Equal(4, f.NullSpellingsOther);
         Assert.Equal(3, f.NullSpellingsOtherDistinct);
     }
@@ -288,7 +289,7 @@ public sealed class NullSpellingsOtherDistinctTests
             var invariant = SpellingCounter.KeyOf("Null I i".AsSpan());
             Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
             Assert.Equal(invariant, SpellingCounter.KeyOf("Null I i".AsSpan()));
-            var f = FieldOf(Fill().Concat(["I", "i", "İ", "ı"]));
+            var f = FieldOf(Fill().Concat(["I", "i", "\u0130", "\u0131"]));
             Assert.Equal(4, f.NullSpellingsOtherDistinct);
         }
         finally
@@ -756,6 +757,10 @@ public sealed class NullSpellingsOtherDistinctTests
         var rowClasses = Section(descriptor, "## `table.rowClasses`");
         Assert.Contains("**`allNullRowSpellingsOtherDistinct`**", rowClasses, StringComparison.Ordinal);
         Assert.Contains("allNullRowSpellingsOtherDistinctCapped", rowClasses, StringComparison.Ordinal);
+
+        Assert.DoesNotContain("reads \"at least 64\"", descriptor, StringComparison.Ordinal);
+        Assert.Contains("more than 64 distinct", fields, StringComparison.Ordinal);
+        Assert.Contains("more than 64 distinct", rowClasses, StringComparison.Ordinal);
 
         var policy = Section(descriptor, "## Versioning policy");
         Assert.Contains("sq-43 adds, again without a bump:", policy, StringComparison.Ordinal);
