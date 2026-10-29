@@ -9,7 +9,8 @@ namespace squalor.squalify.Tests;
 /// xorshift generator, so a stream of any size needs no memory and no disk. Every column has a fixed width, so a row has
 /// one length and <see cref="Length"/> is exact without generating anything. The columns cycle through eight kinds:
 /// a sequential id, a six-digit integer, a float, a date, a low-cardinality code, an eight-letter string, a time and a
-/// three-digit integer. Nothing here depends on the culture or the machine.
+/// three-digit integer. <see cref="PaddedWide"/> makes a wide table of right-padded fixed-width cells instead. Nothing
+/// here depends on the culture or the machine.
 /// </summary>
 internal sealed class SyntheticCsvSource : IProfileSource
 {
@@ -19,19 +20,38 @@ internal sealed class SyntheticCsvSource : IProfileSource
     // The fixed width of each kind, in bytes.
     private static readonly int[] KindWidths = [9, 6, 8, 10, 3, 8, 8, 3];
 
+    private const int MaxValueWidth = 10;
+    private const int AnnotationRows = 4;
+
     private static readonly byte[][] Dates = BuildDates();
+
+    // The preamble of the padded mode: the keys, padded to 14 characters before the colon, and their values.
+    private static readonly (string Key, string Value)[] PreambleKeys =
+    [
+        ("Lot", "A12"),
+        ("Wafer", "7"),
+        ("Tester", "T-05"),
+        ("Program", "ft_s100"),
+        ("Date", "2026-01-05"),
+    ];
 
     private readonly long _rows;
     private readonly int _columns;
     private readonly ulong _seed;
     private readonly byte[] _header;
     private readonly int _rowLength;
+    private readonly int _cellWidth;
 
     /// <summary>Creates a source.</summary>
     /// <param name="rows">The number of data rows.</param>
     /// <param name="columns">The number of columns, at least 1.</param>
     /// <param name="seed">The seed of the generator, not 0.</param>
     public SyntheticCsvSource(long rows, int columns, ulong seed = 1)
+        : this(rows, columns, seed, 0)
+    {
+    }
+
+    private SyntheticCsvSource(long rows, int columns, ulong seed, int cellWidth)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(rows);
         ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
@@ -39,6 +59,16 @@ internal sealed class SyntheticCsvSource : IProfileSource
         _rows = rows;
         _columns = columns;
         _seed = seed;
+        _cellWidth = cellWidth;
+        if (cellWidth > 0)
+        {
+            _header = Encoding.ASCII.GetBytes(BuildPaddedHead(columns, cellWidth));
+            _rowLength = PaddedRowLength(columns, cellWidth);
+            PreambleLineCount = PreambleKeys.Length;
+            AnnotationLineCount = AnnotationRows;
+            return;
+        }
+
         var header = new StringBuilder();
         var width = columns;
         for (var c = 0; c < columns; c++)
@@ -67,6 +97,46 @@ internal sealed class SyntheticCsvSource : IProfileSource
         return Math.Max(1, bytes / width);
     }
 
+    /// <summary>
+    /// A wide, right-padded fixed-width table, like a production-test export: a key preamble (<see cref="PreambleLineCount"/>
+    /// lines, <c>key :,value</c>), annotation rows (<see cref="AnnotationLineCount"/> lines: program line, upper and lower
+    /// limit and unit), a header and the data rows. Every cell of every table line (annotation rows, header and data rows)
+    /// is <paramref name="cellWidth"/> bytes, its text right-padded with spaces, so every table line has one length. The
+    /// data cells are the same eight kinds as the plain source, in the same seeded sequence.
+    /// </summary>
+    /// <param name="rows">The number of data rows.</param>
+    /// <param name="columns">The number of columns, at least 1.</param>
+    /// <param name="cellWidth">The width of every cell in bytes, at least 10 (the widest value).</param>
+    /// <param name="seed">The seed of the generator, not 0.</param>
+    /// <returns>The source.</returns>
+    public static SyntheticCsvSource PaddedWide(long rows, int columns, int cellWidth, ulong seed = 1)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(cellWidth, MaxValueWidth);
+        return new SyntheticCsvSource(rows, columns, seed, cellWidth);
+    }
+
+    /// <summary>The rows of a padded wide stream of about the given size.</summary>
+    /// <param name="bytes">The wanted size.</param>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="cellWidth">The width of every cell.</param>
+    /// <returns>The number of rows.</returns>
+    public static long PaddedRowsFor(long bytes, int columns, int cellWidth)
+    {
+        return Math.Max(1, bytes / PaddedRowLength(columns, cellWidth));
+    }
+
+    /// <summary>The number of data rows.</summary>
+    public long Rows => _rows;
+
+    /// <summary>The number of columns.</summary>
+    public int Columns => _columns;
+
+    /// <summary>The number of preamble lines before the table; 0 for the plain source.</summary>
+    public int PreambleLineCount { get; }
+
+    /// <summary>The number of annotation rows between the preamble and the header; 0 for the plain source.</summary>
+    public int AnnotationLineCount { get; }
+
     /// <inheritdoc />
     public string Name => "synthetic.csv";
 
@@ -77,6 +147,50 @@ internal sealed class SyntheticCsvSource : IProfileSource
     public Stream Open()
     {
         return new RowStream(this);
+    }
+
+    private static int PaddedRowLength(int columns, int cellWidth)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
+        return (columns * cellWidth) + columns;
+    }
+
+    // The preamble, the four annotation rows and the header of the padded mode, as one text.
+    private static string BuildPaddedHead(int columns, int cellWidth)
+    {
+        var text = new StringBuilder();
+        foreach (var (key, value) in PreambleKeys)
+        {
+            text.Append(key.PadRight(14)).Append(':').Append(',').Append(value).Append('\n');
+        }
+
+        // Which kinds carry limits and a unit: the six-digit integer (mA), the float (dBm) and the three-digit integer (dB).
+        string[] unit = ["", "mA", "dBm", "", "", "", "", "dB"];
+        string[] upper = ["", "999999", "9999.99", "", "", "", "", "999"];
+        string[] lower = ["", "100000", "1000.00", "", "", "", "", "100"];
+        AppendPaddedLine(text, columns, cellWidth, "Prog_line", static c => (c % 7 == 3) ? string.Empty : (100 + c).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        AppendPaddedLine(text, columns, cellWidth, "Upper_limit", c => upper[c % KindCount]);
+        AppendPaddedLine(text, columns, cellWidth, "Lower_limit", c => lower[c % KindCount]);
+        AppendPaddedLine(text, columns, cellWidth, "Unit", c => unit[c % KindCount]);
+        AppendPaddedLine(text, columns, cellWidth, "Site", static c => "c" + c.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        return text.ToString();
+    }
+
+    // One table line: the label (or the cell text for column 0), then the cells of columns 1 and up, every one right-padded.
+    private static void AppendPaddedLine(StringBuilder text, int columns, int cellWidth, string label, Func<int, string> cell)
+    {
+        for (var c = 0; c < columns; c++)
+        {
+            if (c > 0)
+            {
+                text.Append(',');
+            }
+
+            var value = c == 0 ? label : cell(c);
+            text.Append(value.PadRight(cellWidth));
+        }
+
+        text.Append('\n');
     }
 
     private static byte[][] BuildDates()
@@ -192,7 +306,10 @@ internal sealed class SyntheticCsvSource : IProfileSource
                 }
 
                 var kind = c % KindCount;
-                var cell = _row.AsSpan(at, KindWidths[kind]);
+                var cellLength = owner._cellWidth > 0 ? owner._cellWidth : KindWidths[kind];
+                var field = _row.AsSpan(at, cellLength);
+                var cell = field[..KindWidths[kind]];
+                field[cell.Length..].Fill((byte)' ');
                 var x = Next();
                 switch (kind)
                 {
@@ -237,7 +354,7 @@ internal sealed class SyntheticCsvSource : IProfileSource
                         break;
                 }
 
-                at += cell.Length;
+                at += field.Length;
             }
 
             _row[at] = (byte)'\n';

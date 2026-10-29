@@ -35,6 +35,11 @@ internal static class MemoryProbe
     /// <returns>The exit code.</returns>
     public static int Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == ThroughputBench.Switch)
+        {
+            return ThroughputBench.RunProbe(args);
+        }
+
         if (args.Length != 3 || args[0] != Switch)
         {
             return 0;
@@ -111,7 +116,7 @@ internal static class MemoryProbe
 
     // The peak working set of this process. Process.PeakWorkingSet64 is 0 on macOS, where the kernel's maximum resident
     // size (getrusage, in bytes) is used instead.
-    private static long PeakWorkingSet()
+    internal static long PeakWorkingSet()
     {
         using var process = Process.GetCurrentProcess();
         var peak = process.PeakWorkingSet64;
@@ -138,28 +143,7 @@ internal static class MemoryProbe
     /// <returns>The result.</returns>
     public static Result RunChild(long bytes, int columns, TimeSpan timeout)
     {
-        var start = new ProcessStartInfo(HostPath())
-        {
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-
-        start.ArgumentList.Add(typeof(MemoryProbe).Assembly.Location);
-        start.ArgumentList.Add(Switch);
-        start.ArgumentList.Add(bytes.ToString(CultureInfo.InvariantCulture));
-        start.ArgumentList.Add(columns.ToString(CultureInfo.InvariantCulture));
-        using var process = Process.Start(start) ?? throw new InvalidOperationException("The probe did not start.");
-        var output = process.StandardOutput.ReadToEndAsync();
-        var error = process.StandardError.ReadToEndAsync();
-        if (!process.WaitForExit(timeout))
-        {
-            process.Kill(entireProcessTree: true);
-            throw new TimeoutException($"The memory probe did not finish in {timeout}.");
-        }
-
-        Assert.True(process.ExitCode == 0, $"The memory probe failed with {process.ExitCode}: {error.Result}");
-        var lines = output.Result.Trim().Split('\n', StringSplitOptions.TrimEntries);
+        var lines = RunProbeProcess([Switch, bytes.ToString(CultureInfo.InvariantCulture), columns.ToString(CultureInfo.InvariantCulture)], timeout);
         var fields = lines[0].Split(' ').Select(static p => p.Split('=')).ToDictionary(static p => p[0], static p => p[1]);
         return new Result(
             long.Parse(fields["peak"], CultureInfo.InvariantCulture),
@@ -170,6 +154,38 @@ internal static class MemoryProbe
             int.Parse(fields["approximate"], CultureInfo.InvariantCulture),
             int.Parse(fields["fields"], CultureInfo.InvariantCulture),
             string.Join('\n', lines.Skip(1)));
+    }
+
+    /// <summary>Runs this assembly in a child process with the given probe arguments and returns its output lines.</summary>
+    /// <param name="arguments">The arguments after the assembly path, the first of them a probe switch.</param>
+    /// <param name="timeout">How long to wait.</param>
+    /// <returns>The lines the child wrote to its standard output.</returns>
+    internal static string[] RunProbeProcess(IReadOnlyList<string> arguments, TimeSpan timeout)
+    {
+        var start = new ProcessStartInfo(HostPath())
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+
+        start.ArgumentList.Add(typeof(MemoryProbe).Assembly.Location);
+        foreach (var argument in arguments)
+        {
+            start.ArgumentList.Add(argument);
+        }
+
+        using var process = Process.Start(start) ?? throw new InvalidOperationException("The probe did not start.");
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(timeout))
+        {
+            process.Kill(entireProcessTree: true);
+            throw new TimeoutException($"The memory probe did not finish in {timeout}.");
+        }
+
+        Assert.True(process.ExitCode == 0, $"The memory probe failed with {process.ExitCode}: {error.Result}");
+        return output.Result.Trim().Split('\n', StringSplitOptions.TrimEntries);
     }
 
     private static string HostPath()
