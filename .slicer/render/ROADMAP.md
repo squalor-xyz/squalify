@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-43 items · — 10 · done 29 · parked 1 · later 1 · retired 2
+44 items · — 11 · done 29 · parked 1 · later 1 · retired 2
 
 ## v1.0.0
 
@@ -75,31 +75,32 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 23 | sq-21 | Header-name grammar hint | L | 3 | core |  | later |
 | 24 | sq-23 | sq-02 review nits | S | 1 | core | sq-02 architect nits: (1) how-it-works.md:34 small text 'hints builder' is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02 | — |
 | 25 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · Owner decision (2026-10-27), verbatim: "Fold into sq-34". Scope moved to sq-34. · discovered from sq-27 | retired |
+| 26 | [sq-44](slices/sq-44.md) | Bounded-size GK sketch | L | 3 | core | discovered from sq-38 | — |
 
 ---
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 26 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | parked |
-| 27 | [sq-20](slices/sq-20.md) | Compact evidence | M | 2 | core | Owner decision (2026-10-27), verbatim: "Retire, refile on fields (Recommended)". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo. | retired |
+| 27 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | parked |
+| 28 | [sq-20](slices/sq-20.md) | Compact evidence | M | 2 | core | Owner decision (2026-10-27), verbatim: "Retire, refile on fields (Recommended)". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo. | retired |
 
 ---
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 28 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |
-| 29 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | done |
-| 30 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | done |
-| 31 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | done |
-| 32 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | done |
-| 33 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | done |
-| 34 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | done |
-| 35 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | done |
-| 36 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | done |
-| 37 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | done |
-| 38 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | done |
-| 39 | [sq-25](slices/sq-25.md) | Consumer classification contract | S | 1 | core |  | done |
-| 40 | [sq-26](slices/sq-26.md) | NuGet package for library consumers | S | 1 | core |  | done |
-| 41 | [sq-27](slices/sq-27.md) | Ragged run start | S | 1 | core | sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25 | done |
-| 42 | [sq-29](slices/sq-29.md) | Release workflow | S | 1 |  |  | done |
-| 43 | [sq-31](slices/sq-31.md) | Drop Parquet from v1 | S | 1 |  |  | done |
+| 29 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |
+| 30 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | done |
+| 31 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | done |
+| 32 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | done |
+| 33 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | done |
+| 34 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | done |
+| 35 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | done |
+| 36 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | done |
+| 37 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | done |
+| 38 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | done |
+| 39 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | done |
+| 40 | [sq-25](slices/sq-25.md) | Consumer classification contract | S | 1 | core |  | done |
+| 41 | [sq-26](slices/sq-26.md) | NuGet package for library consumers | S | 1 | core |  | done |
+| 42 | [sq-27](slices/sq-27.md) | Ragged run start | S | 1 | core | sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25 | done |
+| 43 | [sq-29](slices/sq-29.md) | Release workflow | S | 1 |  |  | done |
+| 44 | [sq-31](slices/sq-31.md) | Drop Parquet from v1 | S | 1 |  |  | done |

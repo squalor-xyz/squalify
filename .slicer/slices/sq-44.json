@@ -1,0 +1,41 @@
+{
+  "id": "sq-44",
+  "title": "Bounded-size quantile sketch",
+  "lead": [
+    "Replace the Greenwald-Khanna summary with one whose size is bounded however the keys arrive, so the sketch total under the sketch budget is a bound and not a nominal figure. sq-38 scales precision by field count, but the per-summary size depends on the data: the nominal `52/eps + 1024` bytes holds for random or monotone key order, and measured 2.2 to 3.3x for a zigzag order, 1.6 to 2.7x for 100 distinct values and up to 3.6x for 10 distinct values. 2,000 ten-valued int columns hold about 94 MB after 1M rows and about 102 MB after 10M (1.4 to 1.5x the 64 MiB budget), against 292 to 364 MB before sq-38. **Not in this slice:** the HyperLogLog (its error near the linear-counting switch is a separate follow-up); changing the exact caps; changing the descriptor schema (the members stay, their values change for the fields it affects)."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "L",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-28, sq-38 review R2), verbatim: \"Accept, reword docs, file a later slice (Recommended)\" (option text: \"The docs say plainly that the bound is nominal and cite the measured 1.4 to 1.5x overshoot (the overshoot is counted in EstimatedBytes, so the ceiling check stays sound). File a later item for bounded-size GK compression (fold equal keys, banded compress or KLL). No schema change, so it does not block the sq-12 freeze, but changes sketched quantiles for those fields when it lands.\"). A field crosses the quantile cap on row count alone, so every numeric flag, bin or site column builds a summary; real production-test exports have hundreds of such columns."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify/Sketches/GreenwaldKhanna.cs` (compression that folds equal keys, a banded compress as in the original paper, or a different deterministic sketch such as KLL), `MemoryBudget` (`SketchBytesPerField` and the nominal figures), the sketch tests (`SketchTests.cs`, `SketchBudgetTests.cs`), design.md (Bounded memory and sketches), descriptor.md (the `rankError` definition if it changes), how-it-works.md section 5; goldens of any fixture whose sketched quantiles move"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **Bounded:** for random, sorted, reversed, zigzag, 2-, 10- and 100-valued streams at every level of sq-38 (1/eps 1000 to 16) and 1M and 10M keys, the summary's `EstimatedBytes` never exceeds the charged `SketchBytesPerField` figure.\n- **Still within eps:** the worst rank error stays within the reported `rankError` on the same streams (the reviewer's brute-force oracle from sq-38 is the model).\n- **Budget:** 2,000 ten-valued int columns after 1M and 10M rows stay within the sketch budget (a measured peak, not only the final estimate).\n- **Deterministic:** the same input gives byte-identical quantiles twice and under another culture; no `Math.Log/Exp/Pow`.\n- Mutation-check each test."
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

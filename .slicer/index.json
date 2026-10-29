@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 44,
+  "next_id": 45,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -3610,6 +3610,36 @@
         "importance": 2,
         "urgency": 1,
         "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-44",
+      "title": "Bounded-size quantile sketch",
+      "short_title": "Bounded-size GK sketch",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "L",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-38",
+        "parent": "",
+        "cites": [],
+        "key": "bounded-size-gk-sketch",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 3,
         "attempts": 0
       }
     }
