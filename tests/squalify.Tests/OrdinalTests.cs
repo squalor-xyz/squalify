@@ -89,8 +89,9 @@ public class OrdinalTests
         var numeric = CountMap.FromNumeric([new(10, 1), new(2, 1), new(9, 1)]);
         Assert.Equal(["2", "9", "10"], numeric.Select(static e => e.Key));
 
-        Assert.Throws<ArgumentException>(() => CountMap.FromOrdinal([new("a", 1), new("a", 2)]));
-        Assert.Throws<ArgumentException>(() => CountMap.FromNumeric([new(1, 1), new(1, 2)]));
+        // Duplicate keys raise SqualifyException: see ApiSurfaceTests.
+        Assert.Throws<SqualifyException>(() => CountMap.FromOrdinal([new("a", 1), new("a", 2)]));
+        Assert.Throws<SqualifyException>(() => CountMap.FromNumeric([new(1, 1), new(1, 2)]));
     }
 
     [Fact]

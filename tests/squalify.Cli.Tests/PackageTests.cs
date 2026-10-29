@@ -125,6 +125,54 @@ public sealed class PackageTests(PackageFeed feed)
     }
 
     [Fact]
+    public void Package_BothNupkgs_ContainTheReadmeTheXmlDocFileAndTheLicense()
+    {
+        Assert.True(feed.PackExitCode == 0, $"dotnet pack exited with {feed.PackExitCode}.\n{feed.PackLog}");
+        Assert.True(feed.CliPackExitCode == 0, $"dotnet pack exited with {feed.CliPackExitCode}.\n{feed.CliPackLog}");
+
+        var readme = File.ReadAllBytes(Path.Combine(DotNetTool.RepositoryRoot(), "README.md"));
+        var packages = new[]
+        {
+            (Nupkg: feed.NupkgPath(ToolInfo.Version), Id: PackageFeed.PackageId, XmlDoc: $"lib/net10.0/{PackageFeed.PackageId}.xml"),
+            (Nupkg: feed.CliNupkgPath(ToolInfo.Version), Id: PackageFeed.CliPackageId, XmlDoc: $"tools/net10.0/any/{PackageFeed.PackageId}.xml"),
+        };
+        foreach (var (nupkg, id, xmlDoc) in packages)
+        {
+            var name = Path.GetFileName(nupkg);
+            var nuspec = ReadNuspec(nupkg, id);
+            var ns = nuspec.Name.Namespace;
+            using var archive = ZipFile.OpenRead(nupkg);
+
+            // The README: the file in the package is the repository's, and the nuspec points at it.
+            Assert.Equal("README.md", MetadataField(nuspec, "readme"));
+            Assert.True(EntryBytes(archive, "README.md", name).AsSpan().SequenceEqual(readme), $"The README.md in {name} differs in bytes from the repository's.");
+
+            // The license: the nuspec carries the SPDX expression (NuGet packs no LICENSE file for an expression).
+            var license = nuspec.Element(ns + "metadata")?.Element(ns + "license");
+            Assert.Equal("expression", (string?)license?.Attribute("type"));
+            Assert.Equal("Apache-2.0", license?.Value);
+
+            // The XML doc file is a doc file with members, not an empty shell.
+            var doc = XDocument.Parse(Encoding.UTF8.GetString(EntryBytes(archive, xmlDoc, name)));
+            Assert.Equal("doc", doc.Root?.Name.LocalName);
+            Assert.Equal(PackageFeed.PackageId, doc.Root!.Element("assembly")?.Element("name")?.Value);
+            var members = doc.Root.Element("members")!.Elements("member").Select(member => (string?)member.Attribute("name")).ToArray();
+            Assert.Contains("T:squalor.squalify.Profiler", members);
+            Assert.Contains("T:squalor.squalify.Descriptor", members);
+        }
+    }
+
+    private static byte[] EntryBytes(ZipArchive archive, string entryName, string packageName)
+    {
+        var entry = archive.GetEntry(entryName);
+        Assert.True(entry is not null, $"{packageName} has no {entryName}.");
+        using var stream = entry.Open();
+        using var memory = new MemoryStream();
+        stream.CopyTo(memory);
+        return memory.ToArray();
+    }
+
+    [Fact]
     public void Package_Library_HasEmbeddedIcon()
     {
         Assert.True(feed.PackExitCode == 0, $"dotnet pack exited with {feed.PackExitCode}.\n{feed.PackLog}");

@@ -4,7 +4,9 @@ namespace squalor.squalify;
 /// <summary>
 /// The descriptor: the complete result of profiling one file. The canonical writer emits the keys in the order
 /// documented in <c>docs/descriptor.md</c>, not in the order of these parameters. Optional members are null when absent.
-/// Producers must build every collection sorted by its documented key; the writer never sorts.
+/// Producers must build every collection sorted by its documented key; the writer never sorts. Equality is by value:
+/// two descriptors are equal when every member is equal, and each list is compared member by member in order (the type
+/// of the list does not matter), as is every record the descriptor holds.
 /// </summary>
 /// <param name="Tool">The tool that wrote the descriptor.</param>
 /// <param name="Options">Options that affect output.</param>
@@ -44,6 +46,53 @@ public sealed record Descriptor(
 {
     /// <summary>The descriptor schema version written as <c>schemaVersion</c>.</summary>
     public const string SchemaVersion = "1.0";
+
+    /// <inheritdoc />
+    public bool Equals(Descriptor? other)
+    {
+        return other is not null
+            && EqualityComparer<ToolSection>.Default.Equals(Tool, other.Tool)
+            && EqualityComparer<ProfileOptions>.Default.Equals(Options, other.Options)
+            && EqualityComparer<Limits>.Default.Equals(Limits, other.Limits)
+            && EqualityComparer<FileSection>.Default.Equals(File, other.File)
+            && EqualityComparer<EncodingSection>.Default.Equals(Encoding, other.Encoding)
+            && EqualityComparer<FormatSection>.Default.Equals(Format, other.Format)
+            && EqualityComparer<KindLabel>.Default.Equals(Kind, other.Kind)
+            && EqualityComparer<LayoutSection>.Default.Equals(Layout, other.Layout)
+            && EqualityComparer<Fingerprint>.Default.Equals(Fingerprint, other.Fingerprint)
+            && EqualityComparer<Hints>.Default.Equals(Hints, other.Hints)
+            && ValueEquality.ListEquals(Issues, other.Issues)
+            && ValueEquality.ListEquals(Evidence, other.Evidence)
+            && EqualityComparer<TableSection?>.Default.Equals(Table, other.Table)
+            && ValueEquality.ListEquals(Sections, other.Sections)
+            && EqualityComparer<BinarySection?>.Default.Equals(Binary, other.Binary)
+            && EqualityComparer<StdfSection?>.Default.Equals(Stdf, other.Stdf)
+            && EqualityComparer<ScopeSection?>.Default.Equals(Scope, other.Scope);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Tool);
+        hash.Add(Options);
+        hash.Add(Limits);
+        hash.Add(File);
+        hash.Add(Encoding);
+        hash.Add(Format);
+        hash.Add(Kind);
+        hash.Add(Layout);
+        hash.Add(Fingerprint);
+        hash.Add(Hints);
+        ValueEquality.AddList(ref hash, Issues);
+        ValueEquality.AddList(ref hash, Evidence);
+        hash.Add(Table);
+        ValueEquality.AddList(ref hash, Sections);
+        hash.Add(Binary);
+        hash.Add(Stdf);
+        hash.Add(Scope);
+        return hash.ToHashCode();
+    }
 }
 
 /// <summary>The <c>tool</c> section.</summary>

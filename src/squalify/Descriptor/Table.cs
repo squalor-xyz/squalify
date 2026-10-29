@@ -10,7 +10,29 @@ public sealed record TableSection(
     long Rows,
     MinMax FieldCount,
     IReadOnlyList<FieldProfile> Fields,
-    RowClassesInfo? RowClasses = null);
+    RowClassesInfo? RowClasses = null)
+{
+    /// <inheritdoc />
+    public bool Equals(TableSection? other)
+    {
+        return other is not null
+            && EqualityComparer<long>.Default.Equals(Rows, other.Rows)
+            && EqualityComparer<MinMax>.Default.Equals(FieldCount, other.FieldCount)
+            && ValueEquality.ListEquals(Fields, other.Fields)
+            && EqualityComparer<RowClassesInfo?>.Default.Equals(RowClasses, other.RowClasses);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Rows);
+        hash.Add(FieldCount);
+        ValueEquality.AddList(ref hash, Fields);
+        hash.Add(RowClasses);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>The <c>table.rowClasses</c> object.</summary>
 /// <param name="Count">Number of classes listed (at most <c>limits.rowClasses</c>); <c>Truncated &gt; 0</c> means more exist.</param>
@@ -29,7 +51,37 @@ public sealed record RowClassesInfo(
     IReadOnlyList<RowClass> Classes,
     CountMap? AllNullRowSpellings = null,
     long AllNullRowSpellingsMixed = 0,
-    long AllNullRowSpellingsOther = 0);
+    long AllNullRowSpellingsOther = 0)
+{
+    /// <inheritdoc />
+    public bool Equals(RowClassesInfo? other)
+    {
+        return other is not null
+            && EqualityComparer<long>.Default.Equals(Count, other.Count)
+            && EqualityComparer<long>.Default.Equals(Transitions, other.Transitions)
+            && EqualityComparer<long>.Default.Equals(AllNullRows, other.AllNullRows)
+            && EqualityComparer<long>.Default.Equals(Truncated, other.Truncated)
+            && ValueEquality.ListEquals(Classes, other.Classes)
+            && EqualityComparer<CountMap?>.Default.Equals(AllNullRowSpellings, other.AllNullRowSpellings)
+            && EqualityComparer<long>.Default.Equals(AllNullRowSpellingsMixed, other.AllNullRowSpellingsMixed)
+            && EqualityComparer<long>.Default.Equals(AllNullRowSpellingsOther, other.AllNullRowSpellingsOther);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Count);
+        hash.Add(Transitions);
+        hash.Add(AllNullRows);
+        hash.Add(Truncated);
+        ValueEquality.AddList(ref hash, Classes);
+        hash.Add(AllNullRowSpellings);
+        hash.Add(AllNullRowSpellingsMixed);
+        hash.Add(AllNullRowSpellingsOther);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>One row class.</summary>
 /// <param name="Id">The class id, <c>rc:</c> plus a hash.</param>
@@ -37,7 +89,31 @@ public sealed record RowClassesInfo(
 /// <param name="Fields">Inclusive index ranges of the non-null fields.</param>
 /// <param name="FirstLine">First line of the class.</param>
 /// <param name="LastLine">Last line of the class.</param>
-public sealed record RowClass(string Id, long Count, IReadOnlyList<FieldRange> Fields, long FirstLine, long LastLine);
+public sealed record RowClass(string Id, long Count, IReadOnlyList<FieldRange> Fields, long FirstLine, long LastLine)
+{
+    /// <inheritdoc />
+    public bool Equals(RowClass? other)
+    {
+        return other is not null
+            && EqualityComparer<string>.Default.Equals(Id, other.Id)
+            && EqualityComparer<long>.Default.Equals(Count, other.Count)
+            && ValueEquality.ListEquals(Fields, other.Fields)
+            && EqualityComparer<long>.Default.Equals(FirstLine, other.FirstLine)
+            && EqualityComparer<long>.Default.Equals(LastLine, other.LastLine);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Id);
+        hash.Add(Count);
+        ValueEquality.AddList(ref hash, Fields);
+        hash.Add(FirstLine);
+        hash.Add(LastLine);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>An inclusive range of field indexes, written as a two-element array.</summary>
 /// <param name="First">First index.</param>
@@ -101,7 +177,77 @@ public sealed record FieldProfile(
     [property: ValueBearing] TextStats? Text = null,
     string? RawName = null,
     CountMap? NullSpellings = null,
-    long NullSpellingsOther = 0);
+    long NullSpellingsOther = 0)
+{
+    /// <inheritdoc />
+    public bool Equals(FieldProfile? other)
+    {
+        return other is not null
+            && EqualityComparer<long>.Default.Equals(Index, other.Index)
+            && EqualityComparer<string?>.Default.Equals(Name, other.Name)
+            && EqualityComparer<NameParts?>.Default.Equals(NameParts, other.NameParts)
+            && EqualityComparer<string>.Default.Equals(Type, other.Type)
+            && EqualityComparer<DominantType>.Default.Equals(Dominant, other.Dominant)
+            && EqualityComparer<CountMap>.Default.Equals(TypeVotes, other.TypeVotes)
+            && EqualityComparer<long>.Default.Equals(Count, other.Count)
+            && EqualityComparer<long>.Default.Equals(Nulls, other.Nulls)
+            && EqualityComparer<long>.Default.Equals(NullsExcludingAllNullRows, other.NullsExcludingAllNullRows)
+            && EqualityComparer<CountMap?>.Default.Equals(NullTokens, other.NullTokens)
+            && EqualityComparer<FieldFlags?>.Default.Equals(Flags, other.Flags)
+            && EqualityComparer<DistinctInfo?>.Default.Equals(Distinct, other.Distinct)
+            && EqualityComparer<LengthStats?>.Default.Equals(Length, other.Length)
+            && ValueEquality.ListEquals(Shapes, other.Shapes)
+            && EqualityComparer<string?>.Default.Equals(Monotonic, other.Monotonic)
+            && EqualityComparer<bool?>.Default.Equals(Constant, other.Constant)
+            && EqualityComparer<bool?>.Default.Equals(Unique, other.Unique)
+            && EqualityComparer<string?>.Default.Equals(NameHex, other.NameHex)
+            && EqualityComparer<CountMap?>.Default.Equals(Patterns, other.Patterns)
+            && EqualityComparer<NumericStats?>.Default.Equals(Numeric, other.Numeric)
+            && EqualityComparer<TemporalStats?>.Default.Equals(Temporal, other.Temporal)
+            && EqualityComparer<string?>.Default.Equals(StatsWithheld, other.StatsWithheld)
+            && EqualityComparer<string?>.Default.Equals(Unit, other.Unit)
+            && EqualityComparer<TopValues?>.Default.Equals(Top, other.Top)
+            && EqualityComparer<TextStats?>.Default.Equals(Text, other.Text)
+            && EqualityComparer<string?>.Default.Equals(RawName, other.RawName)
+            && EqualityComparer<CountMap?>.Default.Equals(NullSpellings, other.NullSpellings)
+            && EqualityComparer<long>.Default.Equals(NullSpellingsOther, other.NullSpellingsOther);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Index);
+        hash.Add(Name);
+        hash.Add(NameParts);
+        hash.Add(Type);
+        hash.Add(Dominant);
+        hash.Add(TypeVotes);
+        hash.Add(Count);
+        hash.Add(Nulls);
+        hash.Add(NullsExcludingAllNullRows);
+        hash.Add(NullTokens);
+        hash.Add(Flags);
+        hash.Add(Distinct);
+        hash.Add(Length);
+        ValueEquality.AddList(ref hash, Shapes);
+        hash.Add(Monotonic);
+        hash.Add(Constant);
+        hash.Add(Unique);
+        hash.Add(NameHex);
+        hash.Add(Patterns);
+        hash.Add(Numeric);
+        hash.Add(Temporal);
+        hash.Add(StatsWithheld);
+        hash.Add(Unit);
+        hash.Add(Top);
+        hash.Add(Text);
+        hash.Add(RawName);
+        hash.Add(NullSpellings);
+        hash.Add(NullSpellingsOther);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>A header name split into base and unit.</summary>
 /// <param name="Base">The name without the unit.</param>
@@ -172,7 +318,37 @@ public sealed record TemporalStats(
     string? Max,
     Quantiles<string>? Quantiles,
     bool? Approximate = null,
-    double? RankError = null);
+    double? RankError = null)
+{
+    /// <inheritdoc />
+    public bool Equals(TemporalStats? other)
+    {
+        return other is not null
+            && ValueEquality.ListEquals(Orders, other.Orders)
+            && EqualityComparer<bool>.Default.Equals(Ambiguous, other.Ambiguous)
+            && EqualityComparer<string?>.Default.Equals(Clock, other.Clock)
+            && EqualityComparer<string?>.Default.Equals(Min, other.Min)
+            && EqualityComparer<string?>.Default.Equals(Max, other.Max)
+            && EqualityComparer<Quantiles<string>?>.Default.Equals(Quantiles, other.Quantiles)
+            && EqualityComparer<bool?>.Default.Equals(Approximate, other.Approximate)
+            && EqualityComparer<double?>.Default.Equals(RankError, other.RankError);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        ValueEquality.AddList(ref hash, Orders);
+        hash.Add(Ambiguous);
+        hash.Add(Clock);
+        hash.Add(Min);
+        hash.Add(Max);
+        hash.Add(Quantiles);
+        hash.Add(Approximate);
+        hash.Add(RankError);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>Length statistics, in characters.</summary>
 /// <param name="Min">Shortest value.</param>
@@ -189,7 +365,27 @@ public sealed record Shape(string Mask, long Count);
 /// <param name="Items">Values by count.</param>
 /// <param name="Approximate">True when counts come from a sketch.</param>
 /// <param name="MaxError">Maximum count error of a sketch.</param>
-public sealed record TopValues(IReadOnlyList<TopValue> Items, bool Approximate, long? MaxError = null);
+public sealed record TopValues(IReadOnlyList<TopValue> Items, bool Approximate, long? MaxError = null)
+{
+    /// <inheritdoc />
+    public bool Equals(TopValues? other)
+    {
+        return other is not null
+            && ValueEquality.ListEquals(Items, other.Items)
+            && EqualityComparer<bool>.Default.Equals(Approximate, other.Approximate)
+            && EqualityComparer<long?>.Default.Equals(MaxError, other.MaxError);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        ValueEquality.AddList(ref hash, Items);
+        hash.Add(Approximate);
+        hash.Add(MaxError);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>A value and its count.</summary>
 /// <param name="Value">The literal value.</param>

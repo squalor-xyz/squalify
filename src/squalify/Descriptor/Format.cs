@@ -62,7 +62,43 @@ public sealed record TouchstoneDialect(
     string MatrixFormat,
     IReadOnlyList<string> Keywords,
     CountMap ValuesPerLine,
-    bool Noise) : Dialect;
+    bool Noise) : Dialect
+{
+    /// <inheritdoc />
+    public bool Equals(TouchstoneDialect? other)
+    {
+        return other is not null
+            && EqualityComparer<string>.Default.Equals(Version, other.Version)
+            && EqualityComparer<long>.Default.Equals(Ports, other.Ports)
+            && EqualityComparer<string>.Default.Equals(FrequencyUnit, other.FrequencyUnit)
+            && EqualityComparer<string>.Default.Equals(Parameter, other.Parameter)
+            && EqualityComparer<string>.Default.Equals(DataFormat, other.DataFormat)
+            && EqualityComparer<double>.Default.Equals(ReferenceOhms, other.ReferenceOhms)
+            && EqualityComparer<string?>.Default.Equals(TwoPortOrder, other.TwoPortOrder)
+            && EqualityComparer<string>.Default.Equals(MatrixFormat, other.MatrixFormat)
+            && ValueEquality.ListEquals(Keywords, other.Keywords)
+            && EqualityComparer<CountMap>.Default.Equals(ValuesPerLine, other.ValuesPerLine)
+            && EqualityComparer<bool>.Default.Equals(Noise, other.Noise);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Version);
+        hash.Add(Ports);
+        hash.Add(FrequencyUnit);
+        hash.Add(Parameter);
+        hash.Add(DataFormat);
+        hash.Add(ReferenceOhms);
+        hash.Add(TwoPortOrder);
+        hash.Add(MatrixFormat);
+        ValueEquality.AddList(ref hash, Keywords);
+        hash.Add(ValuesPerLine);
+        hash.Add(Noise);
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>Dialect of a key=value document.</summary>
 /// <param name="Separator"><c>=</c> or <c>:</c>.</param>

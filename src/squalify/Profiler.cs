@@ -12,7 +12,8 @@ public static class Profiler
     /// <param name="options">The options that affect output.</param>
     /// <returns>The descriptor.</returns>
     /// <exception cref="SqualifyException">
-    /// The source cannot be read, its <see cref="IProfileSource.Name"/> is empty or contains <c>/</c> or <c>\</c>, or
+    /// The source cannot be read, its <see cref="IProfileSource.Name"/> is null, empty or contains <c>/</c> or <c>\</c> (a backslash is
+    /// refused on every platform, also where a file name may hold one), or
     /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
     /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
     /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled), or a limit is given and the source reports
@@ -62,7 +63,8 @@ public static class Profiler
     /// <param name="options">The options that affect output; <see cref="ProfileOptions.MaxBytes"/> is required.</param>
     /// <returns>The descriptor, the prefix it describes and the scope; <c>file.size</c> is the length of the whole source.</returns>
     /// <exception cref="SqualifyException">
-    /// Anything <see cref="Profile(IProfileSource, ProfileOptions)"/> rejects, and in addition: <see cref="ProfileOptions.MaxBytes"/>
+    /// Anything <see cref="Profile(IProfileSource, ProfileOptions)"/> rejects, with the same messages (so a source name that is
+    /// null, empty or contains <c>/</c> or a backslash is refused as there, on every platform), and in addition: <see cref="ProfileOptions.MaxBytes"/>
     /// is null (it would buffer the whole source), the source reports a negative length, or the bytes to buffer would not fit
     /// in one array (about 2 GiB).
     /// </exception>
@@ -113,10 +115,7 @@ public static class Profiler
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(options);
-        if (string.IsNullOrEmpty(source.Name) || source.Name.AsSpan().IndexOfAny('/', '\\') >= 0)
-        {
-            throw new SqualifyException("The source name must be a bare file name, with no directory part and not empty; a path never reaches the descriptor.");
-        }
+        SourceNameGuard.Check(source.Name);
 
         if (options.MaxBytes is <= 0)
         {
