@@ -3256,7 +3256,7 @@
       "id": "sq-38",
       "title": "Sketches under the memory budget",
       "short_title": "Sketches under the memory budget",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3270,12 +3270,31 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "16b6dc2e-2618-4fb0-8786-2f5abd68c63d",
+          "kind": "",
+          "text": "**2026-10-29** — Verified outcome: sketch precision scales by field count under a 64 MiB sketch budget (SketchBudgetBytes); limits.sketches always written; the bound is nominal, documented with the measured 1.4 to 1.5x overshoot on few-valued wide tables. Gate PASS on aacdab3: library 1215 and CLI 32 tests pass (3 runs plus GITHUB_ACTIONS=true), build 0 warnings, format clean; 18 goldens changed by the added sketches line only; fingerprints unchanged.",
+          "created_at": "2026-10-29T19:17:00Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "d9d8e0a7-f9d2-49e2-9606-89082c3364f7",
+          "kind": "",
+          "text": "**2026-10-29** — Later (from review, architect and gate): (1) Bounded-size Greenwald-Khanna compression (fold equal keys, banded compress or KLL): the sketch total is nominal and reaches 1.4 to 1.5x the budget on 2,000 ten-valued int columns; owner chose to file this later (review R2, 2026-10-28); it changes sketched quantiles for those fields. (2) HLL error near the 3.5m linear-counting switch exceeds the documented worst (1.57 to 1.75x sigma at p=10 to 12; 17.7 to 20 percent worst at p=10 and 11; 2.9 percent at p=14 against 1.4 percent in design.md). (3) Clarify AllowanceBytes versus SketchBudgetBytes in the ceiling text: design.md says 64 MiB caps what squalify holds while the 2,000-field exact-buffer peak is about 173 MB. (4) Wide sketch test at steady state (the 2,000-column test measures young summaries after 5,200 rows). (5) Charge any new per-field sketch in SketchBytesPerField (sq-43 option c would add a HyperLogLog per field). (6) Align MemoryBudget.SketchLevel XML doc and the test name FitsTheAllowance with sketch budget and nominally. (7) design.md GK bullet: 'a nominal bound' next to 'not a bound' contradicts; say nominal figure. (8) descriptor.md lists the scaled relativeStdError values rounded (0.01149, 0.02298, 0.04596) while the written numbers are full doubles; mark them approximate or give the exact values.",
+          "created_at": "2026-10-29T19:17:00Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-28T18:51:57Z"
-      },
+      "claim": null,
       "fields": {
         "size": "M",
         "flags": [],
