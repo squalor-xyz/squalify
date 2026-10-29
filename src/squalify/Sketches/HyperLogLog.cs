@@ -19,7 +19,7 @@ namespace squalor.squalify;
 /// The estimate is the raw harmonic-mean estimate <c>alpha * m^2 / sum(2^-M[j])</c>; the powers of two come from
 /// <see cref="Math.ScaleB(double, int)"/> (exact), the sum runs in register order, and every operation is an IEEE
 /// <c>+ - * /</c>, so the result is the same on every platform. While the raw estimate is at most <c>3.5 m</c> (about
-/// 57,000 values) and some register is still empty, linear counting is used instead: <c>m * ln(m / V)</c> with
+/// 57,000 values at the default precision) and some register is still empty, linear counting is used instead: <c>m * ln(m / V)</c> with
 /// <c>V</c> the number of empty registers, through <see cref="DetMath.Ln(double)"/>. The result is rounded to a whole
 /// number, half to even. The 64-bit hash needs no large-range correction.
 /// </para>

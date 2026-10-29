@@ -79,12 +79,15 @@ internal sealed class GreenwaldKhanna
 
     /// <summary>
     /// The nominal memory of a summary, in bytes, that <see cref="MemoryBudget"/> charges for a precision:
-    /// <c>52 * inverseEpsilon + 1,024</c>. Measured over 12 seeds, five key orders (random, ascending, descending,
-    /// alternating and random with repeats) and streams of 5,000 to a million keys, the largest summary held 34.5 KB at
-    /// <c>inverseEpsilon</c> 1,000, 17.5 KB at 500, 9.0 KB at 250, 6.6 KB at 125, 2.7 KB at 64, 1.8 KB at 32 and 0.8 KB
-    /// at 16; the figure is at least 14 percent above each. It does not bound keys with few distinct values, which hold
-    /// several times more because the compression of this summary does not fold equal keys: that is counted in
-    /// <see cref="EstimatedBytes"/> but not in this figure.
+    /// <c>52 * inverseEpsilon + 1,024</c>. For keys in random or monotone order, measured over 12 seeds and streams of
+    /// 5,000 to a million keys, the largest summary held 34.5 KB at <c>inverseEpsilon</c> 1,000, 17.5 KB at 500, 9.0 KB
+    /// at 250, 6.6 KB at 125, 2.7 KB at 64, 1.8 KB at 32 and 0.8 KB at 16; the figure is at least 14 percent above each.
+    /// It is a nominal figure, not a bound. Key order and few distinct values can reach about 3.5 times it: distinct
+    /// keys in zigzag order (even rows <c>i</c>, odd rows <c>n - i</c>) held 2.2 to 3.3 times the nominal at every
+    /// precision after a million keys (41,664 bytes at 1/250 against 14,024); 100 distinct values held 1.6 to 2.7 times
+    /// and 10 distinct values up to 3.6 times (51 KB at 1/250 after 10M keys), because the compression of this summary
+    /// does not fold equal keys. The overshoot is counted in <see cref="EstimatedBytes"/>, so the memory ceiling check
+    /// stays sound, but the scaling of <see cref="MemoryBudget"/> does not see it.
     /// </summary>
     /// <param name="inverseEpsilon"><c>1 / epsilon</c>.</param>
     /// <returns>The bytes.</returns>
