@@ -30,7 +30,6 @@ public sealed record KeyValueSection(string Name, long Line, IReadOnlyList<strin
     }
 }
 
-
 /// <summary>The <c>binary</c> section.</summary>
 /// <param name="Bytes">Whole-file byte statistics.</param>
 /// <param name="Blocks">Statistics of the per-block entropy, or null before sq-10 adds them.</param>
@@ -56,7 +55,6 @@ public sealed record BinarySection(ByteStats Bytes, BlockStats? Blocks = null, I
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>Whole-file byte statistics.</summary>
 /// <param name="Histogram">The 256-bin byte histogram.</param>
@@ -89,7 +87,6 @@ public sealed record ByteStats(IReadOnlyList<long> Histogram, long Nul, long Pri
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>Per-block entropy statistics.</summary>
 /// <param name="Count">Number of blocks.</param>
@@ -138,7 +135,6 @@ public sealed record StdfSection(
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>Count of one STDF record type.</summary>
 /// <param name="Name">The record name, such as <c>PTR</c>.</param>

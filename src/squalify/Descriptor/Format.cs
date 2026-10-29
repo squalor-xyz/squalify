@@ -100,7 +100,6 @@ public sealed record TouchstoneDialect(
     }
 }
 
-
 /// <summary>Dialect of a key=value document.</summary>
 /// <param name="Separator"><c>=</c> or <c>:</c>.</param>
 /// <param name="HasSections">True when <c>[section]</c> headers are present.</param>

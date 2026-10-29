@@ -41,7 +41,6 @@ public sealed record Issue(
     }
 }
 
-
 /// <summary>An entry of <c>evidence[]</c>: one inference and the candidates considered.</summary>
 /// <param name="Stage">The pipeline stage.</param>
 /// <param name="Topic">The topic within the stage.</param>
@@ -70,7 +69,6 @@ public sealed record Evidence(string Stage, string Topic, string? Chosen, IReadO
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>One candidate of an evidence entry.</summary>
 /// <param name="Value">The candidate value.</param>
@@ -142,7 +140,6 @@ public sealed record Hints(
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>The structured form of <c>hints.magic</c>: a named byte string at a fixed offset.</summary>
 /// <param name="Name">The magic name, for example <c>gzip</c>.</param>

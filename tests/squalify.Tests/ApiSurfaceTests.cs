@@ -207,6 +207,23 @@ public sealed class ApiSurfaceTests : IDisposable
     }
 
     [Fact]
+    public void Profile_NullName_IsRefusedWithAMessageThatSaysNullOrEmpty()
+    {
+        var error = Assert.Throws<SqualifyException>(() => Profiler.Profile(new NullNameSource(), Options()));
+        Assert.Contains("null or empty", error.Message, StringComparison.Ordinal);
+        Assert.Contains("file name", error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private sealed class NullNameSource : IProfileSource
+    {
+        public string Name => null!;
+
+        public long Length => 0;
+
+        public Stream Open() => new MemoryStream();
+    }
+
+    [Fact]
     public void Profile_FileWhoseNameHoldsABackslash_IsRefusedWhereTheFileSystemAllowsIt()
     {
         if (OperatingSystem.IsWindows())

@@ -34,7 +34,6 @@ public sealed record TableSection(
     }
 }
 
-
 /// <summary>The <c>table.rowClasses</c> object.</summary>
 /// <param name="Count">Number of classes listed (at most <c>limits.rowClasses</c>); <c>Truncated &gt; 0</c> means more exist.</param>
 /// <param name="Transitions">Number of class transitions.</param>
@@ -84,7 +83,6 @@ public sealed record RowClassesInfo(
     }
 }
 
-
 /// <summary>One row class.</summary>
 /// <param name="Id">The class id, <c>rc:</c> plus a hash.</param>
 /// <param name="Count">Records in the class.</param>
@@ -116,7 +114,6 @@ public sealed record RowClass(string Id, long Count, IReadOnlyList<FieldRange> F
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>An inclusive range of field indexes, written as a two-element array.</summary>
 /// <param name="First">First index.</param>
@@ -252,7 +249,6 @@ public sealed record FieldProfile(
     }
 }
 
-
 /// <summary>A header name split into base and unit.</summary>
 /// <param name="Base">The name without the unit.</param>
 /// <param name="Unit">The unit, or null when none was parsed.</param>
@@ -354,7 +350,6 @@ public sealed record TemporalStats(
     }
 }
 
-
 /// <summary>Length statistics, in characters.</summary>
 /// <param name="Min">Shortest value.</param>
 /// <param name="Max">Longest value.</param>
@@ -391,7 +386,6 @@ public sealed record TopValues(IReadOnlyList<TopValue> Items, bool Approximate, 
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>A value and its count.</summary>
 /// <param name="Value">The literal value.</param>

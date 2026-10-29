@@ -30,7 +30,6 @@ public sealed record LayoutSection(
     }
 }
 
-
 /// <summary>One region of the file.</summary>
 /// <param name="Kind">The region kind, for example <c>preamble</c> or <c>data</c>.</param>
 /// <param name="FirstLine">First line, 1-based, inclusive.</param>
@@ -92,7 +91,6 @@ public sealed record Region(
     }
 }
 
-
 /// <summary>One row of an annotation region.</summary>
 /// <param name="Line">The 1-based line.</param>
 /// <param name="Label">The normalized label, or null when the first field is numeric.</param>
@@ -137,7 +135,6 @@ public sealed record AnnotationRow(
         return hash.ToHashCode();
     }
 }
-
 
 /// <summary>The <c>layout.headerConvention</c> object.</summary>
 /// <param name="Dominant">The most common convention.</param>

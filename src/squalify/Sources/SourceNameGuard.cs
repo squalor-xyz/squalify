@@ -10,12 +10,12 @@ internal static class SourceNameGuard
 {
     /// <summary>Throws unless the name is a non-empty bare file name.</summary>
     /// <param name="name">The source name.</param>
-    /// <exception cref="SqualifyException">The name is empty or contains <c>/</c> or a backslash; the message says which.</exception>
+    /// <exception cref="SqualifyException">The name is null, empty or contains <c>/</c> or a backslash; the message says which.</exception>
     public static void Check(string? name)
     {
         if (string.IsNullOrEmpty(name))
         {
-            throw new SqualifyException("The source name must be a bare file name, and it is empty; a path never reaches the descriptor.");
+            throw new SqualifyException("The source name must be a bare file name, and this one is null or empty; a path never reaches the descriptor.");
         }
 
         if (name.Contains('/', StringComparison.Ordinal))
