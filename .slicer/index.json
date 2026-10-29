@@ -3607,14 +3607,23 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "0ddd1644-3153-4df4-8a99-934c6f6c5fb1",
+          "kind": "decision",
+          "text": "**2026-10-29** — Owner decisions (2026-10-29), verbatim: Q1 \"One object limits.nullSpellings { max, maxChars }\" (option text: \"Groups the two like limits.sketches and charsetTolerance, and leaves room for sq-43 to add a distinct-count cap next to them.\"). Q2 \"Always written (Recommended)\" (option text: \"Same rule as limits.sketches and every other limits member: a consumer reads the bound from the descriptor and never hard-codes 64 and 256. One golden rewrite (every golden limits block gains the members), fingerprints unchanged.\"). Pass: v1.0.0 (owner instruction, 2026-10-29).",
+          "created_at": "2026-10-29T20:09:08Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "S",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],
@@ -3653,14 +3662,23 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "0fa239a4-7164-40fa-b234-d34ce91c7a63",
+          "kind": "decision",
+          "text": "**2026-10-29** — Owner decisions (2026-10-29), verbatim: Q1 \"Capped exact count, marked capped (Recommended)\" (option text: \"Remember a hash (XxHash64) of up to K further distinct spellings (K small, for example 64), count exactly up to K, and write a marker when the cap is hit. Bounded memory, deterministic, and answers the use case (one spelling versus more than one) exactly.\"). Q2 \"nullSpellingsOtherDistinct omitted at 0; allNullRowSpellingsOtherDistinct always written (Recommended)\" (option text: \"Mirrors nullSpellingsOther (left out when 0) and allNullRowSpellingsOther (always written). If the count is capped, a sibling marker member (for example nullSpellingsOtherDistinctCapped) is written only when the cap is hit.\"). Q3 \"Accept as proposed, K = 64 (Recommended)\" (proposal: each distinct dropped spelling counts once however often it recurs, whether dropped by the 64-spelling bound or by the 256-character bound, compared as exact text, not trimmed; exact up to K = 64 further distinct spellings; the capped marker is written once more were seen; option text: \"Per field and for all-null rows the counter remembers at most 64 more spelling hashes (XxHash64, 8 bytes each, plus length for the long ones), so at most about 0.5 KiB more per spilling field; the marker is nullSpellingsOtherDistinctCapped (true only when the cap is hit).\"). Q4 \"Yes, publish it in limits.nullSpellings (Recommended)\" (option text: \"Same reasoning as sq-42: a consumer reads the cap instead of hard-coding it. sq-43 adds the third member to the object sq-42 creates (always written, per the sq-42 answer).\"). Pass: v1.0.0 (owner instruction, 2026-10-29).",
+          "created_at": "2026-10-29T20:09:09Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": null,
       "fields": {
         "size": "M",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [
           "core"
         ],

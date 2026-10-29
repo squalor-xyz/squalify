@@ -7,9 +7,7 @@
   "depends_note": null,
   "findings_note": "",
   "size": "S",
-  "flags": [
-    "needs-owner"
-  ],
+  "flags": [],
   "trees_note": "core",
   "trees_plural": false,
   "boundary": "**Not in this slice:**",
@@ -24,11 +22,11 @@
     },
     {
       "heading": "Failing tests",
-      "body": "- **Published:** a profiled descriptor's `limits` carries the 64 and 256 under the chosen names, and they equal the constants the counter enforces (one source of truth: the test reads the counter's constants, so changing one without the other fails).\n- **Enforced:** a field with 65 distinct null spellings keeps 64 and counts the 65th in `nullSpellingsOther`, and a spelling of 257 characters is counted there too, so the published bounds are the real ones (guards against the limits drifting from the behavior).\n- **Documented:** a docs test, in the style of the existing descriptor.md tests, checks the two members are described, and the stale sentence \"not in `limits`\" is gone from descriptor.md and design.md.\n- **Goldens:** every golden is rewritten once and the diff is only the new `limits` members (review the diff); fingerprints are unchanged (check whether `limits` enters any projection; it must not move a hash).\n- **Schema/consumer subset (pending Q1, Q2):** the members are listed in the consumer-subset table with their stability class, as the existing limits members are.\n- Mutation-check: changing one published value, and publishing the wrong constant, each fail a test above."
+      "body": "- **Published:** every descriptor with a limits block carries `limits.nullSpellings { \"max\": 64, \"maxChars\": 256 }` (always written, between the neighbouring members at the place descriptor.md lists), and the values equal the constants the counter enforces (one source of truth: the test reads `SpellingCounter.MaxSpellings` and `MaxLength`).\n- **Enforced:** a field with 65 distinct null spellings keeps 64 and counts the 65th in `nullSpellingsOther`, and a spelling of 257 characters is counted there too, so the published bounds are the real ones.\n- **Documented:** a docs test checks the object is described in descriptor.md (limits section, key-order row, consumer subset) and that the sentence \"not in `limits`\" is gone from descriptor.md and design.md.\n- **Goldens:** every golden is rewritten once and the diff is only the added `nullSpellings` line in `limits`; fingerprints are unchanged (check that `limits` enters no projection).\n- **Record shape:** `Limits` gains a trailing optional member (a `NullSpellingLimits` record or similar with a default, null reads as the default, like `Sketches` from sq-38) so existing callers still compile; the writer writes the default when null.\n- Mutation-check: changing one published value, and publishing the wrong constant, each fail a test above."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the failing tests above.\n2. Add the record and the `Limits` member (trailing, optional, default), `Limits.Default`, `MemoryBudget.Record` or wherever the limits are assembled, and the writer entry (always written, after `sketches`, before `nullTokens` unless the key-order rule says otherwise: decide and list in descriptor.md \"Key order of nested objects\").\n3. Docs in the same change: descriptor.md (limits section and example, key-order rows, the consumer subset and its stability class, the sq-36 sentences that say the bounds are not in `limits`, the versioning-policy sentence for this slice), design.md, user-guide.md (API added in 1.0.0: the new public record; breaking changes only if a signature changed), how-it-works.md only if text names the bounds.\n4. Rewrite the goldens (SQUALIFY_UPDATE_GOLDEN=1) and review the diff."
     },
     {
       "heading": "Check",
