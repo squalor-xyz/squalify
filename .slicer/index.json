@@ -3712,7 +3712,7 @@
       "id": "sq-43",
       "title": "Count the distinct spellings in the other counters",
       "short_title": "Distinct null spellings in other",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-42"
@@ -3739,12 +3739,31 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "6e083778-07fc-43d7-8a7a-9f81f88cc161",
+          "kind": "",
+          "text": "**2026-10-29** — Verified outcome: distinct count of dropped null spellings (capped exact, K = 64, XxHash64 keys): fields nullSpellingsOtherDistinct (omitted at 0) and nullSpellingsOtherDistinctCapped (only when true); rowClasses allNullRowSpellingsOtherDistinct (always) and its Capped marker (only when true); limits.nullSpellings.maxDistinctOther = 64. Gate PASS on 136b246: library 1426 and CLI 36 tests pass (2 runs plus GITHUB_ACTIONS=true), build 0 warnings, format clean; 18 goldens changed by the expected lines only; fingerprints unchanged; the 2,000-field test estimate 29.9 MB of the 67.1 MB sketch budget.",
+          "created_at": "2026-10-29T21:29:22Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "0dcc93ec-fa36-451d-a190-8a8d35501340",
+          "kind": "",
+          "text": "**2026-10-29** — Later (from review and architect): (1) Add a small golden fixture with a field that drops spellings and hits the cap (no golden has a spilling field; synthetic tests cover the members). (2) sq-12 validator: cross-member rules for the OtherDistinct members (Distinct present exactly when Other is; Distinct <= Other; Capped implies Distinct == limits.nullSpellings.maxDistinctOther); the schema subset cannot express them (dependentRequired is outside it); do not pin maximum or const 64 in the schema. (3) sq-12 closed schema shape: limits.nullSpellings.maxDistinctOther required integer minimum 1; rowClasses.allNullRowSpellingsOtherDistinct required integer minimum 0; the two Capped members optional const true; fields[].nullSpellingsOtherDistinct optional integer minimum 1. (4) sq-12 writer model: add a spilling field and a capped rowClasses so AllGoldens_ValidateAgainstSchema exercises the optional members. (5) sq-12 docs pass: mark the spelling-hash description as informative (the hash never appears in output; the length seed adds nothing since xxHash64 already mixes the length, harmless and pinned by a test).",
+          "created_at": "2026-10-29T21:29:23Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-29T20:56:52Z"
-      },
+      "claim": null,
       "fields": {
         "size": "M",
         "flags": [],
