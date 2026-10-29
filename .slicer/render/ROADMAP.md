@@ -30,7 +30,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | [sq-19](slices/sq-19.md) | Throughput benchmark | M | 2 | core |  | done |
-| 2 | [sq-12](slices/sq-12.md) | Schema v1 freeze | S | 1 | docs, core |  | — |
+| 2 | [sq-12](slices/sq-12.md) | Schema v1 freeze | M | 1 | docs, core |  | — |
 | 3 | [sq-38](slices/sq-38.md) | Sketches under the memory budget | M | 2 | core | discovered from sq-11 | done |
 | 4 | [sq-39](slices/sq-39.md) | First-record ceiling | S | 1 | core | discovered from sq-35 | done |
 | 5 | [sq-40](slices/sq-40.md) | Shared prefix reader | M | 2 | core | discovered from sq-35 | done |

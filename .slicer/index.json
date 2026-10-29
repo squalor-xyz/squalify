@@ -2287,7 +2287,7 @@
       ],
       "claim": null,
       "fields": {
-        "size": "S",
+        "size": "M",
         "flags": [],
         "trees": [
           "docs",
