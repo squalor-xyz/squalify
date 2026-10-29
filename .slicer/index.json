@@ -3624,7 +3624,7 @@
       "id": "sq-42",
       "title": "Publish the null-spelling bounds in limits",
       "short_title": "Null-spelling bounds in limits",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-38"
@@ -3662,12 +3662,31 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "e2e7fc59-4a36-4855-9d9f-b5e07b9d580f",
+          "kind": "",
+          "text": "**2026-10-29** — Verified outcome: limits.nullSpellings { max, maxChars } published and always written, built from the counter's own constants; NullSpellingLimits.Default and SketchLimits.Default internal like Limits.Default. Gate PASS on 9967e4e: library 1394 and CLI 36 tests pass (2 runs plus GITHUB_ACTIONS=true), build 0 warnings, format clean; 18 goldens changed by the added line only; fingerprints unchanged.",
+          "created_at": "2026-10-29T20:56:09Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "17641ad9-0812-4550-a956-43e46ef632fa",
+          "kind": "",
+          "text": "**2026-10-29** — Later (from review and gate): (1) Options.cs XML doc for the Limits.Sketches parameter still says see SketchLimits.Default (now internal): reword to reads as the full precision, like the NullSpellings parameter (sq-43 will fix in passing). (2) In the user-guide breaking-changes bullet the sq-42 sentences sit inside the sq-38 text: move the sq-42 block after the sq-38 block (sq-43 fixes in passing). (3) Make the sq-43 cap a third positional member of NullSpellingLimits, required, API added (not breaking), always written. (4) Correct the relay log: the sq-42 mutant run was narrower than the full suite, real-file goldens are covered (24 failures under a bad writer).",
+          "created_at": "2026-10-29T20:56:09Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-29T20:17:34Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
