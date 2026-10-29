@@ -20,8 +20,8 @@ internal readonly record struct FieldCaps(
 /// The global budget of exact values: a wide file would otherwise keep 2,000 fields x 100,000 doubles (1.6 GB). The
 /// per-field cap is min(cap, budget / field count), in integer arithmetic. The same division applies to the characters
 /// of shape mask text of a field. The sketches that a field makes past its caps are budgeted too: their precision is
-/// scaled by the field count (<see cref="SketchLevel(long)"/>) so that every field's sketches, at their nominal size,
-/// fit <see cref="AllowanceBytes"/> together. The class also fixes the memory ceiling that a profile is tested against.
+/// scaled by the field count (<see cref="SketchLevel(long, long)"/>) so that every field's sketches, at their nominal size,
+/// fit <see cref="SketchBudgetBytes"/> together. The class also fixes the memory ceiling that a profile is tested against.
 /// </summary>
 internal static class MemoryBudget
 {
@@ -30,6 +30,13 @@ internal static class MemoryBudget
     /// growth over a small-profile baseline, so the fixed cost of the runtime is not in it.
     /// </summary>
     public const long AllowanceBytes = 64L * 1024 * 1024;
+
+    /// <summary>
+    /// The budget of the per-field sketches, in bytes, that the precision is scaled to fit (owner decision 2026-10-29: its
+    /// own constant, apart from <see cref="AllowanceBytes"/>, which is the headroom of the memory ceiling). It is 64 MiB
+    /// today, the same value, so retuning one does not change the other or the descriptor of the other.
+    /// </summary>
+    public const long SketchBudgetBytes = 64L * 1024 * 1024;
 
     /// <summary>
     /// The growth of the peak working set over a baseline that a profile may reach: the peak sum of the accumulators'
@@ -72,15 +79,16 @@ internal static class MemoryBudget
     }
 
     /// <summary>
-    /// The finest precision level whose sketches, for every field of the table, fit <see cref="AllowanceBytes"/>:
+    /// The finest precision level whose sketches, for every field of the table, fit <see cref="SketchBudgetBytes"/>:
     /// a function of the field count only, in integer arithmetic. Past the coarsest level (about 16,600 fields) the
     /// coarsest is used and the allowance is exceeded.
     /// </summary>
     /// <param name="fieldCount">The number of fields.</param>
+    /// <param name="budgetBytes">The budget of the sketches of all the fields; <see cref="SketchBudgetBytes"/> unless a test gives another.</param>
     /// <returns>The index into the levels, 0 for the full precision.</returns>
-    public static int SketchLevel(long fieldCount)
+    public static int SketchLevel(long fieldCount, long budgetBytes = SketchBudgetBytes)
     {
-        var share = AllowanceBytes / Math.Max(1, fieldCount);
+        var share = budgetBytes / Math.Max(1, fieldCount);
         for (var level = 0; level < Levels.Length; level++)
         {
             if (SketchBytesPerField(Levels[level].HllPrecision, Levels[level].GkInverseEpsilon) <= share)
@@ -94,10 +102,11 @@ internal static class MemoryBudget
 
     /// <summary>The precision of the sketches of each field of a table.</summary>
     /// <param name="fieldCount">The number of fields.</param>
+    /// <param name="budgetBytes">The budget of the sketches of all the fields; <see cref="SketchBudgetBytes"/> unless a test gives another.</param>
     /// <returns>The HyperLogLog index bits and <c>1 / epsilon</c> of the summaries.</returns>
-    public static (int HllPrecision, int GkInverseEpsilon) SketchPrecision(long fieldCount)
+    public static (int HllPrecision, int GkInverseEpsilon) SketchPrecision(long fieldCount, long budgetBytes = SketchBudgetBytes)
     {
-        return Levels[SketchLevel(fieldCount)];
+        return Levels[SketchLevel(fieldCount, budgetBytes)];
     }
 
     /// <summary>The effective caps of each field of a table.</summary>
@@ -119,8 +128,8 @@ internal static class MemoryBudget
     }
 
     /// <summary>
-    /// The limits of a descriptor, with the effective per-field caps of a table, and <c>limits.sketches</c> when the
-    /// sketches are below the full precision (a narrow table writes none, so its descriptor is what it was before).
+    /// The limits of a descriptor, with the effective per-field caps of a table and the precision of its sketches
+    /// (<c>limits.sketches</c>, always: the level-0 values for a table that is not scaled).
     /// </summary>
     /// <param name="nominal">The caps and the budget.</param>
     /// <param name="caps">The effective caps.</param>
@@ -128,13 +137,12 @@ internal static class MemoryBudget
     public static Limits Record(Limits nominal, FieldCaps caps)
     {
         ArgumentNullException.ThrowIfNull(nominal);
-        var scaled = caps.HllPrecision != HyperLogLog.Precision || caps.GkInverseEpsilon != GreenwaldKhanna.InverseEpsilon;
         return nominal with
         {
             DistinctPerField = caps.Distinct,
             QuantilePerField = caps.Quantile,
             ShapeCharsPerField = caps.ShapeChars,
-            Sketches = scaled ? new SketchLimits(caps.HllPrecision, GreenwaldKhanna.EpsilonOf(caps.GkInverseEpsilon), AllowanceBytes) : null,
+            Sketches = new SketchLimits(caps.HllPrecision, GreenwaldKhanna.EpsilonOf(caps.GkInverseEpsilon), SketchBudgetBytes),
         };
     }
 }

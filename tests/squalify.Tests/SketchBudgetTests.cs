@@ -55,9 +55,9 @@ public sealed class SketchBudgetTests(ITestOutputHelper output)
         Assert.True(fields[4].Temporal!.Ambiguous);
 
         // The summed estimate of every accumulator (and the row-class state) stays within the allowance.
-        output.WriteLine($"{WideFields} fields past their caps: {finalBytes} estimated bytes, allowance {MemoryBudget.AllowanceBytes}");
-        Assert.True(finalBytes <= MemoryBudget.AllowanceBytes, $"the summed estimate is {finalBytes} bytes, above the allowance of {MemoryBudget.AllowanceBytes}");
-        Assert.True(finalBytes > MemoryBudget.AllowanceBytes / 4, $"the summed estimate is only {finalBytes} bytes: the sketches were not made");
+        output.WriteLine($"{WideFields} fields past their caps: {finalBytes} estimated bytes, sketch budget {MemoryBudget.SketchBudgetBytes}");
+        Assert.True(finalBytes <= MemoryBudget.SketchBudgetBytes, $"the summed estimate is {finalBytes} bytes, above the sketch budget of {MemoryBudget.SketchBudgetBytes}");
+        Assert.True(finalBytes > MemoryBudget.SketchBudgetBytes / 4, $"the summed estimate is only {finalBytes} bytes: the sketches were not made");
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class SketchBudgetTests(ITestOutputHelper output)
         Assert.True(limits.TryGetProperty("sketches", out var sketches), "limits.sketches is not written for a table of 2,000 fields");
         Assert.Equal(12, sketches.GetProperty("hllPrecision").GetInt32());
         Assert.Equal(RankError, sketches.GetProperty("rankError").GetDouble());
-        Assert.Equal(MemoryBudget.AllowanceBytes, sketches.GetProperty("budgetBytes").GetInt64());
+        Assert.Equal(MemoryBudget.SketchBudgetBytes, sketches.GetProperty("budgetBytes").GetInt64());
 
         // And in the written fields.
         var written = json.RootElement.GetProperty("table").GetProperty("fields");
@@ -99,11 +99,11 @@ public sealed class SketchBudgetTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void NarrowStream_KeepsTheFullPrecision_AndWritesNoSketchLimits()
+    public void NarrowStream_KeepsTheFullPrecision_AndWritesTheDefaultSketchLimits()
     {
         // 20 fields cross the same caps as the 2,000 above (1,000 distinct and 5,000 quantile values; the budget gives a
-        // table of 100 fields or fewer 10,000 and 100,000, so they are set here): nothing is scaled, and the descriptor
-        // says what it said before sq-38.
+        // table of 100 fields or fewer 10,000 and 100,000, so they are set here): nothing is scaled, and every field
+        // reports the full precision.
         var (descriptor, _) = Run(20, ProfileLimits.Default with { DistinctPerField = 1_000, QuantilePerField = 5_000 });
         foreach (var field in descriptor.Table!.Fields)
         {
@@ -114,9 +114,30 @@ public sealed class SketchBudgetTests(ITestOutputHelper output)
 
         Assert.Equal(0.001, descriptor.Table.Fields[0].Numeric!.RankError);
         Assert.Equal(0.001, descriptor.Table.Fields[3].Temporal!.RankError);
+        AssertDefaultSketches(descriptor);
+    }
 
+    private static void AssertDefaultSketches(Descriptor descriptor)
+    {
         using var json = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
-        Assert.False(json.RootElement.GetProperty("limits").TryGetProperty("sketches", out _));
+        Assert.True(json.RootElement.GetProperty("limits").TryGetProperty("sketches", out var sketches), "limits.sketches is not written");
+        Assert.Equal(14, sketches.GetProperty("hllPrecision").GetInt32());
+        Assert.Equal(0.001, sketches.GetProperty("rankError").GetDouble());
+        Assert.Equal(67_108_864L, sketches.GetProperty("budgetBytes").GetInt64());
+    }
+
+    [Fact]
+    public void Sketches_AreWrittenForEveryDescriptor_NotOnlyForAWideTable()
+    {
+        // A narrow table, a text file, a binary file and an empty file all carry limits.sketches with the full precision.
+        AssertDefaultSketches(Profiler.Profile(new BytesSource("t.csv", Encoding.ASCII.GetBytes("a,b\n1,2\n3,4\n")), ProfileOptions.Create(false, [])));
+        AssertDefaultSketches(Profiler.Profile(new BytesSource("t.txt", Encoding.ASCII.GetBytes("just some prose\nand a second line\n")), ProfileOptions.Create(false, [])));
+        AssertDefaultSketches(Profiler.Profile(new BytesSource("t.bin", [0, 1, 2, 3, 0xFF, 0xFE, 0, 0, 7, 9]), ProfileOptions.Create(false, [])));
+        AssertDefaultSketches(Profiler.Profile(new BytesSource("t.dat", []), ProfileOptions.Create(false, [])));
+
+        // A Limits built without the member reads as the full precision, and so does the default.
+        AssertDefaultSketches(TestModels.FullDelimited());
+        Assert.Equal(new SketchLimits(14, 0.001, 67_108_864), Limits.Default.Sketches);
     }
 
     [Theory]
@@ -151,6 +172,26 @@ public sealed class SketchBudgetTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void SketchBudget_IsItsOwnConstant_AndTheLevelChoiceReadsIt()
+    {
+        // sq-38 owner decision 2026-10-29: the sketches have a budget of their own (64 MiB today), apart from the
+        // allowance for read buffers and headroom that CeilingBytes adds.
+        Assert.Equal(67_108_864L, MemoryBudget.SketchBudgetBytes);
+        Assert.Equal(67_108_864L, MemoryBudget.AllowanceBytes);
+
+        // The level choice reads the budget it is given, and the default is SketchBudgetBytes.
+        Assert.Equal(MemoryBudget.SketchLevel(1_000), MemoryBudget.SketchLevel(1_000, MemoryBudget.SketchBudgetBytes));
+        Assert.Equal(1, MemoryBudget.SketchLevel(1_000));
+        Assert.Equal(0, MemoryBudget.SketchLevel(1_000, 2 * MemoryBudget.SketchBudgetBytes));
+        Assert.Equal(6, MemoryBudget.SketchLevel(1_000, 1_000_000));
+        Assert.Equal((12, 250), MemoryBudget.SketchPrecision(2_000, MemoryBudget.SketchBudgetBytes));
+        Assert.Equal((14, 1_000), MemoryBudget.SketchPrecision(2_000, 10 * MemoryBudget.SketchBudgetBytes));
+
+        // The recorded budget is the sketch budget.
+        Assert.Equal(MemoryBudget.SketchBudgetBytes, MemoryBudget.Record(Limits.Default, MemoryBudget.Effective(Limits.Default, 2_000)).Sketches!.BudgetBytes);
+    }
+
+    [Fact]
     public void SketchBytesPerField_AtTheLevels_AreThePublishedFigures()
     {
         Assert.Equal(122_496, MemoryBudget.SketchBytesPerField(14, 1_000));
@@ -175,22 +216,22 @@ public sealed class SketchBudgetTests(ITestOutputHelper output)
             // Up to 16,644 fields the coarsest level still fits: past the floor the allowance is exceeded.
             if (fields <= 16_644)
             {
-                Assert.True(fields * MemoryBudget.SketchBytesPerField(current.HllPrecision, current.GkInverseEpsilon) <= MemoryBudget.AllowanceBytes, $"{fields} fields");
+                Assert.True(fields * MemoryBudget.SketchBytesPerField(current.HllPrecision, current.GkInverseEpsilon) <= MemoryBudget.SketchBudgetBytes, $"{fields} fields");
             }
         }
     }
 
     [Fact]
-    public void Record_WritesSketchLimits_OnlyWhenScaled()
+    public void Record_WritesSketchLimits_ForEveryTable_AtTheScaledPrecision()
     {
         var narrow = MemoryBudget.Record(Limits.Default, MemoryBudget.Effective(Limits.Default, 547));
-        Assert.Null(narrow.Sketches);
+        Assert.Equal(SketchLimits.Default, narrow.Sketches);
 
         var wide = MemoryBudget.Record(Limits.Default, MemoryBudget.Effective(Limits.Default, 548));
-        Assert.Equal(new SketchLimits(13, 0.002, MemoryBudget.AllowanceBytes), wide.Sketches);
+        Assert.Equal(new SketchLimits(13, 0.002, MemoryBudget.SketchBudgetBytes), wide.Sketches);
 
         var wider = MemoryBudget.Record(Limits.Default, MemoryBudget.Effective(Limits.Default, 2_000));
-        Assert.Equal(new SketchLimits(12, 0.004, MemoryBudget.AllowanceBytes), wider.Sketches);
+        Assert.Equal(new SketchLimits(12, 0.004, MemoryBudget.SketchBudgetBytes), wider.Sketches);
         Assert.Equal(1_000, wider.DistinctPerField);
         Assert.Equal(5_000, wider.QuantilePerField);
     }
