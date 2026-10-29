@@ -461,6 +461,7 @@
 {"when": "2026-10-28T18:36:10Z", "item": "sq-41", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
 {"when": "2026-10-28T18:36:10Z", "item": "sq-23", "action": "note", "from": "", "to": "", "note": "Split 2026-10-28: the public-API items moved to sq-41 (v1.0.", "by": "Jon Robbins"}
 {"when": "2026-10-28T18:50:52Z", "item": "sq-19", "action": "set", "from": "", "to": "", "note": "depends_on sq-11→sq-11,sq-38"}
+{"when": "2026-10-28T18:51:57Z", "item": "sq-38", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
 {"when": "2026-10-28T18:52:53Z", "item": "sq-39", "action": "decide", "from": "", "to": "", "note": "Owner decisions (2026-10-28), verbatim: Q1 outcome \"Squalify", "by": "Jon Robbins"}
 {"when": "2026-10-28T18:53:02Z", "item": "sq-39", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
 {"when": "2026-10-28T18:53:02Z", "item": "sq-39", "action": "edit", "from": "", "to": "", "note": "Implement"}
@@ -481,3 +482,17 @@
 {"when": "2026-10-28T18:59:29Z", "item": "sq-41", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-10-28T20:31:05Z", "item": "sq-40", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon Robbins"}
 {"when": "2026-10-29T19:13:01Z", "item": "sq-40", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-29), verbatim, after the review: R2", "by": "Jon Robbins"}
+{"when": "2026-10-28T20:26:20Z", "item": "sq-42", "action": "add", "from": "", "to": "open", "note": "Publish the null-spelling bounds in limits"}
+{"when": "2026-10-28T20:26:20Z", "item": "sq-43", "action": "add", "from": "", "to": "open", "note": "Count the distinct spellings in the other counters"}
+{"when": "2026-10-28T20:26:32Z", "item": "sq-42", "action": "note", "from": "", "to": "", "note": "OPEN QUESTIONS for the owner (not decided; the failing tests", "by": "Jon Robbins"}
+{"when": "2026-10-28T20:26:33Z", "item": "sq-42", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
+{"when": "2026-10-28T20:26:33Z", "item": "sq-43", "action": "note", "from": "", "to": "", "note": "OPEN QUESTIONS for the owner (not decided; the failing tests", "by": "Jon Robbins"}
+{"when": "2026-10-28T20:26:33Z", "item": "sq-43", "action": "set", "from": "", "to": "", "note": "flags -→needs-owner"}
+{"when": "2026-10-28T20:31:06Z", "item": "sq-42", "action": "set", "from": "", "to": "", "note": "pass_key -→v1.0.0"}
+{"when": "2026-10-28T20:31:06Z", "item": "sq-43", "action": "set", "from": "", "to": "", "note": "pass_key -→v1.0.0"}
+{"when": "2026-10-28T20:31:12Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32,sq-38,sq-39,sq-40,sq-41→sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32,sq-38,sq-39,sq-40,sq-41,sq-42,sq-43"}
+{"when": "2026-10-29T19:04:52Z", "item": "sq-38", "action": "note", "from": "", "to": "", "note": "Owner decisions (2026-10-29), verbatim, after the architect:", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:17:00Z", "item": "sq-38", "action": "note", "from": "", "to": "", "note": "Verified outcome: sketch precision scales by field count und", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:17:00Z", "item": "sq-38", "action": "note", "from": "", "to": "", "note": "Later (from review, architect and gate): (1) Bounded-size Gr", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:17:00Z", "item": "sq-38", "action": "status", "from": "started", "to": "done", "note": "Sketches under the memory budget: precision scales with field count under SketchBudgetBytes; limits.sketches always written; docs state the bound is nominal. Gate PASS.", "by": "Jon Robbins"}
+{"when": "2026-10-29T19:17:43Z", "item": "sq-44", "action": "add", "from": "", "to": "open", "note": "Bounded-size quantile sketch"}

@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 42,
+  "next_id": 45,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -2081,7 +2081,9 @@
         "sq-38",
         "sq-39",
         "sq-40",
-        "sq-41"
+        "sq-41",
+        "sq-42",
+        "sq-43"
       ],
       "note_records": [
         {
@@ -3254,10 +3256,44 @@
       "id": "sq-38",
       "title": "Sketches under the memory budget",
       "short_title": "Sketches under the memory budget",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "6deab64a-d8ad-4d2a-b000-79881956bb4b",
+          "kind": "",
+          "text": "**2026-10-29** — Owner decisions (2026-10-29), verbatim, after the architect: A6 \"Always write limits.sketches now\" (option text: \"One golden rewrite in sq-38 (every golden gains the sketches object); consumers never hard-code 14 and 0.001. Then sq-42 Q2 is the same answer for its members.\"). A7 \"Separate SketchBudgetBytes constant (Recommended)\" (option text: \"Same value (64 MiB), so no output changes now; the headroom can be retuned later without changing descriptor bytes, and how-it-works says the sketches get their own 64 MiB. Small code change plus a doc line, one more gate pass.\"). Earlier, on review R2 (2026-10-28): \"Accept, reword docs, file a later slice (Recommended)\".",
+          "created_at": "2026-10-29T19:04:52Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "16b6dc2e-2618-4fb0-8786-2f5abd68c63d",
+          "kind": "",
+          "text": "**2026-10-29** — Verified outcome: sketch precision scales by field count under a 64 MiB sketch budget (SketchBudgetBytes); limits.sketches always written; the bound is nominal, documented with the measured 1.4 to 1.5x overshoot on few-valued wide tables. Gate PASS on aacdab3: library 1215 and CLI 32 tests pass (3 runs plus GITHUB_ACTIONS=true), build 0 warnings, format clean; 18 goldens changed by the added sketches line only; fingerprints unchanged.",
+          "created_at": "2026-10-29T19:17:00Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "d9d8e0a7-f9d2-49e2-9606-89082c3364f7",
+          "kind": "",
+          "text": "**2026-10-29** — Later (from review, architect and gate): (1) Bounded-size Greenwald-Khanna compression (fold equal keys, banded compress or KLL): the sketch total is nominal and reaches 1.4 to 1.5x the budget on 2,000 ten-valued int columns; owner chose to file this later (review R2, 2026-10-28); it changes sketched quantiles for those fields. (2) HLL error near the 3.5m linear-counting switch exceeds the documented worst (1.57 to 1.75x sigma at p=10 to 12; 17.7 to 20 percent worst at p=10 and 11; 2.9 percent at p=14 against 1.4 percent in design.md). (3) Clarify AllowanceBytes versus SketchBudgetBytes in the ceiling text: design.md says 64 MiB caps what squalify holds while the 2,000-field exact-buffer peak is about 173 MB. (4) Wide sketch test at steady state (the 2,000-column test measures young summaries after 5,200 rows). (5) Charge any new per-field sketch in SketchBytesPerField (sq-43 option c would add a HyperLogLog per field). (6) Align MemoryBudget.SketchLevel XML doc and the test name FitsTheAllowance with sketch budget and nominally. (7) design.md GK bullet: 'a nominal bound' next to 'not a bound' contradicts; say nominal figure. (8) descriptor.md lists the scaled relativeStdError values rounded (0.01149, 0.02298, 0.04596) while the written numbers are full doubles; mark them approximate or give the exact values.",
+          "created_at": "2026-10-29T19:17:00Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -3277,7 +3313,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -3496,6 +3532,128 @@
         "importance": 2,
         "urgency": 1,
         "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-42",
+      "title": "Publish the null-spelling bounds in limits",
+      "short_title": "Null-spelling bounds in limits",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-38"
+      ],
+      "note_records": [
+        {
+          "id": "7784e4ed-5346-499b-847c-1c71f9aced97",
+          "kind": "",
+          "text": "**2026-10-28** — OPEN QUESTIONS for the owner (not decided; the failing tests marked pending depend on them).\nQ1. Names and shape. (a) Two flat members, limits.maxNullSpellings and limits.maxNullSpellingChars, as proposed in the request. (b) One object, limits.nullSpellings { max, maxChars }, like the charsetTolerance and budget objects. The flat names match the request; the object groups them and leaves room for sq-43 limits. Note sq-38 added limits.sketches as an object, written only when scaled.\nQ2. Always written or omitted at the default. The point of the item is that a consumer reads the bound, so always written (every golden gains two limits members, one golden rewrite, consistent with limits.nullTokens and limits.unitTable) versus omitted when 64 and 256 (absent means the default, as limits.sketches does, which keeps goldens byte-identical but leaves a consumer hard-coding the default, the thing this item removes). Not decided here.\nQ3. Ordering and pass. This item adds members to the public Limits record that sq-38 (limits.sketches) and sq-41 (Limits.Default internal) also change, so it should land after them. It also adds keys to limits before or after the sq-12 schema freeze: before is part of v1.0.0 (a closed schema, so a later key is a minor release); after is a minor bump. No pass is set; the owner picks.\nAlso check at spec time: descriptor.md and design.md currently say the bounds are \"not in limits\" (sq-36), and those sentences change.",
+          "created_at": "2026-10-28T20:26:32Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [
+          "needs-owner"
+        ],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-36",
+        "parent": "",
+        "cites": [],
+        "key": "null-spelling-bounds-in-limits",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-43",
+      "title": "Count the distinct spellings in the other counters",
+      "short_title": "Distinct null spellings in other",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-42"
+      ],
+      "note_records": [
+        {
+          "id": "90f33ac3-0bc0-45db-9ae4-0be9f68404b5",
+          "kind": "",
+          "text": "**2026-10-28** — OPEN QUESTIONS for the owner (not decided; the failing tests marked pending depend on them).\nQ1. Exact, capped or approximate. SpellingCounter forgets a dropped spelling, so a distinct count needs it to remember something. (a) Exact: remember a hash (XxHash64, 8 bytes) of every distinct dropped spelling; exact up to hash collisions, but unbounded memory on a column with millions of distinct spellings. (b) Capped exact: remember up to K more (K to be set, for example 64 or 1,000), count past it as the cap and write a marker (a capped flag or an approximate flag as distinct, numeric and temporal use); bounded, but the consumer sees \"at least K\". (c) Sketch (HyperLogLog, deterministic, marked approximate with its relative error); bounded and fits the sq-38 budget, but small distinct counts (1 versus 2) are exact only in the linear-counting range, and 1 versus many is the use case here. For the stated use case (\"is there a single spelling\") any of the three answers 1 versus more than 1, so (b) with a small K may be enough.\nQ2. Member names, omission and totals. Fields: nullSpellingsOtherDistinct, left out when 0 like nullSpellingsOther; rowClasses: allNullRowSpellingsOtherDistinct, always written like allNullRowSpellingsOther. Confirm, or name them differently. If Q1 is (b) or (c), also decide the marker member (nullSpellingsOtherDistinctCapped, or approximate).\nQ3. What counts as distinct. Proposed: each distinct dropped spelling once, whether it was dropped by the 64 bound or by the 256-character bound, compared as exact text (not trimmed, as nullSpellings keys are). A spelling dropped by the 64 bound that also appears again counts once. Confirm.\nQ4. Pass and ordering. Depends on sq-42 for the shared limits members; the pass is not set. If Q1 is (b) or (c), the cap or precision might also be published in limits (an sq-42 style member); decide whether to include it here.",
+          "created_at": "2026-10-28T20:26:33Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [
+          "needs-owner"
+        ],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-36",
+        "parent": "",
+        "cites": [],
+        "key": "null-spellings-other-distinct",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-44",
+      "title": "Bounded-size quantile sketch",
+      "short_title": "Bounded-size GK sketch",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "L",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-38",
+        "parent": "",
+        "cites": [],
+        "key": "bounded-size-gk-sketch",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 3,
         "attempts": 0
       }
     }

@@ -15,6 +15,7 @@
     "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
     "stdfTests": 10000,
     "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
+    "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
     "nullTokens": 1,
     "unitTable": 1
   },

@@ -151,6 +151,14 @@ public static class DescriptorWriter
         w.WriteNumber("distinctValues", v.Budget.DistinctValues);
         w.WriteNumber("shapeChars", v.Budget.ShapeChars);
         w.WriteEndObject();
+        var sketches = v.Sketches ?? SketchLimits.Default;
+        w.WritePropertyName("sketches");
+        w.WriteStartObject();
+        w.WriteNumber("hllPrecision", sketches.HllPrecision);
+        Double(w, "rankError", sketches.RankError);
+        w.WriteNumber("budgetBytes", sketches.BudgetBytes);
+        w.WriteEndObject();
+
         w.WriteNumber("nullTokens", v.NullTokens);
         w.WriteNumber("unitTable", v.UnitTable);
         w.WriteEndObject();

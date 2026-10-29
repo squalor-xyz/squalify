@@ -22,6 +22,27 @@ public class DescriptorWriterTests
     }
 
     [Fact]
+    public void Writer_LimitsKeyOrder_PlacesSketchesAfterBudgetAndBeforeNullTokens()
+    {
+        // The row for `limits` in "Key order of nested objects" in docs/descriptor.md. The member is always written.
+        string[] Keys(Descriptor descriptor)
+        {
+            using var document = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
+            return document.RootElement.GetProperty("limits").EnumerateObject().Select(static p => p.Name).ToArray();
+        }
+
+        var plain = TestModels.FullDelimited();
+        var sketched = plain with { Limits = plain.Limits with { Sketches = new SketchLimits(12, 0.004, 67_108_864) } };
+        string[] expected = ["distinctPerField", "quantilePerField", "shapesPerField", "shapeCharsPerField", "regions", "headerSample", "runawayQuote", "fieldCountRuns", "rowClasses", "charsetTolerance", "stdfTests", "budget", "sketches", "nullTokens", "unitTable"];
+        Assert.Equal(expected, Keys(plain));
+        Assert.Equal(expected, Keys(sketched));
+
+        using var document = JsonDocument.Parse(DescriptorWriter.ToBytes(sketched));
+        var inner = document.RootElement.GetProperty("limits").GetProperty("sketches").EnumerateObject().Select(static p => p.Name).ToArray();
+        Assert.Equal(["hllPrecision", "rankError", "budgetBytes"], inner);
+    }
+
+    [Fact]
     public void Writer_UsesLfAndTrailingNewline_OnEveryOs()
     {
         foreach (var descriptor in new[] { TestModels.Minimal(), TestModels.FullDelimited(), TestModels.FullBinaryStdf() })

@@ -50,6 +50,7 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 /// <param name="Budget">Global exact-value budget.</param>
 /// <param name="NullTokens">Version of the null-token vocabulary.</param>
 /// <param name="UnitTable">Version of the unit table.</param>
+/// <param name="Sketches">The precision of the per-field sketches, scaled by the field count; always written. Null (the default of the parameter, so a <c>Limits</c> built without it compiles as before) reads as <see cref="SketchLimits.Default"/>.</param>
 public sealed record Limits(
     long DistinctPerField,
     long QuantilePerField,
@@ -64,7 +65,8 @@ public sealed record Limits(
     long StdfTests,
     Budget Budget,
     long NullTokens,
-    long UnitTable)
+    long UnitTable,
+    SketchLimits? Sketches = null)
 {
     /// <summary>The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>.</summary>
     public static Limits Default { get; } = new(
@@ -81,7 +83,18 @@ public sealed record Limits(
         StdfTests: 10_000,
         Budget: ProfileLimits.Default.Budget,
         NullTokens: ValueClassifier.NullVocabularyVersion,
-        UnitTable: squalor.squalify.UnitTable.Version);
+        UnitTable: squalor.squalify.UnitTable.Version,
+        Sketches: SketchLimits.Default);
+}
+
+/// <summary>The effective precision of the sketches of every field, written to <c>limits.sketches</c> (always, as the other limits are).</summary>
+/// <param name="HllPrecision">The index bits of the HyperLogLog sketch of each field: 2^this registers (14 is the default).</param>
+/// <param name="RankError">The epsilon of the Greenwald-Khanna summaries of each field, as a fraction of the value count (0.001 is the default).</param>
+/// <param name="BudgetBytes">The budget, in bytes, that the nominal size of the sketches of all the fields was scaled to fit.</param>
+public sealed record SketchLimits(long HllPrecision, double RankError, long BudgetBytes)
+{
+    /// <summary>The full precision of a table that is not scaled: precision 14, epsilon 0.001, and the sketch budget of this tool version.</summary>
+    public static SketchLimits Default { get; } = new(HyperLogLog.Precision, GreenwaldKhanna.Epsilon, MemoryBudget.SketchBudgetBytes);
 }
 
 /// <summary>Tolerated stray invalid UTF-8 sequences.</summary>
