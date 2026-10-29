@@ -3444,6 +3444,17 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "63003ff7-8ddc-488a-9395-fd7e75519828",
+          "kind": "",
+          "text": "**2026-10-29** — Owner decision (2026-10-29), verbatim, after the architect: A5 \"Get-only properties, internal constructor (Recommended)\" (option text: \"A sealed class or record with get-only Descriptor, Prefix and Scope, and an internal constructor: only ProfilePrefix can create one, so the guarantee holds by construction, and members can be added later without a binary break. Decided and done in sq-40 now (small change, one more review-and-gate pass).\").",
+          "created_at": "2026-10-29T19:35:52Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
       "claim": {

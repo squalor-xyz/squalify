@@ -435,6 +435,46 @@ public sealed class ProfilePrefixTests
     }
 
     [Fact]
+    public void ProfiledPrefix_ScopeIsTheDescriptorsScope_ToStringPrintsSizesNotBytes_AndEqualityIsByReference()
+    {
+        var c = Cases["lf"];
+        var a = Profiler.ProfilePrefix(new BytesSource("t.csv", c.Bytes), Limit(c.Max));
+        var b = Profiler.ProfilePrefix(new BytesSource("t.csv", c.Bytes), Limit(c.Max));
+
+        Assert.NotNull(a.Scope);
+        Assert.Same(a.Descriptor.Scope, a.Scope);
+        Assert.False(a.Equals(b));
+        Assert.True(a.Equals(a));
+        var text = a.ToString();
+        Assert.Contains("t.csv", text, StringComparison.Ordinal);
+        Assert.Contains(a.Prefix.Length.ToString(CultureInfo.InvariantCulture) + " bytes", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("id,value", text, StringComparison.Ordinal);
+        Assert.True(text.Length < 300, "ToString is short: " + text.Length);
+    }
+
+    [Fact]
+    public void ShortLength_ProfileReadsPastIt_ProfilePrefixDoesNot_ADocumentedDifference()
+    {
+        // The source declares 10 bytes and holds more. Profile (a limit of at least the declared length hands the raw source to the
+        // byte pass) reads to the end of the stream; ProfilePrefix never reads past the declared length. The descriptors are the same
+        // only for a source whose Length is its true size.
+        var bytes = Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("ab,cd,ef\n", 20_000)));
+        var viaProfile = Profiler.Profile(new CountingSource("t.csv", bytes, reportedLength: 10), Limit(100));
+        var viaPrefix = Profiler.ProfilePrefix(new CountingSource("t.csv", bytes, reportedLength: 10), Limit(100));
+
+        Assert.Equal(bytes.Length, viaProfile.Scope!.BytesRead);
+        Assert.True(viaProfile.Scope.Complete);
+        Assert.True(viaPrefix.Scope.BytesRead <= 10);
+        Assert.Equal(10, viaPrefix.Descriptor.File.Size);
+        Assert.NotEqual(Json(viaProfile), Json(viaPrefix.Descriptor));
+
+        // With the true length the two agree.
+        var honestProfile = Profiler.Profile(new CountingSource("t.csv", bytes), Limit(100));
+        var honestPrefix = Profiler.ProfilePrefix(new CountingSource("t.csv", bytes), Limit(100));
+        Assert.Equal(Json(honestProfile), Json(honestPrefix.Descriptor));
+    }
+
+    [Fact]
     public void Ownership_MutatingTheReturnedMemory_DoesNotChangeTheDescriptor_OrAnotherCall()
     {
         var c = Cases["lf"];
@@ -483,8 +523,20 @@ public sealed class ProfilePrefixTests
         Assert.Equal(typeof(Descriptor), type.GetProperty("Descriptor")!.PropertyType);
         Assert.Equal(typeof(ReadOnlyMemory<byte>), type.GetProperty("Prefix")!.PropertyType);
         Assert.Equal(typeof(ScopeSection), type.GetProperty("Scope")!.PropertyType);
-        Assert.NotNull(type.GetMethod("<Clone>$"));
         Assert.True(typeof(ScopeSection).IsPublic);
+
+        // Only ProfilePrefix creates one (owner decision A5): no public constructor, get-only members, not a record.
+        Assert.Empty(type.GetConstructors(BindingFlags.Public | BindingFlags.Instance));
+        Assert.NotEmpty(type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance));
+        foreach (var name in new[] { "Descriptor", "Prefix", "Scope" })
+        {
+            var property = type.GetProperty(name)!;
+            Assert.NotNull(property.GetMethod);
+            Assert.Null(property.SetMethod);
+        }
+
+        Assert.Null(type.GetMethod("<Clone>$"));
+        Assert.DoesNotContain(type.GetMethods(BindingFlags.Public | BindingFlags.Instance), static m => m.Name is "Deconstruct" or "PrintMembers");
 
         var method = typeof(Profiler).GetMethod("ProfilePrefix", BindingFlags.Public | BindingFlags.Static, [typeof(IProfileSource), typeof(ProfileOptions)]);
         Assert.NotNull(method);

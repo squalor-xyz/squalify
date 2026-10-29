@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Status (v0.2.x, with the unreleased 1.0.0 work).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, sketch precision scaled by the field count to nominally fit a memory allowance, and memory accounting with a tested ceiling. Still to come: the Touchstone, key=value and STDF profilers and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Status (v0.2.x, with the unreleased 1.0.0 work).** Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, sketch precision scaled by the field count to nominally fit a memory allowance, and memory accounting with a tested ceiling. Also built: prefix profiling (the byte limit with its cut at a whole line, the opt-in first-record ceiling, and `Profiler.ProfilePrefix`, which returns the descriptor with the exact prefix bytes from one read). Still to come: the Touchstone, key=value and STDF profilers and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -14,7 +14,7 @@ The `squalify` command is a thin shell around the library. Each kind of file has
 flowchart LR
     CLI["squalify command<br/><small>squalify.Cli</small>"] --> Lib
     Host["Your app"] --> Lib
-    Lib["Profiler library<br/><small>Profiler.Profile</small>"] --> Profilers["Format profilers<br/><small>delimited, touchstone,<br/>keyValue, stdf, text, binary</small>"]
+    Lib["Profiler library<br/><small>Profiler.Profile, Profiler.ProfilePrefix</small>"] --> Profilers["Format profilers<br/><small>delimited, touchstone,<br/>keyValue, stdf, text, binary</small>"]
     Lib --> Out["Descriptor JSON"]
     Out --> Consumers["DataBall and other tools"]
 ```
@@ -40,10 +40,11 @@ flowchart TD
 **Getting the prefix bytes too.** A byte-limited `Profiler.Profile` streams the source and opens it several times (the checks, the sniffs, the search for the cut, then the passes). `Profiler.ProfilePrefix` is the library call for a caller that profiles a bounded prefix and needs the very same bytes for its own parser: it opens the source once and keeps what the passes read in one buffer, so each step reads from the buffer and the source is asked only for the bytes that are missing. The result holds the descriptor, the first `scope.bytesRead` bytes of the buffer and the scope, so the descriptor describes exactly the bytes returned. The buffer holds at most the byte limit plus the overshoot (the LF after a CR that ends the limit, or the rest of a first line longer than the limit; the first-record ceiling caps that), which is why this call requires a byte limit; the source is never read past its declared length. The cut rule is a contract (see the user guide), and it includes the sniff: text or binary and the charset come from the bytes inside the limit, so a limit shorter than a byte order mark can sniff differently from the whole file.
 
 ```mermaid
-flowchart LR
+flowchart TD
     S["The file or stream<br/><small>IProfileSource</small>"] -->|"opened once"| B["One buffer of the bytes read so far<br/><small>BufferedSource</small>"]
     B --> C["Check the first line, find the cut<br/><small>ScopeCut</small>"]
     B --> P["Every pass, over the cut only<br/><small>ByteSniffer, format and field passes</small>"]
+    C -->|"the cut"| P
     P --> D["The descriptor"]
     B --> X["The cut bytes: the first scope.bytesRead<br/><small>ReadOnlyMemory</small>"]
     D --> R["Descriptor, prefix and scope together<br/><small>ProfiledPrefix</small>"]

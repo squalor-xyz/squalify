@@ -50,7 +50,9 @@ public static class Profiler
     /// (a file whose bytes inside the limit sniff as binary at the limit; otherwise after the last LF, CR or CRLF, in the
     /// code units of the charset sniffed from the bytes inside the limit, inside the limit; a CR that ends the limit takes the
     /// LF after it; with no terminator inside the limit, to the first terminator or the end; a limit shorter than a byte order
-    /// mark can sniff differently from the whole file), so the descriptor equals the one <see cref="Profile(IProfileSource, ProfileOptions)"/> gives for the same options.
+    /// mark can sniff differently from the whole file), so the descriptor equals the one <see cref="Profile(IProfileSource, ProfileOptions)"/> gives for the same options, for a source whose
+    /// <see cref="IProfileSource.Length"/> is its true size (<see cref="Profile(IProfileSource, ProfileOptions)"/> reads past a
+    /// <see cref="IProfileSource.Length"/> that is shorter than the data when the limit is at least that length; this method never does).
     /// The source is opened once. The bytes are buffered, up to <see cref="ProfileOptions.MaxBytes"/> plus the overshoot (one
     /// code unit when a CR ends the limit; the rest of the first record when it is longer than the limit);
     /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>,
@@ -81,7 +83,7 @@ public static class Profiler
         using var buffered = new BufferedSource(source, window);
         var descriptor = ProfileBuffered(buffered, options);
         var scope = descriptor.Scope!;
-        return new ProfiledPrefix(descriptor, buffered.Prefix((int)scope.BytesRead), scope);
+        return new ProfiledPrefix(descriptor, buffered.Prefix((int)scope.BytesRead));
     }
 
     /// <summary>Profiles a file.</summary>

@@ -85,6 +85,7 @@ public sealed class DocsTests
             "A CR that ends the limit takes the LF after it",
             "With no terminator inside the limit, the read goes on to the first terminator",
             "or the end of the file",
+            "for a source whose `Length` is its true size",
             "A limit shorter than a byte order mark",
             "A change to the sniff that moves a cut is a documented breaking change",
             "The source is never read past its declared `Length`",
@@ -94,6 +95,11 @@ public sealed class DocsTests
         ];
         var missing = required.Where(phrase => !section.Contains(phrase, StringComparison.Ordinal)).ToArray();
         Assert.True(missing.Length == 0, $"The user guide's prefix section lacks: {string.Join("; ", missing)}.");
+
+        // descriptor.md points to the contract and repeats the caveat, so that it does not drift.
+        var schema = Regex.Replace(File.ReadAllText(Path.Combine(DotNetTool.RepositoryRoot(), "docs", "descriptor.md")), @"\s+", " ");
+        Assert.Contains("(user-guide.md#reading-only-a-prefix)", schema, StringComparison.Ordinal);
+        Assert.Contains("a limit shorter than a byte order mark can sniff differently from the whole file", schema, StringComparison.Ordinal);
 
         // The library table names both new members.
         Assert.Contains("| `Profiler.ProfilePrefix(IProfileSource source, ProfileOptions options)` |", text, StringComparison.Ordinal);
