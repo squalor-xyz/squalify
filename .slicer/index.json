@@ -3359,7 +3359,7 @@
       "id": "sq-40",
       "title": "Shared prefix reading",
       "short_title": "Shared prefix reader",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-39"
@@ -3399,7 +3399,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-28T20:31:05Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -3418,7 +3421,7 @@
         "importance": 2,
         "urgency": 1,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

@@ -65,6 +65,36 @@ public sealed class DocsTests
         Assert.True(missing.Count == 0, $"Missing fixtures: {string.Join("; ", missing)}.");
     }
 
+    [Fact]
+    public void UserGuide_StatesTheCutRuleAsAContract_AndTheProfilePrefixApi()
+    {
+        var text = File.ReadAllText(Path.Combine(DotNetTool.RepositoryRoot(), "docs", "user-guide.md"));
+        var start = text.IndexOf("## Reading only a prefix", StringComparison.Ordinal);
+        Assert.True(start >= 0, "the user guide has a 'Reading only a prefix' section");
+        var end = text.IndexOf("\n## ", start + 5, StringComparison.Ordinal);
+        var section = Regex.Replace(end < 0 ? text[start..] : text[start..end], @"\s+", " ");
+
+        string[] required =
+        [
+            "The cut rule is a contract",
+            "any later change to it is a documented breaking change",
+            "A binary file is cut at the limit",
+            "cut after the last LF, CR or CRLF",
+            "A CR that ends the limit takes the LF after it",
+            "With no terminator inside the limit, the read goes on to the first terminator",
+            "or the end of the file",
+            "Profiler.ProfilePrefix",
+            "ProfiledPrefix",
+            "MaxFirstRecordBytes",
+        ];
+        var missing = required.Where(phrase => !section.Contains(phrase, StringComparison.Ordinal)).ToArray();
+        Assert.True(missing.Length == 0, $"The user guide's prefix section lacks: {string.Join("; ", missing)}.");
+
+        // The library table names both new members.
+        Assert.Contains("| `Profiler.ProfilePrefix(IProfileSource source, ProfileOptions options)` |", text, StringComparison.Ordinal);
+        Assert.Contains("| `ProfiledPrefix` |", text, StringComparison.Ordinal);
+    }
+
     /// <summary>Removes fenced code blocks and inline code, whose brackets are not links.</summary>
     private static string StripCode(string text)
     {

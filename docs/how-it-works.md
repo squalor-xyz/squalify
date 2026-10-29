@@ -23,7 +23,7 @@ flowchart LR
 
 ## 2. One profile run
 
-Every file goes through the same steps. A step that reads the file reads all of it, start to end (the exceptions are the hint step, which re-reads only the first lines, up to the header, and a run with a byte limit, which reads only the start of the file: step 0, then every step sees just that prefix; if you set a first-record ceiling, step 0 first reads at most that many bytes to check the first line, and stops the run when it is too long), and keeps only bounded summaries in memory. The file can be far larger than RAM.
+Every file goes through the same steps. A step that reads the file reads all of it, start to end (the exceptions are the hint step, which re-reads only the first lines, up to the header, and a run with a byte limit, which reads only the start of the file: step 0, then every step sees just that prefix; if you set a first-record ceiling, step 0 first reads at most that many bytes to check the first line, and stops the run when it is too long; a library caller that also wants the prefix bytes uses `Profiler.ProfilePrefix`, which reads the source once into a buffer, see below), and keeps only bounded summaries in memory. The file can be far larger than RAM.
 
 ```mermaid
 flowchart TD
@@ -36,6 +36,21 @@ flowchart TD
 ```
 
 *Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sources/ScopeCut.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines. A UTF-16 or UTF-32 file gets one more streaming read, right after the byte pass, that counts invalid units (section 12).
+
+**Getting the prefix bytes too.** A byte-limited `Profiler.Profile` streams the source and opens it several times (the checks, the sniffs, the search for the cut, then the passes). `Profiler.ProfilePrefix` is the library call for a caller that profiles a bounded prefix and needs the very same bytes for its own parser: it opens the source once and keeps what the passes read in one buffer, so each step reads from the buffer and the source is asked only for the bytes that are missing. The result holds the descriptor, the first `scope.bytesRead` bytes of the buffer and the scope, so the descriptor describes exactly the bytes returned. The buffer holds at most the byte limit plus the overshoot (the LF after a CR that ends the limit, or the rest of a first line longer than the limit; the first-record ceiling caps that), which is why this call requires a byte limit.
+
+```mermaid
+flowchart LR
+    S["The file or stream<br/><small>IProfileSource</small>"] -->|"opened once"| B["One buffer of the bytes read so far<br/><small>BufferedSource</small>"]
+    B --> C["Check the first line, find the cut<br/><small>ScopeCut</small>"]
+    B --> P["Every pass, over the cut only<br/><small>ByteSniffer, format and field passes</small>"]
+    P --> D["The descriptor"]
+    B --> X["The cut bytes: the first scope.bytesRead<br/><small>ReadOnlyMemory</small>"]
+    D --> R["Descriptor, prefix and scope together<br/><small>ProfiledPrefix</small>"]
+    X --> R
+```
+
+*Source: `Profiler.cs` (`ProfilePrefix`), `ProfiledPrefix.cs`, `Sources/BufferedSource.cs`, `Sources/ScopeCut.cs`.*
 
 ## 3. Choosing a format
 
