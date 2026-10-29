@@ -223,6 +223,29 @@ public sealed class ApiSurfaceTests : IDisposable
         public Stream Open() => new MemoryStream();
     }
 
+    public static TheoryData<string?> RefusedNames => new() { "a\\b.csv", "dir/a.csv", string.Empty, null };
+
+    [Theory]
+    [MemberData(nameof(RefusedNames))]
+    public void ProfilePrefix_RefusesTheSameNamesAsProfile_WithTheSameMessages(string? name)
+    {
+        var options = ProfileOptions.Create(false, Array.Empty<string>(), maxBytes: 100);
+        IProfileSource Source() => name is null ? new NullNameSource() : new BytesSource(name, TestBytes.Ascii("x\n"));
+
+        var viaProfile = Assert.Throws<SqualifyException>(() => Profiler.Profile(Source(), options));
+        var viaPrefix = Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(Source(), options));
+        Assert.Equal(viaProfile.Message, viaPrefix.Message);
+        if (name is not null && name.Contains('\\', StringComparison.Ordinal))
+        {
+            Assert.Contains("backslash", viaPrefix.Message, StringComparison.Ordinal);
+        }
+
+        if (name is null || name.Length == 0)
+        {
+            Assert.Contains("null or empty", viaPrefix.Message, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public void Profile_FileWhoseNameHoldsABackslash_IsRefusedWhereTheFileSystemAllowsIt()
     {
