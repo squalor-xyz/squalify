@@ -215,7 +215,7 @@ flowchart TD
 
 A field's type is the join of what its values vote for. Whole numbers join with decimal numbers, a date joins with a date and time, and any other mix is text. A value that is empty does not vote.
 
-The spelling of an empty marker is counted too (`nullSpellings`), exactly as written and not trimmed, so `NULL`, `Null` and ` NULL ` stay apart for a reader with its own idea of what is empty. Every empty marker is counted, in every row; the separator rows get a second, table-level count (see section 10). The count is bounded (a field keeps at most 64 distinct spellings of at most 256 characters, and counts the rest in `nullSpellingsOther`), and the descriptor publishes the two bounds in `limits.nullSpellings`, so a reader never has to hard-code them.
+The spelling of an empty marker is counted too (`nullSpellings`), exactly as written and not trimmed, so `NULL`, `Null` and ` NULL ` stay apart for a reader with its own idea of what is empty. Every empty marker is counted, in every row; the separator rows get a second, table-level count (see section 10). The count is bounded (a field keeps at most 64 distinct spellings of at most 256 characters, and counts the rest in `nullSpellingsOther`, plus how many different spellings those were in `nullSpellingsOtherDistinct`, exactly up to 64 and marked `nullSpellingsOtherDistinctCapped` beyond that), and the descriptor publishes the bounds in `limits.nullSpellings`, so a reader never has to hard-code them. A reader can tell one very long spelling from many different ones, and a column is single-spelled when its kept spellings plus the different dropped ones come to one.
 
 ```mermaid
 flowchart LR

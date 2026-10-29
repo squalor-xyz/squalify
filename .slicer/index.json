@@ -3712,7 +3712,7 @@
       "id": "sq-43",
       "title": "Count the distinct spellings in the other counters",
       "short_title": "Distinct null spellings in other",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-42"
@@ -3741,7 +3741,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-29T20:56:52Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -3760,7 +3763,7 @@
         "importance": 2,
         "urgency": 1,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

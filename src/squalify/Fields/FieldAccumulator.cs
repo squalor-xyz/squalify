@@ -389,7 +389,9 @@ internal sealed class FieldAccumulator
             Top: _top?.Build(),
             Text: _access.Text && type == ValueVote.String && _textMin is not null ? new TextStats(_textMin, _textMax!) : null,
             NullSpellings: _nullSpellings.Build(),
-            NullSpellingsOther: _nullSpellings.Other);
+            NullSpellingsOther: _nullSpellings.Other,
+            NullSpellingsOtherDistinct: _nullSpellings.OtherDistinct,
+            NullSpellingsOtherDistinctCapped: _nullSpellings.OtherDistinctCapped);
     }
 
     // True when every non-null value is equal, which a field without a non-null value is too (it has one value, null);

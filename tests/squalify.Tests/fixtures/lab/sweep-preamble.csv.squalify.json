@@ -16,7 +16,7 @@
     "stdfTests": 10000,
     "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
     "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
-    "nullSpellings": { "max": 64, "maxChars": 256 },
+    "nullSpellings": { "max": 64, "maxChars": 256, "maxDistinctOther": 64 },
     "nullTokens": 1,
     "unitTable": 1
   },
@@ -74,6 +74,7 @@
       "allNullRowSpellings": {},
       "allNullRowSpellingsMixed": 0,
       "allNullRowSpellingsOther": 0,
+      "allNullRowSpellingsOtherDistinct": 0,
       "truncated": 0,
       "classes": [{ "id": "rc:22dc4629eaf665af", "count": 20, "fields": [[0, 2]], "firstLine": 10, "lastLine": 29 }]
     },

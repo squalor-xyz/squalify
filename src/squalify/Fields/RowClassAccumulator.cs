@@ -174,7 +174,7 @@ internal sealed class RowClassAccumulator
             .OrderByDescending(static c => c.Count)
             .ThenBy(static c => c.Id, StringComparer.Ordinal)
             .ToArray();
-        return new RowClassesInfo(classes.Length, _transitions, _allNullRows, _truncated, classes, _allNullSpellings.Build(), _allNullMixed, _allNullSpellings.Other);
+        return new RowClassesInfo(classes.Length, _transitions, _allNullRows, _truncated, classes, _allNullSpellings.Build(), _allNullMixed, _allNullSpellings.Other, _allNullSpellings.OtherDistinct, _allNullSpellings.OtherDistinctCapped);
     }
 
     // The mask differs from the previous record's (or there is none): find its class.

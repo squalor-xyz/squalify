@@ -163,6 +163,7 @@ public static class DescriptorWriter
         w.WriteStartObject();
         w.WriteNumber("max", nullSpellings.Max);
         w.WriteNumber("maxChars", nullSpellings.MaxChars);
+        w.WriteNumber("maxDistinctOther", nullSpellings.MaxDistinctOther);
         w.WriteEndObject();
 
         w.WriteNumber("nullTokens", v.NullTokens);
@@ -351,6 +352,8 @@ public static class DescriptorWriter
         Map(w, "allNullRowSpellings", v.AllNullRowSpellings ?? CountMap.Empty);
         w.WriteNumber("allNullRowSpellingsMixed", v.AllNullRowSpellingsMixed);
         w.WriteNumber("allNullRowSpellingsOther", v.AllNullRowSpellingsOther);
+        w.WriteNumber("allNullRowSpellingsOtherDistinct", v.AllNullRowSpellingsOtherDistinct);
+        TrueOnly(w, "allNullRowSpellingsOtherDistinctCapped", v.AllNullRowSpellingsOtherDistinctCapped);
         w.WriteNumber("truncated", v.Truncated);
         List(w, "classes", v.Classes, Write);
         w.WriteEndObject();
@@ -405,6 +408,8 @@ public static class DescriptorWriter
         }
 
         OptionalNumber(w, "nullSpellingsOther", v.NullSpellingsOther > 0 ? v.NullSpellingsOther : null);
+        OptionalNumber(w, "nullSpellingsOtherDistinct", v.NullSpellingsOtherDistinct > 0 ? v.NullSpellingsOtherDistinct : null);
+        TrueOnly(w, "nullSpellingsOtherDistinctCapped", v.NullSpellingsOtherDistinctCapped);
         if (v.Flags is { } flags && (flags.LeadingZero != 0 || flags.CommaDecimalLike != 0 || flags.Padded != 0))
         {
             w.WritePropertyName("flags");

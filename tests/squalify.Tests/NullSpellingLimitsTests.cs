@@ -9,7 +9,8 @@ namespace squalor.squalify.Tests;
 
 /// <summary>
 /// sq-42: the bounds on the null spellings (64 distinct spellings of at most 256 characters) are published in
-/// <c>limits.nullSpellings { max, maxChars }</c>, always written, and are the bounds the profiler enforces.
+/// <c>limits.nullSpellings { max, maxChars }</c>, always written, and are the bounds the profiler enforces (sq-43 adds
+/// <c>maxDistinctOther</c>, tested in <see cref="NullSpellingsOtherDistinctTests"/>).
 /// </summary>
 public sealed class NullSpellingLimitsTests
 {
@@ -74,7 +75,7 @@ public sealed class NullSpellingLimitsTests
             Assert.Equal(SpellingCounter.MaxLength, maxChars);
         }
 
-        Assert.Equal(new NullSpellingLimits(SpellingCounter.MaxSpellings, SpellingCounter.MaxLength), Limits.Default.NullSpellings);
+        Assert.Equal(new NullSpellingLimits(SpellingCounter.MaxSpellings, SpellingCounter.MaxLength, SpellingCounter.MaxDistinctOther), Limits.Default.NullSpellings);
     }
 
     [Fact]
@@ -83,7 +84,7 @@ public sealed class NullSpellingLimitsTests
         var limits = WrittenLimits(TestModels.FullDelimited());
         var bounds = limits.GetProperty("nullSpellings");
         Assert.Equal(JsonValueKind.Object, bounds.ValueKind);
-        Assert.Equal(["max", "maxChars"], bounds.EnumerateObject().Select(static p => p.Name).ToArray());
+        Assert.Equal(["max", "maxChars", "maxDistinctOther"], bounds.EnumerateObject().Select(static p => p.Name).ToArray());
         Assert.False(limits.TryGetProperty("maxNullSpellings", out _));
         Assert.False(limits.TryGetProperty("maxNullSpellingChars", out _));
     }
@@ -93,7 +94,7 @@ public sealed class NullSpellingLimitsTests
     {
         // The writer writes what the model holds, so a changed bound is a changed number (each member from its own property).
         var plain = TestModels.FullDelimited();
-        var changed = plain with { Limits = plain.Limits with { NullSpellings = new NullSpellingLimits(7, 11) } };
+        var changed = plain with { Limits = plain.Limits with { NullSpellings = new NullSpellingLimits(7, 11, 5) } };
         Assert.Equal((7L, 11L), PublishedBounds(changed));
     }
 
@@ -184,14 +185,14 @@ public sealed class NullSpellingLimitsTests
         var descriptor = DocsText("descriptor.md");
 
         var limits = Section(descriptor, "## `limits`");
-        Assert.Contains("\"nullSpellings\": { \"max\": 64, \"maxChars\": 256 }", limits, StringComparison.Ordinal);
+        Assert.Contains("\"nullSpellings\": { \"max\": 64, \"maxChars\": 256, \"maxDistinctOther\": 64 }", limits, StringComparison.Ordinal);
         Assert.Contains("`nullSpellings` (sq-42) is **always** written", limits, StringComparison.Ordinal);
         Assert.Contains("`maxChars` (256)", limits, StringComparison.Ordinal);
 
         var keyOrder = Section(descriptor, "### Key order of nested objects");
         var limitsRow = keyOrder.Split('\n').Single(static l => l.StartsWith("| `limits` |", StringComparison.Ordinal));
         Assert.Matches("`sketches`[^|]*`nullSpellings`[^|]*`nullTokens`", limitsRow);
-        Assert.Contains("| `limits.nullSpellings` | `max`, `maxChars` |", keyOrder, StringComparison.Ordinal);
+        Assert.Contains("| `limits.nullSpellings` | `max`, `maxChars`, `maxDistinctOther` |", keyOrder, StringComparison.Ordinal);
 
         var subset = Section(descriptor, "## Consumer subset");
         Assert.Contains("| `limits.nullSpellings.max` | S |", subset, StringComparison.Ordinal);

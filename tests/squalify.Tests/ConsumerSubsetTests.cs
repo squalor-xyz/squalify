@@ -20,6 +20,7 @@ public sealed class ConsumerSubsetTests
         "limits.unitTable",
         "limits.nullSpellings.max",
         "limits.nullSpellings.maxChars",
+        "limits.nullSpellings.maxDistinctOther",
         "file.name",
         "format.family",
         "format.dialect.delimiter",
@@ -35,6 +36,7 @@ public sealed class ConsumerSubsetTests
         "table.rowClasses.allNullRowSpellings",
         "table.rowClasses.allNullRowSpellingsMixed",
         "table.rowClasses.allNullRowSpellingsOther",
+        "table.rowClasses.allNullRowSpellingsOtherDistinct",
         "table.rowClasses.truncated",
         "table.rowClasses.classes[].count",
         "table.fields[].index",
@@ -61,6 +63,9 @@ public sealed class ConsumerSubsetTests
     [
         "table.fields[].nullSpellings",
         "table.fields[].nullSpellingsOther",
+        "table.fields[].nullSpellingsOtherDistinct",
+        "table.fields[].nullSpellingsOtherDistinctCapped",
+        "table.rowClasses.allNullRowSpellingsOtherDistinctCapped",
     ];
 
     private static ProfileOptions Options(bool includeValues = false) => ProfileOptions.Create(includeValues, Array.Empty<string>());
@@ -465,6 +470,8 @@ public sealed class ConsumerSubsetTests
         Assert.False(fields[1].TryGetProperty("nullSpellings", out _));
         Assert.Equal(JsonValueKind.Object, fields[2].GetProperty("nullSpellings").ValueKind);
         Assert.All(fields, static f => Assert.False(f.TryGetProperty("nullSpellingsOther", out _)));
+        Assert.All(fields, static f => Assert.False(f.TryGetProperty("nullSpellingsOtherDistinct", out _)));
+        Assert.All(fields, static f => Assert.False(f.TryGetProperty("nullSpellingsOtherDistinctCapped", out _)));
     }
 
     [Fact]

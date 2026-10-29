@@ -116,7 +116,7 @@ public sealed class NullSpellingsTests
         Assert.Equal(0, written.GetProperty("allNullRowSpellingsMixed").GetInt64());
         Assert.Equal(0, written.GetProperty("allNullRowSpellingsOther").GetInt64());
         var names = written.EnumerateObject().Select(static p => p.Name).ToArray();
-        Assert.Equal(new[] { "count", "transitions", "allNullRows", "allNullRowSpellings", "allNullRowSpellingsMixed", "allNullRowSpellingsOther", "truncated", "classes" }, names);
+        Assert.Equal(new[] { "count", "transitions", "allNullRows", "allNullRowSpellings", "allNullRowSpellingsMixed", "allNullRowSpellingsOther", "allNullRowSpellingsOtherDistinct", "truncated", "classes" }, names);
     }
 
     [Fact]
@@ -150,12 +150,21 @@ public sealed class NullSpellingsTests
 
         var held = accumulator.EstimatedBytes;
         Assert.True(held >= empty + (Enumerable.Range(0, 64).Sum(static i => i + 1) * 2L) + (64 * 40L), $"{held} against {empty}");
+
+        // Past the cap only the remembered hashes of the dropped spellings grow (sq-43), up to their own cap of 64.
         for (var i = 0; i < 100; i++)
         {
             accumulator.AddAllNullSpelling("x" + i.ToString(CultureInfo.InvariantCulture));
         }
 
-        Assert.Equal(held, accumulator.EstimatedBytes);
+        var withHashes = accumulator.EstimatedBytes;
+        Assert.True(withHashes > held);
+        for (var i = 100; i < 1_100; i++)
+        {
+            accumulator.AddAllNullSpelling("x" + i.ToString(CultureInfo.InvariantCulture));
+        }
+
+        Assert.Equal(withHashes, accumulator.EstimatedBytes);
     }
 
     [Fact]
@@ -361,12 +370,19 @@ public sealed class NullSpellingsTests
         var chars = Enumerable.Range(0, FieldAccumulator.MaxNullSpellings).Sum(static i => i + 1);
         Assert.True(held >= empty + (chars * 2L) + (FieldAccumulator.MaxNullSpellings * 40L), $"{held} bytes against {empty} when empty");
 
-        // Past the cap nothing more is held.
-        for (var i = 0; i < 1_000; i++)
+        // Past the cap only the remembered hashes of the dropped spellings grow (sq-43), up to their own cap of 64.
+        for (var i = 0; i < 100; i++)
         {
             accumulator.AddNullSpelling("x" + i.ToString(CultureInfo.InvariantCulture));
         }
 
-        Assert.Equal(held, accumulator.EstimatedBytes);
+        var withHashes = accumulator.EstimatedBytes;
+        Assert.True(withHashes > held);
+        for (var i = 100; i < 1_100; i++)
+        {
+            accumulator.AddNullSpelling("x" + i.ToString(CultureInfo.InvariantCulture));
+        }
+
+        Assert.Equal(withHashes, accumulator.EstimatedBytes);
     }
 }

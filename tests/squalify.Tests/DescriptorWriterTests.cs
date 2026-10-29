@@ -41,7 +41,7 @@ public class DescriptorWriterTests
         var inner = document.RootElement.GetProperty("limits").GetProperty("sketches").EnumerateObject().Select(static p => p.Name).ToArray();
         Assert.Equal(["hllPrecision", "rankError", "budgetBytes"], inner);
         var bounds = document.RootElement.GetProperty("limits").GetProperty("nullSpellings").EnumerateObject().Select(static p => p.Name).ToArray();
-        Assert.Equal(["max", "maxChars"], bounds);
+        Assert.Equal(["max", "maxChars", "maxDistinctOther"], bounds);
     }
 
     [Fact]

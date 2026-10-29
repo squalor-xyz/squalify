@@ -43,6 +43,8 @@ public sealed record TableSection(
 /// <param name="AllNullRowSpellings">The all-null records whose every cell has one exact spelling (raw, not trimmed, quotes removed), by that spelling; null reads as no entries.</param>
 /// <param name="AllNullRowSpellingsMixed">All-null records whose cells do not share one spelling.</param>
 /// <param name="AllNullRowSpellingsOther">All-null records of one spelling that is not a key of <paramref name="AllNullRowSpellings"/> (past 64 spellings, or longer than 256 characters).</param>
+/// <param name="AllNullRowSpellingsOtherDistinct">The number of distinct spellings among those records (each counted once however often it recurs), exact up to <c>limits.nullSpellings.maxDistinctOther</c> (64); 0 when <paramref name="AllNullRowSpellingsOther"/> is 0.</param>
+/// <param name="AllNullRowSpellingsOtherDistinctCapped">True when more than that many distinct spellings were seen, so <paramref name="AllNullRowSpellingsOtherDistinct"/> is a lower bound.</param>
 public sealed record RowClassesInfo(
     long Count,
     long Transitions,
@@ -51,7 +53,9 @@ public sealed record RowClassesInfo(
     IReadOnlyList<RowClass> Classes,
     CountMap? AllNullRowSpellings = null,
     long AllNullRowSpellingsMixed = 0,
-    long AllNullRowSpellingsOther = 0)
+    long AllNullRowSpellingsOther = 0,
+    long AllNullRowSpellingsOtherDistinct = 0,
+    bool AllNullRowSpellingsOtherDistinctCapped = false)
 {
     /// <inheritdoc />
     public bool Equals(RowClassesInfo? other)
@@ -64,7 +68,9 @@ public sealed record RowClassesInfo(
             && ValueEquality.ListEquals(Classes, other.Classes)
             && EqualityComparer<CountMap?>.Default.Equals(AllNullRowSpellings, other.AllNullRowSpellings)
             && EqualityComparer<long>.Default.Equals(AllNullRowSpellingsMixed, other.AllNullRowSpellingsMixed)
-            && EqualityComparer<long>.Default.Equals(AllNullRowSpellingsOther, other.AllNullRowSpellingsOther);
+            && EqualityComparer<long>.Default.Equals(AllNullRowSpellingsOther, other.AllNullRowSpellingsOther)
+            && EqualityComparer<long>.Default.Equals(AllNullRowSpellingsOtherDistinct, other.AllNullRowSpellingsOtherDistinct)
+            && EqualityComparer<bool>.Default.Equals(AllNullRowSpellingsOtherDistinctCapped, other.AllNullRowSpellingsOtherDistinctCapped);
     }
 
     /// <inheritdoc />
@@ -79,6 +85,8 @@ public sealed record RowClassesInfo(
         hash.Add(AllNullRowSpellings);
         hash.Add(AllNullRowSpellingsMixed);
         hash.Add(AllNullRowSpellingsOther);
+        hash.Add(AllNullRowSpellingsOtherDistinct);
+        hash.Add(AllNullRowSpellingsOtherDistinctCapped);
         return hash.ToHashCode();
     }
 }
@@ -149,6 +157,8 @@ public sealed record FieldRange(long First, long Last);
 /// <param name="RawName">The header text as in the file: quotes removed per the dialect, nothing else changed (spaces kept); null when the table has no header. Written right after <c>name</c>.</param>
 /// <param name="NullSpellings">The null values by exact spelling (the field text after dialect unquoting, not trimmed), over all data records, all-null records included; null reads as no entries.</param>
 /// <param name="NullSpellingsOther">Null values whose spelling is not in <paramref name="NullSpellings"/> because the field already kept 64 spellings, or the spelling is longer than 256 characters.</param>
+/// <param name="NullSpellingsOtherDistinct">The number of distinct spellings among the <paramref name="NullSpellingsOther"/> values (each counted once however often it recurs), exact up to <c>limits.nullSpellings.maxDistinctOther</c> (64); 0 when <paramref name="NullSpellingsOther"/> is 0.</param>
+/// <param name="NullSpellingsOtherDistinctCapped">True when more than that many distinct spellings were seen, so <paramref name="NullSpellingsOtherDistinct"/> is a lower bound.</param>
 public sealed record FieldProfile(
     long Index,
     string? Name,
@@ -177,7 +187,9 @@ public sealed record FieldProfile(
     [property: ValueBearing] TextStats? Text = null,
     string? RawName = null,
     CountMap? NullSpellings = null,
-    long NullSpellingsOther = 0)
+    long NullSpellingsOther = 0,
+    long NullSpellingsOtherDistinct = 0,
+    bool NullSpellingsOtherDistinctCapped = false)
 {
     /// <inheritdoc />
     public bool Equals(FieldProfile? other)
@@ -210,7 +222,9 @@ public sealed record FieldProfile(
             && EqualityComparer<TextStats?>.Default.Equals(Text, other.Text)
             && EqualityComparer<string?>.Default.Equals(RawName, other.RawName)
             && EqualityComparer<CountMap?>.Default.Equals(NullSpellings, other.NullSpellings)
-            && EqualityComparer<long>.Default.Equals(NullSpellingsOther, other.NullSpellingsOther);
+            && EqualityComparer<long>.Default.Equals(NullSpellingsOther, other.NullSpellingsOther)
+            && EqualityComparer<long>.Default.Equals(NullSpellingsOtherDistinct, other.NullSpellingsOtherDistinct)
+            && EqualityComparer<bool>.Default.Equals(NullSpellingsOtherDistinctCapped, other.NullSpellingsOtherDistinctCapped);
     }
 
     /// <inheritdoc />
@@ -245,6 +259,8 @@ public sealed record FieldProfile(
         hash.Add(RawName);
         hash.Add(NullSpellings);
         hash.Add(NullSpellingsOther);
+        hash.Add(NullSpellingsOtherDistinct);
+        hash.Add(NullSpellingsOtherDistinctCapped);
         return hash.ToHashCode();
     }
 }
