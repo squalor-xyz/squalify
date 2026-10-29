@@ -222,6 +222,7 @@ public sealed class DescriptorEqualityTests
         Assert.Contains("FieldProfile", names);
         Assert.Contains("Region", names);
         Assert.Contains("TouchstoneDialect", names);
+        Assert.Contains("NullSpellingLimits", names);
         Assert.True(names.Length >= 40, $"Found only {names.Length} records.");
     }
 

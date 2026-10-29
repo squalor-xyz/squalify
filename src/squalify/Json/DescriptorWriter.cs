@@ -158,6 +158,12 @@ public static class DescriptorWriter
         Double(w, "rankError", sketches.RankError);
         w.WriteNumber("budgetBytes", sketches.BudgetBytes);
         w.WriteEndObject();
+        var nullSpellings = v.NullSpellings ?? NullSpellingLimits.Default;
+        w.WritePropertyName("nullSpellings");
+        w.WriteStartObject();
+        w.WriteNumber("max", nullSpellings.Max);
+        w.WriteNumber("maxChars", nullSpellings.MaxChars);
+        w.WriteEndObject();
 
         w.WriteNumber("nullTokens", v.NullTokens);
         w.WriteNumber("unitTable", v.UnitTable);

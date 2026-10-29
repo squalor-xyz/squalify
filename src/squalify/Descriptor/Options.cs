@@ -72,6 +72,7 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
 /// <param name="NullTokens">Version of the null-token vocabulary.</param>
 /// <param name="UnitTable">Version of the unit table.</param>
 /// <param name="Sketches">The precision of the per-field sketches, scaled by the field count; always written. Null (the default of the parameter, so a <c>Limits</c> built without it compiles as before) reads as <see cref="SketchLimits.Default"/>.</param>
+/// <param name="NullSpellings">The bounds on the null spellings that a field and the all-null rows of a table keep; always written. Null (the default of the parameter, so a <c>Limits</c> built without it compiles as before) reads as the bounds the profiler enforces.</param>
 public sealed record Limits(
     long DistinctPerField,
     long QuantilePerField,
@@ -87,7 +88,8 @@ public sealed record Limits(
     Budget Budget,
     long NullTokens,
     long UnitTable,
-    SketchLimits? Sketches = null)
+    SketchLimits? Sketches = null,
+    NullSpellingLimits? NullSpellings = null)
 {
     /// <summary>
     /// The caps and table versions of this tool version, as in <c>docs/descriptor.md</c>. Internal: the caps are not API;
@@ -108,7 +110,8 @@ public sealed record Limits(
         Budget: ProfileLimits.Default.Budget,
         NullTokens: ValueClassifier.NullVocabularyVersion,
         UnitTable: squalor.squalify.UnitTable.Version,
-        Sketches: SketchLimits.Default);
+        Sketches: SketchLimits.Default,
+        NullSpellings: NullSpellingLimits.Default);
 }
 
 /// <summary>The effective precision of the sketches of every field, written to <c>limits.sketches</c> (always, as the other limits are).</summary>
@@ -119,6 +122,19 @@ public sealed record SketchLimits(long HllPrecision, double RankError, long Budg
 {
     /// <summary>The full precision of a table that is not scaled: precision 14, epsilon 0.001, and the sketch budget of this tool version.</summary>
     public static SketchLimits Default { get; } = new(HyperLogLog.Precision, GreenwaldKhanna.Epsilon, MemoryBudget.SketchBudgetBytes);
+}
+
+/// <summary>
+/// The bounds on the exact null spellings of <c>fields[].nullSpellings</c> and <c>table.rowClasses.allNullRowSpellings</c>,
+/// written to <c>limits.nullSpellings</c> (always, as the other limits are). The values are the constants that the
+/// profiler enforces (<c>SpellingCounter.MaxSpellings</c> and <c>MaxLength</c>), so the descriptor cannot say anything else.
+/// </summary>
+/// <param name="Max">The most distinct spellings a field, and the table's all-null rows, keep; a new spelling past it is counted in <c>nullSpellingsOther</c> or <c>allNullRowSpellingsOther</c>.</param>
+/// <param name="MaxChars">The longest spelling kept, in characters; a longer one is counted in the same <c>Other</c> member.</param>
+public sealed record NullSpellingLimits(long Max, long MaxChars)
+{
+    /// <summary>The bounds of this tool version. Internal: the bounds are not API; a consumer reads the ones in effect from the <c>limits</c> section of a descriptor.</summary>
+    internal static NullSpellingLimits Default { get; } = new(SpellingCounter.MaxSpellings, SpellingCounter.MaxLength);
 }
 
 /// <summary>Tolerated stray invalid UTF-8 sequences.</summary>

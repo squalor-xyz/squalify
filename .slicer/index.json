@@ -3624,7 +3624,7 @@
       "id": "sq-42",
       "title": "Publish the null-spelling bounds in limits",
       "short_title": "Null-spelling bounds in limits",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-38"
@@ -3653,7 +3653,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-29T20:17:34Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -3672,7 +3675,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

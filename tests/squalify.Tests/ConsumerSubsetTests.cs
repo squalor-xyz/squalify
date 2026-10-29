@@ -18,6 +18,8 @@ public sealed class ConsumerSubsetTests
         "schemaVersion",
         "limits.nullTokens",
         "limits.unitTable",
+        "limits.nullSpellings.max",
+        "limits.nullSpellings.maxChars",
         "file.name",
         "format.family",
         "format.dialect.delimiter",

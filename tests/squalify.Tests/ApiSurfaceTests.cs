@@ -102,6 +102,7 @@ public sealed class ApiSurfaceTests : IDisposable
                 "stdfTests": 10000,
                 "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
                 "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
+                "nullSpellings": { "max": 64, "maxChars": 256 },
                 "nullTokens": 1,
                 "unitTable": 1
               },

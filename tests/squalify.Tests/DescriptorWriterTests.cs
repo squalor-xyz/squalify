@@ -22,7 +22,7 @@ public class DescriptorWriterTests
     }
 
     [Fact]
-    public void Writer_LimitsKeyOrder_PlacesSketchesAfterBudgetAndBeforeNullTokens()
+    public void Writer_LimitsKeyOrder_PlacesSketchesAndNullSpellingsAfterBudgetAndBeforeNullTokens()
     {
         // The row for `limits` in "Key order of nested objects" in docs/descriptor.md. The member is always written.
         string[] Keys(Descriptor descriptor)
@@ -33,13 +33,15 @@ public class DescriptorWriterTests
 
         var plain = TestModels.FullDelimited();
         var sketched = plain with { Limits = plain.Limits with { Sketches = new SketchLimits(12, 0.004, 67_108_864) } };
-        string[] expected = ["distinctPerField", "quantilePerField", "shapesPerField", "shapeCharsPerField", "regions", "headerSample", "runawayQuote", "fieldCountRuns", "rowClasses", "charsetTolerance", "stdfTests", "budget", "sketches", "nullTokens", "unitTable"];
+        string[] expected = ["distinctPerField", "quantilePerField", "shapesPerField", "shapeCharsPerField", "regions", "headerSample", "runawayQuote", "fieldCountRuns", "rowClasses", "charsetTolerance", "stdfTests", "budget", "sketches", "nullSpellings", "nullTokens", "unitTable"];
         Assert.Equal(expected, Keys(plain));
         Assert.Equal(expected, Keys(sketched));
 
         using var document = JsonDocument.Parse(DescriptorWriter.ToBytes(sketched));
         var inner = document.RootElement.GetProperty("limits").GetProperty("sketches").EnumerateObject().Select(static p => p.Name).ToArray();
         Assert.Equal(["hllPrecision", "rankError", "budgetBytes"], inner);
+        var bounds = document.RootElement.GetProperty("limits").GetProperty("nullSpellings").EnumerateObject().Select(static p => p.Name).ToArray();
+        Assert.Equal(["max", "maxChars"], bounds);
     }
 
     [Fact]
