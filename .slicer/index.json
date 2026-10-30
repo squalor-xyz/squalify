@@ -2503,7 +2503,7 @@
       "id": "sq-12",
       "title": "squalify must publish and enforce descriptor schema v1",
       "short_title": "Schema v1 freeze",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-06",
@@ -2793,10 +2793,7 @@
           "retracted_reason": ""
         }
       ],
-      "claim": {
-        "owner": "Jon R",
-        "at": "2026-10-30T17:48:48Z"
-      },
+      "claim": null,
       "fields": {
         "size": "M",
         "flags": [],
