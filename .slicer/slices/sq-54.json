@@ -1,0 +1,41 @@
+{
+  "id": "sq-54",
+  "title": "Descriptor docs freeze pass",
+  "lead": [
+    "The documentation half of the schema v1 freeze, split from sq-12 (owner, 2026-10-30): make `docs/descriptor.md` normative, add its changelog, document the frozen limits, mark unproduced members as planned for a 1.x minor, make the README examples real output, and do the final how-it-works pass. **Not in this slice:** the schema file, the validator, the walker, the invariants, any golden or any descriptor byte."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-12 split, wave 2026-10-30",
+  "size": "M",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "sq-12 as specified was a from-scratch build of the schema plus a docs pass; the owner chose to split it. Owner decisions already recorded on sq-12 apply here verbatim: S12-1, S12-3, S12-4, S12-6, S12-8 (read them with `slicer show sq-12`), and on 2026-10-30: nullable members \"Allowed only behind an explicit top-level marker (Recommended)\" and sketch values \"Yes, state it in the policy (Recommended)\"."
+    },
+    {
+      "heading": "Files",
+      "body": "- `docs/descriptor.md`: the \"draft\" label dropped; the versioning policy normative, including \"adding an enum value is a minor change\" (replace the line that says it is pending sq-12), the cut rule and window sniff of sq-40 (a change that moves `scope.bytesRead` is a change of meaning), the sq-47 precedent rule (a member may become null only behind a documented top-level marker such as `layoutOnly: true`; otherwise nulling an always-present member is a major change), and the sketch rule (sketched quantile values are approximate and may be refined in a minor release; keys, types and the `rankError` contract stay); a changelog (starting point and format chosen by the implementer and listed); the documented limits (single-letter units in the underscore form: Site_A as amps, Temp_F as farad; the degC alias, DEGC is a unit and DEG is not, `unitTable` 1 stays; the shape-mask `?` for a literal `?` or a classless character; the cut-mask `+`: exactly 65 tokens ending in a bare `+`); members documented but produced by nothing yet (`stdf`, `hints.stdf`, the touchstone and keyValue dialects, `sections`, `binary.blocks`, `binary.segments`, `limits.stdfTests`, `kind` labels beyond the interim ones) marked planned for a 1.x minor and not v1.0.\n- `README.md` usage examples become real output (run them); `docs/design.md`, `docs/user-guide.md` where they say \"draft\", \"unreleased\" about the schema or point at the policy.\n- `docs/how-it-works.md`: banner status and final text pass; re-render html and pdf.\n- Tests in the existing docs-test style (`tests/squalify.Cli.Tests/DocsTests.cs` or the descriptor-doc tests): the three below."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `Docs_StateTheFreezeRules`: descriptor.md states the policy as normative, \"adding an enum value is a minor change\", the cut rule and window sniff, the layoutOnly marker rule, the sketch-values rule, the unit-table limitation, the shape-mask `?` and the cut-mask `+` rules, and marks the unproduced members as planned.\n2. `Readme_Examples_AreRealOutput`: the README usage example output matches a real run on the fixture it names.\n3. `Docs_PlannedMembers_AreNotInTheSchemaOrTheWriter`: every member descriptor.md marks as planned is produced by no code path (no golden contains it); once sq-12's schema exists, none appears in `schema/descriptor-v1.schema.json` either.\n- Mutation-check each test."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the three tests and watch them fail. 2. Docs: descriptor.md, README (run the examples), design.md, user-guide.md. 3. how-it-works.md final pass and re-render (`PATH=\"$HOME/.local/bin:$PATH\" ./scripts/render-docs.sh`); commit .md, .html and .pdf together (the owner commits). 4. Start from main after sq-12 lands."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; docs tests pass; the architect confirms no drift in docs/how-it-works.md; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

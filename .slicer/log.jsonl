@@ -606,3 +606,11 @@
 {"when": "2026-10-30T16:42:14Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
 {"when": "2026-10-30T16:42:15Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-10-30T16:42:15Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "effort 1→2"}
+{"when": "2026-10-30T17:04:10Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-30T17:04:15Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-30T17:07:49Z", "item": "sq-54", "action": "add", "from": "", "to": "open", "note": "Descriptor docs freeze pass"}
+{"when": "2026-10-30T17:08:00Z", "item": "sq-49", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T17:08:00Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T17:08:01Z", "item": "sq-52", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T17:08:10Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51→sq-12,sq-51,sq-52,sq-54"}
+{"when": "2026-10-30T17:08:11Z", "item": "sq-54", "action": "set", "from": "", "to": "", "note": "depends_on sq-12→sq-12,sq-52"}

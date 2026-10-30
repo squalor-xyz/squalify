@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 54,
+  "next_id": 55,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -4886,7 +4886,9 @@
       "has_slice": true,
       "depends_on": [
         "sq-12",
-        "sq-51"
+        "sq-51",
+        "sq-52",
+        "sq-54"
       ],
       "note_records": [],
       "claim": null,
@@ -4911,10 +4913,43 @@
         "effort": 2,
         "attempts": 0
       }
+    },
+    {
+      "id": "sq-54",
+      "title": "Descriptor docs freeze pass",
+      "short_title": "Descriptor docs freeze",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-12",
+        "sq-52"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-12 split, wave 2026-10-30",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "schema.docs-freeze-pass",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 2,
+        "attempts": 0
+      }
     }
   ],
   "epilogue": "",
-  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk with a test catalog, plus a generic byte profile).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a generic `kind` label from a fixed built-in rule set, and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
+  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks) and a generic byte profile for binary files. Touchstone, whole-file key=value/INI documents and the STDF V4 walk with a test catalog follow as additive 1.x minor releases (sq-09, sq-10).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a `kind` label (byte-class interim label in 1.0; the fixed built-in rule set follows as a 1.x minor, sq-15), and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
   "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a user library of known types. The built-in `kind` label is in scope.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.\n- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.",
   "catalog": {
     "next_id": 1,

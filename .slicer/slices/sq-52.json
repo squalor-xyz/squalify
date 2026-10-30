@@ -26,7 +26,7 @@
     },
     {
       "heading": "Implement",
-      "body": "1. Re-anchor the diagram, measure the current smallest text in the PDF. 2. Change the layout (top-down, or split in two) without changing meaning. 3. Re-render with `PATH=\"$HOME/.local/bin:$PATH\" ./scripts/render-docs.sh` and commit .md, .html and .pdf together (the owner commits)."
+      "body": "1. Re-anchor the diagram, measure the current smallest text in the PDF. 2. Change the layout (top-down, or split in two) without changing meaning. 3. Re-render with `PATH=\"$HOME/.local/bin:$PATH\" ./scripts/render-docs.sh` and commit .md, .html and .pdf together (the owner commits).\n\nOwner decisions (2026-10-30), verbatim: \"Reflection pin; implementer measures the PDF floor (Recommended)\" (option text: \"sq-49 pins the public constructor/parameter set and no Deconstruct in ApiSurfaceTests.cs; sq-52's implementer measures the current smallest text and states the floor it reaches.\"). Spec check note: the diagram is the `flowchart LR` in section 12 of docs/how-it-works.md (lines 502-523, source `InvalidByteLocator`); this slice runs before sq-12 and sq-54 touch how-it-works.md, so the renders do not conflict."
     },
     {
       "heading": "Check",
