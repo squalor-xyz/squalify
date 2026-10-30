@@ -39,7 +39,7 @@
 - Editing, repairing or converting files.<br>
 - A dependency on DataBall. The descriptor schema is the contract.<br>
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
-<p class="summary">56 items · — 12 · done 40 · parked 1 · later 1 · retired 2</p>
+<p class="summary">59 items · — 14 · done 41 · parked 1 · later 1 · retired 2</p>
 <h2>v1.0.0</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="done"><td>1</td><td>sq-19</td><td>Throughput benchmark</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
@@ -54,7 +54,7 @@
 <tr class="done"><td>10</td><td>sq-46</td><td>Locate invalid bytes</td><td>S</td><td>-</td><td></td><td></td><td class="status">done</td></tr>
 <tr class="done"><td>11</td><td>sq-47</td><td>Layout-only profile</td><td>M</td><td>-</td><td></td><td></td><td class="status">done</td></tr>
 <tr class="done"><td>12</td><td>sq-48</td><td>Flag corpus entries with no golden</td><td>S</td><td>-</td><td></td><td></td><td class="status">done</td></tr>
-<tr class="open"><td>13</td><td>sq-49</td><td>Options shape</td><td>M</td><td>2</td><td>core</td><td>discovered from sq-47</td><td class="status">—</td></tr>
+<tr class="done"><td>13</td><td>sq-49</td><td>Options shape</td><td>M</td><td>2</td><td>core</td><td>discovered from sq-47</td><td class="status">done</td></tr>
 <tr class="done"><td>14</td><td>sq-51</td><td>Release docs test</td><td>S</td><td>1</td><td>docs</td><td>sq-45 R6; wave 2026-10-30</td><td class="status">done</td></tr>
 <tr class="done"><td>15</td><td>sq-52</td><td>Wide diagram legibility</td><td>S</td><td>1</td><td>docs</td><td>sq-46 R2; wave 2026-10-30</td><td class="status">done</td></tr>
 <tr class="open"><td>16</td><td>sq-53</td><td>Release 1.0.0</td><td>M</td><td>2</td><td>docs, core</td><td>wave 2026-10-30</td><td class="status">—</td></tr>
@@ -89,27 +89,30 @@
 <tr class="open"><td>36</td><td>sq-50</td><td>Cheaper layout-only</td><td>M</td><td>2</td><td>core</td><td>discovered from sq-47</td><td class="status">—</td></tr>
 <tr class="open"><td>37</td><td>sq-55</td><td>Docs test unrelated versions</td><td>S</td><td>1</td><td>docs</td><td>sq-51 review R4 · discovered from sq-51</td><td class="status">—</td></tr>
 <tr class="open"><td>38</td><td>sq-56</td><td>Docs test duplicate no-change</td><td>S</td><td>1</td><td>docs</td><td>sq-51 review R5 · discovered from sq-51</td><td class="status">—</td></tr>
+<tr class="open"><td>39</td><td>sq-57</td><td>Hash-inequality collisions</td><td>S</td><td>1</td><td>core</td><td>sq-49 review R2 · discovered from sq-49</td><td class="status">—</td></tr>
+<tr class="open"><td>40</td><td>sq-58</td><td>IncludeValuesFor normalisation</td><td>S</td><td>1</td><td>core</td><td>sq-49 architect A4 · discovered from sq-49</td><td class="status">—</td></tr>
+<tr class="open"><td>41</td><td>sq-59</td><td>Required-member compiler note</td><td>S</td><td>1</td><td>docs</td><td>sq-49 architect A5 · discovered from sq-49</td><td class="status">—</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="parked"><td>39</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
-<tr class="retired"><td>40</td><td>sq-20</td><td>Compact evidence</td><td>M</td><td>2</td><td>core</td><td>Owner decision (2026-10-27), verbatim: &quot;Retire, refile on fields (Recommended)&quot;. The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.</td><td class="status">retired</td></tr>
+<tr class="parked"><td>42</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
+<tr class="retired"><td>43</td><td>sq-20</td><td>Compact evidence</td><td>M</td><td>2</td><td>core</td><td>Owner decision (2026-10-27), verbatim: &quot;Retire, refile on fields (Recommended)&quot;. The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.</td><td class="status">retired</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="done"><td>41</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>42</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>43</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>44</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>45</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>46</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>47</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>48</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>49</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>50</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>51</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>52</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>53</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>54</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
-<tr class="done"><td>55</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>56</td><td>sq-31</td><td>Drop Parquet from v1</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>44</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>45</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>46</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>47</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>48</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>49</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>50</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>51</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>52</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>53</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>54</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>55</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>56</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>57</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
+<tr class="done"><td>58</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>59</td><td>sq-31</td><td>Drop Parquet from v1</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
 </tbody></table>
 </body></html>
