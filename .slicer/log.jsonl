@@ -649,3 +649,4 @@
 {"when": "2026-10-30T19:49:23Z", "item": "sq-63", "action": "add", "from": "", "to": "open", "note": "SubsetValidator rejects duplicate object keys"}
 {"when": "2026-10-30T19:49:23Z", "item": "sq-64", "action": "add", "from": "", "to": "open", "note": "Tie the docs enum lists and the kind enums to the schema"}
 {"when": "2026-10-30T19:49:23Z", "item": "sq-65", "action": "add", "from": "", "to": "open", "note": "Read docs from the test output copy everywhere"}
+{"when": "2026-10-30T19:49:57Z", "item": "sq-61", "action": "edit", "from": "", "to": "", "note": "Implement"}
