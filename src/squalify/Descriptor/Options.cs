@@ -26,7 +26,8 @@ namespace squalor.squalify;
 /// <c>layoutOnly: true</c> and leaves the sections that were not computed out (see <c>docs/descriptor.md</c>, "Layout-only
 /// profile"). It is not written to the <c>options</c> section: the top-level <c>layoutOnly</c> member carries it.
 /// <see cref="IncludeValues"/> and <see cref="IncludeValuesFor"/> still open the preamble and annotation values of the layout,
-/// and have no effect on anything else: no field value is computed. False by default.
+/// and have no effect on the fields: no field value is computed, and the layout values equal a full profile's for the same options.
+/// False by default.
 /// </param>
 public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null, long? MaxFirstRecordBytes = null, bool LayoutOnly = false)
 {

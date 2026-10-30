@@ -52,12 +52,9 @@ internal static class ValueClassifier
 
         var v = Trim(value);
 
-        foreach (var entry in NullEntries)
+        if (TryNullEntry(v, out var nullEntry))
         {
-            if (EqualsAsciiIgnoreCase(v, entry))
-            {
-                return new ValueClass(ValueVote.Null, null, DateOrders.None, ClockKind.None, ValueFlags.None, entry);
-            }
+            return new ValueClass(ValueVote.Null, null, DateOrders.None, ClockKind.None, ValueFlags.None, nullEntry);
         }
 
         var flags = IsCommaDecimalLike(v) ? ValueFlags.CommaDecimalLike : ValueFlags.None;
@@ -109,15 +106,22 @@ internal static class ValueClassifier
     /// <returns>True when <see cref="Classify"/> would vote null.</returns>
     public static bool IsNull(ReadOnlySpan<char> value)
     {
-        var v = Trim(value);
-        foreach (var entry in NullEntries)
+        return TryNullEntry(Trim(value), out _);
+    }
+
+    // The one place that matches a trimmed value against the null vocabulary (ASCII case-insensitively).
+    private static bool TryNullEntry(ReadOnlySpan<char> trimmed, out string entry)
+    {
+        foreach (var candidate in NullEntries)
         {
-            if (EqualsAsciiIgnoreCase(v, entry))
+            if (EqualsAsciiIgnoreCase(trimmed, candidate))
             {
+                entry = candidate;
                 return true;
             }
         }
 
+        entry = string.Empty;
         return false;
     }
 

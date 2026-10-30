@@ -68,7 +68,7 @@ public static class CommandFactory
         };
         var layoutOnly = new Option<bool>("--layout-only")
         {
-            Description = "Compute only the encoding, dialect, layout regions, header names and row classes, and skip the per-field types, statistics and sketches, the hints and the typed fingerprint. The descriptor says so with layoutOnly: true, and writes null for hints and fingerprint.typed and only the names for each field. --include-values then opens only the preamble and annotation values",
+            Description = "Compute only the encoding, dialect, layout regions, header names and row classes, and skip the per-field types, statistics and sketches, the hints and the typed fingerprint. The descriptor says so with layoutOnly: true, and writes null for hints and fingerprint.typed and only the names for each field. --include-values then opens only the preamble and annotation values of the layout (no field values exist)",
         };
         var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor, maxBytes, maxFirstRecordBytes, layoutOnly };
         command.SetAction(async (result, _) => await CliApp.ProfileAsync(

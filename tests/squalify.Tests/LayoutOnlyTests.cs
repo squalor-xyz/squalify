@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Xunit.Abstractions;
 using squalor.squalify;
 
@@ -127,15 +128,11 @@ public sealed class LayoutOnlyTests(ITestOutputHelper output)
 
     public static IEnumerable<(string Name, Func<IProfileSource> Source)> AllShapes() => Fixtures().Concat(Synthetic());
 
-    // The members that a layout-only descriptor must have equal to the full descriptor's, as compact JSON text; "<absent>" for a missing member.
-    private static readonly string[] CompareTop =
-        ["schemaVersion", "tool", "limits", "file", "scope", "encoding", "format", "kind", "layout", "binary", "sections", "stdf", "issues"];
-
-    private static readonly string[] CompareFingerprint = ["version", "structure", "layout", "names"];
-
-    private static readonly string[] CompareField = ["index", "name", "rawName", "nameHex", "nameParts"];
-
-    private static readonly string[] CompareTable = ["rows", "fieldCount", "rowClasses"];
+    // A deny-list: what a layout-only descriptor leaves out, and nothing else, is removed from both descriptors, and then the WHOLE
+    // rest of the descriptor must be equal (options, limits, file, scope, kind, every evidence entry but the stage "type", and any
+    // member that a later slice adds). The removed members are: the marker `layoutOnly`, `hints`, `fingerprint.typed`, the evidence
+    // entries of the stage "type", and every member of a table field that is not one of the five names members.
+    private static readonly string[] KeptFieldMembers = ["index", "name", "rawName", "nameHex", "nameParts"];
 
     private static string Compact(JsonElement element)
     {
@@ -148,46 +145,50 @@ public sealed class LayoutOnlyTests(ITestOutputHelper output)
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static string Member(JsonElement parent, string name) => parent.TryGetProperty(name, out var value) ? Compact(value) : "<absent>";
-
+    // The comparable form: the top-level members in order (the table split into its members and fields), as compact JSON text.
     public static List<(string Key, string Value)> Compared(Descriptor d)
     {
-        using var doc = Json(d);
-        var root = doc.RootElement;
+        var root = JsonNode.Parse(DescriptorWriter.ToBytes(d))!.AsObject();
+        root.Remove("layoutOnly");
+        root.Remove("hints");
+        root["fingerprint"]!.AsObject().Remove("typed");
+        var evidence = root["evidence"]!.AsArray();
+        for (var i = evidence.Count - 1; i >= 0; i--)
+        {
+            if (evidence[i]!["stage"]!.GetValue<string>() == "type")
+            {
+                evidence.RemoveAt(i);
+            }
+        }
+
         var list = new List<(string, string)>();
-        foreach (var key in CompareTop)
+        foreach (var (key, value) in root)
         {
-            list.Add((key, Member(root, key)));
-        }
-
-        var fingerprint = root.GetProperty("fingerprint");
-        foreach (var key in CompareFingerprint)
-        {
-            list.Add(("fingerprint." + key, Member(fingerprint, key)));
-        }
-
-        // The evidence of the stage "type" is the one entry that needs the types.
-        list.Add(("evidence", Compact(JsonSerializer.SerializeToElement(root.GetProperty("evidence").EnumerateArray().Where(static e => e.GetProperty("stage").GetString() != "type").Select(static e => Compact(e)).ToArray()))));
-        if (root.TryGetProperty("table", out var table))
-        {
-            foreach (var key in CompareTable)
+            if (key != "table")
             {
-                list.Add(("table." + key, Member(table, key)));
+                list.Add((key, value?.ToJsonString() ?? "null"));
+                continue;
             }
 
-            var fields = table.GetProperty("fields").EnumerateArray().ToArray();
-            list.Add(("table.fields.length", fields.Length.ToString(CultureInfo.InvariantCulture)));
-            for (var i = 0; i < fields.Length; i++)
+            var table = value!.AsObject();
+            var fields = table["fields"]!.AsArray();
+            list.Add(("table.fields.length", fields.Count.ToString(CultureInfo.InvariantCulture)));
+            for (var f = 0; f < fields.Count; f++)
             {
-                foreach (var key in CompareField)
+                var field = fields[f]!.AsObject();
+                foreach (var member in field.Select(static e => e.Key).Where(static k => !KeptFieldMembers.Contains(k)).ToArray())
                 {
-                    list.Add(("table.fields[" + i.ToString(CultureInfo.InvariantCulture) + "]." + key, Member(fields[i], key)));
+                    field.Remove(member);
                 }
+
+                list.Add(("table.fields[" + f.ToString(CultureInfo.InvariantCulture) + "]", field.ToJsonString()));
             }
-        }
-        else
-        {
-            list.Add(("table", "<absent>"));
+
+            table.Remove("fields");
+            foreach (var (member, memberValue) in table)
+            {
+                list.Add(("table." + member, memberValue?.ToJsonString() ?? "null"));
+            }
         }
 
         return list;
@@ -608,7 +609,7 @@ public sealed class LayoutOnlyTests(ITestOutputHelper output)
     [Fact]
     public void WithIncludeValues_NoFieldValueIsComputed_OnlyTheLayoutValuesOpenedByTheOptionAreWritten()
     {
-        // IncludeValues has no effect on the sections that are left out: no top, text, unit or constant statistic is computed, so none can be written.
+        // IncludeValues has no effect on the fields: no top, text, unit or constant statistic is computed, so none can be written.
         var source = Fixtures().Single(static f => f.Name == "lab/sweep-preamble.csv").Source;
         var plain = Profiler.Profile(source(), Layout());
         var all = Profiler.Profile(source(), Layout(includeValues: true));
@@ -737,7 +738,7 @@ public sealed class LayoutOnlyTests(ITestOutputHelper output)
     [Fact]
     public void Cheaper_WidePaddedPrefix_OfTheSizeAConsumerReads_IsAFractionOfTheFullProfile()
     {
-        // The consumer's case: 1 MiB of a wide padded file holds about 64 rows of 256 cells.
+        // A 1 MiB prefix of this wide padded shape (256 cells of 64 bytes, 16 KB lines) holds about 63 rows. The consumer's own files (38 KB lines, about 25 rows) are not measured here.
         var rows = SyntheticCsvSource.PaddedRowsFor(64L * 1024 * 1024, ThroughputBench.WideColumns, ThroughputBench.WideCellWidth);
         IProfileSource Source() => SyntheticCsvSource.PaddedWide(rows, ThroughputBench.WideColumns, ThroughputBench.WideCellWidth);
         var layout = Timed(Source(), Layout(maxBytes: 1024 * 1024));
