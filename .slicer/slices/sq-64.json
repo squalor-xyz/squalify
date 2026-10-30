@@ -1,0 +1,41 @@
+{
+  "id": "sq-64",
+  "title": "Tie the docs enum lists and the kind enums to the schema",
+  "lead": [
+    "Nothing ties the enum lists in docs/descriptor.md (families touchstone, keyValue and stdf are listed without a planned mark; the kind example shows labSweepTable/K05) to the schema enums, and schema test 6 does not compare the `kind` label and rule id enums with `Profiler`'s `InterimKind` constants. sq-15 is the natural place for the kind half. Compare both with tests, marking planned values."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-12 architect A3(ii), A7",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core, docs",
+  "trees_plural": true,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Failing tests; 2. implement against `DocumentedMembers` and the library constants; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

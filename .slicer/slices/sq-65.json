@@ -1,0 +1,41 @@
+{
+  "id": "sq-65",
+  "title": "Read docs from the test output copy everywhere",
+  "lead": [
+    "S12-9 reads schema and descriptor.md from the test output copy, but ConsumerSubsetTests, NullSpellingsOtherDistinctTests and NullSpellingLimitsTests still read docs through `CallerFilePath` (source tree), so two mechanisms exist and a packed or PathMap test run would break the latter. Copy `design.md` too and move those tests to the shared loader."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-12 architect A6 (sq-25 L8)",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Failing test: those tests run with the source tree absent; 2. move them to the test-output loader; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

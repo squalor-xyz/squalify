@@ -623,6 +623,9 @@
 {"when": "2026-10-30T17:37:43Z", "item": "sq-54", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-10-30T17:41:13Z", "item": "sq-55", "action": "add", "from": "", "to": "open", "note": "Release docs test rejects unrelated version numbers in current entries"}
 {"when": "2026-10-30T17:41:13Z", "item": "sq-56", "action": "add", "from": "", "to": "open", "note": "Release docs test allows a duplicated no-change line"}
+{"when": "2026-10-30T17:41:52Z", "item": "sq-52", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
+{"when": "2026-10-30T17:53:41Z", "item": "sq-52", "action": "note", "from": "", "to": "", "note": "Owner answer (2026-10-30), verbatim: 5.5 pt text \"Accept (Re", "by": "Jon R"}
+{"when": "2026-10-30T17:53:47Z", "item": "sq-52", "action": "status", "from": "started", "to": "done", "note": "Verified outcome: the byte-pass diagram in docs/how-it-works.md section 12 is now top-down (flowchart TD), with no change to its nodes, edges or labels. The smallest diagram text in the PDF went from 2.5 pt to 5.5 pt (bbox-measured in the rendered PDF). The html and pdf were re-rendered. The library tests (1520) and the CLI tests (58) pass and format is clean. The gate returned PASS. The page-14 diagram, whose text is 3.51 pt, is filed by the orchestrator as a separate 1.0.0 slice.", "by": "Jon R"}
 {"when": "2026-10-30T17:48:01Z", "item": "sq-57", "action": "add", "from": "", "to": "open", "note": "Hash-inequality asserts in NonPositionalRecordsTests can collide"}
 {"when": "2026-10-30T17:48:01Z", "item": "sq-58", "action": "add", "from": "", "to": "open", "note": "Normalize or reject an unsorted or null ProfileOptions.IncludeValuesFor"}
 {"when": "2026-10-30T17:48:01Z", "item": "sq-59", "action": "add", "from": "", "to": "open", "note": "Note required-member compiler support for library consumers"}
@@ -631,3 +634,25 @@
 {"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Files"}
 {"when": "2026-10-30T17:48:48Z", "item": "sq-12", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
 {"when": "2026-10-30T19:49:44Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner answers (2026-10-30), verbatim: kind ruleId \"Freeze K0", "by": "Jon R"}
+{"when": "2026-10-30T17:55:31Z", "item": "sq-60", "action": "add", "from": "", "to": "open", "note": "PDF diagram text floor"}
+{"when": "2026-10-30T17:55:37Z", "item": "sq-54", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-52→sq-12,sq-60"}
+{"when": "2026-10-30T17:55:37Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51,sq-52,sq-54→sq-12,sq-51,sq-52,sq-54,sq-60"}
+{"when": "2026-10-30T19:25:00Z", "item": "sq-61", "action": "add", "from": "", "to": "open", "note": "Drop doc renders"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-54", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-60→sq-12,sq-61"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51,sq-52,sq-54,sq-60→sq-12,sq-51,sq-52,sq-54,sq-61"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-60", "action": "retire", "from": "open", "to": "retired", "note": "Owner (2026-10-30), verbatim: \"let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed\". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded."}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-54", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T19:49:10Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-30T19:49:10Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-30, sq-12 architect A1e), verbatim: ", "by": "Jon R"}
+{"when": "2026-10-30T19:49:10Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "Owner decisions and sq-12 review inputs (2026-10-30), verbat", "by": "Jon R"}
+{"when": "2026-10-30T19:49:10Z", "item": "sq-53", "action": "note", "from": "", "to": "", "note": "From the sq-12 architect (A5) and the owner: the schema $id ", "by": "Jon R"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-62", "action": "add", "from": "", "to": "open", "note": "Internal issue-code registry and evidence-stage constants"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-63", "action": "add", "from": "", "to": "open", "note": "SubsetValidator rejects duplicate object keys"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-64", "action": "add", "from": "", "to": "open", "note": "Tie the docs enum lists and the kind enums to the schema"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-65", "action": "add", "from": "", "to": "open", "note": "Read docs from the test output copy everywhere"}
+{"when": "2026-10-30T19:49:57Z", "item": "sq-61", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T19:50:17Z", "item": "sq-61", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
+{"when": "2026-10-30T20:02:59Z", "item": "sq-61", "action": "note", "from": "", "to": "", "note": "Review FAIL: AGENTS.md line 3 still says \"the docs rendering", "by": "Jon R"}
+{"when": "2026-10-30T20:09:05Z", "item": "sq-61", "action": "status", "from": "started", "to": "done", "note": "Verified outcome: the html and pdf renders of docs/how-it-works.md and scripts/render-docs.sh are removed; AGENTS.md (owner-approved wording, plus line 3 'the docs rules'), CONTRIBUTING.md and README.md no longer mention renders; two docs tests (no renders remain, guides mention none) plus a README link guard pass; library 1543 and Cli.Tests 61 pass, also with GITHUB_ACTIONS=true; dotnet format is clean; gate PASS; later items are filed by the orchestrator.", "by": "Jon R"}
+{"when": "2026-10-30T20:10:43Z", "item": "sq-66", "action": "add", "from": "", "to": "open", "note": "Render-mention test patterns: case-insensitive, narrower"}

@@ -6,7 +6,7 @@ Coding agents: [`AGENTS.md`](AGENTS.md) adds the agent-specific rules on top of 
 
 ## Prerequisites
 
-The .NET SDK pinned by [`global.json`](global.json) (10.0.x). Nothing else is needed to build and test. Rendering the diagram docs also needs quire (see [Docs](#docs)).
+The .NET SDK pinned by [`global.json`](global.json) (10.0.x). Nothing else is needed to build and test.
 
 ## Layout
 
@@ -15,8 +15,8 @@ The .NET SDK pinned by [`global.json`](global.json) (10.0.x). Nothing else is ne
 - `tests/squalify.Tests/`: xUnit tests for the library. Fixtures are under `tests/squalify.Tests/fixtures/`, with golden descriptors (`<fixture>.squalify.json`) next to them.
 - `tests/squalify.Cli.Tests/`: xUnit tests for the CLI (run in-process through `CommandFactory.InvokeAsync`), the NuGet packages and the Markdown docs.
 - `schema/`: `descriptor-v1.schema.json`, the JSON Schema (2020-12 subset) of the descriptor. The tests in `tests/squalify.Tests/Schema/` validate every golden against it with an in-repo validator, and keep its members, enums and rules equal to `docs/descriptor.md` and to the code.
-- `docs/`: the guides, `descriptor.md` (schema), `design.md` (architecture), `how-it-works.md` (diagrams; the `.html` and `.pdf` are committed renders), `release.md`. `docs/reviews/` holds generic write-ups of real-sample findings; `docs/process/` holds process notes.
-- `scripts/`: `render-docs.sh` and `corpus-check.sh`.
+- `docs/`: the guides, `descriptor.md` (schema), `design.md` (architecture), `how-it-works.md` (diagrams), `release.md`. `docs/reviews/` holds generic write-ups of real-sample findings; `docs/process/` holds process notes.
+- `scripts/`: `corpus-check.sh`.
 - `.github/workflows/`: `ci.yml` (build, test, format on Windows, macOS and Linux) and `release.yml`.
 
 ## Build, test, format
@@ -57,8 +57,7 @@ Run the first three before you send a change; CI runs them on all three operatin
 
 - The README is a front page and is packed into both NuGet packages: keep it short, and link to the guides with absolute `https://github.com/squalor-xyz/squalify/blob/main/...` URLs. Other docs use relative links.
 - Guides ([getting started](docs/getting-started.md), [user guide](docs/user-guide.md), [examples](docs/examples.md)): every command and output excerpt must come from a real run on a committed fixture. Move content instead of duplicating it.
-- `docs/how-it-works.md` explains the pipeline with Mermaid diagrams, and its `.html` and `.pdf` are generated from it with quire's `squalor` profile and committed together. Run `./scripts/render-docs.sh`, then check that the HTML has one `<svg` per Mermaid block and that the PDF shows no clipped diagram, and never edit the renders by hand. To render another doc, add its name to `DOCS` in the script.
-- Rendering needs quire on `PATH` (it may live in `~/.local/bin`, which a non-interactive shell does not have: prefix the command with `PATH="$HOME/.local/bin:$PATH"`), its Mermaid renderer (`python3 install.py --with-mermaid` in the quire checkout), and the `squalor` profile in quire's user config.
+- `docs/how-it-works.md` explains the pipeline with Mermaid diagrams. It is the only copy (no committed renders); GitHub renders the Mermaid blocks.
 - Diagram rules: plain-language labels with the type or method name in `<small>` text; one idea per diagram; each diagram names its source file, or "(planned)" until the code exists.
 
 ## Tracking and slices
