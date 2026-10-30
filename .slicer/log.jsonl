@@ -627,3 +627,5 @@
 {"when": "2026-10-30T17:48:01Z", "item": "sq-58", "action": "add", "from": "", "to": "open", "note": "Normalize or reject an unsorted or null ProfileOptions.IncludeValuesFor"}
 {"when": "2026-10-30T17:48:01Z", "item": "sq-59", "action": "add", "from": "", "to": "open", "note": "Note required-member compiler support for library consumers"}
 {"when": "2026-10-30T17:48:01Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "From sq-49 gate (later): docs/user-guide.md line ~97 has a g", "by": "Jon R"}
+{"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
+{"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Files"}
