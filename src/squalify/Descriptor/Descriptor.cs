@@ -119,13 +119,15 @@ public sealed record ScopeSection(long MaxBytes, long BytesRead, bool Complete);
 /// <param name="LineEndings">Line-ending counts.</param>
 /// <param name="InvalidBytes">Count of bytes in invalid UTF-8 sequences (UTF-8, ASCII and latin-1 files) or in invalid UTF-16 or UTF-32 units (those charsets).</param>
 /// <param name="ControlBytes">Count of control bytes.</param>
+/// <param name="InvalidBytesTolerated">True when the charset (<c>ascii</c> or <c>utf-8</c>) was kept although the file holds invalid UTF-8 sequences, under <c>limits.charsetTolerance</c>. Written only when true.</param>
 public sealed record EncodingSection(
     string Kind,
     string? Charset,
     string? Bom,
     LineEndings LineEndings,
     long InvalidBytes,
-    long ControlBytes);
+    long ControlBytes,
+    bool InvalidBytesTolerated = false);
 
 /// <summary>Line-ending counts.</summary>
 /// <param name="Crlf">Count of CRLF endings.</param>

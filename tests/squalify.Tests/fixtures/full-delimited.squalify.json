@@ -30,7 +30,8 @@
     "charset": "utf-8",
     "bom": "utf-8",
     "lineEndings": { "crlf": 0, "lf": 10010, "cr": 0 },
-    "invalidBytes": 0,
+    "invalidBytes": 1,
+    "invalidBytesTolerated": true,
     "controlBytes": 0
   },
   "format": {
@@ -233,7 +234,10 @@
     "stdf": null,
     "fileNameShape": "a{3}9{2}.a{3}"
   },
-  "issues": [{ "code": "commentInData", "count": 2, "firstLines": [5, 9] }, { "code": "invalidUtf8", "count": 1, "offsets": [100] }],
+  "issues": [
+    { "code": "commentInData", "count": 2, "firstLines": [5, 9] },
+    { "code": "invalidUtf8", "count": 1, "firstLines": [3], "offsets": [100], "regions": ["preamble"] }
+  ],
   "evidence": [
     {
       "stage": "dialect",

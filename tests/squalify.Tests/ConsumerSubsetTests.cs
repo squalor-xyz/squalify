@@ -31,6 +31,7 @@ public sealed class ConsumerSubsetTests
         "encoding.lineEndings.crlf",
         "encoding.lineEndings.lf",
         "encoding.lineEndings.cr",
+        "encoding.invalidBytes",
         "table.rows",
         "table.rowClasses.allNullRows",
         "table.rowClasses.allNullRowSpellings",
@@ -66,6 +67,12 @@ public sealed class ConsumerSubsetTests
         "table.fields[].nullSpellingsOtherDistinct",
         "table.fields[].nullSpellingsOtherDistinctCapped",
         "table.rowClasses.allNullRowSpellingsOtherDistinctCapped",
+
+        // sq-46: written only when the file holds invalid bytes (see InvalidByteLocationTests for their behavior).
+        "encoding.invalidBytesTolerated",
+        "issues[].firstLines",
+        "issues[].offsets",
+        "issues[].regions",
     ];
 
     private static ProfileOptions Options(bool includeValues = false) => ProfileOptions.Create(includeValues, Array.Empty<string>());

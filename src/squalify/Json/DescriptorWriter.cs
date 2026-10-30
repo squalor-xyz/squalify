@@ -202,6 +202,11 @@ public static class DescriptorWriter
         w.WriteNumber("cr", v.LineEndings.Cr);
         w.WriteEndObject();
         w.WriteNumber("invalidBytes", v.InvalidBytes);
+        if (v.InvalidBytesTolerated)
+        {
+            w.WriteBoolean("invalidBytesTolerated", true);
+        }
+
         w.WriteNumber("controlBytes", v.ControlBytes);
         w.WriteEndObject();
     }
@@ -676,9 +681,22 @@ public static class DescriptorWriter
     private static void Write(Utf8JsonWriter w, Issue v)
     {
         w.WriteStartObject();
-        if (v.FirstLines is not null && v.Offsets is not null)
+        if (v.FirstLines is not null && v.Offsets is not null && v.Regions is null)
         {
             throw new SqualifyException($"Issue '{v.Code}' has both firstLines and offsets; the schema allows only one.");
+        }
+
+        if (v.Regions is not null)
+        {
+            if (v.Offsets is null)
+            {
+                throw new SqualifyException($"Issue '{v.Code}' has regions without offsets; regions lines up with offsets.");
+            }
+
+            if (v.Regions.Count != v.Offsets.Count || (v.FirstLines is not null && v.FirstLines.Count != v.Offsets.Count))
+            {
+                throw new SqualifyException($"Issue '{v.Code}' has firstLines, offsets and regions of different lengths; they line up one to one.");
+            }
         }
 
         w.WriteString("code", v.Code);
@@ -691,6 +709,11 @@ public static class DescriptorWriter
         if (v.Offsets is not null)
         {
             List(w, "offsets", v.Offsets, static (writer, offset) => writer.WriteNumberValue(offset));
+        }
+
+        if (v.Regions is not null)
+        {
+            List(w, "regions", v.Regions, static (writer, region) => writer.WriteStringValue(region));
         }
 
         OptionalStrings(w, "names", v.Names);

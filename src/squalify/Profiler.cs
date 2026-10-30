@@ -167,9 +167,10 @@ public static class Profiler
         issues.AddRange(choice.NotChosenIssues ?? []);
         var utf8Family = sniff.Charset is "ascii" or "utf-8" or "latin-1";
         var facts = sniff.Facts;
-        if (sniff.Charset is "ascii" or "utf-8" && facts.InvalidSequences > 0)
+        var invalidBytesTolerated = sniff.Charset is "ascii" or "utf-8" && facts.InvalidSequences > 0;
+        if (invalidBytesTolerated)
         {
-            issues.Add(new Issue("invalidUtf8", facts.InvalidSequences, Offsets: facts.InvalidOffsets));
+            issues.Add(LocatedIssue("invalidUtf8", facts.InvalidSequences, facts.InvalidOffsets, source, sniff, profile.Layout));
         }
 
         // A UTF-16 or UTF-32 charset comes from the BOM or the NUL pattern, so it has no latin-1 fallback and no tolerance:
@@ -177,7 +178,7 @@ public static class Profiler
         var unicode = InvalidUnicodeScanner.Scan(source, sniff);
         if (unicode.Units > 0)
         {
-            issues.Add(new Issue("invalidUnicode", unicode.Units, Offsets: unicode.Offsets));
+            issues.Add(LocatedIssue("invalidUnicode", unicode.Units, unicode.Offsets, source, sniff, profile.Layout));
         }
 
         var evidence = new List<Evidence>(sniff.Evidence) { choice.Evidence };
@@ -203,7 +204,8 @@ public static class Profiler
                 sniff.Bom,
                 profile.LineEndings,
                 utf8Family ? facts.InvalidBytes : unicode.Bytes,
-                facts.ControlBytes),
+                facts.ControlBytes,
+                invalidBytesTolerated),
             Format: new FormatSection(choice.Family, profile.Dialect, choice.Score),
             Kind: InterimKind(sniff.Kind),
             Layout: profile.Layout,
@@ -225,6 +227,19 @@ public static class Profiler
         }
 
         return descriptor;
+    }
+
+    // An issue that says where invalid bytes are: the byte offsets, the line of each and the layout region it falls in (one
+    // entry each, in the same order). The layout is known by now, so the region is a lookup; the line costs one more read
+    // of the source up to the last offset, and only for a file that has invalid bytes.
+    private static Issue LocatedIssue(string code, long count, IReadOnlyList<long> offsets, IProfileSource source, SniffResult sniff, LayoutSection layout)
+    {
+        return new Issue(
+            code,
+            count,
+            FirstLines: InvalidByteLocator.Lines(source, sniff, offsets),
+            Offsets: offsets,
+            Regions: InvalidByteLocator.RegionNames(layout, offsets));
     }
 
     // Until sq-15 adds the rule table, the kind label follows the byte-pass class. The rule ids are those of the

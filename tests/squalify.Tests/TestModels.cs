@@ -189,7 +189,7 @@ internal static class TestModels
             Options: ProfileOptions.Create(true, ["Program", "Lot"]),
             Limits: StandardLimits(),
             File: new FileSection("lot42_sweep.csv", 10212, Sha256Empty),
-            Encoding: new EncodingSection("text", "utf-8", "utf-8", new LineEndings(0, 10010, 0), 0, 0),
+            Encoding: new EncodingSection("text", "utf-8", "utf-8", new LineEndings(0, 10010, 0), 1, 0, true),
             Format: new FormatSection(
                 "delimited",
                 new DelimitedDialect(",", "\"", true, false, ".", new PaddingInfo(true, 0.125, true, 118), 2),
@@ -246,7 +246,7 @@ internal static class TestModels
             Issues:
             [
                 new Issue("commentInData", 2, FirstLines: [5, 9]),
-                new Issue("invalidUtf8", 1, Offsets: [100]),
+                new Issue("invalidUtf8", 1, FirstLines: [3], Offsets: [100], Regions: ["preamble"]),
             ],
             Evidence:
             [

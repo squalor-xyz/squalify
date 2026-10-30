@@ -112,7 +112,104 @@ public class InvalidUnicodeTests
         Assert.NotNull(issue);
         Assert.Equal(1, issue.Count);
         Assert.Equal(new long[] { 26 }, issue.Offsets);
-        Assert.Null(issue.FirstLines);
+
+        // The stray byte follows the last line break: it is on line 2, in the region that covers its offset.
+        Assert.Equal(new long[] { 2 }, issue.FirstLines);
+        Assert.Equal(new[] { descriptor.Layout.Regions.Single(static r => r.StartByte <= 26 && 26 < r.EndByte).Kind }, issue.Regions);
+    }
+
+    private static readonly string[] TableLines =
+    [
+        "Lot=A12\n",
+        "Operator=jr\n",
+        "Freq(MHz),Pout(dBm),Gain(dB)\n",
+        "700,10.0,15.0\n",
+        "800,10.5,15.2\n",
+        "900,11.0,15.5\n",
+        "1000,11.5,15.8\n",
+        "1100,12.0,16.0\n",
+        "1200,12.5,16.2\n",
+        "1300,13.0,16.5\n",
+    ];
+
+    // Lines 1-2 are the preamble, line 3 the header, lines 4-10 the data; a lone surrogate (or an invalid UTF-32 value) is
+    // put at the start of the lines in `at`.
+    private static byte[] Table(bool utf32, bool bigEndian, params int[] at)
+    {
+        var parts = new List<object>();
+        for (var i = 0; i < TableLines.Length; i++)
+        {
+            if (at.Contains(i + 1))
+            {
+                parts.Add(utf32 ? (object)0x110000u : 0xD800);
+            }
+
+            parts.Add(TableLines[i]);
+        }
+
+        return utf32 ? Utf32(bigEndian, parts.ToArray()) : Utf16(bigEndian, true, parts.ToArray());
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Utf16AndUtf32_InvalidUnits_AreLocatedByLineAndRegion(bool utf32, bool bigEndian)
+    {
+        var descriptor = Profile(Table(utf32, bigEndian, 1, 3, 6));
+        Assert.Equal(new[] { "preamble", "header", "data" }, descriptor.Layout.Regions.Select(static r => r.Kind).ToArray());
+        var issue = InvalidUnicode(descriptor)!;
+        Assert.Equal(3, issue.Count);
+        Assert.Equal(3, issue.Offsets!.Count);
+        Assert.Equal(new long[] { 1, 3, 6 }, issue.FirstLines);
+        Assert.Equal(new[] { "preamble", "header", "data" }, issue.Regions);
+
+        // Each offset is the start of its invalid unit, so the region is the one that holds the offset.
+        var layout = descriptor.Layout.Regions;
+        for (var i = 0; i < issue.Offsets.Count; i++)
+        {
+            var holder = layout.Single(r => r.StartByte <= issue.Offsets[i] && issue.Offsets[i] < r.EndByte);
+            Assert.Equal(holder.Kind, issue.Regions![i]);
+            Assert.InRange(issue.FirstLines![i], holder.FirstLine, holder.LastLine);
+        }
+
+        Assert.False(descriptor.Encoding.InvalidBytesTolerated);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void InvalidUnits_BeyondTheCaps_BoundRegionsAndLinesToo(bool utf32)
+    {
+        // Twenty-five invalid units on twenty-five lines: count 25, and offsets, firstLines and regions list the first 10.
+        var parts = new List<object>();
+        for (var i = 0; i < 25; i++)
+        {
+            parts.Add(utf32 ? (object)0x110000u : 0xD800);
+            parts.Add("x\n");
+        }
+
+        var bytes = utf32 ? Utf32(false, parts.ToArray()) : Utf16(false, true, parts.ToArray());
+        var issue = InvalidUnicode(Profile(bytes))!;
+        Assert.Equal(25, issue.Count);
+        Assert.Equal(10, issue.Offsets!.Count);
+        Assert.Equal(10, issue.FirstLines!.Count);
+        Assert.Equal(10, issue.Regions!.Count);
+        Assert.Equal(Enumerable.Range(1, 10).Select(static l => (long)l).ToArray(), issue.FirstLines);
+        Assert.All(issue.Regions, static r => Assert.Equal("unknown", r));
+    }
+
+    [Fact]
+    public void InvalidUnits_AreTheSameIssueTwice_AndWithOneByteReads()
+    {
+        var bytes = Table(false, false, 1, 3, 6);
+        var first = Profile(bytes);
+        var second = Profile(bytes);
+        var small = Profiler.Profile(new OneBytePerReadSource("t.txt", bytes), Options);
+        Assert.Equal(InvalidUnicode(first), InvalidUnicode(second));
+        Assert.Equal(InvalidUnicode(first), InvalidUnicode(small));
+        Assert.Equal(Encoding.UTF8.GetString(DescriptorWriter.ToBytes(first)), Encoding.UTF8.GetString(DescriptorWriter.ToBytes(small)));
     }
 
     [Theory]

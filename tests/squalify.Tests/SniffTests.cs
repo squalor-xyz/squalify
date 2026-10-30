@@ -200,7 +200,8 @@ public class SniffTests
         var issue = Assert.Single(descriptor.Issues, i => i.Code == "invalidUtf8");
         Assert.Equal(1, issue.Count);
         Assert.Equal(new long[] { 9 }, issue.Offsets);
-        Assert.Null(issue.FirstLines);
+        Assert.Equal(new long[] { 2 }, issue.FirstLines);
+        Assert.Equal(new[] { descriptor.Layout.Regions.Single(r => r.StartByte <= 9 && 9 < r.EndByte).Kind }, issue.Regions);
     }
 
     [Fact]

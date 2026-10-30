@@ -2,20 +2,25 @@
 namespace squalor.squalify;
 
 /// <summary>
-/// An entry of <c>issues[]</c>. At most one of <paramref name="FirstLines"/> and <paramref name="Offsets"/> is set;
-/// the writer throws <see cref="SqualifyException"/> when both are.
+/// An entry of <c>issues[]</c>. At most one of <paramref name="FirstLines"/> and <paramref name="Offsets"/> is set, except
+/// for an issue that locates invalid bytes (<c>invalidUtf8</c>, <c>invalidUnicode</c>): it sets <paramref name="FirstLines"/>,
+/// <paramref name="Offsets"/> and <paramref name="Regions"/> together, three lists of the same length in the same order.
+/// The writer throws <see cref="SqualifyException"/> when both lines and offsets are set without <paramref name="Regions"/>,
+/// when <paramref name="Regions"/> is set without <paramref name="Offsets"/>, or when the lists differ in length.
 /// </summary>
 /// <param name="Code">The issue code, for example <c>raggedRows</c>.</param>
 /// <param name="Count">Occurrences.</param>
-/// <param name="FirstLines">First 1-based lines where the issue occurs.</param>
+/// <param name="FirstLines">First 1-based lines where the issue occurs. For an issue with <paramref name="Regions"/>: the line of each offset, one per offset, ascending, a line repeating when two offsets lie on it.</param>
 /// <param name="Offsets">First byte offsets where the issue occurs.</param>
 /// <param name="Names">Names the issue is about, for issues that concern the command line rather than the data (<c>includeValuesForUnmatched</c>); sorted ordinally by the producer.</param>
+/// <param name="Regions">For an issue that locates invalid bytes: the layout region that each of <paramref name="Offsets"/> falls in (<c>preamble</c>, <c>annotation</c>, <c>header</c>, <c>units</c>, <c>data</c>, <c>footer</c>, <c>unknown</c>), or <c>other</c> when it falls in none; one name per offset, in the same order.</param>
 public sealed record Issue(
     string Code,
     long Count,
     IReadOnlyList<long>? FirstLines = null,
     IReadOnlyList<long>? Offsets = null,
-    IReadOnlyList<string>? Names = null)
+    IReadOnlyList<string>? Names = null,
+    IReadOnlyList<string>? Regions = null)
 {
     /// <inheritdoc />
     public bool Equals(Issue? other)
@@ -25,7 +30,8 @@ public sealed record Issue(
             && EqualityComparer<long>.Default.Equals(Count, other.Count)
             && ValueEquality.ListEquals(FirstLines, other.FirstLines)
             && ValueEquality.ListEquals(Offsets, other.Offsets)
-            && ValueEquality.ListEquals(Names, other.Names);
+            && ValueEquality.ListEquals(Names, other.Names)
+            && ValueEquality.ListEquals(Regions, other.Regions);
     }
 
     /// <inheritdoc />
@@ -37,6 +43,7 @@ public sealed record Issue(
         ValueEquality.AddList(ref hash, FirstLines);
         ValueEquality.AddList(ref hash, Offsets);
         ValueEquality.AddList(ref hash, Names);
+        ValueEquality.AddList(ref hash, Regions);
         return hash.ToHashCode();
     }
 }
