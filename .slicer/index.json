@@ -3857,7 +3857,19 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "c3b5863c-313a-421e-bbfa-b0825cade6ec",
+          "kind": "",
+          "text": "**2026-10-30** — Owner decisions (2026-10-30), verbatim: version and tag \"0.3.0, tag without asking once green\" (option text: \"Same preparation, and I push v0.3.0 and verify the Release run and both nuget.org packages without stopping, as for v0.2.0.\"). The release carries main as it stands (sq-38 to sq-43 and sq-19); sq-12 (schema freeze), sq-46 and sq-47 are NOT in it.",
+          "created_at": "2026-10-30T13:46:35Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
