@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 62,
+  "next_id": 66,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -2337,6 +2337,20 @@
           "created_at": "2026-10-27T19:13:51Z",
           "attempt": 0,
           "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        },
+        {
+          "id": "1e25128d-04c8-4e03-8bd0-cfa7b229e01e",
+          "kind": "",
+          "text": "**2026-10-30** — Owner decision (2026-10-30, sq-12 architect A1e), verbatim: kind ruleId \"Freeze K09/K11/K12, no renumbering (Recommended)\" (option text: \"A note on sq-15: existing rule ids are permanent (gap at K03 is fine). sq-54's policy says kind label values may change for the same input in a minor. Schema stays as is.\"). So this slice must NOT renumber K09, K11, K12 when it drops the Parquet rules; new rules take new ids; the schema enumerates ruleId and labels, and adding values is a minor change.",
+          "created_at": "2026-10-30T19:49:10Z",
+          "attempt": 0,
+          "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
           "stale_after": "",
@@ -4935,7 +4949,22 @@
         "sq-54",
         "sq-61"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "8cadc49f-4db2-4b5c-9b5e-0e75006ca28f",
+          "kind": "",
+          "text": "**2026-10-30** — From the sq-12 architect (A5) and the owner: the schema $id is a tag-pinned raw URL, https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json (owner: \"Tag-pinned raw URL, edited at each release\"); this slice must confirm $id equals the release tag before tagging, and edit it for every later minor. Open (not yet decided): publishing schema/descriptor-v1.schema.json as a GitHub release asset (it is not packed in the NuGet packages); ask the owner.",
+          "created_at": "2026-10-30T19:49:10Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -4975,6 +5004,20 @@
           "kind": "",
           "text": "**2026-10-30** — From sq-49 gate (later): docs/user-guide.md line ~97 has a grammar slip, \"Setting a long into these members still compiles (a long converts to long?), but reading is not:\" should read \"but reading does not:\". Fix it in this slice docs pass.",
           "created_at": "2026-10-30T17:48:01Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        },
+        {
+          "id": "62c5b2bc-a845-437b-bb66-9092fa37f08a",
+          "kind": "",
+          "text": "**2026-10-30** — Owner decisions and sq-12 review inputs (2026-10-30), verbatim where quoted: (1) kind ruleId \"Freeze K09/K11/K12, no renumbering (Recommended)\": the policy written here says kind label values may change for the same input in a minor release, and rule ids are permanent. (2) stdf members \"Keep them in the schema; amend sq-54 (Recommended)\" (option text: \"Only the object shape of hints.stdf and the stdf section count as planned. limits.stdfTests is a real, produced member. No descriptor byte changes.\"): so DROP `limits.stdfTests` and the `hints.stdf` key from this slice's planned-members list and from test 3 (`Docs_PlannedMembers_AreNotInTheSchemaOrTheWriter`); only the object shape of `hints.stdf` (a future object instead of null) and the `stdf` section count as planned. (3) The policy must name the widenings of existing constructs that 1.x will need and call them minor: `format.dialect` becoming a oneOf over per-family dialects, `hints.stdf` null to object, `table.rowClasses` required to optional, `schemaVersion` const changes each minor (the schema checks squalify's own output of that exact minor; consumers must not validate with the closed schema), kind label values changing for the same input. (4) Mark planned enum values (families touchstone, keyValue, stdf; kind labels beyond the interim ones), not only members. (5) docs/descriptor.md key-order table is machine-read by tests/squalify.Tests/Schema/DocumentedMembers (headings '## Top level' and '### Key order of nested objects', one row per object, member names in code font, '(planned)' marks, ';' before prose): keep that grammar; build test 3 on DocumentedMembers.Parse(...).Planned in squalify.Tests, not a second parser. (6) Stale cross-references to fix: descriptor.md lines ~3 ('frozen by sq-12'), ~413 ('sq-12 records it in the schema changelog'), ~673 ('pending sq-12'), ~823 ('sq-12 makes this policy normative'); README ~9 and ~56, getting-started.md ~153, user-guide.md ~93 and ~173 still say 'draft'. (7) Reword the descriptor.md `issues[]` key-order row (offsets appears twice). (8) The schema $id is a tag-pinned raw URL (owner: \"Tag-pinned raw URL, edited at each release\"); the schema is NOT packed in the NuGet packages (squalify.csproj packs only README and icon).",
+          "created_at": "2026-10-30T19:49:10Z",
           "attempt": 0,
           "by": "Jon R",
           "verified_by": "",
@@ -5216,10 +5259,131 @@
         "effort": 1,
         "attempts": 0
       }
+    },
+    {
+      "id": "sq-62",
+      "title": "Internal issue-code registry and evidence-stage constants",
+      "short_title": "Issue code registry",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-12 review R3, R4; architect A4",
+        "discovered_from": "sq-12",
+        "parent": "",
+        "cites": [],
+        "key": "later.issue-code-registry",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-63",
+      "title": "SubsetValidator rejects duplicate object keys",
+      "short_title": "Validator duplicate keys",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-12 review R5",
+        "discovered_from": "sq-12",
+        "parent": "",
+        "cites": [],
+        "key": "later.validator-duplicate-keys",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-64",
+      "title": "Tie the docs enum lists and the kind enums to the schema",
+      "short_title": "Docs enums vs schema",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core",
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-12 architect A3(ii), A7",
+        "discovered_from": "sq-12",
+        "parent": "",
+        "cites": [],
+        "key": "later.docs-enums-vs-schema",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-65",
+      "title": "Read docs from the test output copy everywhere",
+      "short_title": "Docs from test output",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-12 architect A6 (sq-25 L8)",
+        "discovered_from": "sq-12",
+        "parent": "",
+        "cites": [],
+        "key": "later.docs-from-test-output",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
     }
   ],
   "epilogue": "",
-  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks) and a generic byte profile for binary files. Touchstone, whole-file key=value/INI documents and the STDF V4 walk with a test catalog follow as additive 1.x minor releases (sq-09, sq-10).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a `kind` label (byte-class interim label in 1.0; the fixed built-in rule set follows as a 1.x minor, sq-15), and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.",
+  "goals": "- **Deterministic descriptor.** The same input bytes and the same squalify version give a byte-identical descriptor on every OS and CPU. No ML, LLM or network.\n- **Full streaming scan with bounded memory.** Statistics are exact up to documented caps, then come from deterministic sketches that the descriptor marks as approximate.\n- **v1 formats:** delimited text (preambles, annotation and units rows, repeated blocks) and a generic byte profile for binary files. Touchstone, whole-file key=value/INI documents and the STDF V4 walk with a test catalog follow as additive 1.x minor releases (sq-09, sq-10).\n- **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a `kind` label (byte-class interim label in 1.0; the fixed built-in rule set follows as a 1.x minor, sq-15), and an evidence trail for every inference.\n- **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.\n- **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).\n- **Explained in plain language.** docs/how-it-works.md, with Mermaid diagrams, kept current at every architectural review.",
   "non_goals": "- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.\n- Classifying files against a user library of known types. The built-in `kind` label is in scope.\n- ML, LLM or network use.\n- Editing, repairing or converting files.\n- A dependency on DataBall. The descriptor schema is the contract.\n- In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.",
   "catalog": {
     "next_id": 1,

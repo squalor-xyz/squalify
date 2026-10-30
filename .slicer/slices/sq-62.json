@@ -1,0 +1,41 @@
+{
+  "id": "sq-62",
+  "title": "Internal issue-code registry and evidence-stage constants",
+  "lead": [
+    "The schema test that ties the closed enums to the code reads issue codes from the library IL (a string literal within 48 instructions before `newobj Issue::.ctor` or `LocatedIssue`) and evidence stages from the private `Profiler.StageOrder`. A code built from a variable or a `static readonly` field, or a stage missing from `StageOrder` (an unknown stage sorts last, not rejected), is missed unless a golden produces it. Name the codes as internal constants with an `All` list, scan stage literals, and compare the schema to those lists with the IL scan only as a subset check. No descriptor byte change. Should land before sq-09 and sq-10, which add about 8 codes."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-12 review R3, R4; architect A4",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Add `IssueCodes` (internal) and use it at the call sites; 2. test 6 compares the schema enum to `IssueCodes.All` and asserts the IL scan is a subset; 3. same for evidence stages; 4. mutation-check; docs if any name it."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; goldens unchanged; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

@@ -641,3 +641,11 @@
 {"when": "2026-10-30T19:25:07Z", "item": "sq-60", "action": "retire", "from": "open", "to": "retired", "note": "Owner (2026-10-30), verbatim: \"let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed\". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded."}
 {"when": "2026-10-30T19:25:07Z", "item": "sq-54", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-10-30T19:25:07Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T19:49:10Z", "item": "goals", "action": "prose", "from": "", "to": "", "note": "edit"}
+{"when": "2026-10-30T19:49:10Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-30, sq-12 architect A1e), verbatim: ", "by": "Jon R"}
+{"when": "2026-10-30T19:49:10Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "Owner decisions and sq-12 review inputs (2026-10-30), verbat", "by": "Jon R"}
+{"when": "2026-10-30T19:49:10Z", "item": "sq-53", "action": "note", "from": "", "to": "", "note": "From the sq-12 architect (A5) and the owner: the schema $id ", "by": "Jon R"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-62", "action": "add", "from": "", "to": "open", "note": "Internal issue-code registry and evidence-stage constants"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-63", "action": "add", "from": "", "to": "open", "note": "SubsetValidator rejects duplicate object keys"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-64", "action": "add", "from": "", "to": "open", "note": "Tie the docs enum lists and the kind enums to the schema"}
+{"when": "2026-10-30T19:49:23Z", "item": "sq-65", "action": "add", "from": "", "to": "open", "note": "Read docs from the test output copy everywhere"}

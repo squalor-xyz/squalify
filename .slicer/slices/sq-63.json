@@ -1,0 +1,41 @@
+{
+  "id": "sq-63",
+  "title": "SubsetValidator rejects duplicate object keys",
+  "lead": [
+    "`JsonDocument` accepts `{\"a\":1,\"a\":\"x\"}` and the SubsetValidator checks both members, but nothing rejects the duplicate itself. The writer never emits one. Reject a duplicate key with a pointer in the validator (and for the schema file itself at load)."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-12 review R5",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Failing test with a duplicate key; 2. detect it (a raw `Utf8JsonReader` pass); 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
