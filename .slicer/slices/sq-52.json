@@ -1,0 +1,41 @@
+{
+  "id": "sq-52",
+  "title": "Wide byte-pass diagram is unreadable in the PDF",
+  "lead": [
+    "Make the widened byte-pass diagram in docs/how-it-works.md legible in the PDF render (the text is 3 to 4 pt) by changing its layout or splitting it. **Not in this slice:** changing any other diagram, the content of the diagram, or the renderer."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-46 R2; wave 2026-10-30",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "sq-46 widened the byte-pass diagram (invalid-byte locations); the gate noted its text is very small in the PDF. A 1.0.0 docs page is a release artifact (goal: explained in plain language, with a PDF render)."
+    },
+    {
+      "heading": "Files",
+      "body": "- `docs/how-it-works.md` (the byte-pass diagram in the pipeline section), `docs/how-it-works.html`, `docs/how-it-works.pdf` (regenerated), CONTRIBUTING.md diagram rules if a rule is added."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- If a docs test checks diagram labels or sizes, it covers the changed diagram; otherwise the check is the render: no diagram text in the PDF is smaller than the implementer states as the floor (measure it from the rendered PDF and report the figure)."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Re-anchor the diagram, measure the current smallest text in the PDF. 2. Change the layout (top-down, or split in two) without changing meaning. 3. Re-render with `PATH=\"$HOME/.local/bin:$PATH\" ./scripts/render-docs.sh` and commit .md, .html and .pdf together (the owner commits)."
+    },
+    {
+      "heading": "Check",
+      "body": "Docs tests pass; build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

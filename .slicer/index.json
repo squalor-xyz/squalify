@@ -1,8 +1,8 @@
 {
-  "version": 10,
+  "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 51,
+  "next_id": 54,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -48,7 +48,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a2299568-b106-4b0b-a5c3-62bfef88caa5",
@@ -59,7 +62,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -103,7 +109,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "760289a1-72c3-448f-8ee1-20676dc65c22",
@@ -114,7 +123,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -158,7 +170,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "4f2ac0b5-1884-43a0-a8f4-34f365ca4100",
@@ -169,7 +184,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "21ff7e47-b268-40fa-bca0-f8352518c75f",
@@ -180,7 +198,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "01ba6347-540d-4f17-988f-d3278ad96b77",
@@ -191,7 +212,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "2632b9d5-1ff3-422d-ab4a-83b263767fbf",
@@ -202,7 +226,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a5470d90-5cf8-4c09-8d39-21be7d9e2280",
@@ -213,7 +240,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ecbc37be-2841-41af-9b22-b2e7b35e0b66",
@@ -224,7 +254,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -268,7 +301,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "925fed82-3621-4598-a263-d5bc36577230",
@@ -279,7 +315,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "54f39d86-b18e-47f8-8490-d7998d53e501",
@@ -290,7 +329,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "5951f2d3-1083-4759-9b6d-5b46721b2cef",
@@ -301,7 +343,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -346,7 +391,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "313dd731-08ff-4e76-b8f2-bbf138bd51c9",
@@ -357,7 +405,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a3f346ca-c9c3-4144-b062-a8e2b78713d1",
@@ -368,7 +419,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ee0907f4-37b2-42ec-ba4e-0ea29f3d63a1",
@@ -379,7 +433,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b9bf3f35-e005-4449-9e88-7237ea91b60f",
@@ -390,7 +447,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f21b3651-035f-4823-bbb7-db28e1482af5",
@@ -401,7 +461,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "454e9250-602d-4d97-b3c2-a04ccfccd63f",
@@ -412,7 +475,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "24899b8a-494c-4149-a80c-30a9a0af1dc8",
@@ -423,7 +489,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "87b35fb9-48dd-4d65-81c1-35b219a4aedd",
@@ -434,7 +503,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "af5cb5be-2e1c-4e8c-81a8-1f9394a63f79",
@@ -445,7 +517,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -489,7 +564,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "510a565d-c026-46c6-9208-a8b29ae92192",
@@ -500,7 +578,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "7c68f730-dc4b-405c-8ab3-cb529b9e52c9",
@@ -511,7 +592,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "af159fd9-fff1-4674-b745-e9f2908a26b3",
@@ -522,7 +606,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "325ee2e0-336d-4f8b-bc77-315e4809f5bd",
@@ -533,7 +620,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "dd158aae-cda4-4422-b2e2-107c6ea21652",
@@ -544,7 +634,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "e5e4c1ca-4813-41e4-9742-570f2fa02b33",
@@ -555,7 +648,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0f50cb71-5828-4427-a086-2975655cd29d",
@@ -566,7 +662,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "70239721-98cc-4552-865a-3fb942437fac",
@@ -577,7 +676,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "e50e0267-77d1-4b6f-b37d-9d437dadef96",
@@ -588,7 +690,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "8c89a7b2-643e-459c-9e47-9bd8e21f3056",
@@ -599,7 +704,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3fd02c69-0e1a-40e7-9743-c749e148f648",
@@ -610,7 +718,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c6c92b91-edfe-4c98-b544-bee0d253b8c2",
@@ -621,7 +732,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "18f92695-f40f-4314-913b-bedcfcc48da6",
@@ -632,7 +746,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -676,7 +793,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c7934e57-b012-4d1f-affc-7ead2f42032b",
@@ -687,7 +807,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "77362897-1e70-43c9-9cec-a83bc15cfb28",
@@ -698,7 +821,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3b8e69b0-c1b0-4a9f-b47c-fdd19cfd8ce8",
@@ -709,7 +835,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "61ae70d6-686c-41c8-9aae-8fab99a84759",
@@ -720,7 +849,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "973fcf08-d034-49ef-861f-c855e24e61ee",
@@ -731,7 +863,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "79b25d49-0521-4959-8e54-fd7e6da504d0",
@@ -742,7 +877,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -786,7 +924,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a982423d-ec4f-406f-ad27-dd4e88a36047",
@@ -797,7 +938,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "058d0f3e-ea5e-4490-99c8-5e5b0c759ed3",
@@ -808,7 +952,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "878f69ec-3a8d-4196-aab9-1826eb1dc1c2",
@@ -819,7 +966,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a74b1d78-8518-43e8-b3b3-1cf252f34ebe",
@@ -830,7 +980,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -874,7 +1027,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "60cd5d6e-7a32-4de2-b1b4-a4c646724fda",
@@ -885,7 +1041,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "91737b23-9365-4282-9058-98b69285d6a9",
@@ -896,7 +1055,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "eb19d954-3de3-49d4-aa86-359951f8b6ed",
@@ -907,7 +1069,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "d80e7954-0ea1-4baa-96d6-fed9f8044119",
@@ -918,7 +1083,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "4b350c0e-bdc7-4ca3-bab2-322105fb5b57",
@@ -929,7 +1097,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "e5b34790-7d60-4b96-bf4f-8fd65a594b34",
@@ -940,7 +1111,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "866511c1-0743-4c7c-92f3-17856f896eb2",
@@ -951,7 +1125,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "cd0a15d9-834a-4a2b-b353-baf98da8d318",
@@ -962,7 +1139,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "21ecff93-ab94-4e85-857f-508e316baad6",
@@ -973,7 +1153,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1017,7 +1200,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "1b6c36e1-580e-4b62-ba92-057d90ba578c",
@@ -1028,7 +1214,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c8086cd6-cacc-4109-b1a0-23302af4625c",
@@ -1039,7 +1228,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ce8d844e-bce9-4dc9-bde5-d134e8e891c1",
@@ -1050,7 +1242,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f02425ba-7b3e-44cc-865c-a6373e059b76",
@@ -1061,7 +1256,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a9b9cdf2-14ad-4627-8c16-5611d8988d64",
@@ -1072,7 +1270,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "50b5ddef-ad48-499e-8ece-5c840b7ecf7a",
@@ -1083,7 +1284,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "90abfcb0-4be8-44b5-9366-557a57d7f742",
@@ -1094,7 +1298,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1139,7 +1346,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b7778cdd-fa64-4155-acb2-6cc4d7b391fb",
@@ -1150,7 +1360,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "6922d2b5-6a3b-4191-b159-96414a8c2066",
@@ -1161,7 +1374,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f434c665-f812-4214-bfb9-3173d82f64ba",
@@ -1172,7 +1388,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "37b79f95-1b68-483d-a7b4-ba371b8612ad",
@@ -1183,7 +1402,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "385c182f-2a25-40fd-9d70-937dce039a46",
@@ -1194,7 +1416,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1238,7 +1463,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "db37ebc5-5f3d-44e2-bab7-99b0393df4dc",
@@ -1249,7 +1477,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c2de7481-e16a-4ccf-9182-8567f90f9051",
@@ -1260,7 +1491,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "61f4e3e6-5894-411b-8f14-75cf610a2e2c",
@@ -1271,7 +1505,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1315,7 +1552,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "d07bf52b-6d44-4d5e-9013-6512d50afa02",
@@ -1326,7 +1566,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "46afc10c-63b0-4ad0-b8de-53cbe529b4eb",
@@ -1337,7 +1580,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "04997f7a-393f-4d38-a751-e4cbc8be1ed9",
@@ -1348,7 +1594,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "2452994c-c113-4e35-95c4-2dd16d19d985",
@@ -1359,7 +1608,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1403,7 +1655,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "88c79b23-49a5-404a-8a02-281c95ca6222",
@@ -1414,7 +1669,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f65f57f5-d810-4080-9eda-0f56315e2a9c",
@@ -1425,7 +1683,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "414ee377-4993-497c-a6d4-db3114ed866d",
@@ -1436,7 +1697,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "630392dc-2833-47f3-aa4c-06cb5619c25d",
@@ -1447,7 +1711,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "29f58d1b-c1a9-472e-80ca-3118657732a7",
@@ -1458,7 +1725,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "21cec82a-de0a-428e-8e79-408308322e69",
@@ -1469,7 +1739,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "27f807f0-4753-4a6b-9bcc-4ba3bb205651",
@@ -1480,7 +1753,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0f80741b-79e3-46ec-8e0f-483c79bf50f7",
@@ -1491,7 +1767,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "1eb5f05f-59e7-45fa-acc0-2b4167c3a6b1",
@@ -1502,7 +1781,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "d348250b-3f55-4c12-9fd3-56a66fa38510",
@@ -1513,7 +1795,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "4b0ad683-46a0-4605-98fc-e8ca20eca7fb",
@@ -1524,7 +1809,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1569,7 +1857,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a2e76873-27e8-4419-9381-d25a9611f95c",
@@ -1580,7 +1871,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "dfd49dc9-fdfe-43ec-929a-4a7054c4db3c",
@@ -1591,7 +1885,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c1425b52-e7fb-4de7-b885-1052a63b31dd",
@@ -1602,7 +1899,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "02bb6d84-576c-4ace-9b36-f1d74e7d480e",
@@ -1613,7 +1913,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "160d2c5b-1b06-4953-9dae-7dc249d19e22",
@@ -1624,7 +1927,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b021cc53-efbe-453b-a195-514bb4099542",
@@ -1635,7 +1941,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "bd135cff-1744-4f66-a7f6-536904037485",
@@ -1646,7 +1955,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ece78137-5498-409a-861e-dab547a77666",
@@ -1657,7 +1969,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1701,7 +2016,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "dffa9d1f-76f0-4112-b037-5353355b5a36",
@@ -1712,7 +2030,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "d7de95d4-7ec3-4e57-9860-cbdde1376afd",
@@ -1723,7 +2044,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "4efbbe0c-6cc5-4230-a4f1-0d1ee7ee5a1d",
@@ -1734,7 +2058,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c4b54c93-a0f7-4dbe-a0c6-ff034d93b73a",
@@ -1745,7 +2072,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "76b90330-4009-45cb-9e1e-5cc03b653177",
@@ -1756,7 +2086,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b66ebb21-1013-4b39-8651-23eaf38ea33e",
@@ -1767,7 +2100,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1811,7 +2147,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3016064c-10c1-4b93-a568-c6cb6742f0d0",
@@ -1822,7 +2161,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c73b9bd2-7a74-4cbf-b18e-d14d2de769c8",
@@ -1833,7 +2175,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1882,7 +2227,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "bb412f22-f333-4474-80dd-dfdfd1e36090",
@@ -1893,7 +2241,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "9d894bc1-fa19-4371-826d-f55513ee6a30",
@@ -1904,7 +2255,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "983d1d3e-c110-43b3-8c63-3f5dcb5c45d7",
@@ -1915,7 +2269,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3e399cb7-f864-427c-a50b-41dbe687d7a5",
@@ -1926,7 +2283,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "940304ab-42b8-4e9e-b6a5-4530e74d7fd5",
@@ -1937,7 +2297,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "69545cb7-845c-4fd6-a6ac-ce36541d6501",
@@ -1948,7 +2311,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3d98fae9-33dd-49e4-a292-1a395234ae78",
@@ -1959,7 +2325,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "132c36e6-20e9-4259-a6da-fb68f7c5a32b",
@@ -1970,7 +2339,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2015,7 +2387,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "8f075439-c984-4f55-be41-dc1a5c188ec2",
@@ -2026,7 +2401,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "17dc2288-0074-4654-8770-bfed7f1de7e6",
@@ -2037,7 +2415,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a7da6877-2448-4b35-867d-bd3ba2994dd2",
@@ -2048,7 +2429,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "bbc67cee-7f7a-4afc-a7dc-aeee20c19f1e",
@@ -2059,7 +2443,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "638a123c-2863-47cb-b649-d6e3b5fdf97e",
@@ -2070,7 +2457,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2131,7 +2521,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b22db18e-3516-459b-8bc6-1ff35c460540",
@@ -2142,7 +2535,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f335707d-195f-4e2a-b759-2e60e7267887",
@@ -2153,7 +2549,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "83950f03-803d-4c94-ac47-bb7c3a3a7c51",
@@ -2164,7 +2563,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "66cadb1b-b01a-48ef-b312-90b8c9cbaec6",
@@ -2175,7 +2577,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "356cf177-735c-4481-a9df-bd751bc69af0",
@@ -2186,7 +2591,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0d2bb49d-2657-4c9a-b330-285612398e14",
@@ -2197,7 +2605,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "1fb60631-3866-48bf-9298-072147c3e6e2",
@@ -2208,7 +2619,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "8313d160-5243-4aea-820c-d28e166e7a42",
@@ -2219,7 +2633,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "10688d98-c528-434f-bd0d-7d3c8651492e",
@@ -2230,7 +2647,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "30cfce57-60c6-4c71-9d59-3e0f99456452",
@@ -2241,7 +2661,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3a81b172-ee8f-4c1d-a146-1129be3d85fb",
@@ -2252,7 +2675,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c00bf0cf-768a-4acc-a303-0d97e36d7250",
@@ -2263,7 +2689,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "65ec747c-f266-4de8-8129-fcb43c7af373",
@@ -2274,7 +2703,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "70aaaab5-bfa1-451f-ae4d-a3176ad5ee41",
@@ -2285,7 +2717,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "2668b4bf-503b-4cc0-a6f5-c59e85b5e70c",
@@ -2296,7 +2731,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "3aa9e7e4-f84c-4e22-87af-98570cba33b5",
@@ -2307,7 +2745,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "19d3ca71-8e03-4cae-81aa-ef61584c2572",
@@ -2318,7 +2759,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2340,7 +2784,7 @@
         "reason": "",
         "importance": 3,
         "urgency": 1,
-        "effort": 1,
+        "effort": 2,
         "attempts": 0
       }
     },
@@ -2363,7 +2807,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "70f0c411-2db1-4d96-a364-4a99ecff49ed",
@@ -2374,7 +2821,10 @@
           "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ee3c9055-e5f3-4170-af4a-b3f0924b5425",
@@ -2385,7 +2835,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2429,7 +2882,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "6f5e0086-5e60-4a75-bb81-e50f2c863be4",
@@ -2440,7 +2896,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2484,7 +2943,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ef511984-a738-498f-8641-497c046667ae",
@@ -2495,7 +2957,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a0744237-e381-4e43-aa82-346cff4f4efe",
@@ -2506,7 +2971,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2585,7 +3053,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "52566a8b-1288-4ee9-99a2-c3efd23000fb",
@@ -2596,7 +3067,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "7df30785-0cbf-48a0-ba95-e8ae05d26bcc",
@@ -2607,7 +3081,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "92a2b868-f7af-4426-b6d1-19aead16bfff",
@@ -2618,7 +3095,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "71575a56-a424-4595-b512-99fb5e9a532f",
@@ -2629,7 +3109,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "6d71a897-7a1c-4260-b2b5-2e2f1c758af9",
@@ -2640,7 +3123,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f38612fa-b761-4eab-a282-65183240123b",
@@ -2651,7 +3137,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "5ff662e8-df79-49f3-bf3f-4c23d3e10ea6",
@@ -2662,7 +3151,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "64234c78-a1fa-490f-8ee6-380ef49b5cdc",
@@ -2673,7 +3165,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "57e19a33-ed1a-42b9-aa2f-5ac348701a06",
@@ -2684,7 +3179,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "243e2384-c95a-40d9-9261-df18a1e70aa6",
@@ -2695,7 +3193,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "affa7976-973b-4312-80c8-dbb409b65cad",
@@ -2706,7 +3207,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ae9c385e-79b2-45a8-b6a3-bc627013a385",
@@ -2717,7 +3221,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2761,7 +3268,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2805,7 +3315,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "74fcab83-8677-4d31-8052-558647cfb84f",
@@ -2816,7 +3329,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2890,7 +3406,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b72bc90c-c6bc-492f-ab64-2877aca46811",
@@ -2901,7 +3420,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "e979705c-81f8-4128-b503-1e2de386aae6",
@@ -2912,7 +3434,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3010,7 +3535,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "90ec3637-4fab-4c27-a468-4dab6d406284",
@@ -3021,7 +3549,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3093,7 +3624,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "1d318566-5446-4a9a-b421-cd5485fd0fc0",
@@ -3104,7 +3638,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "a94d1dac-0cd5-4fce-91ed-3589872f9124",
@@ -3115,7 +3652,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c2b246b9-1b51-4d3e-a71f-388dd92db5a8",
@@ -3126,7 +3666,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "8fa21195-f0ac-4b26-8778-0f62efa65409",
@@ -3137,7 +3680,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3179,7 +3725,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "b3cd518b-305a-45d5-8a1b-ca406c4b5960",
@@ -3190,7 +3739,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3232,7 +3784,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "054ea05c-369b-4566-9ec6-ba6c5bbc405f",
@@ -3243,7 +3798,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "99a14751-ceef-435a-997f-7f5bd161d578",
@@ -3254,7 +3812,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3296,7 +3857,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "41fa6d89-0f75-4e81-b8aa-42c9ebf31474",
@@ -3307,7 +3871,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3349,7 +3916,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "16b6dc2e-2618-4fb0-8786-2f5abd68c63d",
@@ -3360,7 +3930,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "d9d8e0a7-f9d2-49e2-9606-89082c3364f7",
@@ -3371,7 +3944,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3413,7 +3989,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "59f573ad-b7ad-42bc-b040-555f7ba894d1",
@@ -3424,7 +4003,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "84d6f761-cc8e-4ad1-b91a-403e6458e439",
@@ -3435,7 +4017,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "ba2237be-b84f-4412-b1d9-e760593bb746",
@@ -3446,7 +4031,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3490,7 +4078,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "8291a013-63fc-4a13-99d8-6b084dcc17f2",
@@ -3501,7 +4092,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "42cd1254-5ab1-4ee6-a2fd-d472ec457b04",
@@ -3512,7 +4106,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "6ee9bfe0-cfca-4860-ac49-bc66190d21ac",
@@ -3523,7 +4120,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "63003ff7-8ddc-488a-9395-fd7e75519828",
@@ -3534,7 +4134,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "22148853-36e2-4010-8ecf-b9b35ff90c24",
@@ -3545,7 +4148,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "f278c0b9-1fff-47ca-9c82-a4981d683c1b",
@@ -3556,7 +4162,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3598,7 +4207,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c7a8ab6f-1153-47cd-bd60-665d69f3fa4e",
@@ -3609,7 +4221,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c2887e1f-c1f7-49d1-a7a2-8096cac0e778",
@@ -3620,7 +4235,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "899f313e-060c-4787-89da-b0d542169270",
@@ -3631,7 +4249,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0fcffb43-15e8-4047-97d7-5cd44c86772d",
@@ -3642,7 +4263,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3686,7 +4310,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0ddd1644-3153-4df4-8a99-934c6f6c5fb1",
@@ -3697,7 +4324,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "894be378-7afb-4366-94c4-b892824cba34",
@@ -3708,7 +4338,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "e2e7fc59-4a36-4855-9d9f-b5e07b9d580f",
@@ -3719,7 +4352,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "17641ad9-0812-4550-a956-43e46ef632fa",
@@ -3730,7 +4366,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3774,7 +4413,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0fa239a4-7164-40fa-b234-d34ce91c7a63",
@@ -3785,7 +4427,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "6e083778-07fc-43d7-8a7a-9f81f88cc161",
@@ -3796,7 +4441,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "0dcc93ec-fa36-451d-a190-8a8d35501340",
@@ -3807,7 +4455,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3879,7 +4530,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "9d643a54-6c11-463d-bf5b-c8220e7d0685",
@@ -3890,7 +4544,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3930,7 +4587,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "bccdab79-8112-488c-bb66-1abc76340201",
@@ -3941,7 +4601,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -3981,7 +4644,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "72874dab-34cb-405f-9eda-9761ecdf79f3",
@@ -3992,7 +4658,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -4032,7 +4701,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         },
         {
           "id": "c0fb9df5-3022-4adb-ac4d-dd48fdacf821",
@@ -4043,7 +4715,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -4083,7 +4758,10 @@
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
-          "stale_after": ""
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -4136,6 +4814,100 @@
         "reason": "",
         "importance": 2,
         "urgency": 1,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-51",
+      "title": "Release docs test must pass at 1.0.0 and for patch releases",
+      "short_title": "Release docs test",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-45 R6; wave 2026-10-30",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "friction.release-docs-test",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-52",
+      "title": "Wide byte-pass diagram is unreadable in the PDF",
+      "short_title": "Wide diagram legibility",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-46 R2; wave 2026-10-30",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "friction.wide-diagram",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 2,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-53",
+      "title": "Release 1.0.0",
+      "short_title": "Release 1.0.0",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-12",
+        "sq-51"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "docs",
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "wave 2026-10-30",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "release.1-0-0",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
         "effort": 2,
         "attempts": 0
       }

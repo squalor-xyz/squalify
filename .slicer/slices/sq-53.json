@@ -1,0 +1,41 @@
+{
+  "id": "sq-53",
+  "title": "Release 1.0.0",
+  "lead": [
+    "Prepare and verify the 1.0.0 release of both packages, after the schema freeze. The slice ends before the tag: the owner gives the explicit go for `git tag v1.0.0` and the push. **Not in this slice:** any feature, schema or option change; the tag itself."
+  ],
+  "depends_note": null,
+  "findings_note": "wave 2026-10-30",
+  "size": "M",
+  "flags": [],
+  "trees_note": "docs, core",
+  "trees_plural": true,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "1.0.0 is the first release that promises a stable library API (sq-41, sq-49) and a frozen descriptor schema (sq-12). Pattern: sq-45 (0.3.0). The owner decisions of 2026-10-30 for this wave: land and push main; ask before the tag."
+    },
+    {
+      "heading": "Files",
+      "body": "- `Directory.Build.props` (`<Version>` 1.0.0); every golden descriptor (they record the tool version); docs/getting-started.md (`squalify --version` output); docs/user-guide.md (the entries labelled with the unreleased version become 1.0.0; breaking changes since 0.3.0 and API added); docs/descriptor.md (changelog entry for 1.0 if sq-12 left it open); docs/how-it-works.md banner (status v1.0.x) and its html and pdf renders; README and design.md where they name the version or call work unreleased.\n- Release notes text (a file in the scratchpad, applied with `gh release edit` after the release job creates the release): breaking changes for a 0.3.0 consumer, the frozen schema, the planned 1.x minors (Touchstone, key=value, STDF, kind)."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- The docs tests (including the release docs test fixed by the friction slice) fail while the guides label the current changes with another version or call them unreleased, or show another tool version than `<Version>`.\n- `squalify --version` prints 1.0.0 and the goldens record 1.0.0 (the golden update diff changes only the tool version value).\n- The workflow check passes: tag `v1.0.0` equals `<Version>`.\n- Mutation-check the version tests."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Bump `<Version>` and re-record the goldens (`SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"`); the diff changes only the `version` inside the one-line `\"tool\": { ... }`. 2. Relabel the docs; re-render. 3. Draft the release notes. 4. Run the `Category=Large` benchmarks once, alone, and record the figures as a note (sq-12 note, 2026-10-29). 5. Consumer check: the owner runs the queries the orchestrator lists in the prism repo and pastes the result; compare it to the release notes. 6. Stop before the tag; report CI status of pushed main."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass (also with `GITHUB_ACTIONS=true`); `dotnet pack` packages pass the Package tests; `slicer check` passes; CI is green on the pushed commit (`gh run list`)."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner approves the tag. Do not tag or push the tag; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}

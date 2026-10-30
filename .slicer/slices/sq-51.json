@@ -1,0 +1,41 @@
+{
+  "id": "sq-51",
+  "title": "Release docs test must pass at 1.0.0 and for patch releases",
+  "lead": [
+    "Fix `UserGuide_LabelsTheCurrentChangesWithTheVersionInDirectoryBuildProps` (tests/squalify.Cli.Tests/DocsTests.cs) so that a release can ship. **Not in this slice:** changing the user guide's content or the Version."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-45 R6; wave 2026-10-30",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "The test requires an \"API added in {version}\" and a \"Breaking changes in {version}\" entry for every version (sq-45 R6: a patch release with none fails), and it asserts that those entries do not contain the text \"1.0.0\". When `<Version>` is 1.0.0 the entries must name 1.0.0 (the heading text is the version), so the test fails on the release commit itself. Found while preparing the 1.0.0 wave, 2026-10-30."
+    },
+    {
+      "heading": "Files",
+      "body": "- `tests/squalify.Cli.Tests/DocsTests.cs` (the test and `PackageVersion`); docs/release.md if it names the rule; docs/user-guide.md only if a heading label must change."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **1.0.0 label:** with a user guide whose current entries name `1.0.0`, the test passes (the \"contains 1.0.0\" assertion applies only while `<Version>` is below 1.0.0, or is replaced by a check that the entries name the current version and say nothing is unreleased).\n- **Patch release:** a version whose guide has no API-added or Breaking-changes entry passes when it has the \"no API or breaking changes\" form the implementer defines (listed in the report), and fails when the guide still labels the current changes with another version.\n- **Still catches drift:** an entry labelled with an older version, or marked \"unreleased\", fails while `<Version>` is newer.\n- Mutation-check each test."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Write the failing tests (a theory over the guide text as a string, not the file, so the cases run without editing docs). 2. Change the check to take the version and the text. 3. Document the patch-release form in docs/release.md."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}
