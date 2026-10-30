@@ -32,14 +32,14 @@
 - **Useful for classification:** structural fingerprints (structure, layout, typed, names), layout regions, row classes, detect-rule hints, the header-unit convention, a `kind` label (byte-class interim label in 1.0; the fixed built-in rule set follows as a 1.x minor, sq-15), and an evidence trail for every inference.<br>
 - **Values are opt-in.** No literal data values without `--include-values`, or `--include-values-for` for named keys and columns. Header names, preamble keys, test names, and numeric and temporal statistics are always included, except for file-constant fields, whose statistics would reveal the value.<br>
 - **A stable, versioned descriptor schema** (docs/descriptor.md, frozen with a JSON Schema at v1).<br>
-- **Explained in plain language.** docs/how-it-works.md, with diagrams, plus a squalor-branded PDF render, kept current at every architectural review.</p></div></section>
+- **Explained in plain language.** docs/how-it-works.md, with Mermaid diagrams, kept current at every architectural review.</p></div></section>
 <section><h2>Non-goals</h2><div class="prose"><p>- Proposing DataBall configs or file types. DataBall consumes descriptors in its own roadmap.<br>
 - Classifying files against a user library of known types. The built-in `kind` label is in scope.<br>
 - ML, LLM or network use.<br>
 - Editing, repairing or converting files.<br>
 - A dependency on DataBall. The descriptor schema is the contract.<br>
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
-<p class="summary">59 items · — 14 · done 40 · parked 1 · later 1 · retired 2 · started 1</p>
+<p class="summary">66 items · — 18 · done 42 · parked 1 · later 1 · retired 3 · started 1</p>
 <h2>v1.0.0</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="done"><td>1</td><td>sq-19</td><td>Throughput benchmark</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
@@ -56,63 +56,70 @@
 <tr class="done"><td>12</td><td>sq-48</td><td>Flag corpus entries with no golden</td><td>S</td><td>-</td><td></td><td></td><td class="status">done</td></tr>
 <tr class="done"><td>13</td><td>sq-49</td><td>Options shape</td><td>M</td><td>2</td><td>core</td><td>discovered from sq-47</td><td class="status">done</td></tr>
 <tr class="done"><td>14</td><td>sq-51</td><td>Release docs test</td><td>S</td><td>1</td><td>docs</td><td>sq-45 R6; wave 2026-10-30</td><td class="status">done</td></tr>
-<tr class="open"><td>15</td><td>sq-52</td><td>Wide diagram legibility</td><td>S</td><td>1</td><td>docs</td><td>sq-46 R2; wave 2026-10-30</td><td class="status">—</td></tr>
+<tr class="done"><td>15</td><td>sq-52</td><td>Wide diagram legibility</td><td>S</td><td>1</td><td>docs</td><td>sq-46 R2; wave 2026-10-30</td><td class="status">done</td></tr>
 <tr class="open"><td>16</td><td>sq-53</td><td>Release 1.0.0</td><td>M</td><td>2</td><td>docs, core</td><td>wave 2026-10-30</td><td class="status">—</td></tr>
 <tr class="open"><td>17</td><td>sq-54</td><td>Descriptor docs freeze</td><td>M</td><td>2</td><td>docs</td><td>sq-12 split, wave 2026-10-30</td><td class="status">—</td></tr>
+<tr class="retired"><td>18</td><td>sq-60</td><td>PDF diagram text floor</td><td>M</td><td>2</td><td>docs</td><td>sq-52 review (page 14 diagram at 3.51 pt) · Owner (2026-10-30), verbatim: &quot;let&#x27;s just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed&quot;. Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded. · discovered from sq-52</td><td class="status">retired</td></tr>
+<tr class="done"><td>19</td><td>sq-61</td><td>Drop doc renders</td><td>S</td><td>1</td><td>docs</td><td>sq-60 review; owner decision 2026-10-30 · discovered from sq-60</td><td class="status">done</td></tr>
 </tbody></table>
 <h2>v0.2.0</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="done"><td>18</td><td>sq-11</td><td>Sketches and memory bounds</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>19</td><td>sq-13</td><td>Repeated blocks</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>20</td><td>sq-22</td><td>Runtime-stable escaping</td><td>S</td><td>1</td><td>core</td><td>sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime&#x27;s Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02</td><td class="status">done</td></tr>
-<tr class="done"><td>21</td><td>sq-24</td><td>Invalid UTF-16/32 reporting</td><td>S</td><td>1</td><td>core</td><td>sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE &#x27;hello world\n&#x27; plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03</td><td class="status">done</td></tr>
-<tr class="done"><td>22</td><td>sq-32</td><td>Compact field profiles</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>23</td><td>sq-34</td><td>Claim degenerate delimited tables</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>24</td><td>sq-35</td><td>Byte-limited profiling</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>25</td><td>sq-36</td><td>Exact null spellings</td><td>S</td><td>1</td><td>core</td><td>Owner decision (2026-10-28), verbatim: &quot;Retire it (Recommended)&quot;. The exact-spellings part was dropped by the owner (&quot;trim whitespace, case insensitive for nulls. a null is a null.&quot;); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows.</td><td class="status">done</td></tr>
-<tr class="done"><td>26</td><td>sq-37</td><td>Raw header names</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>20</td><td>sq-11</td><td>Sketches and memory bounds</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>21</td><td>sq-13</td><td>Repeated blocks</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>22</td><td>sq-22</td><td>Runtime-stable escaping</td><td>S</td><td>1</td><td>core</td><td>sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime&#x27;s Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02</td><td class="status">done</td></tr>
+<tr class="done"><td>23</td><td>sq-24</td><td>Invalid UTF-16/32 reporting</td><td>S</td><td>1</td><td>core</td><td>sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE &#x27;hello world\n&#x27; plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03</td><td class="status">done</td></tr>
+<tr class="done"><td>24</td><td>sq-32</td><td>Compact field profiles</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>25</td><td>sq-34</td><td>Claim degenerate delimited tables</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>26</td><td>sq-35</td><td>Byte-limited profiling</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>27</td><td>sq-36</td><td>Exact null spellings</td><td>S</td><td>1</td><td>core</td><td>Owner decision (2026-10-28), verbatim: &quot;Retire it (Recommended)&quot;. The exact-spellings part was dropped by the owner (&quot;trim whitespace, case insensitive for nulls. a null is a null.&quot;); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows.</td><td class="status">done</td></tr>
+<tr class="done"><td>28</td><td>sq-37</td><td>Raw header names</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
 </tbody></table>
 <h2>v0.1.1</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="done"><td>27</td><td>sq-30</td><td>Package icon</td><td>S</td><td>1</td><td></td><td>discovered from sq-29</td><td class="status">done</td></tr>
-<tr class="done"><td>28</td><td>sq-33</td><td>User and developer docs</td><td>M</td><td>2</td><td>docs</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>29</td><td>sq-30</td><td>Package icon</td><td>S</td><td>1</td><td></td><td>discovered from sq-29</td><td class="status">done</td></tr>
+<tr class="done"><td>30</td><td>sq-33</td><td>User and developer docs</td><td>M</td><td>2</td><td>docs</td><td></td><td class="status">done</td></tr>
 </tbody></table>
 <h2>v1.x</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="open"><td>29</td><td>sq-09</td><td>Touchstone and key=value docs</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>30</td><td>sq-10</td><td>Binary and STDF</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="open"><td>31</td><td>sq-15</td><td>Kind label</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
-<tr class="other"><td>32</td><td>sq-21</td><td>Header-name grammar hint</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">later</td></tr>
-<tr class="open"><td>33</td><td>sq-23</td><td>sq-02 review nits</td><td>S</td><td>1</td><td>core</td><td>sq-02 architect nits: (1) how-it-works.md:34 small text &#x27;hints builder&#x27; is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02</td><td class="status">—</td></tr>
-<tr class="retired"><td>34</td><td>sq-28</td><td>Ragged skip by field count</td><td>S</td><td>1</td><td>core</td><td>sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with &#x27;skip only ragged records that have at least 2 fields&#x27;. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · Owner decision (2026-10-27), verbatim: &quot;Fold into sq-34&quot;. Scope moved to sq-34. · discovered from sq-27</td><td class="status">retired</td></tr>
-<tr class="open"><td>35</td><td>sq-44</td><td>Bounded-size GK sketch</td><td>L</td><td>3</td><td>core</td><td>discovered from sq-38</td><td class="status">—</td></tr>
-<tr class="open"><td>36</td><td>sq-50</td><td>Cheaper layout-only</td><td>M</td><td>2</td><td>core</td><td>discovered from sq-47</td><td class="status">—</td></tr>
-<tr class="open"><td>37</td><td>sq-55</td><td>Docs test unrelated versions</td><td>S</td><td>1</td><td>docs</td><td>sq-51 review R4 · discovered from sq-51</td><td class="status">—</td></tr>
-<tr class="open"><td>38</td><td>sq-56</td><td>Docs test duplicate no-change</td><td>S</td><td>1</td><td>docs</td><td>sq-51 review R5 · discovered from sq-51</td><td class="status">—</td></tr>
-<tr class="open"><td>39</td><td>sq-57</td><td>Hash-inequality collisions</td><td>S</td><td>1</td><td>core</td><td>sq-49 review R2 · discovered from sq-49</td><td class="status">—</td></tr>
-<tr class="open"><td>40</td><td>sq-58</td><td>IncludeValuesFor normalisation</td><td>S</td><td>1</td><td>core</td><td>sq-49 architect A4 · discovered from sq-49</td><td class="status">—</td></tr>
-<tr class="open"><td>41</td><td>sq-59</td><td>Required-member compiler note</td><td>S</td><td>1</td><td>docs</td><td>sq-49 architect A5 · discovered from sq-49</td><td class="status">—</td></tr>
+<tr class="open"><td>31</td><td>sq-09</td><td>Touchstone and key=value docs</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>32</td><td>sq-10</td><td>Binary and STDF</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="open"><td>33</td><td>sq-15</td><td>Kind label</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">—</td></tr>
+<tr class="other"><td>34</td><td>sq-21</td><td>Header-name grammar hint</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">later</td></tr>
+<tr class="open"><td>35</td><td>sq-23</td><td>sq-02 review nits</td><td>S</td><td>1</td><td>core</td><td>sq-02 architect nits: (1) how-it-works.md:34 small text &#x27;hints builder&#x27; is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02</td><td class="status">—</td></tr>
+<tr class="retired"><td>36</td><td>sq-28</td><td>Ragged skip by field count</td><td>S</td><td>1</td><td>core</td><td>sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with &#x27;skip only ragged records that have at least 2 fields&#x27;. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · Owner decision (2026-10-27), verbatim: &quot;Fold into sq-34&quot;. Scope moved to sq-34. · discovered from sq-27</td><td class="status">retired</td></tr>
+<tr class="open"><td>37</td><td>sq-44</td><td>Bounded-size GK sketch</td><td>L</td><td>3</td><td>core</td><td>discovered from sq-38</td><td class="status">—</td></tr>
+<tr class="open"><td>38</td><td>sq-50</td><td>Cheaper layout-only</td><td>M</td><td>2</td><td>core</td><td>discovered from sq-47</td><td class="status">—</td></tr>
+<tr class="open"><td>39</td><td>sq-55</td><td>Docs test unrelated versions</td><td>S</td><td>1</td><td>docs</td><td>sq-51 review R4 · discovered from sq-51</td><td class="status">—</td></tr>
+<tr class="open"><td>40</td><td>sq-56</td><td>Docs test duplicate no-change</td><td>S</td><td>1</td><td>docs</td><td>sq-51 review R5 · discovered from sq-51</td><td class="status">—</td></tr>
+<tr class="open"><td>41</td><td>sq-57</td><td>Hash-inequality collisions</td><td>S</td><td>1</td><td>core</td><td>sq-49 review R2 · discovered from sq-49</td><td class="status">—</td></tr>
+<tr class="open"><td>42</td><td>sq-58</td><td>IncludeValuesFor normalisation</td><td>S</td><td>1</td><td>core</td><td>sq-49 architect A4 · discovered from sq-49</td><td class="status">—</td></tr>
+<tr class="open"><td>43</td><td>sq-59</td><td>Required-member compiler note</td><td>S</td><td>1</td><td>docs</td><td>sq-49 architect A5 · discovered from sq-49</td><td class="status">—</td></tr>
+<tr class="open"><td>44</td><td>sq-62</td><td>Issue code registry</td><td>M</td><td>2</td><td>core</td><td>sq-12 review R3, R4; architect A4 · discovered from sq-12</td><td class="status">—</td></tr>
+<tr class="open"><td>45</td><td>sq-63</td><td>Validator duplicate keys</td><td>S</td><td>1</td><td>core</td><td>sq-12 review R5 · discovered from sq-12</td><td class="status">—</td></tr>
+<tr class="open"><td>46</td><td>sq-64</td><td>Docs enums vs schema</td><td>S</td><td>1</td><td>core, docs</td><td>sq-12 architect A3(ii), A7 · discovered from sq-12</td><td class="status">—</td></tr>
+<tr class="open"><td>47</td><td>sq-65</td><td>Docs from test output</td><td>S</td><td>1</td><td>core</td><td>sq-12 architect A6 (sq-25 L8) · discovered from sq-12</td><td class="status">—</td></tr>
+<tr class="open"><td>48</td><td>sq-66</td><td>Render-mention patterns</td><td>S</td><td>1</td><td>docs</td><td>sq-61 review (3), (2), (8) · discovered from sq-61</td><td class="status">—</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="parked"><td>42</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
-<tr class="retired"><td>43</td><td>sq-20</td><td>Compact evidence</td><td>M</td><td>2</td><td>core</td><td>Owner decision (2026-10-27), verbatim: &quot;Retire, refile on fields (Recommended)&quot;. The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.</td><td class="status">retired</td></tr>
+<tr class="parked"><td>49</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
+<tr class="retired"><td>50</td><td>sq-20</td><td>Compact evidence</td><td>M</td><td>2</td><td>core</td><td>Owner decision (2026-10-27), verbatim: &quot;Retire, refile on fields (Recommended)&quot;. The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.</td><td class="status">retired</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="done"><td>44</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>45</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>46</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>47</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>48</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>49</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>50</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>51</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>52</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>53</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>54</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>55</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>56</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>57</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
-<tr class="done"><td>58</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>59</td><td>sq-31</td><td>Drop Parquet from v1</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>51</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>52</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>53</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>54</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>55</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>56</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>57</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>58</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>59</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>60</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>61</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>62</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>63</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>64</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
+<tr class="done"><td>65</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>66</td><td>sq-31</td><td>Drop Parquet from v1</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
 </tbody></table>
 </body></html>
