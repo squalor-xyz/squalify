@@ -519,7 +519,7 @@ flowchart LR
     T16 -. "second read" .-> V["Count invalid units into invalidBytes<br/>and the invalidUnicode issue<br/><small>InvalidUnicodeScanner, TextDecoder</small>"]
     R6 --> T["text: ascii, utf-8 or latin-1"]
     V -. "once the layout is known" .-> L["Name the line and layout region<br/>of each invalid byte<br/><small>InvalidByteLocator</small>"]
-    T -. "if stray invalid bytes" .-> L
+    T -. "ascii or utf-8 with<br/>tolerated invalid bytes" .-> L
 ```
 
 *Source: `Sniff/ByteSniffer.cs`, `Sniff/SniffResult.cs`, `Sniff/MagicTable.cs`, `Text/InvalidUnicodeScanner.cs`, `Text/TextDecoder.cs`, `Text/InvalidByteLocator.cs`, `Profiler.cs`.* The exact thresholds and the magic table are in [descriptor.md](descriptor.md#encoding).
