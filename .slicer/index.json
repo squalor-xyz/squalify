@@ -3961,10 +3961,22 @@
       "id": "sq-48",
       "title": "Corpus harness flags entries with no golden",
       "short_title": "Flag corpus entries with no golden",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "c0fb9df5-3022-4adb-ac4d-dd48fdacf821",
+          "kind": "",
+          "text": "**2026-10-30** — Gate round 2: PASS (3dd0d88). R1 and R3/R4/G7 fixes verified (no test changes process env; theory split; wording). Notes: placeholder rows (kind none) add one to xunit's raw totals, accepted (xunit 2 fails a theory with no rows); stale singular theory wording fixed by the orchestrator. Later: script and the env-reading wrappers have no automated test.",
+          "created_at": "2026-10-30T14:33:20Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",

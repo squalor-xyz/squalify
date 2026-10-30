@@ -5,7 +5,7 @@ using squalor.squalify;
 namespace squalor.squalify.Tests;
 
 /// <summary>
-/// The private-corpus check. An entry with no golden is reported as "no golden", not as passed. The theory runs only with <c>SQUALIFY_CORPUS</c> set (see <c>scripts/corpus-check.sh</c>);
+/// The private-corpus check. An entry with no golden is reported as "no golden", not as passed. The theories run only with <c>SQUALIFY_CORPUS</c> set (see <c>scripts/corpus-check.sh</c>);
 /// the other tests use a temporary directory and run in CI.
 /// </summary>
 public sealed class CorpusTests
