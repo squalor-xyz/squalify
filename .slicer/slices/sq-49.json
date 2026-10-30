@@ -1,0 +1,41 @@
+{
+  "id": "sq-49",
+  "title": "Non-positional options before 1.0.0",
+  "lead": [
+    "Make the option and model records safe to extend after 1.0.0: `ProfileOptions` (and, as the owner decides in the questions, `FieldProfile` and the other wide positional records) get non-positional, init-only members, so that adding an option or a member is not a binary or deconstruction break. **Not in this slice:** adding any new option; changing a descriptor byte; changing option defaults."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Each new option (sq-35 MaxBytes, sq-39 MaxFirstRecordBytes, sq-47 LayoutOnly) was a positional member added to the `ProfileOptions` record, so it broke deconstruction and compiled consumers (source-compatible only for construction, via trailing optionals). After library 1.0.0 each would be a SemVer major; sq-09 and sq-10 may add options. `FieldProfile` has about 30 positional members and the same exposure (sq-36, sq-43 and sq-47 each added or changed members). Raised by the sq-47 architect, 2026-10-30; owner: \"File it for v1.0.0 (Recommended)\". Related: sq-41 (public API surface), sq-12 (freeze)."
+    },
+    {
+      "heading": "Files",
+      "body": "- `ProfileOptions` and `ProfileOptions.Create` (`src/squalify/Descriptor/Options.cs`), `Profiler`, the CLI (`src/squalify.Cli/CommandFactory.cs`), tests that construct or deconstruct them (`tests/`), and the record types the owner chooses: `FieldProfile`, `RowClassesInfo`, `Issue`, `EncodingSection`, `Limits` (Descriptor/*.cs)\n- docs/user-guide.md (library table, API added and Breaking changes under the unreleased 1.0.0 label), docs/descriptor.md versioning policy sentence if affected, design.md, README, how-it-works.md if it names the types\n- Value equality (sq-41) must be kept for every changed record; the sq-12 schema is unaffected (no descriptor byte changes)"
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **Construct by name:** `ProfileOptions` is constructed with named init members and `ProfileOptions.Create(...)` keeps working with its current parameters; every existing call in the repository still compiles or is updated mechanically.\n- **No deconstruction:** the record has no positional `Deconstruct` (a public API test lists the public members of the changed records and fails when a positional member is added).\n- **Equality kept:** two options built from the same values compare equal, and differ when one member differs; hash codes equal for equal values.\n- **Defaults:** an options value built with no members equals today's `ProfileOptions.Create()`; a descriptor made with it is byte-identical (goldens unchanged).\n- **Extensibility test:** adding a member to a changed record does not change the set of positional constructor parameters (pinned in the API-surface test, like the sq-41 test).\n- **Other records (pending owner choice):** for each other record the owner picks, the same construct-by-name, no-deconstruction and equality tests.\n- Mutation-check each test."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Ask the owner (as slicer notes plus questions) which records besides `ProfileOptions` become non-positional (`FieldProfile` yes or no; `Issue`, `EncodingSection`, `Limits`), whether `Create` stays as the construction path, and whether the change ships as a breaking-changes entry under the unreleased 1.0.0 label. 2. Write the failing tests. 3. Change the records; update the repository's call sites; keep value equality. 4. Docs in the same change."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}
