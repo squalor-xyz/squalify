@@ -18,15 +18,15 @@
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `ProfileOptions` and `ProfileOptions.Create` (trailing optional `LayoutOnly`), `Profiler`, the delimited pass (`src/squalify/Delimited/DelimitedPass.cs`, field accumulation skipped), `Fields/` (no per-field accumulators or sketches in this mode), `Fingerprint/` (structure and layout projections only), the descriptor model and `DescriptorWriter` (top-level `layoutOnly`, nullable left-out sections), the CLI (`--layout-only` in `src/squalify.Cli/CommandFactory.cs`), docs/descriptor.md (the member, the left-out sections, key order, consumer subset, versioning policy sentence), design.md, user-guide.md, README, how-it-works.md; the sq-12 schema (waits on this slice) must carry the member and the nullable sections"
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "- **Same layout, less work:** for each fixture and the wide padded synthetic shape, the layout-only descriptor equals the full descriptor in `encoding`, `format`, `layout`, the header names (`name`, `rawName`, `nameParts`, `headerConvention`), `table.rowClasses`, `issues` of the structural kind, and the structure and layout fingerprints; the compared members are listed in the test.\n- **Marked, not empty:** `layoutOnly: true` is written only when the option is used; with it, `fields[]` carries `index`, `name`, `rawName`, `nameParts` and no types, statistics, sketches, `top`, `text` or `unit`; `hints`, the type-dependent evidence and the typed fingerprint projections are `null`; without the option every golden is byte-identical to today (goldens unchanged).\n- **Cheaper:** a layout-only profile of the wide padded shape (64 MiB) holds no per-field sketches (its estimated bytes are a small fraction of the full profile) and runs faster; the figures are printed, the test asserts the estimate bound, not the timing.\n- **With the other options:** works with `MaxBytes` (scope written as usual), `ProfilePrefix` (descriptor equals `Profile`), `MaxFirstRecordBytes`, and `IncludeValues` (which has no effect: no values are computed; state it); the CLI parses `--layout-only` and its help documents it.\n- **Determinism:** the same bytes twice, and under another culture, give the same descriptor.\n- **Closed schema:** the sq-12 schema validates a layout-only descriptor (optional `layoutOnly` const true; the left-out sections nullable): covered when sq-12 lands.\n- Mutation-check each test."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the failing tests above.\n2. Add `LayoutOnly` (trailing optional, default false) to `ProfileOptions` and `Create`; CLI `--layout-only`; reject nothing else.\n3. Skip the per-field accumulation in the delimited pass (keep the per-record null decision that row classes need); skip hints, the type-dependent evidence and the typed fingerprint projections; compute the structure and layout fingerprints.\n4. Writer: top-level `layoutOnly: true` only when used; left-out sections null; descriptor.md documents which members are null in this mode.\n5. Docs in the same change, goldens unchanged (no golden uses the option); list in the report the exact set of null members."
     },
     {
       "heading": "Check",

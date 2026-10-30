@@ -18,15 +18,15 @@
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- `scripts/corpus-check.sh` and the Category=Corpus test harness it runs (sq-18; find the code under tests/), CONTRIBUTING.md (Private corpus), AGENTS.md if it describes the corpus run"
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "- A corpus directory with one entry that has a golden and one that has none: the run reports the second as \"no golden\" (not passed), the summary line counts passed, failed and no-golden separately, and the run still exits 0 by default.\n- With the option on (decide the spelling: a `--require-golden` script flag and an environment variable the harness reads), any entry with no golden makes the run fail (non-zero exit, the summary says so).\n- Entries with a golden behave as today (pass or fail on the comparison); the determinism checks are unchanged.\n- The harness never writes data-derived output outside the corpus directory (as today).\n- Mutation-check each test (an entry with no golden counted as passed makes a test red)."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the failing tests above (the harness is tested with a small synthetic corpus directory created in a temp directory; the script is tested through its exit code and output if the repository already tests it that way; otherwise test the C# harness class).\n2. Report \"no golden\" entries separately, add the summary counts and the option, document in CONTRIBUTING.md."
     },
     {
       "heading": "Check",
