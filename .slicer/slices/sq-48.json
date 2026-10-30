@@ -1,0 +1,41 @@
+{
+  "id": "sq-48",
+  "title": "Corpus harness flags entries with no golden",
+  "lead": [
+    "The private-corpus harness (sq-18) reports an entry that has no golden as \"no golden\" (not passed), and a run with any such entry says so in its summary; an option can make that a failure. **Not in this slice:** recording goldens for the private corpus."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Today an entry with no golden passes, so a green corpus run only shows that profiling did not crash. A consumer review (2026-10-30) read a green run as coverage of a format family that had no goldens at all."
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

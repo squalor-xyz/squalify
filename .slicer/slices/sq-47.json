@@ -1,0 +1,41 @@
+{
+  "id": "sq-47",
+  "title": "Layout-only profile option",
+  "lead": [
+    "A profile option that computes the encoding, dialect, layout regions, header names and row classes, and skips the per-field sketches, statistics, hints and evidence. The descriptor marks the sections it left out, so a reader can tell \"not computed\" from \"empty\". **Not in this slice:** changing the default profile."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "M",
+  "flags": [],
+  "trees_note": "",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "A consumer that only classifies a file reads about 15 descriptor fields and pays for the full profile of a 1 MiB prefix. On wide padded files (about 38 KB per line) the prefix holds only about 25 rows, so the field work buys little. Found in a consumer review, 2026-10-30."
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

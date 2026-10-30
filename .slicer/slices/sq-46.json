@@ -1,0 +1,41 @@
+{
+  "id": "sq-46",
+  "title": "Locate invalid bytes",
+  "lead": [
+    "An invalidUtf8 issue (and a stray-byte charset kept under the stray-byte tolerance) carries firstLines and the byte offsets of the first invalid sequences, and names the layout region each falls in (preamble, annotation, header, data). The descriptor says plainly when the charset label was kept despite invalid bytes. **Not in this slice:** repairing or escaping the bytes."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Today the issue says only how many invalid bytes there are. A consumer that accepts stray bytes in a preamble but not in data cannot tell where they are without rereading the file, and its refusal message can only name the count, not the line. Found in a consumer review, 2026-10-30, on padded preamble files where one preamble key holds a corrupted byte."
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": ""
+    },
+    {
+      "heading": "Check",
+      "body": ""
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
