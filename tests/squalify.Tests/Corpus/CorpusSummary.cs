@@ -59,7 +59,7 @@ internal sealed class CorpusSummary
                 var one = NoGolden == 1;
                 var who = $"{NoGolden} {(one ? "entry has" : "entries have")} no golden";
                 line += requireGolden
-                    ? $"; FAILED: --require-golden is set and {who}"
+                    ? $"; FAILED: require-golden is set (--require-golden or {CorpusRunner.RequireGoldenVariable}=1) and {who}"
                     : $"; {who} and {(one ? "is" : "are")} not passed (--require-golden makes that a failure)";
             }
 

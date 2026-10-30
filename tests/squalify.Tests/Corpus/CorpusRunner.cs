@@ -52,7 +52,14 @@ internal static class CorpusRunner
     /// <summary>True when <see cref="RequireGoldenVariable"/> is <c>1</c>: an entry with no golden then fails the run.</summary>
     public static bool RequireGolden()
     {
-        return Environment.GetEnvironmentVariable(RequireGoldenVariable) == "1";
+        return RequireGolden(Environment.GetEnvironmentVariable(RequireGoldenVariable));
+    }
+
+    /// <summary>True when the value of <see cref="RequireGoldenVariable"/> is <c>1</c>. The harness's tests call this directly.</summary>
+    /// <param name="value">The variable's value, or null when it is not set.</param>
+    public static bool RequireGolden(string? value)
+    {
+        return value == "1";
     }
 
     /// <summary>Whether a result lets the run stay green: a pass always does, a missing golden only when it is not required.</summary>

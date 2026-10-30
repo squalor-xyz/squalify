@@ -74,9 +74,12 @@ set -e
 
 echo
 echo "corpus-check: per-file results (local output; the full log is $log)"
-# A "no-golden" row passes its test unless a golden is required, but it is not passed: relabel it.
+# An entry with no golden runs in its own test (Corpus_EachFile_HasNoGolden_NotCompared). That test passes unless a
+# golden is required, but the entry is not passed: label it "No golden". A "none" row is a placeholder for an empty
+# theory, not an entry: drop it.
 grep -E '^ +(Passed|Failed|Skipped) ' "$log" | sed -E 's/ \[[^]]*\]$//' \
-  | sed -E '/kind: "no-golden"/ s/^( +)Passed /\1No golden /' || true
+  | grep -v 'kind: "none"' \
+  | sed -E '/Corpus_EachFile_HasNoGolden_NotCompared/ s/^( +)Passed /\1No golden /' || true
 if [[ -f "$summary" ]]; then
   tail -n 1 "$summary"
 else

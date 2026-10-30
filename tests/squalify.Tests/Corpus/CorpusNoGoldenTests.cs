@@ -75,8 +75,7 @@ public sealed class CorpusNoGoldenTests
         Assert.True(summary.IsFailure);
         Assert.Equal(1, summary.ExitCode);
         Assert.Contains("1 passed, 0 failed, 1 no golden", summary.Line, StringComparison.Ordinal);
-        Assert.Contains("FAILED", summary.Line, StringComparison.Ordinal);
-        Assert.Contains("--require-golden", summary.Line, StringComparison.Ordinal);
+        Assert.Contains("FAILED: require-golden is set (--require-golden or SQUALIFY_REQUIRE_GOLDEN=1) and 1 entry has no golden", summary.Line, StringComparison.Ordinal);
 
         // The per-entry test (the theory) applies the same rule, so dotnet test exits non-zero.
         Assert.False(CorpusRunner.Accepts(CorpusOutcome.NoGolden, requireGolden: true));
@@ -84,23 +83,14 @@ public sealed class CorpusNoGoldenTests
     }
 
     [Fact]
-    public void RequireGolden_ReadsTheEnvironmentVariable()
+    public void RequireGolden_OnlyTheValueOneTurnsItOn()
     {
-        var saved = Environment.GetEnvironmentVariable(CorpusRunner.RequireGoldenVariable);
-        try
-        {
-            Assert.Equal("SQUALIFY_REQUIRE_GOLDEN", CorpusRunner.RequireGoldenVariable);
-            Environment.SetEnvironmentVariable(CorpusRunner.RequireGoldenVariable, null);
-            Assert.False(CorpusRunner.RequireGolden());
-            Environment.SetEnvironmentVariable(CorpusRunner.RequireGoldenVariable, "0");
-            Assert.False(CorpusRunner.RequireGolden());
-            Environment.SetEnvironmentVariable(CorpusRunner.RequireGoldenVariable, "1");
-            Assert.True(CorpusRunner.RequireGolden());
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(CorpusRunner.RequireGoldenVariable, saved);
-        }
+        // The value is passed in, so this test never touches the process environment other tests share.
+        Assert.Equal("SQUALIFY_REQUIRE_GOLDEN", CorpusRunner.RequireGoldenVariable);
+        Assert.False(CorpusRunner.RequireGolden(null));
+        Assert.False(CorpusRunner.RequireGolden(string.Empty));
+        Assert.False(CorpusRunner.RequireGolden("0"));
+        Assert.True(CorpusRunner.RequireGolden("1"));
     }
 
     [Theory]
@@ -160,28 +150,45 @@ public sealed class CorpusNoGoldenTests
     [Fact]
     public void Rows_NoGoldenEntry_GetsItsOwnKind()
     {
+        // The root and the update flag are passed in: no environment variable is set, so a golden test running in
+        // parallel can never see SQUALIFY_UPDATE_GOLDEN=1 from here.
         using var corpus = new SyntheticCorpus();
         corpus.Add("good.csv", "a\n1\n", golden: true);
         corpus.Add("bare.csv", "a\n2\n", golden: false);
 
-        var saved = Environment.GetEnvironmentVariable(CorpusRunner.Variable);
-        var savedUpdate = Environment.GetEnvironmentVariable(Golden.UpdateVariable);
-        try
-        {
-            Environment.SetEnvironmentVariable(CorpusRunner.Variable, corpus.Root);
-            Environment.SetEnvironmentVariable(Golden.UpdateVariable, null);
-            var rows = CorpusTests.Rows().Select(r => ((string)r[0], (string)r[1])).ToArray();
-            Assert.Equal(new[] { (CorpusTests.NoGoldenKind, "bare.csv"), (CorpusTests.FileKind, "good.csv") }, rows);
+        var rows = CorpusTests.Rows(corpus.Root, update: false).Select(r => ((string)r[0], (string)r[1])).ToArray();
+        Assert.Equal(new[] { (CorpusTests.NoGoldenKind, "bare.csv"), (CorpusTests.FileKind, "good.csv") }, rows);
 
-            // In update mode every entry gets a golden, so none is a "no golden" row.
-            Environment.SetEnvironmentVariable(Golden.UpdateVariable, "1");
-            Assert.All(CorpusTests.Rows(), r => Assert.Equal(CorpusTests.FileKind, (string)r[0]));
-        }
-        finally
+        // In update mode every entry gets a golden, so none is a "no golden" row.
+        Assert.All(CorpusTests.Rows(corpus.Root, update: true), r => Assert.Equal(CorpusTests.FileKind, (string)r[0]));
+    }
+
+    [Fact]
+    public void Rows_TwoTheories_EachGetsItsOwnEntries()
+    {
+        using var corpus = new SyntheticCorpus();
+        corpus.Add("good.csv", "a\n1\n", golden: true);
+        corpus.Add("bare.csv", "a\n2\n", golden: false);
+        var mixed = CorpusTests.Rows(corpus.Root, update: false).ToArray();
+
+        Assert.Equal(new[] { "good.csv" }, CorpusTests.Partition(mixed, noGolden: false).Select(r => (string)r[1]));
+        Assert.Equal(new[] { "bare.csv" }, CorpusTests.Partition(mixed, noGolden: true).Select(r => (string)r[1]));
+
+        // A theory with no rows would fail xunit's discovery, so an empty side gets one placeholder row that does nothing.
+        var onlyBare = new SyntheticCorpus();
+        using (onlyBare)
         {
-            Environment.SetEnvironmentVariable(CorpusRunner.Variable, saved);
-            Environment.SetEnvironmentVariable(Golden.UpdateVariable, savedUpdate);
+            onlyBare.Add("bare.csv", "a\n2\n", golden: false);
+            var rows = CorpusTests.Rows(onlyBare.Root, update: false).ToArray();
+            var withGolden = Assert.Single(CorpusTests.Partition(rows, noGolden: false).ToArray());
+            Assert.Equal(CorpusTests.NoneKind, (string)withGolden[0]);
+            Assert.Equal("bare.csv", (string)Assert.Single(CorpusTests.Partition(rows, noGolden: true).ToArray())[1]);
         }
+
+        // Not configured and problem rows belong to the first theory; the second gets the placeholder.
+        var unset = CorpusTests.Rows(null, update: false).ToArray();
+        Assert.Equal(CorpusTests.NotConfiguredKind, (string)Assert.Single(CorpusTests.Partition(unset, noGolden: false).ToArray())[0]);
+        Assert.Equal(CorpusTests.NoneKind, (string)Assert.Single(CorpusTests.Partition(unset, noGolden: true).ToArray())[0]);
     }
 
     [Fact]
