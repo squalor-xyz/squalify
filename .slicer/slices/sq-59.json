@@ -1,0 +1,41 @@
+{
+  "id": "sq-59",
+  "title": "Note required-member compiler support for library consumers",
+  "lead": [
+    "`required` members need C# 11 (CS8936 at LangVersion 10); consumers on an older C# or on VB.NET cannot `new` ProfileOptions or FieldProfile (the compiler marks the constructor obsolete), though they can read members and use `ProfileOptions.Create`. The target is net10.0, so risk is low. Add one sentence to the user guide's library section."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-49 architect A5",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Verify the claim with a scratch project on LangVersion 10 and VB; 2. add the sentence; 3. docs test if the guide has a pattern for it."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

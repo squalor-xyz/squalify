@@ -1,36 +1,52 @@
 // SPDX-License-Identifier: Apache-2.0
 namespace squalor.squalify;
 
-/// <summary>The <c>options</c> section: the options that affect output. Equality is by value, the allow-list compared in order.</summary>
-/// <param name="IncludeValues">True when literal values are included.</param>
-/// <param name="IncludeValuesFor">Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</param>
-/// <param name="MaxBytes">
-/// The byte limit, or null to read the whole source. A positive limit makes squalify read at most that many bytes, cut
-/// at the last whole line of a text file, and write the <c>scope</c> section. Two exceptions to "at most": a CRLF that
-/// straddles the limit adds one code unit, and a first record longer than the limit is read to its end, however long
-/// (no ceiling, unless <see cref="MaxFirstRecordBytes"/> is set). A limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
-/// <c>options</c> section: <c>scope.maxBytes</c> carries it.
-/// </param>
-/// <param name="MaxFirstRecordBytes">
-/// The first-record ceiling, or null for none (the default). It is a companion of <paramref name="MaxBytes"/> and is
-/// rejected by <see cref="Profiler"/> without it. When the first record of a text file, its line terminator included, is
-/// longer than this many bytes, <see cref="Profiler"/> throws <see cref="SqualifyException"/> and profiles nothing; it
-/// reads no further than this many bytes plus the one code unit that tells a CR from a CRLF. A CRLF counts 2 bytes, a
-/// UTF-16 unit 2 and a UTF-32 unit 4. A binary file is not subject. A value of zero or less is rejected by
-/// <see cref="Profiler"/>. A profile that is not refused is the same as one without the ceiling, so it is not written
-/// to the <c>options</c> section.
-/// </param>
-/// <param name="LayoutOnly">
-/// True to compute only the encoding, the dialect, the layout regions, the header names and the row classes, and to skip the
-/// per-field sketches, statistics, types, hints and evidence of the type (sq-47). The descriptor then says so with
-/// <c>layoutOnly: true</c> and leaves the sections that were not computed out (see <c>docs/descriptor.md</c>, "Layout-only
-/// profile"). It is not written to the <c>options</c> section: the top-level <c>layoutOnly</c> member carries it.
-/// <see cref="IncludeValues"/> and <see cref="IncludeValuesFor"/> still open the preamble and annotation values of the layout,
-/// and have no effect on the fields: no field value is computed, and the layout values equal a full profile's for the same options.
-/// False by default.
-/// </param>
-public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null, long? MaxFirstRecordBytes = null, bool LayoutOnly = false)
+/// <summary>
+/// The <c>options</c> section: the options that affect output. Equality is by value, the allow-list compared in order.
+/// The record has no positional constructor or deconstruction (sq-49): build it by name,
+/// <c>new ProfileOptions { IncludeValues = false, IncludeValuesFor = [] }</c>, or with <see cref="Create"/>, so that an
+/// option added later is neither a constructor nor a deconstruction change. <see cref="IncludeValues"/> and
+/// <see cref="IncludeValuesFor"/> are required; every other member has a default.
+/// </summary>
+public sealed record ProfileOptions
 {
+    /// <summary>True when literal values are included.</summary>
+    public required bool IncludeValues { get; init; }
+
+    /// <summary>Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</summary>
+    public required IReadOnlyList<string> IncludeValuesFor { get; init; }
+
+    /// <summary>
+    /// The byte limit, or null to read the whole source (the default). A positive limit makes squalify read at most that many bytes, cut
+    /// at the last whole line of a text file, and write the <c>scope</c> section. Two exceptions to "at most": a CRLF that
+    /// straddles the limit adds one code unit, and a first record longer than the limit is read to its end, however long
+    /// (no ceiling, unless <see cref="MaxFirstRecordBytes"/> is set). A limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
+    /// <c>options</c> section: <c>scope.maxBytes</c> carries it.
+    /// </summary>
+    public long? MaxBytes { get; init; }
+
+    /// <summary>
+    /// The first-record ceiling, or null for none (the default). It is a companion of <see cref="MaxBytes"/> and is
+    /// rejected by <see cref="Profiler"/> without it. When the first record of a text file, its line terminator included, is
+    /// longer than this many bytes, <see cref="Profiler"/> throws <see cref="SqualifyException"/> and profiles nothing; it
+    /// reads no further than this many bytes plus the one code unit that tells a CR from a CRLF. A CRLF counts 2 bytes, a
+    /// UTF-16 unit 2 and a UTF-32 unit 4. A binary file is not subject. A value of zero or less is rejected by
+    /// <see cref="Profiler"/>. A profile that is not refused is the same as one without the ceiling, so it is not written
+    /// to the <c>options</c> section.
+    /// </summary>
+    public long? MaxFirstRecordBytes { get; init; }
+
+    /// <summary>
+    /// True to compute only the encoding, the dialect, the layout regions, the header names and the row classes, and to skip the
+    /// per-field sketches, statistics, types, hints and evidence of the type (sq-47). The descriptor then says so with
+    /// <c>layoutOnly: true</c> and leaves the sections that were not computed out (see <c>docs/descriptor.md</c>, "Layout-only
+    /// profile"). It is not written to the <c>options</c> section: the top-level <c>layoutOnly</c> member carries it.
+    /// <see cref="IncludeValues"/> and <see cref="IncludeValuesFor"/> still open the preamble and annotation values of the layout,
+    /// and have no effect on the fields: no field value is computed, and the layout values equal a full profile's for the same options.
+    /// False by default.
+    /// </summary>
+    public bool LayoutOnly { get; init; }
+
     /// <summary>Creates options with the allow-list as a sorted set: sorted ordinally, exact duplicates dropped.</summary>
     /// <param name="includeValues">True to include all literal values.</param>
     /// <param name="includeValuesFor">Allow-listed names, in any order.</param>
@@ -41,7 +57,14 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
     public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor, long? maxBytes = null, long? maxFirstRecordBytes = null, bool layoutOnly = false)
     {
         ArgumentNullException.ThrowIfNull(includeValuesFor);
-        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes, maxFirstRecordBytes, layoutOnly);
+        return new ProfileOptions
+        {
+            IncludeValues = includeValues,
+            IncludeValuesFor = Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)),
+            MaxBytes = maxBytes,
+            MaxFirstRecordBytes = maxFirstRecordBytes,
+            LayoutOnly = layoutOnly,
+        };
     }
 
     /// <inheritdoc />

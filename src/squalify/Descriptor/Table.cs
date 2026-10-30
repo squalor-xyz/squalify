@@ -130,73 +130,111 @@ public sealed record FieldRange(long First, long Last);
 
 /// <summary>
 /// One entry of <c>table.fields[]</c>. Members that the schema always writes are written as null when they do not apply.
-/// In a layout-only profile (<see cref="Descriptor.LayoutOnly"/>) only <paramref name="Index"/>, <paramref name="Name"/>,
-/// <paramref name="RawName"/>, <paramref name="NameHex"/> and <paramref name="NameParts"/> are set: <paramref name="Type"/>,
-/// <paramref name="Dominant"/>, <paramref name="TypeVotes"/>, <paramref name="Count"/>, <paramref name="Nulls"/> and
-/// <paramref name="NullsExcludingAllNullRows"/> are null (not computed), and so is every other member that is not a name.
+/// In a layout-only profile (<see cref="Descriptor.LayoutOnly"/>) only <see cref="Index"/>, <see cref="Name"/>,
+/// <see cref="RawName"/>, <see cref="NameHex"/> and <see cref="NameParts"/> are set: <see cref="Type"/>,
+/// <see cref="Dominant"/>, <see cref="TypeVotes"/>, <see cref="Count"/>, <see cref="Nulls"/> and
+/// <see cref="NullsExcludingAllNullRows"/> are null (not computed), and so is every other member that is not a name.
+/// The record has no positional constructor or deconstruction (sq-49): build it by name, with the members that have no
+/// default set (the ones the old constructor required), so that a member added later is neither a constructor nor a
+/// deconstruction change.
 /// </summary>
-/// <param name="Index">Column index.</param>
-/// <param name="Name">The header name, trimmed; null when the table has no header.</param>
-/// <param name="NameParts">Name split into base and unit; null when the table has no header.</param>
-/// <param name="Type">The field type; null only in a layout-only profile.</param>
-/// <param name="Dominant">The dominant vote; null only in a layout-only profile.</param>
-/// <param name="TypeVotes">Type votes; null only in a layout-only profile.</param>
-/// <param name="Count">Non-null plus null values; null only in a layout-only profile.</param>
-/// <param name="Nulls">Null values; null only in a layout-only profile.</param>
-/// <param name="NullsExcludingAllNullRows">Null values outside all-null rows; null only in a layout-only profile.</param>
-/// <param name="NullTokens">Null-token counts; null until the field accumulators fill it (sq-05).</param>
-/// <param name="Flags">Value-shape flags; null until sq-05.</param>
-/// <param name="Distinct">Distinct count; null until sq-05.</param>
-/// <param name="Length">Length statistics, or null for an all-null field.</param>
-/// <param name="Shapes">Shape masks; the caller sorts by count descending, then mask (ordinal). Null until sq-05.</param>
-/// <param name="Monotonic"><c>increasing</c>, <c>decreasing</c>, <c>nonDecreasing</c>, <c>nonIncreasing</c>, <c>none</c>, or null.</param>
-/// <param name="Constant">True when every non-null value is equal; null until sq-05.</param>
-/// <param name="Unique">True when every non-null value is distinct; null until sq-05.</param>
-/// <param name="NameHex">Hex of the original name bytes; present only when the name contains U+FFFD.</param>
-/// <param name="Patterns">Counts of matched date and time patterns.</param>
-/// <param name="Numeric">Numeric statistics.</param>
-/// <param name="Temporal">Temporal statistics.</param>
-/// <param name="StatsWithheld"><c>constant</c> when statistics are withheld.</param>
-/// <param name="Unit">The unit from a units row. Values tier.</param>
-/// <param name="Top">Most common values. Values tier.</param>
-/// <param name="Text">Lexical minimum and maximum. Values tier.</param>
-/// <param name="RawName">The header text as in the file: quotes removed per the dialect, nothing else changed (spaces kept); null when the table has no header. Written right after <c>name</c>.</param>
-/// <param name="NullSpellings">The null values by exact spelling (the field text after dialect unquoting, not trimmed), over all data records, all-null records included; null reads as no entries.</param>
-/// <param name="NullSpellingsOther">Null values whose spelling is not in <paramref name="NullSpellings"/> because the field already kept 64 spellings, or the spelling is longer than 256 characters.</param>
-/// <param name="NullSpellingsOtherDistinct">The number of distinct spellings among the <paramref name="NullSpellingsOther"/> values (each counted once however often it recurs), exact up to <c>limits.nullSpellings.maxDistinctOther</c> (64); 0 when <paramref name="NullSpellingsOther"/> is 0.</param>
-/// <param name="NullSpellingsOtherDistinctCapped">True when more than that many distinct spellings were seen, so <paramref name="NullSpellingsOtherDistinct"/> is a lower bound.</param>
-public sealed record FieldProfile(
-    long Index,
-    string? Name,
-    NameParts? NameParts,
-    string? Type,
-    DominantType? Dominant,
-    CountMap? TypeVotes,
-    long? Count,
-    long? Nulls,
-    long? NullsExcludingAllNullRows,
-    CountMap? NullTokens,
-    FieldFlags? Flags,
-    DistinctInfo? Distinct,
-    LengthStats? Length,
-    IReadOnlyList<Shape>? Shapes,
-    string? Monotonic,
-    bool? Constant,
-    bool? Unique,
-    string? NameHex = null,
-    CountMap? Patterns = null,
-    [property: ValueBearing] NumericStats? Numeric = null,
-    [property: ValueBearing] TemporalStats? Temporal = null,
-    string? StatsWithheld = null,
-    [property: ValueBearing] string? Unit = null,
-    [property: ValueBearing] TopValues? Top = null,
-    [property: ValueBearing] TextStats? Text = null,
-    string? RawName = null,
-    CountMap? NullSpellings = null,
-    long NullSpellingsOther = 0,
-    long NullSpellingsOtherDistinct = 0,
-    bool NullSpellingsOtherDistinctCapped = false)
+public sealed record FieldProfile
 {
+    /// <summary>Column index.</summary>
+    public required long Index { get; init; }
+
+    /// <summary>The header name, trimmed; null when the table has no header.</summary>
+    public required string? Name { get; init; }
+
+    /// <summary>Name split into base and unit; null when the table has no header.</summary>
+    public required NameParts? NameParts { get; init; }
+
+    /// <summary>The field type; null only in a layout-only profile.</summary>
+    public required string? Type { get; init; }
+
+    /// <summary>The dominant vote; null only in a layout-only profile.</summary>
+    public required DominantType? Dominant { get; init; }
+
+    /// <summary>Type votes; null only in a layout-only profile.</summary>
+    public required CountMap? TypeVotes { get; init; }
+
+    /// <summary>Non-null plus null values; null only in a layout-only profile.</summary>
+    public required long? Count { get; init; }
+
+    /// <summary>Null values; null only in a layout-only profile.</summary>
+    public required long? Nulls { get; init; }
+
+    /// <summary>Null values outside all-null rows; null only in a layout-only profile.</summary>
+    public required long? NullsExcludingAllNullRows { get; init; }
+
+    /// <summary>Null-token counts; null until the field accumulators fill it (sq-05).</summary>
+    public required CountMap? NullTokens { get; init; }
+
+    /// <summary>Value-shape flags; null until sq-05.</summary>
+    public required FieldFlags? Flags { get; init; }
+
+    /// <summary>Distinct count; null until sq-05.</summary>
+    public required DistinctInfo? Distinct { get; init; }
+
+    /// <summary>Length statistics, or null for an all-null field.</summary>
+    public required LengthStats? Length { get; init; }
+
+    /// <summary>Shape masks; the caller sorts by count descending, then mask (ordinal). Null until sq-05.</summary>
+    public required IReadOnlyList<Shape>? Shapes { get; init; }
+
+    /// <summary><c>increasing</c>, <c>decreasing</c>, <c>nonDecreasing</c>, <c>nonIncreasing</c>, <c>none</c>, or null.</summary>
+    public required string? Monotonic { get; init; }
+
+    /// <summary>True when every non-null value is equal; null until sq-05.</summary>
+    public required bool? Constant { get; init; }
+
+    /// <summary>True when every non-null value is distinct; null until sq-05.</summary>
+    public required bool? Unique { get; init; }
+
+    /// <summary>Hex of the original name bytes; present only when the name contains U+FFFD.</summary>
+    public string? NameHex { get; init; }
+
+    /// <summary>Counts of matched date and time patterns.</summary>
+    public CountMap? Patterns { get; init; }
+
+    /// <summary>Numeric statistics.</summary>
+    [ValueBearing]
+    public NumericStats? Numeric { get; init; }
+
+    /// <summary>Temporal statistics.</summary>
+    [ValueBearing]
+    public TemporalStats? Temporal { get; init; }
+
+    /// <summary><c>constant</c> when statistics are withheld.</summary>
+    public string? StatsWithheld { get; init; }
+
+    /// <summary>The unit from a units row. Values tier.</summary>
+    [ValueBearing]
+    public string? Unit { get; init; }
+
+    /// <summary>Most common values. Values tier.</summary>
+    [ValueBearing]
+    public TopValues? Top { get; init; }
+
+    /// <summary>Lexical minimum and maximum. Values tier.</summary>
+    [ValueBearing]
+    public TextStats? Text { get; init; }
+
+    /// <summary>The header text as in the file: quotes removed per the dialect, nothing else changed (spaces kept); null when the table has no header. Written right after <c>name</c>.</summary>
+    public string? RawName { get; init; }
+
+    /// <summary>The null values by exact spelling (the field text after dialect unquoting, not trimmed), over all data records, all-null records included; null reads as no entries.</summary>
+    public CountMap? NullSpellings { get; init; }
+
+    /// <summary>Null values whose spelling is not in <see cref="NullSpellings"/> because the field already kept 64 spellings, or the spelling is longer than 256 characters.</summary>
+    public long NullSpellingsOther { get; init; }
+
+    /// <summary>The number of distinct spellings among the <see cref="NullSpellingsOther"/> values (each counted once however often it recurs), exact up to <c>limits.nullSpellings.maxDistinctOther</c> (64); 0 when <see cref="NullSpellingsOther"/> is 0.</summary>
+    public long NullSpellingsOtherDistinct { get; init; }
+
+    /// <summary>True when more than that many distinct spellings were seen, so <see cref="NullSpellingsOtherDistinct"/> is a lower bound.</summary>
+    public bool NullSpellingsOtherDistinctCapped { get; init; }
+
     /// <inheritdoc />
     public bool Equals(FieldProfile? other)
     {

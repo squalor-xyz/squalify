@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 57,
+  "next_id": 60,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -4745,7 +4745,7 @@
       "id": "sq-49",
       "title": "Non-positional options before 1.0.0",
       "short_title": "Options shape",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -4756,6 +4756,20 @@
           "created_at": "2026-10-30T15:57:03Z",
           "attempt": 0,
           "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        },
+        {
+          "id": "154fe95e-de73-4f62-a591-c0427122b5f4",
+          "kind": "",
+          "text": "**2026-10-30** — Owner answer (2026-10-30), verbatim: Other records \"State it in the guide: constructors/Deconstruct are outside the promise (Recommended)\" (option text: \"Guarantees and stability says model-record constructors and Deconstruct are not covered by the compatibility promise; reading members is stable; ProfileOptions.Create and FieldProfile by name are the stable construction paths. Written in sq-54 docs pass, no extra slice.\"). Architect A1. Not part of sq-49 code or docs; filed in sq-54.",
+          "created_at": "2026-10-30T17:31:46Z",
+          "attempt": 1,
+          "by": "Jon R",
           "verified_by": "",
           "verified_at": "",
           "stale_after": "",
@@ -4783,7 +4797,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -4954,7 +4968,22 @@
         "sq-12",
         "sq-52"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "3f1ffbba-ea90-4e69-aa38-1399bf017013",
+          "kind": "",
+          "text": "**2026-10-30** — From sq-49 gate (later): docs/user-guide.md line ~97 has a grammar slip, \"Setting a long into these members still compiles (a long converts to long?), but reading is not:\" should read \"but reading does not:\". Fix it in this slice docs pass.",
+          "created_at": "2026-10-30T17:48:01Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -5028,6 +5057,96 @@
         "parent": "",
         "cites": [],
         "key": "later.docs-test-duplicate-nochange",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-57",
+      "title": "Hash-inequality asserts in NonPositionalRecordsTests can collide",
+      "short_title": "Hash-inequality collisions",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-49 review R2",
+        "discovered_from": "sq-49",
+        "parent": "",
+        "cites": [],
+        "key": "later.hash-inequality-collide",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-58",
+      "title": "Normalize or reject an unsorted or null ProfileOptions.IncludeValuesFor",
+      "short_title": "IncludeValuesFor normalisation",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-49 architect A4",
+        "discovered_from": "sq-49",
+        "parent": "",
+        "cites": [],
+        "key": "later.includevaluesfor-initializer",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-59",
+      "title": "Note required-member compiler support for library consumers",
+      "short_title": "Required-member compiler note",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-49 architect A5",
+        "discovered_from": "sq-49",
+        "parent": "",
+        "cites": [],
+        "key": "later.required-compiler-support",
         "pass": "v1.x",
         "group": "",
         "reason": "",

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using squalor.squalify;
 
@@ -295,5 +296,88 @@ public sealed class ApiSurfaceTests : IDisposable
     public void Profile_NameWithoutASeparator_IsAccepted_AndTheNameRuleIsUnchanged()
     {
         Assert.Equal("my file (1).txt", Profiler.Profile(new BytesSource("my file (1).txt", TestBytes.Ascii("x\n")), Options()).File.Name);
+    }
+
+    // Non-positional records (sq-49): ProfileOptions and FieldProfile are built by name, so a new member is not a constructor change.
+
+    public static TheoryData<Type> NonPositionalRecords => new() { typeof(ProfileOptions), typeof(FieldProfile) };
+
+    private static PropertyInfo[] ModelProperties(Type type)
+    {
+        // A record's synthesized EqualityContract is protected, so the public instance properties are the model members.
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).OrderBy(static p => p.Name, StringComparer.Ordinal).ToArray();
+    }
+
+    [Theory]
+    [MemberData(nameof(NonPositionalRecords))]
+    public void NonPositionalRecord_HasNoPositionalConstructor(Type type)
+    {
+        // The only public constructor takes nothing, so no member is a constructor parameter and adding a member
+        // changes no constructor signature (the sq-41 style pin of the parameter set).
+        var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+        var only = Assert.Single(constructors);
+        Assert.Empty(only.GetParameters());
+    }
+
+    [Theory]
+    [MemberData(nameof(NonPositionalRecords))]
+    public void NonPositionalRecord_HasNoDeconstruct(Type type)
+    {
+        Assert.DoesNotContain(type.GetMethods(BindingFlags.Public | BindingFlags.Instance), static m => m.Name == "Deconstruct");
+    }
+
+    [Theory]
+    [MemberData(nameof(NonPositionalRecords))]
+    public void NonPositionalRecord_EveryMemberIsInitOnly(Type type)
+    {
+        foreach (var property in ModelProperties(type))
+        {
+            Assert.NotNull(property.GetMethod);
+            Assert.True(property.SetMethod is not null, $"{type.Name}.{property.Name} has no init accessor.");
+            var modifiers = property.SetMethod.ReturnParameter.GetRequiredCustomModifiers();
+            Assert.True(modifiers.Contains(typeof(IsExternalInit)), $"{type.Name}.{property.Name} is settable after construction.");
+        }
+    }
+
+    [Fact]
+    public void ProfileOptions_RequiredAndOptionalMembers_ArePinned()
+    {
+        AssertRequired(typeof(ProfileOptions), ["IncludeValues", "IncludeValuesFor"], ["LayoutOnly", "MaxBytes", "MaxFirstRecordBytes"]);
+    }
+
+    [Fact]
+    public void FieldProfile_RequiredAndOptionalMembers_ArePinned()
+    {
+        AssertRequired(
+            typeof(FieldProfile),
+            [
+                "Constant", "Count", "Distinct", "Dominant", "Flags", "Index", "Length", "Monotonic", "Name", "NameParts",
+                "NullTokens", "Nulls", "NullsExcludingAllNullRows", "Shapes", "Type", "TypeVotes", "Unique",
+            ],
+            [
+                "NameHex", "NullSpellings", "NullSpellingsOther", "NullSpellingsOtherDistinct", "NullSpellingsOtherDistinctCapped",
+                "Numeric", "Patterns", "RawName", "StatsWithheld", "Temporal", "Text", "Top", "Unit",
+            ]);
+    }
+
+    private static void AssertRequired(Type type, string[] required, string[] optional)
+    {
+        // A member added later is optional (its default is the absent value), so a consumer's `new` keeps compiling:
+        // adding a required member, or any member, must be a deliberate edit of this pin.
+        var properties = ModelProperties(type);
+        Assert.Equal(required, properties.Where(static p => p.GetCustomAttribute<RequiredMemberAttribute>() is not null).Select(static p => p.Name).ToArray());
+        Assert.Equal(optional, properties.Where(static p => p.GetCustomAttribute<RequiredMemberAttribute>() is null).Select(static p => p.Name).ToArray());
+    }
+
+    [Fact]
+    public void ProfileOptions_Create_KeepsItsParameters()
+    {
+        var create = typeof(ProfileOptions).GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
+        Assert.NotNull(create);
+        Assert.Equal(typeof(ProfileOptions), create.ReturnType);
+        var parameters = create.GetParameters();
+        Assert.Equal(new[] { "includeValues", "includeValuesFor", "maxBytes", "maxFirstRecordBytes", "layoutOnly" }, parameters.Select(static p => p.Name!).ToArray());
+        Assert.Equal([typeof(bool), typeof(IEnumerable<string>), typeof(long?), typeof(long?), typeof(bool)], parameters.Select(static p => p.ParameterType).ToArray());
+        Assert.Equal([false, false, true, true, true], parameters.Select(static p => p.IsOptional).ToArray());
     }
 }
