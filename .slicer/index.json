@@ -2,7 +2,7 @@
   "version": 10,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 49,
+  "next_id": 51,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -2118,7 +2118,8 @@
         "sq-42",
         "sq-43",
         "sq-46",
-        "sq-47"
+        "sq-47",
+        "sq-49"
       ],
       "note_records": [
         {
@@ -2302,6 +2303,17 @@
           "kind": "",
           "text": "**2026-10-29** — Inputs for this slice from the landed slices (later items filed on them; read them with slicer show): sq-38 (limits.sketches always written: required in the schema), sq-39 (no descriptor member; ProfileOptions.MaxFirstRecordBytes is not written), sq-40 (A9: the versioning policy should name the cut rule and the window sniff: a change that moves scope.bytesRead is a change of meaning), sq-41 (value equality, internal defaults), sq-42 and sq-43 (limits.nullSpellings { max, maxChars, maxDistinctOther } always written; fields nullSpellingsOtherDistinct optional integer minimum 1 and nullSpellingsOtherDistinctCapped optional const true; rowClasses allNullRowSpellingsOtherDistinct required integer minimum 0 and allNullRowSpellingsOtherDistinctCapped optional const true; the subset has no dependentRequired, so the cross-member rules (Distinct present exactly when Other is; Distinct <= Other; Capped implies Distinct == maxDistinctOther) go to the validator and the docs, and the schema must not pin maximum or const 64; the writer model should gain a spilling field and a capped rowClasses; mark the spelling-hash description informative).",
           "created_at": "2026-10-29T21:36:39Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "19d3ca71-8e03-4cae-81aa-ef61584c2572",
+          "kind": "",
+          "text": "**2026-10-30** — From the sq-47 architect (2026-10-30), obstacles the sq-12 branch (based on caf2973, before sq-46 and sq-47) will hit: (1) DocumentedMembers asserts 'path documented twice' on the new key-order row for table.fields[] of a layout-only profile (descriptor.md); fold it into the existing table.fields[] row or give it a distinct pseudo-path the walker also produces. (2) SchemaWalker.Walk overwrites found[path] with the last oneOf alternative; it must union alternatives or key them separately; SchemaWalker.At does not follow oneOf. (3) DescriptorInvariants.CheckField throws KeyNotFoundException on a layout-only descriptor (reads count, nulls, nullsExcludingAllNullRows); skip fields when layoutOnly and add the correlation rule (layoutOnly iff hints null iff typed null iff every field bare; no type-stage evidence) there, not in a root oneOf. (4) A oneOf for fields.items (field vs layoutOnlyField) makes the validator report 'matches none of 2 alternatives'; report the errors of the alternative whose required set matched, and revisit SchemaMutationTests pointers. (5) No layout-only golden exists; AllGoldens_ValidateAgainstSchema never exercises the shape; add one. (6) The long versioning paragraph at descriptor.md will conflict on rebase; sq-12's changelog replaces it; sq-46 members (8 region names closed set, encoding.invalidBytesTolerated const true) and sq-47 members (optional layoutOnly const true, hints [object,null], fingerprint.typed [string,null] with the pattern) postdate the branch. (7) After the freeze, nulling an always-present member behind an opt-in marker is a type change under the stated policy; the normative policy must say whether sq-47 is a precedent.",
+          "created_at": "2026-10-30T15:49:40Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -3959,7 +3971,19 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "e3ba5082-8393-4a29-aed8-f5219535ab97",
+          "kind": "",
+          "text": "**2026-10-30** — Owner decisions 2026-10-30: Cheaper shortfall: \"Accept, amend the spec, file a follow-up (Recommended)\" (filed sq-50). IncludeValues: \"Keep layout values (Recommended)\". Nullable FieldProfile/Hints/Typed members: \"Accept, document the hazard (Recommended)\". Options shape: \"File it for v1.0.0 (Recommended)\" (filed sq-49; sq-12 now waits on it). Review: reviewer ACCEPT WITH FIXES, architect SHAPE OK WITH FIXES (docs honesty, ValueClassifier TryNullEntry single source, deny-list equality test, how-it-works writer sentence). Fix round sent to the implementer.",
+          "created_at": "2026-10-30T15:57:03Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -4028,6 +4052,80 @@
         "importance": 2,
         "urgency": 2,
         "effort": null,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-49",
+      "title": "Non-positional options before 1.0.0",
+      "short_title": "Options shape",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "a0c99f6f-959c-49ab-b960-b14d5a810a42",
+          "kind": "",
+          "text": "**2026-10-30** — Owner on sq-47 architect note A8: \"File it for v1.0.0 (Recommended)\". Which records besides ProfileOptions (FieldProfile, Issue, EncodingSection, Limits) become non-positional is still to be asked at spec time (Implement step 1). Candidate for prism: it reads FieldProfile members.",
+          "created_at": "2026-10-30T15:57:03Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-47",
+        "parent": "",
+        "cites": [],
+        "key": "options-non-positional",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-50",
+      "title": "Cheaper layout-only for wide padded files",
+      "short_title": "Cheaper layout-only",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [
+        "sq-47"
+      ],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-47",
+        "parent": "",
+        "cites": [],
+        "key": "layout-only-cheaper",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 2,
         "attempts": 0
       }
     }
