@@ -571,3 +571,4 @@
 {"when": "2026-10-30T14:33:20Z", "item": "sq-48", "action": "note", "from": "", "to": "", "note": "Gate round 2: PASS (3dd0d88). R1 and R3/R4/G7 fixes verified", "by": "Jon Robbins"}
 {"when": "2026-10-30T14:33:21Z", "item": "sq-48", "action": "status", "from": "open", "to": "done", "note": "", "by": "Jon Robbins"}
 {"when": "2026-10-30T14:23:57Z", "item": "sq-48", "action": "note", "from": "", "to": "", "note": "Gate round 1: FAIL on R1 (a new test set SQUALIFY_UPDATE_GOL", "by": "Jon Robbins"}
+{"when": "2026-10-30T14:38:06Z", "item": "sq-46", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-30: firstLines: \"Parallel, one line ", "by": "Jon Robbins"}

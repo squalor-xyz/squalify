@@ -3908,7 +3908,19 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "f7f6f201-0390-4b4f-8e85-c9dbcbb0357b",
+          "kind": "",
+          "text": "**2026-10-30** — Owner decisions 2026-10-30: firstLines: \"Parallel, one line per offset (Recommended)\". Region names: \"Closed set of those 8 names (Recommended)\" (preamble, annotation, header, units, data, footer, unknown, other; the sq-12 schema enumerates them). invalidUnicode: \"Keep, same shape as invalidUtf8 (Recommended)\". Gate: PASS (f32b062). Fixed by the orchestrator before landing: user-guide wording (deconstruction is a source break), design.md rule 7 wording, how-it-works diagram edge label (latin-1 never gets a location). Later: R2 the widened byte-pass diagram text is very small in the PDF (3 to 4 pt), consider TD layout or split; R5 surviving mutants are equivalent or hash-only (Regions out of Issue.GetHashCode survives). For sq-12: schema must carry issues[].regions (enum of the 8 names, same length as offsets) and encoding.invalidBytesTolerated (const true).",
+          "created_at": "2026-10-30T14:38:06Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
