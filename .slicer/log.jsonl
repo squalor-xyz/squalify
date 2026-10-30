@@ -629,3 +629,5 @@
 {"when": "2026-10-30T17:48:01Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "From sq-49 gate (later): docs/user-guide.md line ~97 has a g", "by": "Jon R"}
 {"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
 {"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-30T17:48:48Z", "item": "sq-12", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
+{"when": "2026-10-30T19:49:44Z", "item": "sq-12", "action": "note", "from": "", "to": "", "note": "Owner answers (2026-10-30), verbatim: kind ruleId \"Freeze K0", "by": "Jon R"}

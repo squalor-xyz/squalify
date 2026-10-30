@@ -75,16 +75,16 @@ internal static class TestModels
             RawName = "Frequency(MHz)",
             NameParts = new NameParts("Frequency", "MHz", "nameParenUnit"),
             Type = "float",
-            Dominant = new DominantType("float", 0.9998),
-            TypeVotes = CountMap.FromOrdinal([new("int", 2), new("float", 9998)]),
+            Dominant = new DominantType("float", 9895.0 / 9897.0),
+            TypeVotes = CountMap.FromOrdinal([new("int", 2), new("float", 9895)]),
             Count = 10000,
-            Nulls = 3,
-            NullsExcludingAllNullRows = 2,
-            NullTokens = CountMap.FromOrdinal([new("NA", 2), new("-", 1)]),
+            Nulls = 103,
+            NullsExcludingAllNullRows = 3,
+            NullTokens = CountMap.FromOrdinal([new("", 70), new("-", 1), new("NA", 7), new("null", 25)]),
             Flags = new FieldFlags(0, 1, 4),
             Distinct = new DistinctInfo(81, false),
             Length = new LengthStats(3, 6, 5.2),
-            Shapes = [new Shape("9{4}", 9120), new Shape("9{3}", 880), new Shape("other", 0)],
+            Shapes = [new Shape("9{4}", 9120), new Shape("9{3}", 777), new Shape("other", 0)],
             Monotonic = "nonDecreasing",
             Constant = false,
             Unique = false,
@@ -104,7 +104,7 @@ internal static class TestModels
                     DescriptorNumber.Real(2700.5)),
                 false),
             Unit = "MHz",
-            NullSpellings = CountMap.FromOrdinal([new("NA", 2), new("-", 1)]),
+            NullSpellings = CountMap.FromOrdinal([new("", 70), new("-", 1), new("NA", 7), new("NULL", 25)]),
             NullSpellingsOther = 0,
         };
 
@@ -116,15 +116,15 @@ internal static class TestModels
             NameParts = new NameParts("Start", null, "none"),
             Type = "datetime",
             Dominant = new DominantType("datetime", 1.0),
-            TypeVotes = CountMap.FromOrdinal([new("datetime", 10000)]),
+            TypeVotes = CountMap.FromOrdinal([new("datetime", 9900)]),
             Count = 10000,
-            Nulls = 0,
+            Nulls = 100,
             NullsExcludingAllNullRows = 0,
-            NullTokens = CountMap.Empty,
+            NullTokens = AllNullRowTokens(),
             Flags = new FieldFlags(0, 0, 0),
-            Distinct = new DistinctInfo(5000, true, 0.0081),
+            Distinct = new DistinctInfo(5000, true, 0.008125),
             Length = new LengthStats(19, 19, 19),
-            Shapes = [new Shape("9{4}-9{2}-9{2}T9{2}:9{2}:9{2}", 10000)],
+            Shapes = [new Shape("9{4}-9{2}-9{2}T9{2}:9{2}:9{2}", 9900)],
             Monotonic = "increasing",
             Constant = false,
             Unique = true,
@@ -143,6 +143,12 @@ internal static class TestModels
                     "2026-01-02T02:23:19",
                     "2026-01-02T03:46:39"),
                 false),
+
+            // 30 values of kept spellings, and 70 values of dropped ones: more than 64 different ones were seen, so the count is capped.
+            NullSpellings = AllNullRowSpellingsKept(),
+            NullSpellingsOther = 70,
+            NullSpellingsOtherDistinct = 64,
+            NullSpellingsOtherDistinctCapped = true,
         };
 
         var f2 = new FieldProfile
@@ -153,22 +159,25 @@ internal static class TestModels
             NameParts = new NameParts("Lot�", null, "none"),
             Type = "string",
             Dominant = new DominantType("string", 1.0),
-            TypeVotes = CountMap.FromOrdinal([new("string", 10000)]),
+            TypeVotes = CountMap.FromOrdinal([new("string", 9900)]),
             Count = 10000,
-            Nulls = 0,
+            Nulls = 100,
             NullsExcludingAllNullRows = 0,
-            NullTokens = CountMap.Empty,
+            NullTokens = AllNullRowTokens(),
             Flags = new FieldFlags(0, 0, 0),
             Distinct = new DistinctInfo(9_987, true, 0.008125),
             Length = new LengthStats(4, 4, 4),
-            Shapes = [new Shape("A{3}9", 10000)],
+            Shapes = [new Shape("A{3}9", 9900)],
             Monotonic = "none",
             Constant = true,
             Unique = false,
             NameHex = "4c6f74ff",
             StatsWithheld = "constant",
-            Top = new TopValues([new TopValue("ABC1", 9990), new TopValue("ABC2", 10)], true, 3),
+            Top = new TopValues([new TopValue("ABC1", 9890), new TopValue("ABC2", 10)], true, 3),
             Text = new TextStats("ABC1", "ABC2"),
+            NullSpellings = AllNullRowSpellingsKept(),
+            NullSpellingsOther = 70,
+            NullSpellingsOtherDistinct = 1,
         };
 
         var f3 = new FieldProfile
@@ -179,32 +188,35 @@ internal static class TestModels
             NameParts = new NameParts("Date", null, "none"),
             Type = "date",
             Dominant = new DominantType("date", 1.0),
-            TypeVotes = CountMap.FromOrdinal([new("date", 10000)]),
+            TypeVotes = CountMap.FromOrdinal([new("date", 9900)]),
             Count = 10000,
-            Nulls = 0,
+            Nulls = 100,
             NullsExcludingAllNullRows = 0,
-            NullTokens = CountMap.Empty,
+            NullTokens = AllNullRowTokens(),
             Flags = new FieldFlags(0, 0, 0),
             Distinct = new DistinctInfo(30, false),
             Length = null,
-            Shapes = [new Shape("9/9/9{4}", 10000)],
+            Shapes = [new Shape("9/9/9{4}", 9900)],
             Monotonic = null,
             Constant = false,
             Unique = false,
             Temporal = new TemporalStats(["DMY", "MDY"], true, null, null, null, null),
+            NullSpellings = AllNullRowSpellingsKept(),
+            NullSpellingsOther = 70,
+            NullSpellingsOtherDistinct = 3,
         };
 
         return new Descriptor(
             Tool: new ToolSection("squalify", "0.1.0"),
             Options: ProfileOptions.Create(true, ["Program", "Lot"]),
             Limits: StandardLimits(),
-            File: new FileSection("lot42_sweep.csv", 10212, Sha256Empty),
+            File: new FileSection("lot42_sweep.csv", 10212, Sha256Hex("lot42_sweep.csv")),
             Encoding: new EncodingSection("text", "utf-8", "utf-8", new LineEndings(0, 10010, 0), 1, 0, true),
             Format: new FormatSection(
                 "delimited",
                 new DelimitedDialect(",", "\"", true, false, ".", new PaddingInfo(true, 0.125, true, 118), 2),
                 0.95),
-            Kind: new KindLabel("labSweepTable", "K05", 0.8),
+            Kind: new KindLabel("text", "K09", 1.0),
             Layout: new LayoutSection(
                 [
                     new Region(
@@ -237,25 +249,26 @@ internal static class TestModels
                     new Region("header", 9, 9, 655, 700),
                     new Region("block", 10, 12, 700, 760, Index: 1, Regions: [new Region("header", 10, 10, 700, 730), new Region("data", 11, 12, 730, 760)]),
                 ],
-                new HeaderConventionInfo("nameParenUnit", 0.769, CountMap.FromOrdinal([new("none", 3), new("nameParenUnit", 10)])),
+                new HeaderConventionInfo("none", 0.75, CountMap.FromOrdinal([new("none", 3), new("nameParenUnit", 1)])),
                 118),
-            Fingerprint: new Fingerprint(1, "sha256:aa", "sha256:bb", "sha256:cc", "sha256:dd"),
+            Fingerprint: new Fingerprint(2, Hash("structure"), Hash("layout"), Hash("typed"), Hash("names")),
             Hints: new Hints(
                 ".csv",
                 null,
                 [new StableLine(0, "^\\s*Lot\\s*[=:]")],
-                ["Frequency(MHz)", "Start"],
-                ["Frequency(MHz)"],
-                [0, 1],
+                ["Frequency(MHz)", "Start", "Lot\uFFFD", "Date"],
+                ["Frequency(MHz)", "Start", "Lot\uFFFD", "Date"],
+                [1, 2, 3],
                 new MinMax(4, 4),
                 9,
                 ",",
-                "nameParenUnit",
+                "none",
                 null,
-                "a{3}9{2}.a{3}"),
+                ShapeMask.Of("lot42_sweep.csv")),
             Issues:
             [
                 new Issue("commentInData", 2, FirstLines: [5, 9]),
+                new Issue("includeValuesForUnmatched", 1, Names: ["Program"]),
                 new Issue("invalidUtf8", 1, FirstLines: [3], Offsets: [100], Regions: ["preamble"]),
             ],
             Evidence:
@@ -272,15 +285,48 @@ internal static class TestModels
                 new MinMax(4, 4),
                 [f0, f1, f2, f3],
                 new RowClassesInfo(
-                    2,
-                    4,
-                    1,
+                    3,
+                    250,
+                    100,
                     0,
                     [
-                        new RowClass("rc:3f9a", 900, [new FieldRange(0, 3)], 3, 1002),
-                        new RowClass("rc:7b01", 99, [new FieldRange(0, 0), new FieldRange(2, 3)], 4, 1001),
+                        new RowClass(RowClassId("0,1,2,3"), 9000, [new FieldRange(0, 3)], 11, 10010),
+                        new RowClass(RowClassId("0,2,3"), 900, [new FieldRange(0, 0), new FieldRange(2, 3)], 12, 10009),
+                        new RowClass(RowClassId(string.Empty), 100, [], 13, 10008),
                     ],
-                    AllNullRowSpellings: CountMap.FromOrdinal([new("NULL", 1)]))));
+
+                    // 28 all-null rows of one kept spelling, 2 of mixed spellings and 70 of dropped ones; more than 64 different dropped spellings were seen.
+                    AllNullRowSpellings: CountMap.FromOrdinal([new("NA", 4), new("NULL", 24)]),
+                    AllNullRowSpellingsMixed: 2,
+                    AllNullRowSpellingsOther: 70,
+                    AllNullRowSpellingsOtherDistinct: 64,
+                    AllNullRowSpellingsOtherDistinctCapped: true)));
+    }
+
+    // The null tokens and the kept spellings that the 100 all-null rows of the delimited model give every field.
+    private static CountMap AllNullRowTokens()
+    {
+        return CountMap.FromOrdinal([new("", 70), new("NA", 5), new("null", 25)]);
+    }
+
+    private static CountMap AllNullRowSpellingsKept()
+    {
+        return CountMap.FromOrdinal([new("NA", 5), new("NULL", 25)]);
+    }
+
+    private static string RowClassId(string fieldList)
+    {
+        return "rc:" + XxHash64.HashString(fieldList).ToString("x16", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static string Sha256Hex(string text)
+    {
+        return Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.ASCII.GetBytes(text)));
+    }
+
+    private static string Hash(string text)
+    {
+        return "sha256:" + Sha256Hex(text);
     }
 
     /// <summary>A fully populated non-tabular descriptor: sections, binary and STDF profiles, hints, offsets.</summary>

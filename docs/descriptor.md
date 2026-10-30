@@ -20,35 +20,53 @@ From sq-02 the writer produces these bytes. For the same input, options and squa
 
 ### Key order of nested objects
 
+Every object of the descriptor has a row here, or is listed inside the row of its parent as a name followed by its members in parentheses; the test `Schema_PropertiesMatchTheDocumentedMembers` compares these rows and the table under [Top level](#top-level) with `schema/descriptor-v1.schema.json`. A member or object that says *planned* is documented and not produced by this version: it is not in the schema (it is added in a 1.x minor release).
+
 | Object | Keys, in order |
 |---|---|
+| `tool` | `name`, `version` |
+| `options` | `includeValues`, `includeValuesFor` |
 | `limits` | `distinctPerField`, `quantilePerField`, `shapesPerField`, `shapeCharsPerField`, `regions`, `headerSample`, `runawayQuote`, `fieldCountRuns`, `rowClasses`, `charsetTolerance` (`invalidSequences`, `perBytes`), `stdfTests`, `budget` (`quantileValues`, `distinctValues`, `shapeChars`), `sketches` (always; sq-38), `nullSpellings` (always; sq-42), `nullTokens`, `unitTable` |
 | `limits.sketches` | `hllPrecision`, `rankError`, `budgetBytes` |
 | `limits.nullSpellings` | `max`, `maxChars`, `maxDistinctOther` |
+| `file` | `name`, `size`, `sha256` (omitted when only a prefix was read) |
+| `scope` | `maxBytes`, `bytesRead`, `complete` |
+| `encoding` | `kind`, `charset`, `bom`, `lineEndings` (`crlf`, `lf`, `cr`), `invalidBytes`, `invalidBytesTolerated` (only when true; sq-46), `controlBytes` |
+| `format` | `family`, `dialect`, `score` |
+| `format.dialect` (delimited) | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `decimalSeparator`, `padding` (`trim`, `paddedShare`, `constantLineLength`, `lineLength`), `blocks` |
+| `kind` | `label`, `ruleId`, `confidence` |
 | `layout` | `regions`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
+| `layout.headerConvention` | `dominant`, `share`, `counts` |
 | `layout.regions[]` | `kind`, `index` (block), `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation), `regions` (block: the child regions) |
+| `layout.regions[].regions[]` | `kind`, `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation) |
 | `layout.regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
-| `table` | `rows`, `fieldCount`, `rowClasses`, `fields` |
-| `table.rowClasses` | `count`, `transitions`, `allNullRows`, `allNullRowSpellings`, `allNullRowSpellingsMixed`, `allNullRowSpellingsOther`, `allNullRowSpellingsOtherDistinct` (always; sq-43), `allNullRowSpellingsOtherDistinctCapped` (only when true; sq-43), `truncated`, `classes` |
+| `layout.regions[].regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
+| `table` | `rows`, `fieldCount` (`min`, `max`), `rowClasses`, `fields` |
+| `table.rowClasses` | `count`, `transitions`, `allNullRows`, `allNullRowSpellings`, `allNullRowSpellingsMixed`, `allNullRowSpellingsOther`, `allNullRowSpellingsOtherDistinct` (always; sq-43), `allNullRowSpellingsOtherDistinctCapped` (only when true; sq-43), `truncated`, `classes` (`id`, `count`, `fields`, `firstLine`, `lastLine`) |
 | `table.fields[]` of a layout-only profile (sq-47) | `index`, `name`, `rawName`, `nameHex` (only when the name contains U+FFFD), `nameParts`; nothing else (see [Layout-only profile](#layout-only-profile)) |
 | `table.fields[]` | `index`, `name`, `rawName`, `nameHex` (only when the name contains U+FFFD), `nameParts`, `type`, `dominant`, `typeVotes`, `patterns`, `count`, `nulls`, `nullsExcludingAllNullRows`, `nullTokens`, `nullSpellings` (left out when empty), `nullSpellingsOther` (left out when 0), `nullSpellingsOtherDistinct` (left out when 0; sq-43), `nullSpellingsOtherDistinctCapped` (only when true; sq-43), `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `unit`, `top`, `text`; a member that is null is left out, except `name`, `rawName`, `nameParts`, `nullTokens`, `constant` and `statsWithheld` (see Optional versus null), and `flags` is left out when all its counts are 0 |
+| `fields[].dominant` | `type`, `share` |
+| `fields[].flags` | `leadingZero`, `commaDecimalLike`, `padded` |
+| `fields[].length` | `min`, `max`, `mean` |
+| `fields[].shapes[]` | `mask`, `count` |
+| `fields[].text` | `min`, `max` |
 | `fields[].nameParts` | `base`, `unit` (null when none), `convention`, `unknownUnit` |
 | `fields[].distinct` | `value`, `approximate` (only when true), then `relativeStdError` (only when approximate) |
 | `fields[].numeric` | `min`, `max`, `mean`, `stddev` (absent for fewer than two values), `quantiles` (`p01`, `p05`, `p25`, `p50`, `p75`, `p95`, `p99`), `approximate` (only when true), then `rankError` (only when approximate) |
-| `fields[].temporal` | `orders`, `ambiguous`, `clock`, `min`, `max`, `quantiles` (same keys as numeric), `approximate` (only when true), then `rankError` (only when approximate); `clock`, `min`, `max` and `quantiles` are absent when they are null (all of `min`, `max` and `quantiles` when ambiguous) |
-| `fields[].top` | `items` (`[{ value, count }]`), `approximate` (only when true), `maxError` (only when approximate) |
-| `sections[]` | `name`, `line`, `keys`, `values` (values tier) |
-| `binary` | `bytes` (`histogram`, `nul`, `printableAscii`, `high`, `entropy`), `blocks` (`count`, `min`, `max`, `mean`; sq-10), `segments` (sq-10) |
-| `stdf.records[]` | `name`, `typ`, `sub`, `count` |
-| `stdf.tests[]` | `testNum`, `kind`, `name`, `occurrences` |
-| `hints` | as in the example; every member is always written, `null` when it does not apply (`stableLines` is `[]`) |
+| `fields[].temporal` | `orders`, `ambiguous`, `clock`, `min`, `max`, `quantiles` (`p01`, `p05`, `p25`, `p50`, `p75`, `p95`, `p99`), `approximate` (only when true), then `rankError` (only when approximate); `clock`, `min`, `max` and `quantiles` are absent when they are null (all of `min`, `max` and `quantiles` when ambiguous) |
+| `fields[].top` | `items` (`value`, `count`), `approximate` (only when true), `maxError` (only when approximate) |
+| `sections[]` (planned) | `name`, `line`, `keys`, `values` (values tier) |
+| `binary` | `bytes` (`histogram`, `nul`, `printableAscii`, `high`, `entropy`), `blocks` (planned; sq-10: `count`, `min`, `max`, `mean`), `segments` (planned; sq-10) |
+| `stdf.records[]` (planned) | `name`, `typ`, `sub`, `count` |
+| `stdf.tests[]` (planned) | `testNum`, `kind`, `name`, `occurrences` |
+| `hints` | `extension`, `magic`, `stableLines`, `headerFields`, `headerPrefix`, `nonNullFields`, `fieldCount`, `dataStartLine`, `delimiter`, `headerConvention`, `stdf` (always `null` until sq-10), `fileNameShape`; every member is always written, `null` when it does not apply (`stableLines` is `[]`) |
 | `hints.magic` | `name`, `offset`, `hex` |
 | `hints.stableLines[]` | `line`, `regex` |
 | `hints.fieldCount` | `min`, `max` |
-| `hints.stdf` | `cpuType`, `version` |
-| `encoding` | `kind`, `charset`, `bom`, `lineEndings`, `invalidBytes`, `invalidBytesTolerated` (only when true; sq-46), `controlBytes` |
-| `issues[]` | `code`, `count`, then `firstLines` or `offsets` (one of them, when the issue has locations), then `names` (only `includeValuesForUnmatched`); the issues `invalidUtf8` and `invalidUnicode` (sq-46) write `firstLines`, `offsets` and `regions` together, in that order |
-| `evidence[]` | `stage`, `topic`, `chosen`, `candidates`; each candidate is `value`, `score`, `reason` |
+| `hints.stdf` (planned) | `cpuType`, `version` |
+| `fingerprint` | `version`, `structure`, `layout`, `typed` (null when `layoutOnly` is true), `names` |
+| `issues[]` | `code`, `count`, `firstLines` (or `offsets`: one of them, when the issue has locations), `offsets` (the issues `invalidUtf8` and `invalidUnicode` write `firstLines`, `offsets` and `regions` together, in that order), `regions` (only `invalidUtf8` and `invalidUnicode`; sq-46), `names` (only `includeValuesForUnmatched`) |
+| `evidence[]` | `stage`, `topic`, `chosen`, `candidates` (`value`, `score`, `reason`) |
 
 `encoding.charset` is `null` for files that are not text, and `encoding.bom` is the BOM name or `null`. See [`encoding`](#encoding).
 
@@ -68,9 +86,9 @@ From sq-02 the writer produces these bytes. For the same input, options and squa
 | `kind` | object | yes | `label`, `ruleId`, `confidence` (sq-15) |
 | `layout` | object | yes | `regions[]`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
 | `table` | object | when tabular | `rows`, `fieldCount {min, max}`, `rowClasses`, `fields[]` |
-| `sections` | array | keyValue | `[{ name, line, keys[] }]` |
+| `sections` | array | planned (keyValue) | `[{ name, line, keys[] }]` |
 | `binary` | object | when binary | `bytes {histogram[256], nul, printableAscii, high, entropy}`, `blocks {count, min, max, mean}` and `segments[16]` (both from sq-10; omitted until then) |
-| `stdf` | object | stdf | See below. |
+| `stdf` | object | planned (stdf) | See below. |
 | `fingerprint` | object | yes | `version`, `structure`, `layout`, `typed`, `names`; `typed` is `null` when `layoutOnly` is true |
 | `hints` | object | yes | Detect-rule hints; `null` when `layoutOnly` is true |
 | `issues` | array | yes | `[{ code, count, firstLines[], offsets[], regions[], names[] }]`, sorted by code; each entry has at most one of `firstLines`, `offsets` and `names`, except `invalidUtf8` and `invalidUnicode`, which have `firstLines`, `offsets` and `regions` together |

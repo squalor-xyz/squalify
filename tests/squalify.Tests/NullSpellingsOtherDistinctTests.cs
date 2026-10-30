@@ -499,7 +499,7 @@ public sealed class NullSpellingsOtherDistinctTests
         var rowZero = Rows(rows with { AllNullRowSpellingsOther = 0, AllNullRowSpellingsOtherDistinct = 0, AllNullRowSpellingsOtherDistinctCapped = false });
         Assert.Equal(["allNullRowSpellingsOther", "allNullRowSpellingsOtherDistinct"], Names(rowZero));
         Assert.Equal(0, rowZero.GetProperty("allNullRowSpellingsOtherDistinct").GetInt64());
-        var rowCounted = Rows(rows with { AllNullRowSpellingsOther = 9, AllNullRowSpellingsOtherDistinct = 4 });
+        var rowCounted = Rows(rows with { AllNullRowSpellingsOther = 9, AllNullRowSpellingsOtherDistinct = 4, AllNullRowSpellingsOtherDistinctCapped = false });
         Assert.Equal(4, rowCounted.GetProperty("allNullRowSpellingsOtherDistinct").GetInt64());
         Assert.False(rowCounted.TryGetProperty("allNullRowSpellingsOtherDistinctCapped", out _));
         var rowCapped = Rows(rows with { AllNullRowSpellingsOther = 900, AllNullRowSpellingsOtherDistinct = 64, AllNullRowSpellingsOtherDistinctCapped = true });

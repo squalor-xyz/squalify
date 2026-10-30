@@ -1,0 +1,635 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json",
+  "$defs": {
+    "count": { "type": "integer", "minimum": 0 },
+    "positive": { "type": "integer", "minimum": 1 },
+    "share": { "type": "number", "minimum": 0, "maximum": 1 },
+    "pair": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+    "stringOrNull": { "type": ["string", "null"] },
+    "hex": { "type": "string", "pattern": "^([0-9a-f]{2})+$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "double": { "type": ["number", "string"], "pattern": "^(NaN|Infinity|-Infinity)$" },
+    "valueType": { "enum": ["empty", "bool", "int", "float", "date", "datetime", "time", "string"] },
+    "convention": { "enum": ["nameParenUnit", "nameBracketUnit", "nameUnderscoreUnit", "unitsRow", "none"] },
+    "delimiter": { "enum": [",", "\t", ";", "|", "whitespace", "none"] },
+    "regionKind": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "block", "unknown"] },
+    "childRegionKind": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "unknown"] },
+    "issueRegion": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "unknown", "other"] },
+    "issueCode": {
+      "enum": [
+        "blocksTruncated", "commentInData", "duplicateHeader", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched", "invalidUnicode",
+        "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "raggedRows", "tooIrregular"
+      ]
+    },
+    "evidenceStage": { "enum": ["encoding", "format", "dialect", "header", "unit", "type"] },
+    "typeVotes": {
+      "type": "object",
+      "properties": {
+        "bool": { "$ref": "#/$defs/positive" },
+        "int": { "$ref": "#/$defs/positive" },
+        "float": { "$ref": "#/$defs/positive" },
+        "date": { "$ref": "#/$defs/positive" },
+        "datetime": { "$ref": "#/$defs/positive" },
+        "time": { "$ref": "#/$defs/positive" },
+        "string": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "nullTokens": {
+      "type": ["object", "null"],
+      "properties": {
+        "": { "$ref": "#/$defs/positive" },
+        "NA": { "$ref": "#/$defs/positive" },
+        "NA.": { "$ref": "#/$defs/positive" },
+        "N/A": { "$ref": "#/$defs/positive" },
+        "null": { "$ref": "#/$defs/positive" },
+        "NaN": { "$ref": "#/$defs/positive" },
+        "-": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "lineKinds": {
+      "type": "object",
+      "properties": {
+        "blank": { "$ref": "#/$defs/positive" },
+        "comment": { "$ref": "#/$defs/positive" },
+        "keyValue": { "$ref": "#/$defs/positive" },
+        "keyDelimValue": { "$ref": "#/$defs/positive" },
+        "text": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "conventionCounts": {
+      "type": "object",
+      "properties": {
+        "nameParenUnit": { "$ref": "#/$defs/positive" },
+        "nameBracketUnit": { "$ref": "#/$defs/positive" },
+        "nameUnderscoreUnit": { "$ref": "#/$defs/positive" },
+        "unitsRow": { "$ref": "#/$defs/positive" },
+        "none": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "countsByKey": { "type": "object", "additionalProperties": { "$ref": "#/$defs/positive" } },
+    "numericQuantiles": {
+      "type": "object",
+      "required": ["p01", "p05", "p25", "p50", "p75", "p95", "p99"],
+      "properties": {
+        "p01": { "$ref": "#/$defs/double" },
+        "p05": { "$ref": "#/$defs/double" },
+        "p25": { "$ref": "#/$defs/double" },
+        "p50": { "$ref": "#/$defs/double" },
+        "p75": { "$ref": "#/$defs/double" },
+        "p95": { "$ref": "#/$defs/double" },
+        "p99": { "$ref": "#/$defs/double" }
+      },
+      "additionalProperties": false
+    },
+    "temporalQuantiles": {
+      "type": "object",
+      "required": ["p01", "p05", "p25", "p50", "p75", "p95", "p99"],
+      "properties": {
+        "p01": { "type": "string" },
+        "p05": { "type": "string" },
+        "p25": { "type": "string" },
+        "p50": { "type": "string" },
+        "p75": { "type": "string" },
+        "p95": { "type": "string" },
+        "p99": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "nameParts": {
+      "type": ["object", "null"],
+      "required": ["base", "unit", "convention", "unknownUnit"],
+      "properties": {
+        "base": { "type": "string" },
+        "unit": { "$ref": "#/$defs/stringOrNull" },
+        "convention": { "$ref": "#/$defs/convention" },
+        "unknownUnit": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "annotationRow": {
+      "type": "object",
+      "required": ["line", "label", "blankFields", "nullTokens", "typeVotes", "type"],
+      "properties": {
+        "line": { "$ref": "#/$defs/positive" },
+        "label": { "$ref": "#/$defs/stringOrNull" },
+        "blankFields": { "$ref": "#/$defs/count" },
+        "nullTokens": { "$ref": "#/$defs/nullTokens", "type": "object" },
+        "typeVotes": { "$ref": "#/$defs/typeVotes" },
+        "type": { "$ref": "#/$defs/valueType" },
+        "values": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "childRegion": {
+      "type": "object",
+      "required": ["kind", "lines", "bytes"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/childRegionKind" },
+        "lines": { "$ref": "#/$defs/pair" },
+        "bytes": { "$ref": "#/$defs/pair" },
+        "lineKinds": { "$ref": "#/$defs/lineKinds" },
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "values": { "type": "array", "items": { "$ref": "#/$defs/stringOrNull" } },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/annotationRow" } }
+      },
+      "additionalProperties": false
+    },
+    "region": {
+      "type": "object",
+      "required": ["kind", "lines", "bytes"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/regionKind" },
+        "index": { "$ref": "#/$defs/count" },
+        "lines": { "$ref": "#/$defs/pair" },
+        "bytes": { "$ref": "#/$defs/pair" },
+        "lineKinds": { "$ref": "#/$defs/lineKinds" },
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "values": { "type": "array", "items": { "$ref": "#/$defs/stringOrNull" } },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/annotationRow" } },
+        "regions": { "type": "array", "items": { "$ref": "#/$defs/childRegion" } }
+      },
+      "additionalProperties": false
+    },
+    "delimitedDialect": {
+      "type": ["object", "null"],
+      "required": ["delimiter", "quote", "hasHeader", "unitsRow", "decimalSeparator", "padding", "blocks"],
+      "properties": {
+        "delimiter": { "$ref": "#/$defs/delimiter" },
+        "quote": { "enum": ["\""] },
+        "hasHeader": { "type": "boolean" },
+        "unitsRow": { "type": "boolean" },
+        "decimalSeparator": { "enum": [".", ","] },
+        "padding": {
+          "type": "object",
+          "required": ["trim", "paddedShare", "constantLineLength", "lineLength"],
+          "properties": {
+            "trim": { "type": "boolean" },
+            "paddedShare": { "$ref": "#/$defs/share" },
+            "constantLineLength": { "type": "boolean" },
+            "lineLength": { "type": ["integer", "null"], "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "blocks": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "rowClass": {
+      "type": "object",
+      "required": ["id", "count", "fields", "firstLine", "lastLine"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^rc:[0-9a-f]{16}$" },
+        "count": { "$ref": "#/$defs/positive" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/pair" } },
+        "firstLine": { "$ref": "#/$defs/positive" },
+        "lastLine": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": ["index", "name", "rawName", "nameParts", "type", "dominant", "typeVotes", "count", "nulls", "nullsExcludingAllNullRows", "nullTokens", "distinct", "statsWithheld", "shapes", "constant"],
+      "properties": {
+        "index": { "$ref": "#/$defs/count" },
+        "name": { "$ref": "#/$defs/stringOrNull" },
+        "rawName": { "$ref": "#/$defs/stringOrNull" },
+        "nameHex": { "$ref": "#/$defs/hex" },
+        "nameParts": { "$ref": "#/$defs/nameParts" },
+        "type": { "$ref": "#/$defs/valueType" },
+        "dominant": {
+          "type": "object",
+          "required": ["type", "share"],
+          "properties": { "type": { "$ref": "#/$defs/valueType" }, "share": { "$ref": "#/$defs/share" } },
+          "additionalProperties": false
+        },
+        "typeVotes": { "$ref": "#/$defs/typeVotes" },
+        "patterns": { "$ref": "#/$defs/countsByKey" },
+        "count": { "$ref": "#/$defs/count" },
+        "nulls": { "$ref": "#/$defs/count" },
+        "nullsExcludingAllNullRows": { "$ref": "#/$defs/count" },
+        "nullTokens": { "$ref": "#/$defs/nullTokens" },
+        "nullSpellings": { "$ref": "#/$defs/countsByKey" },
+        "nullSpellingsOther": { "$ref": "#/$defs/positive" },
+        "nullSpellingsOtherDistinct": { "$ref": "#/$defs/positive" },
+        "nullSpellingsOtherDistinctCapped": { "const": true },
+        "flags": {
+          "type": "object",
+          "required": ["leadingZero", "commaDecimalLike", "padded"],
+          "properties": {
+            "leadingZero": { "$ref": "#/$defs/count" },
+            "commaDecimalLike": { "$ref": "#/$defs/count" },
+            "padded": { "$ref": "#/$defs/count" }
+          },
+          "additionalProperties": false
+        },
+        "distinct": {
+          "type": "object",
+          "required": ["value"],
+          "properties": {
+            "value": { "$ref": "#/$defs/count" },
+            "approximate": { "const": true },
+            "relativeStdError": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "numeric": {
+          "type": "object",
+          "required": ["min", "max", "quantiles"],
+          "properties": {
+            "min": { "$ref": "#/$defs/double" },
+            "max": { "$ref": "#/$defs/double" },
+            "mean": { "$ref": "#/$defs/double" },
+            "stddev": { "$ref": "#/$defs/double" },
+            "quantiles": { "$ref": "#/$defs/numericQuantiles" },
+            "approximate": { "const": true },
+            "rankError": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "temporal": {
+          "type": "object",
+          "required": ["orders", "ambiguous"],
+          "properties": {
+            "orders": { "type": "array", "items": { "enum": ["DMY", "MDY", "YMD"] } },
+            "ambiguous": { "type": "boolean" },
+            "clock": { "enum": ["24h", "12h"] },
+            "min": { "type": "string" },
+            "max": { "type": "string" },
+            "quantiles": { "$ref": "#/$defs/temporalQuantiles" },
+            "approximate": { "const": true },
+            "rankError": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "statsWithheld": { "enum": ["constant", null] },
+        "length": {
+          "type": "object",
+          "required": ["min", "max", "mean"],
+          "properties": {
+            "min": { "$ref": "#/$defs/count" },
+            "max": { "$ref": "#/$defs/count" },
+            "mean": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "shapes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["mask", "count"],
+            "properties": { "mask": { "type": "string" }, "count": { "$ref": "#/$defs/count" } },
+            "additionalProperties": false
+          }
+        },
+        "monotonic": { "enum": ["increasing", "decreasing", "nonDecreasing", "nonIncreasing", "none"] },
+        "constant": { "type": ["boolean", "null"] },
+        "unique": { "type": "boolean" },
+        "unit": { "type": "string" },
+        "top": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["value", "count"],
+                "properties": { "value": { "type": "string" }, "count": { "$ref": "#/$defs/positive" } },
+                "additionalProperties": false
+              }
+            },
+            "approximate": { "const": true },
+            "maxError": { "$ref": "#/$defs/count" }
+          },
+          "additionalProperties": false
+        },
+        "text": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": { "min": { "type": "string" }, "max": { "type": "string" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "layoutOnlyField": {
+      "type": "object",
+      "required": ["index", "name", "rawName", "nameParts"],
+      "properties": {
+        "index": { "$ref": "#/$defs/count" },
+        "name": { "$ref": "#/$defs/stringOrNull" },
+        "rawName": { "$ref": "#/$defs/stringOrNull" },
+        "nameHex": { "$ref": "#/$defs/hex" },
+        "nameParts": { "$ref": "#/$defs/nameParts" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "required": ["schemaVersion", "tool", "options", "limits", "file", "encoding", "format", "kind", "layout", "fingerprint", "hints", "issues", "evidence"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "squalify" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+].+)?$" }
+      },
+      "additionalProperties": false
+    },
+    "options": {
+      "type": "object",
+      "required": ["includeValues", "includeValuesFor"],
+      "properties": {
+        "includeValues": { "type": "boolean" },
+        "includeValuesFor": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "layoutOnly": { "const": true },
+    "limits": {
+      "type": "object",
+      "required": [
+        "distinctPerField", "quantilePerField", "shapesPerField", "shapeCharsPerField", "regions", "headerSample", "runawayQuote", "fieldCountRuns", "rowClasses",
+        "charsetTolerance", "stdfTests", "budget", "sketches", "nullSpellings", "nullTokens", "unitTable"
+      ],
+      "properties": {
+        "distinctPerField": { "$ref": "#/$defs/count" },
+        "quantilePerField": { "$ref": "#/$defs/count" },
+        "shapesPerField": { "$ref": "#/$defs/count" },
+        "shapeCharsPerField": { "$ref": "#/$defs/count" },
+        "regions": { "$ref": "#/$defs/count" },
+        "headerSample": { "$ref": "#/$defs/count" },
+        "runawayQuote": { "$ref": "#/$defs/count" },
+        "fieldCountRuns": { "$ref": "#/$defs/count" },
+        "rowClasses": { "$ref": "#/$defs/count" },
+        "charsetTolerance": {
+          "type": "object",
+          "required": ["invalidSequences", "perBytes"],
+          "properties": { "invalidSequences": { "$ref": "#/$defs/count" }, "perBytes": { "$ref": "#/$defs/positive" } },
+          "additionalProperties": false
+        },
+        "stdfTests": { "$ref": "#/$defs/count" },
+        "budget": {
+          "type": "object",
+          "required": ["quantileValues", "distinctValues", "shapeChars"],
+          "properties": {
+            "quantileValues": { "$ref": "#/$defs/count" },
+            "distinctValues": { "$ref": "#/$defs/count" },
+            "shapeChars": { "$ref": "#/$defs/count" }
+          },
+          "additionalProperties": false
+        },
+        "sketches": {
+          "type": "object",
+          "required": ["hllPrecision", "rankError", "budgetBytes"],
+          "properties": {
+            "hllPrecision": { "$ref": "#/$defs/positive" },
+            "rankError": { "type": "number", "minimum": 0 },
+            "budgetBytes": { "$ref": "#/$defs/positive" }
+          },
+          "additionalProperties": false
+        },
+        "nullSpellings": {
+          "type": "object",
+          "required": ["max", "maxChars", "maxDistinctOther"],
+          "properties": {
+            "max": { "$ref": "#/$defs/positive" },
+            "maxChars": { "$ref": "#/$defs/positive" },
+            "maxDistinctOther": { "$ref": "#/$defs/positive" }
+          },
+          "additionalProperties": false
+        },
+        "nullTokens": { "$ref": "#/$defs/positive" },
+        "unitTable": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "file": {
+      "type": "object",
+      "required": ["name", "size"],
+      "properties": {
+        "name": { "type": "string" },
+        "size": { "$ref": "#/$defs/count" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["maxBytes", "bytesRead", "complete"],
+      "properties": {
+        "maxBytes": { "$ref": "#/$defs/positive" },
+        "bytesRead": { "$ref": "#/$defs/count" },
+        "complete": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "encoding": {
+      "type": "object",
+      "required": ["kind", "charset", "bom", "lineEndings", "invalidBytes", "controlBytes"],
+      "properties": {
+        "kind": { "enum": ["empty", "text", "binary"] },
+        "charset": { "enum": ["ascii", "utf-8", "latin-1", "utf-16le", "utf-16be", "utf-32le", "utf-32be", null] },
+        "bom": { "enum": ["utf-8", "utf-16le", "utf-16be", "utf-32le", "utf-32be", null] },
+        "lineEndings": {
+          "type": "object",
+          "required": ["crlf", "lf", "cr"],
+          "properties": { "crlf": { "$ref": "#/$defs/count" }, "lf": { "$ref": "#/$defs/count" }, "cr": { "$ref": "#/$defs/count" } },
+          "additionalProperties": false
+        },
+        "invalidBytes": { "$ref": "#/$defs/count" },
+        "invalidBytesTolerated": { "const": true },
+        "controlBytes": { "$ref": "#/$defs/count" }
+      },
+      "additionalProperties": false
+    },
+    "format": {
+      "type": "object",
+      "required": ["family", "dialect", "score"],
+      "properties": {
+        "family": { "enum": ["delimited", "text", "binary", "empty"] },
+        "dialect": { "$ref": "#/$defs/delimitedDialect" },
+        "score": { "$ref": "#/$defs/share" }
+      },
+      "additionalProperties": false
+    },
+    "kind": {
+      "type": "object",
+      "required": ["label", "ruleId", "confidence"],
+      "properties": {
+        "label": { "enum": ["binary", "empty", "text"] },
+        "ruleId": { "enum": ["K09", "K11", "K12"] },
+        "confidence": { "$ref": "#/$defs/share" }
+      },
+      "additionalProperties": false
+    },
+    "layout": {
+      "type": "object",
+      "required": ["regions"],
+      "properties": {
+        "regions": { "type": "array", "items": { "$ref": "#/$defs/region" } },
+        "headerConvention": {
+          "type": "object",
+          "required": ["dominant", "share", "counts"],
+          "properties": {
+            "dominant": { "$ref": "#/$defs/convention" },
+            "share": { "$ref": "#/$defs/share" },
+            "counts": { "$ref": "#/$defs/conventionCounts" }
+          },
+          "additionalProperties": false
+        },
+        "maxLineLength": { "$ref": "#/$defs/count" }
+      },
+      "additionalProperties": false
+    },
+    "table": {
+      "type": "object",
+      "required": ["rows", "fieldCount", "rowClasses", "fields"],
+      "properties": {
+        "rows": { "$ref": "#/$defs/count" },
+        "fieldCount": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": { "min": { "$ref": "#/$defs/count" }, "max": { "$ref": "#/$defs/count" } },
+          "additionalProperties": false
+        },
+        "rowClasses": {
+          "type": "object",
+          "required": [
+            "count", "transitions", "allNullRows", "allNullRowSpellings", "allNullRowSpellingsMixed", "allNullRowSpellingsOther", "allNullRowSpellingsOtherDistinct", "truncated", "classes"
+          ],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "transitions": { "$ref": "#/$defs/count" },
+            "allNullRows": { "$ref": "#/$defs/count" },
+            "allNullRowSpellings": { "$ref": "#/$defs/countsByKey" },
+            "allNullRowSpellingsMixed": { "$ref": "#/$defs/count" },
+            "allNullRowSpellingsOther": { "$ref": "#/$defs/count" },
+            "allNullRowSpellingsOtherDistinct": { "$ref": "#/$defs/count" },
+            "allNullRowSpellingsOtherDistinctCapped": { "const": true },
+            "truncated": { "$ref": "#/$defs/count" },
+            "classes": { "type": "array", "items": { "$ref": "#/$defs/rowClass" } }
+          },
+          "additionalProperties": false
+        },
+        "fields": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/field" }, { "$ref": "#/$defs/layoutOnlyField" }] } }
+      },
+      "additionalProperties": false
+    },
+    "binary": {
+      "type": "object",
+      "required": ["bytes"],
+      "properties": {
+        "bytes": {
+          "type": "object",
+          "required": ["histogram", "nul", "printableAscii", "high", "entropy"],
+          "properties": {
+            "histogram": { "type": "array", "items": { "$ref": "#/$defs/count" } },
+            "nul": { "$ref": "#/$defs/count" },
+            "printableAscii": { "$ref": "#/$defs/count" },
+            "high": { "$ref": "#/$defs/count" },
+            "entropy": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "fingerprint": {
+      "type": "object",
+      "required": ["version", "structure", "layout", "typed", "names"],
+      "properties": {
+        "version": { "$ref": "#/$defs/positive" },
+        "structure": { "$ref": "#/$defs/hash" },
+        "layout": { "$ref": "#/$defs/hash" },
+        "typed": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "names": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": false
+    },
+    "hints": {
+      "type": ["object", "null"],
+      "required": ["extension", "magic", "stableLines", "headerFields", "headerPrefix", "nonNullFields", "fieldCount", "dataStartLine", "delimiter", "headerConvention", "stdf", "fileNameShape"],
+      "properties": {
+        "extension": { "$ref": "#/$defs/stringOrNull" },
+        "magic": {
+          "type": ["object", "null"],
+          "required": ["name", "offset", "hex"],
+          "properties": { "name": { "type": "string" }, "offset": { "$ref": "#/$defs/count" }, "hex": { "$ref": "#/$defs/hex" } },
+          "additionalProperties": false
+        },
+        "stableLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["line", "regex"],
+            "properties": { "line": { "$ref": "#/$defs/count" }, "regex": { "type": "string" } },
+            "additionalProperties": false
+          }
+        },
+        "headerFields": { "type": ["array", "null"], "items": { "type": "string" } },
+        "headerPrefix": { "type": ["array", "null"], "items": { "type": "string" } },
+        "nonNullFields": { "type": ["array", "null"], "items": { "$ref": "#/$defs/count" } },
+        "fieldCount": {
+          "type": ["object", "null"],
+          "required": ["min", "max"],
+          "properties": { "min": { "$ref": "#/$defs/count" }, "max": { "$ref": "#/$defs/count" } },
+          "additionalProperties": false
+        },
+        "dataStartLine": { "type": ["integer", "null"], "minimum": 1 },
+        "delimiter": { "enum": [",", "\t", ";", "|", "whitespace", "none", null] },
+        "headerConvention": { "enum": ["nameParenUnit", "nameBracketUnit", "nameUnderscoreUnit", "unitsRow", "none", null] },
+        "stdf": { "type": "null" },
+        "fileNameShape": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "count"],
+        "properties": {
+          "code": { "$ref": "#/$defs/issueCode" },
+          "count": { "$ref": "#/$defs/positive" },
+          "firstLines": { "type": "array", "items": { "$ref": "#/$defs/positive" } },
+          "offsets": { "type": "array", "items": { "$ref": "#/$defs/count" } },
+          "regions": { "type": "array", "items": { "$ref": "#/$defs/issueRegion" } },
+          "names": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stage", "topic", "chosen", "candidates"],
+        "properties": {
+          "stage": { "$ref": "#/$defs/evidenceStage" },
+          "topic": { "type": "string" },
+          "chosen": { "$ref": "#/$defs/stringOrNull" },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "score", "reason"],
+              "properties": { "value": { "type": "string" }, "score": { "type": "number" }, "reason": { "type": "string" } },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

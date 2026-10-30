@@ -21,6 +21,11 @@
     <None Include="fixtures\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The schema tests read the published schema and the descriptor document from the test output, not from the source tree. -->
+    <None Include="..\..\schema\descriptor-v1.schema.json" Link="schema\descriptor-v1.schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\descriptor.md" Link="docs\descriptor.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>

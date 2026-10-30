@@ -14,6 +14,7 @@ The .NET SDK pinned by [`global.json`](global.json) (10.0.x). Nothing else is ne
 - `src/squalify.Cli/`: the `squalify` tool.
 - `tests/squalify.Tests/`: xUnit tests for the library. Fixtures are under `tests/squalify.Tests/fixtures/`, with golden descriptors (`<fixture>.squalify.json`) next to them.
 - `tests/squalify.Cli.Tests/`: xUnit tests for the CLI (run in-process through `CommandFactory.InvokeAsync`), the NuGet packages and the Markdown docs.
+- `schema/`: `descriptor-v1.schema.json`, the JSON Schema (2020-12 subset) of the descriptor. The tests in `tests/squalify.Tests/Schema/` validate every golden against it with an in-repo validator, and keep its members, enums and rules equal to `docs/descriptor.md` and to the code.
 - `docs/`: the guides, `descriptor.md` (schema), `design.md` (architecture), `how-it-works.md` (diagrams; the `.html` and `.pdf` are committed renders), `release.md`. `docs/reviews/` holds generic write-ups of real-sample findings; `docs/process/` holds process notes.
 - `scripts/`: `render-docs.sh` and `corpus-check.sh`.
 - `.github/workflows/`: `ci.yml` (build, test, format on Windows, macOS and Linux) and `release.yml`.

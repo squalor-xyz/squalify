@@ -23,7 +23,7 @@
   "file": {
     "name": "lot42_sweep.csv",
     "size": 10212,
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "sha256": "ad731d6805d61b76e92c86d6b2885692c22d74b001cf4bf0510f7789b8bdbf0e"
   },
   "encoding": {
     "kind": "text",
@@ -47,7 +47,7 @@
     },
     "score": 0.95
   },
-  "kind": { "label": "labSweepTable", "ruleId": "K05", "confidence": 0.8 },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
   "layout": {
     "regions": [
       {
@@ -87,24 +87,26 @@
         ]
       }
     ],
-    "headerConvention": { "dominant": "nameParenUnit", "share": 0.769, "counts": { "nameParenUnit": 10, "none": 3 } },
+    "headerConvention": { "dominant": "none", "share": 0.75, "counts": { "nameParenUnit": 1, "none": 3 } },
     "maxLineLength": 118
   },
   "table": {
     "rows": 10000,
     "fieldCount": { "min": 4, "max": 4 },
     "rowClasses": {
-      "count": 2,
-      "transitions": 4,
-      "allNullRows": 1,
-      "allNullRowSpellings": { "NULL": 1 },
-      "allNullRowSpellingsMixed": 0,
-      "allNullRowSpellingsOther": 0,
-      "allNullRowSpellingsOtherDistinct": 0,
+      "count": 3,
+      "transitions": 250,
+      "allNullRows": 100,
+      "allNullRowSpellings": { "NA": 4, "NULL": 24 },
+      "allNullRowSpellingsMixed": 2,
+      "allNullRowSpellingsOther": 70,
+      "allNullRowSpellingsOtherDistinct": 64,
+      "allNullRowSpellingsOtherDistinctCapped": true,
       "truncated": 0,
       "classes": [
-        { "id": "rc:3f9a", "count": 900, "fields": [[0, 3]], "firstLine": 3, "lastLine": 1002 },
-        { "id": "rc:7b01", "count": 99, "fields": [[0, 0], [2, 3]], "firstLine": 4, "lastLine": 1001 }
+        { "id": "rc:f84a18ec7f5e8c9a", "count": 9000, "fields": [[0, 3]], "firstLine": 11, "lastLine": 10010 },
+        { "id": "rc:9c6db809cdd78ce7", "count": 900, "fields": [[0, 0], [2, 3]], "firstLine": 12, "lastLine": 10009 },
+        { "id": "rc:ef46db3751d8e999", "count": 100, "fields": [], "firstLine": 13, "lastLine": 10008 }
       ]
     },
     "fields": [
@@ -114,14 +116,14 @@
         "rawName": "Frequency(MHz)",
         "nameParts": { "base": "Frequency", "unit": "MHz", "convention": "nameParenUnit", "unknownUnit": false },
         "type": "float",
-        "dominant": { "type": "float", "share": 0.9998 },
-        "typeVotes": { "float": 9998, "int": 2 },
+        "dominant": { "type": "float", "share": 0.9997979185611802 },
+        "typeVotes": { "float": 9895, "int": 2 },
         "patterns": { "yyyy-MM-dd": 3 },
         "count": 10000,
-        "nulls": 3,
-        "nullsExcludingAllNullRows": 2,
-        "nullTokens": { "-": 1, "NA": 2 },
-        "nullSpellings": { "-": 1, "NA": 2 },
+        "nulls": 103,
+        "nullsExcludingAllNullRows": 3,
+        "nullTokens": { "": 70, "-": 1, "NA": 7, "null": 25 },
+        "nullSpellings": { "": 70, "-": 1, "NA": 7, "NULL": 25 },
         "flags": { "leadingZero": 0, "commaDecimalLike": 1, "padded": 4 },
         "distinct": { "value": 81 },
         "numeric": {
@@ -133,7 +135,7 @@
         },
         "statsWithheld": null,
         "length": { "min": 3, "max": 6, "mean": 5.2 },
-        "shapes": [{ "mask": "9{4}", "count": 9120 }, { "mask": "9{3}", "count": 880 }, { "mask": "other", "count": 0 }],
+        "shapes": [{ "mask": "9{4}", "count": 9120 }, { "mask": "9{3}", "count": 777 }, { "mask": "other", "count": 0 }],
         "monotonic": "nonDecreasing",
         "constant": false,
         "unique": false,
@@ -146,12 +148,16 @@
         "nameParts": { "base": "Start", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "datetime",
         "dominant": { "type": "datetime", "share": 1 },
-        "typeVotes": { "datetime": 10000 },
+        "typeVotes": { "datetime": 9900 },
         "count": 10000,
-        "nulls": 0,
+        "nulls": 100,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": {},
-        "distinct": { "value": 5000, "approximate": true, "relativeStdError": 0.0081 },
+        "nullTokens": { "": 70, "NA": 5, "null": 25 },
+        "nullSpellings": { "NA": 5, "NULL": 25 },
+        "nullSpellingsOther": 70,
+        "nullSpellingsOtherDistinct": 64,
+        "nullSpellingsOtherDistinctCapped": true,
+        "distinct": { "value": 5000, "approximate": true, "relativeStdError": 0.008125 },
         "temporal": {
           "orders": ["YMD"],
           "ambiguous": false,
@@ -170,7 +176,7 @@
         },
         "statsWithheld": null,
         "length": { "min": 19, "max": 19, "mean": 19 },
-        "shapes": [{ "mask": "9{4}-9{2}-9{2}T9{2}:9{2}:9{2}", "count": 10000 }],
+        "shapes": [{ "mask": "9{4}-9{2}-9{2}T9{2}:9{2}:9{2}", "count": 9900 }],
         "monotonic": "increasing",
         "constant": false,
         "unique": true
@@ -183,19 +189,22 @@
         "nameParts": { "base": "Lot�", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "string",
         "dominant": { "type": "string", "share": 1 },
-        "typeVotes": { "string": 10000 },
+        "typeVotes": { "string": 9900 },
         "count": 10000,
-        "nulls": 0,
+        "nulls": 100,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": {},
+        "nullTokens": { "": 70, "NA": 5, "null": 25 },
+        "nullSpellings": { "NA": 5, "NULL": 25 },
+        "nullSpellingsOther": 70,
+        "nullSpellingsOtherDistinct": 1,
         "distinct": { "value": 9987, "approximate": true, "relativeStdError": 0.008125 },
         "statsWithheld": "constant",
         "length": { "min": 4, "max": 4, "mean": 4 },
-        "shapes": [{ "mask": "A{3}9", "count": 10000 }],
+        "shapes": [{ "mask": "A{3}9", "count": 9900 }],
         "monotonic": "none",
         "constant": true,
         "unique": false,
-        "top": { "items": [{ "value": "ABC1", "count": 9990 }, { "value": "ABC2", "count": 10 }], "approximate": true, "maxError": 3 },
+        "top": { "items": [{ "value": "ABC1", "count": 9890 }, { "value": "ABC2", "count": 10 }], "approximate": true, "maxError": 3 },
         "text": { "min": "ABC1", "max": "ABC2" }
       },
       {
@@ -205,37 +214,47 @@
         "nameParts": { "base": "Date", "unit": null, "convention": "none", "unknownUnit": false },
         "type": "date",
         "dominant": { "type": "date", "share": 1 },
-        "typeVotes": { "date": 10000 },
+        "typeVotes": { "date": 9900 },
         "count": 10000,
-        "nulls": 0,
+        "nulls": 100,
         "nullsExcludingAllNullRows": 0,
-        "nullTokens": {},
+        "nullTokens": { "": 70, "NA": 5, "null": 25 },
+        "nullSpellings": { "NA": 5, "NULL": 25 },
+        "nullSpellingsOther": 70,
+        "nullSpellingsOtherDistinct": 3,
         "distinct": { "value": 30 },
         "temporal": { "orders": ["DMY", "MDY"], "ambiguous": true },
         "statsWithheld": null,
-        "shapes": [{ "mask": "9/9/9{4}", "count": 10000 }],
+        "shapes": [{ "mask": "9/9/9{4}", "count": 9900 }],
         "constant": false,
         "unique": false
       }
     ]
   },
-  "fingerprint": { "version": 1, "structure": "sha256:aa", "layout": "sha256:bb", "typed": "sha256:cc", "names": "sha256:dd" },
+  "fingerprint": {
+    "version": 2,
+    "structure": "sha256:520cdb563bf80b193aab6aad62781a9647c75dbf76748117299c7dac0ae63a87",
+    "layout": "sha256:1dc5ae5b68174891b6aa9850aa05ee0d9ae8a20468d9517259951a2dd9e9c0f0",
+    "typed": "sha256:2259e961582c9ae17235db655c751ddb198605c3bea788a4170a8baa3511c614",
+    "names": "sha256:aeb24056810d3d1f1e8afee61a0bc0028556eb0fb49a215ae5eb1b970cad0315"
+  },
   "hints": {
     "extension": ".csv",
     "magic": null,
     "stableLines": [{ "line": 0, "regex": "^\\s*Lot\\s*[=:]" }],
-    "headerFields": ["Frequency(MHz)", "Start"],
-    "headerPrefix": ["Frequency(MHz)"],
-    "nonNullFields": [0, 1],
+    "headerFields": ["Frequency(MHz)", "Start", "Lot�", "Date"],
+    "headerPrefix": ["Frequency(MHz)", "Start", "Lot�", "Date"],
+    "nonNullFields": [1, 2, 3],
     "fieldCount": { "min": 4, "max": 4 },
     "dataStartLine": 9,
     "delimiter": ",",
-    "headerConvention": "nameParenUnit",
+    "headerConvention": "none",
     "stdf": null,
-    "fileNameShape": "a{3}9{2}.a{3}"
+    "fileNameShape": "a{3}9{2}_a{5}.a{3}"
   },
   "issues": [
     { "code": "commentInData", "count": 2, "firstLines": [5, 9] },
+    { "code": "includeValuesForUnmatched", "count": 1, "names": ["Program"] },
     { "code": "invalidUtf8", "count": 1, "firstLines": [3], "offsets": [100], "regions": ["preamble"] }
   ],
   "evidence": [
