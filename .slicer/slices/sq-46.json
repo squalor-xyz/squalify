@@ -18,15 +18,15 @@
     },
     {
       "heading": "Files",
-      "body": ""
+      "body": "- The byte pass and the sniff (`src/squalify/Sniff/ByteSniffer.cs`, `Text/InvalidUnicodeScanner.cs`: invalid-byte offsets already exist), `Profiler` (the `invalidUtf8` and `invalidUnicode` issues; region lookup after the layout is known), the issue and encoding models and `DescriptorWriter` (`issues[].regions`, optional `encoding.invalidBytesTolerated`), docs/descriptor.md (issues, encoding, key order, consumer subset, versioning-policy sentence), design.md, user-guide.md; the sq-12 schema (waits on this slice) must carry the members"
     },
     {
       "heading": "Failing tests",
-      "body": ""
+      "body": "- A delimited file with one invalid byte inside a preamble key: `invalidUtf8` carries `offsets`, `firstLines` and `regions` (one region name per offset, same order, from the layout region kinds: preamble, annotation, header, units, data), here `preamble`; a stray byte in the header line gives `header`, in a data record `data`; several bytes give one region each.\n- A file whose charset label is kept under the stray-byte tolerance: `encoding.invalidBytesTolerated` is true; it is absent when there are no invalid bytes and when the tolerance is exceeded (the charset then becomes latin-1).\n- The caps of `offsets` and `firstLines` bound `regions` too (same length as `offsets`); a byte outside every region (for example after a cut) is named as the nearest region or `other` (state the rule; the implementer decides and documents it).\n- UTF-16 and UTF-32 `invalidUnicode`: the same `regions` (offsets exist); a file without invalid bytes is unchanged: goldens change only for fixtures with invalid bytes (list them).\n- Determinism: the same bytes twice give the same issue.\n- Mutation-check each test."
     },
     {
       "heading": "Implement",
-      "body": ""
+      "body": "1. Write the failing tests above.\n2. After the layout is known, map each reported offset to its region (preamble, annotation, header, units, data; decide the rule for offsets outside every region and for multi-block files, document it) and write `regions` next to `offsets`; write `encoding.invalidBytesTolerated` only when true.\n3. Docs in the same change; review any golden diff (only fixtures with invalid bytes may change)."
     },
     {
       "heading": "Check",
