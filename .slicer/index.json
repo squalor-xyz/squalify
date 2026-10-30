@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 67,
+  "next_id": 68,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -5431,6 +5431,36 @@
         "parent": "",
         "cites": [],
         "key": "later.render-mention-patterns",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-67",
+      "title": "Schema tests: pin the property sets of the closed count maps",
+      "short_title": "Pin count-map keys",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-12 gate L1, L2",
+        "discovered_from": "sq-12",
+        "parent": "",
+        "cites": [],
+        "key": "later.schema-count-map-keys",
         "pass": "v1.x",
         "group": "",
         "reason": "",

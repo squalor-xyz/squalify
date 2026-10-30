@@ -1,0 +1,41 @@
+{
+  "id": "sq-67",
+  "title": "Schema tests: pin the property sets of the closed count maps",
+  "lead": [
+    "The schema tests check that every listed key of the closed count maps is accepted and that specific bad keys are refused, but not that each map's property set equals its vocabulary: adding \"weird\" to `$defs/lineKinds.properties` leaves all Schema tests green (same for typeVotes, nullTokens and the header-convention counts). Assert the exact property set of each map against the vocabulary. Nit: `IdMatches` in SchemaValueTests accepts a tag without a patch number (v1.1); tighten if releases always use three-part tags."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-12 gate L1, L2",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Failing mutants (an extra key in each map); 2. assert the exact sets; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
