@@ -1,0 +1,41 @@
+{
+  "id": "sq-56",
+  "title": "Release docs test allows a duplicated no-change line",
+  "lead": [
+    "`CurrentChangesLabelProblems` checks `none > 0` and never `none == 1`, so two identical \"No API or breaking changes in X (library).\" lines pass. Reject a duplicate, with a theory case and a mutation check."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-51 review R5",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Add the rejected case, watch it fail; 2. change the check; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
