@@ -17,7 +17,7 @@ namespace squalor.squalify;
 /// <param name="Kind">The generic kind label.</param>
 /// <param name="Layout">Regions and header convention.</param>
 /// <param name="Fingerprint">The structural fingerprints.</param>
-/// <param name="Hints">Detect-rule hints.</param>
+/// <param name="Hints">Detect-rule hints; null (not computed) in a layout-only profile, never null otherwise.</param>
 /// <param name="Issues">Issues; the caller sorts by code, ordinally.</param>
 /// <param name="Evidence">The inference trail.</param>
 /// <param name="Table">The table profile, for tabular files.</param>
@@ -35,7 +35,7 @@ public sealed record Descriptor(
     KindLabel Kind,
     LayoutSection Layout,
     Fingerprint Fingerprint,
-    Hints Hints,
+    Hints? Hints,
     IReadOnlyList<Issue> Issues,
     IReadOnlyList<Evidence> Evidence,
     TableSection? Table = null,
@@ -46,6 +46,16 @@ public sealed record Descriptor(
 {
     /// <summary>The descriptor schema version written as <c>schemaVersion</c>.</summary>
     public const string SchemaVersion = "1.0";
+
+    /// <summary>
+    /// True for a layout-only profile (<see cref="ProfileOptions.LayoutOnly"/>): the descriptor was built without the per-field
+    /// work and says so (<c>layoutOnly: true</c>). Then <see cref="Hints"/> and <c>Fingerprint.Typed</c> are null, and every entry
+    /// of <c>Table.Fields</c> holds only <see cref="FieldProfile.Index"/>, <see cref="FieldProfile.Name"/>,
+    /// <see cref="FieldProfile.RawName"/>, <see cref="FieldProfile.NameHex"/> and <see cref="FieldProfile.NameParts"/>. It is
+    /// the value of <see cref="ProfileOptions.LayoutOnly"/> in <see cref="Options"/> (one source, so the two cannot disagree),
+    /// and it takes part in equality through <see cref="Options"/>.
+    /// </summary>
+    public bool LayoutOnly => Options.LayoutOnly;
 
     /// <inheritdoc />
     public bool Equals(Descriptor? other)
@@ -145,6 +155,6 @@ public sealed record KindLabel(string Label, string RuleId, double Confidence);
 /// <param name="Version">The projection version.</param>
 /// <param name="Structure"><c>sha256:</c> hash with no names.</param>
 /// <param name="Layout"><c>sha256:</c> hash with names and layout.</param>
-/// <param name="Typed"><c>sha256:</c> hash of layout plus types.</param>
+/// <param name="Typed"><c>sha256:</c> hash of layout plus types; null (not computed) in a layout-only profile, never null otherwise.</param>
 /// <param name="Names"><c>sha256:</c> hash of the sorted names.</param>
-public sealed record Fingerprint(long Version, string Structure, string Layout, string Typed, string Names);
+public sealed record Fingerprint(long Version, string Structure, string Layout, string? Typed, string Names);

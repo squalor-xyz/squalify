@@ -304,6 +304,61 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public async Task Cli_Profile_LayoutOnly_IsParsed_AndWritesTheLayoutOnlyDescriptor()
+    {
+        var path = WriteInput("rows.csv", "id,v(V)\n1,2\n3,4\n5,6\n");
+        var (code, output, error) = await RunAsync("profile", path, "--layout-only");
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(0, code);
+        var expected = Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>(), layoutOnly: true));
+        Assert.Equal(Encoding.UTF8.GetString(DescriptorWriter.ToBytes(expected)), output);
+        using var json = JsonDocument.Parse(output);
+        Assert.True(json.RootElement.GetProperty("layoutOnly").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, json.RootElement.GetProperty("hints").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.RootElement.GetProperty("fingerprint").GetProperty("typed").ValueKind);
+        Assert.Equal(3, json.RootElement.GetProperty("table").GetProperty("rows").GetInt32());
+        Assert.False(json.RootElement.GetProperty("table").GetProperty("fields")[0].TryGetProperty("type", out _));
+    }
+
+    [Fact]
+    public async Task Cli_Profile_WithoutLayoutOnly_WritesNoMarker()
+    {
+        var path = WriteInput("rows.csv", "id,v\n1,2\n");
+        var (code, output, _) = await RunAsync("profile", path);
+        Assert.Equal(0, code);
+        Assert.DoesNotContain("layoutOnly", output, StringComparison.Ordinal);
+        Assert.Equal(Expected(path), output);
+    }
+
+    [Fact]
+    public async Task Cli_Profile_LayoutOnly_WorksWithTheOtherOptions()
+    {
+        var path = WriteInput("rows.csv", "# lab\nLot=A1\nid,v\n" + string.Concat(Enumerable.Range(1, 400).Select(static i => i + "," + (i * 2) + "\n")));
+        var (code, output, error) = await RunAsync("profile", path, "--layout-only", "--max-bytes", "500", "--max-first-record-bytes", "50", "--include-values", "--include-values-for", "Lot");
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(0, code);
+        var expected = Profiler.Profile(path, ProfileOptions.Create(true, ["Lot"], 500, 50, layoutOnly: true));
+        Assert.Equal(Encoding.UTF8.GetString(DescriptorWriter.ToBytes(expected)), output);
+        using var json = JsonDocument.Parse(output);
+        Assert.Equal(500, json.RootElement.GetProperty("scope").GetProperty("maxBytes").GetInt64());
+        Assert.True(json.RootElement.GetProperty("layoutOnly").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Cli_Profile_Help_DocumentsLayoutOnly()
+    {
+        var (code, output, error) = await RunAsync("profile", "--help");
+        Assert.Equal(0, code);
+        Assert.Equal(string.Empty, error);
+        var flat = System.Text.RegularExpressions.Regex.Replace(output, @"\s+", " ");
+        Assert.Contains("--layout-only", flat, StringComparison.Ordinal);
+        foreach (var phrase in new[] { "encoding", "dialect", "layout regions", "header names", "row classes", "skip", "hints", "layoutOnly" })
+        {
+            Assert.Contains(phrase, flat, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public async Task Cli_Profile_TwiceGivesIdenticalOutput()
     {
         var path = WriteInput("sample.txt", "x\ny\n");

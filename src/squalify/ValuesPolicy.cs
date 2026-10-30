@@ -149,7 +149,8 @@ internal static class ValuesPolicy
             }
         }
 
-        var stable = descriptor.Hints.StableLines;
+        // A layout-only profile has no hints (and so no stable-line regex that could carry a value).
+        var stable = descriptor.Hints?.StableLines ?? [];
         for (var i = 0; i < stable.Count; i++)
         {
             if (stable[i].CarriesValue)

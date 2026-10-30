@@ -109,7 +109,7 @@ public sealed class DelimitedTests
         Assert.DoesNotContain(d.Issues, static i => i.Code == "raggedRows");
         var data = RegionOf(d, "data");
         Assert.Equal((2L, 10L), (data.FirstLine, data.LastLine));
-        Assert.Equal(8, d.Table.Fields[2].TypeVotes.Single(static e => e.Key == "float").Value);
+        Assert.Equal(8, d.Table.Fields[2].TypeVotes!.Single(static e => e.Key == "float").Value);
     }
 
     [Fact]
@@ -333,8 +333,8 @@ public sealed class DelimitedTests
         Assert.DoesNotContain(d.Issues, static i => i.Code == "raggedRows");
         var comma = Assert.Single(EvidenceOf(d, "dialect", "delimiter").Candidates, static c => c.Value == ",");
         Assert.DoesNotContain("literal", comma.Reason, StringComparison.Ordinal);
-        Assert.Equal(new[] { ("string", 8L) }, d.Table.Fields[0].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
-        Assert.Equal(new[] { ("int", 8L) }, d.Table.Fields[1].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("string", 8L) }, d.Table.Fields[0].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("int", 8L) }, d.Table.Fields[1].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
     }
 
     [Fact]
@@ -462,7 +462,7 @@ public sealed class DelimitedTests
         Assert.DoesNotContain(d.Layout.Regions, static r => r.Kind is "header" or "annotation" or "units");
         Assert.Equal(new[] { "data" }, d.Layout.Regions.Select(static r => r.Kind).ToArray());
         Assert.Null(EvidenceOf(d, "header", "candidates").Chosen);
-        Assert.Equal(new[] { ("int", 6L) }, d.Table.Fields[0].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("int", 6L) }, d.Table.Fields[0].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
     }
 
     [Fact]
@@ -533,16 +533,16 @@ public sealed class DelimitedTests
         Assert.Equal(new long[] { 6, 7, 8, 9 }, rows.Select(static r => r.Line).ToArray());
         Assert.Equal(new long[] { 1, 0, 0, 0 }, rows.Select(static r => r.BlankFields).ToArray());
         Assert.Equal(new[] { "int", "float", "float", "string" }, rows.Select(static r => r.Type).ToArray());
-        Assert.Equal(new[] { ("int", 3L) }, rows[0].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
-        Assert.Equal(new[] { ("float", 4L) }, rows[1].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
-        Assert.Equal(new[] { ("string", 3L) }, rows[3].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("int", 3L) }, rows[0].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("float", 4L) }, rows[1].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("string", 3L) }, rows[3].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
         Assert.Equal(new[] { ("NA.", 1L) }, rows[3].NullTokens.Select(static e => (e.Key, e.Value)).ToArray());
         Assert.Empty(rows[0].NullTokens);
 
         // The measurement fields are numbers (the one malformed data row is ragged and is not typed).
         var fields = d.Table!.Fields;
-        Assert.Equal(new[] { "int", "float", "float", "float", "float" }, fields.Select(static f => Assert.Single(f.TypeVotes).Key).ToArray());
-        Assert.Equal(new long[] { 9, 9, 7, 9, 9 }, fields.Select(static f => f.TypeVotes.Single().Value).ToArray());
+        Assert.Equal(new[] { "int", "float", "float", "float", "float" }, fields.Select(static f => Assert.Single(f.TypeVotes!).Key).ToArray());
+        Assert.Equal(new long[] { 9, 9, 7, 9, 9 }, fields.Select(static f => f.TypeVotes!.Single().Value).ToArray());
 
         // The unit annotation row is a header candidate too, because the header looks like a units row to it.
         // It scores below the real header, which it would tie without the contrast term.
@@ -570,7 +570,7 @@ public sealed class DelimitedTests
         var rows = RegionOf(d, "annotation").Rows!;
         Assert.Equal(new[] { "Prog_line", "Upper_limit", "Lower_limit" }, rows.Select(static r => r.Label).ToArray());
         Assert.Equal("9", EvidenceOf(d, "header", "candidates").Chosen);
-        Assert.Equal(new[] { "int", "float", "float", "float", "float" }, d.Table!.Fields.Select(static f => Assert.Single(f.TypeVotes).Key).ToArray());
+        Assert.Equal(new[] { "int", "float", "float", "float", "float" }, d.Table!.Fields.Select(static f => Assert.Single(f.TypeVotes!).Key).ToArray());
     }
 
     [Fact]
@@ -638,7 +638,7 @@ public sealed class DelimitedTests
         var dialect = Dialect(d);
         Assert.Equal(";", dialect.Delimiter);
         Assert.Equal(",", dialect.DecimalSeparator);
-        Assert.Equal(new[] { "int", "float", "float" }, d.Table!.Fields.Select(static f => Assert.Single(f.TypeVotes).Key).ToArray());
+        Assert.Equal(new[] { "int", "float", "float" }, d.Table!.Fields.Select(static f => Assert.Single(f.TypeVotes!).Key).ToArray());
         var evidence = EvidenceOf(d, "dialect", "decimalSeparator");
         Assert.Equal(",", evidence.Chosen);
 
@@ -1051,8 +1051,8 @@ public sealed class DelimitedTests
             d.Layout.Regions.Select(static r => (r.Kind, r.FirstLine, r.LastLine)).ToArray());
         Assert.Equal(140, d.Table!.Rows);
         var fields = d.Table.Fields;
-        Assert.Equal(new[] { ("float", 20L) }, fields[0].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
-        Assert.Equal(new[] { ("string", 80L) }, fields[2].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("float", 20L) }, fields[0].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("string", 80L) }, fields[2].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
         Assert.Equal(new LineEndings(141, 0, 0), d.Encoding.LineEndings);
     }
 
@@ -1069,7 +1069,7 @@ public sealed class DelimitedTests
         var d = ProfileText(builder.ToString());
         Assert.Equal(",", Dialect(d).Delimiter);
         Assert.Equal(100_002L, d.Layout.MaxLineLength);
-        Assert.Equal(new[] { ("string", 9L) }, d.Table!.Fields[1].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("string", 9L) }, d.Table!.Fields[1].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
         Assert.Equal(9, d.Table.Rows);
     }
 
@@ -1092,7 +1092,7 @@ public sealed class DelimitedTests
         Assert.Equal(7, d.Table.Rows);
         var comma = Assert.Single(EvidenceOf(d, "dialect", "delimiter").Candidates, static c => c.Value == ",");
         Assert.EndsWith("; 2 literal quotes", comma.Reason, StringComparison.Ordinal);
-        Assert.Equal(new[] { ("float", 7L) }, d.Table.Fields[2].TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal(new[] { ("float", 7L) }, d.Table.Fields[2].TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
     }
 
     [Theory]
@@ -1276,8 +1276,8 @@ public sealed class DelimitedTests
         Assert.Equal(17, d.Table!.Rows);
         Assert.Equal(new LineEndings(18, 0, 0), d.Encoding.LineEndings);
         Assert.Equal(new[] { "float", "int", "string", "string" }, d.Table.Fields.Select(static f => f.Type).ToArray());
-        Assert.Equal(new long[] { 9, 9, 9, 9 }, d.Table.Fields.Select(static f => f.Nulls).ToArray());
-        Assert.Equal(new long[] { 0, 0, 0, 0 }, d.Table.Fields.Select(static f => f.NullsExcludingAllNullRows).ToArray());
+        Assert.Equal(new long[] { 9, 9, 9, 9 }, d.Table.Fields.Select(static f => f.Nulls!.Value).ToArray());
+        Assert.Equal(new long[] { 0, 0, 0, 0 }, d.Table.Fields.Select(static f => f.NullsExcludingAllNullRows!.Value).ToArray());
     }
 
     [Fact]

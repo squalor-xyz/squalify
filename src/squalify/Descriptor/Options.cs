@@ -20,18 +20,27 @@ namespace squalor.squalify;
 /// <see cref="Profiler"/>. A profile that is not refused is the same as one without the ceiling, so it is not written
 /// to the <c>options</c> section.
 /// </param>
-public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null, long? MaxFirstRecordBytes = null)
+/// <param name="LayoutOnly">
+/// True to compute only the encoding, the dialect, the layout regions, the header names and the row classes, and to skip the
+/// per-field sketches, statistics, types, hints and evidence of the type (sq-47). The descriptor then says so with
+/// <c>layoutOnly: true</c> and leaves the sections that were not computed out (see <c>docs/descriptor.md</c>, "Layout-only
+/// profile"). It is not written to the <c>options</c> section: the top-level <c>layoutOnly</c> member carries it.
+/// <see cref="IncludeValues"/> and <see cref="IncludeValuesFor"/> still open the preamble and annotation values of the layout,
+/// and have no effect on anything else: no field value is computed. False by default.
+/// </param>
+public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> IncludeValuesFor, long? MaxBytes = null, long? MaxFirstRecordBytes = null, bool LayoutOnly = false)
 {
     /// <summary>Creates options with the allow-list as a sorted set: sorted ordinally, exact duplicates dropped.</summary>
     /// <param name="includeValues">True to include all literal values.</param>
     /// <param name="includeValuesFor">Allow-listed names, in any order.</param>
     /// <param name="maxBytes">The byte limit, or null for none.</param>
     /// <param name="maxFirstRecordBytes">The first-record ceiling, or null for none; needs <paramref name="maxBytes"/>.</param>
+    /// <param name="layoutOnly">True for the layout-only profile (see <see cref="LayoutOnly"/>); false by default.</param>
     /// <returns>The options.</returns>
-    public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor, long? maxBytes = null, long? maxFirstRecordBytes = null)
+    public static ProfileOptions Create(bool includeValues, IEnumerable<string> includeValuesFor, long? maxBytes = null, long? maxFirstRecordBytes = null, bool layoutOnly = false)
     {
         ArgumentNullException.ThrowIfNull(includeValuesFor);
-        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes, maxFirstRecordBytes);
+        return new ProfileOptions(includeValues, Ordinal.Sorted(includeValuesFor.Distinct(StringComparer.Ordinal)), maxBytes, maxFirstRecordBytes, layoutOnly);
     }
 
     /// <inheritdoc />
@@ -41,7 +50,8 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
             && IncludeValues == other.IncludeValues
             && ValueEquality.ListEquals(IncludeValuesFor, other.IncludeValuesFor)
             && MaxBytes == other.MaxBytes
-            && MaxFirstRecordBytes == other.MaxFirstRecordBytes;
+            && MaxFirstRecordBytes == other.MaxFirstRecordBytes
+            && LayoutOnly == other.LayoutOnly;
     }
 
     /// <inheritdoc />
@@ -52,6 +62,7 @@ public sealed record ProfileOptions(bool IncludeValues, IReadOnlyList<string> In
         ValueEquality.AddList(ref hash, IncludeValuesFor);
         hash.Add(MaxBytes);
         hash.Add(MaxFirstRecordBytes);
+        hash.Add(LayoutOnly);
         return hash.ToHashCode();
     }
 }

@@ -314,13 +314,13 @@ public sealed class ProfilerTests : IDisposable
     {
         var gz = Profile("a.GZ", TestBytes.Hex("1F 8B 08 00 00 00 00 00 02 FF"));
         Assert.Equal(0.2, gz.Format.Score);
-        Assert.Equal(new MagicHint("gzip", 0, "1f8b"), gz.Hints.Magic);
-        Assert.Equal(".gz", gz.Hints.Extension);
+        Assert.Equal(new MagicHint("gzip", 0, "1f8b"), gz.Hints!.Magic);
+        Assert.Equal(".gz", gz.Hints!.Extension);
 
         var plain = Profile("a", TestBytes.Hex("01 02 03 04 05 06 07 08"));
         Assert.Equal(0.1, plain.Format.Score);
-        Assert.Null(plain.Hints.Magic);
-        Assert.Null(plain.Hints.Extension);
+        Assert.Null(plain.Hints!.Magic);
+        Assert.Null(plain.Hints!.Extension);
     }
 
     [Fact]
@@ -333,8 +333,8 @@ public sealed class ProfilerTests : IDisposable
         Assert.Equal(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(TestBytes.Ascii("hello\n"))), descriptor.File.Sha256);
         Assert.Equal(Limits.Default, descriptor.Limits);
         Assert.Equal("text", descriptor.Kind.Label);
-        Assert.Equal("a{5}.a{3}", descriptor.Hints.FileNameShape);
-        Assert.Equal(".txt", descriptor.Hints.Extension);
+        Assert.Equal("a{5}.a{3}", descriptor.Hints!.FileNameShape);
+        Assert.Equal(".txt", descriptor.Hints!.Extension);
         Assert.Equal(2, descriptor.Fingerprint.Version);
     }
 

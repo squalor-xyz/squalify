@@ -614,7 +614,7 @@ public sealed class ConsumerSubsetTests
         Assert.Equal(11, v.Nulls);
         Assert.Equal(v.Nulls, v.NullTokens!.Sum(static e => e.Value));
         Assert.Equal("string", v.Type);
-        Assert.Equal(1, v.TypeVotes.Single(static e => e.Key == "string").Value);
+        Assert.Equal(1, v.TypeVotes!.Single(static e => e.Key == "string").Value);
     }
 
     [Fact]
@@ -631,14 +631,14 @@ public sealed class ConsumerSubsetTests
             var expectNull = spelling == "nan";
             Assert.Equal(expectNull ? "float" : "string", f.Type);
             Assert.Equal(expectNull ? 1 : 0, f.Nulls);
-            Assert.Equal(expectNull ? 0 : 1, f.TypeVotes.SingleOrDefault(static e => e.Key == "string").Value);
+            Assert.Equal(expectNull ? 0 : 1, f.TypeVotes!.SingleOrDefault(static e => e.Key == "string").Value);
         }
     }
 
     [Fact]
     public void BigIntegers_AreIntUpToInt64_FloatUpTo309Digits_ThenString()
     {
-        static string Type(string value) => Field(ProfileText("A(id),V\n1," + value + "\n2,1\n3,2\n"), "V").Type;
+        static string Type(string value) => Field(ProfileText("A(id),V\n1," + value + "\n2,1\n3,2\n"), "V").Type!;
 
         Assert.Equal("int", Type("9223372036854775807"));
         Assert.Equal("float", Type("9223372036854775808"));
@@ -778,7 +778,7 @@ public sealed class ConsumerSubsetTests
     [Fact]
     public void NonNumericVotes_BoundTheMisfitsOfAUnitColumn_OnlyInANullOnlyFileWithoutPadding()
     {
-        static long NonNumeric(FieldProfile f) => f.TypeVotes.Sum(static e => e.Value) - f.TypeVotes.Where(static e => e.Key is "int" or "float").Sum(static e => e.Value);
+        static long NonNumeric(FieldProfile f) => f.TypeVotes!.Sum(static e => e.Value) - f.TypeVotes!.Where(static e => e.Key is "int" or "float").Sum(static e => e.Value);
 
         // A NULL-only file with no padded value: the votes count the values a number-only reader cannot read, except
         // that Infinity and -Infinity are readable to a consumer that accepts them.

@@ -26,7 +26,11 @@ public static class DescriptorWriter
     /// <summary>Serializes a descriptor to canonical UTF-8 bytes.</summary>
     /// <param name="descriptor">The descriptor.</param>
     /// <returns>The bytes, ending in a single LF.</returns>
-    /// <exception cref="SqualifyException">The descriptor cannot be written, for example because an <see cref="Issue"/> has both lines and offsets.</exception>
+    /// <exception cref="SqualifyException">
+    /// The descriptor cannot be written, for example because an <see cref="Issue"/> has both lines and offsets, or because its
+    /// shape contradicts <see cref="Descriptor.LayoutOnly"/> (a layout-only descriptor that holds hints, the typed fingerprint or a
+    /// field statistic, or a full descriptor that lacks them).
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     /// A value-bearing member is present although its owner is not opted in by <c>includeValues</c> or <c>includeValuesFor</c>
     /// (see <c>ValuesPolicy</c>). That is a bug in the producer of the descriptor, not a user error, so it is not wrapped.
@@ -37,6 +41,7 @@ public static class DescriptorWriter
         ValuesPolicy.Verify(descriptor);
         try
         {
+            CheckShape(descriptor);
             using var buffer = new MemoryStream();
             using (var writer = new Utf8JsonWriter(buffer, Options))
             {
@@ -77,6 +82,63 @@ public static class DescriptorWriter
         }
     }
 
+    // A layout-only descriptor and a full one differ in shape (layoutOnly, hints, fingerprint.typed, the field statistics). The
+    // flag and the shape must agree, or the bytes would say one thing and the model another: that is a bug in the producer.
+    private static void CheckShape(Descriptor d)
+    {
+        var fields = d.Table?.Fields ?? [];
+        if (d.LayoutOnly)
+        {
+            if (d.Hints is not null)
+            {
+                throw new InvalidOperationException("A layout-only descriptor has no hints: they are not computed.");
+            }
+
+            if (d.Fingerprint.Typed is not null)
+            {
+                throw new InvalidOperationException("A layout-only descriptor has no typed fingerprint: the types are not computed.");
+            }
+
+            if (d.Evidence.Any(static e => string.Equals(e.Stage, "type", StringComparison.Ordinal)))
+            {
+                throw new InvalidOperationException("A layout-only descriptor has no evidence of the stage 'type': the types are not computed.");
+            }
+
+            for (var i = 0; i < fields.Count; i++)
+            {
+                var bare = fields[i] with { Index = 0, Name = null, RawName = null, NameHex = null, NameParts = null };
+                if (!bare.Equals(BareField))
+                {
+                    throw new InvalidOperationException("table.fields[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "] of a layout-only descriptor holds a member that is not a name: it is not computed.");
+                }
+            }
+
+            return;
+        }
+
+        if (d.Hints is null)
+        {
+            throw new InvalidOperationException("The descriptor has no hints but is not layout-only.");
+        }
+
+        if (d.Fingerprint.Typed is null)
+        {
+            throw new InvalidOperationException("The descriptor has no typed fingerprint but is not layout-only.");
+        }
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            var f = fields[i];
+            if (f.Type is null || f.Dominant is null || f.TypeVotes is null || f.Count is null || f.Nulls is null || f.NullsExcludingAllNullRows is null)
+            {
+                throw new InvalidOperationException("table.fields[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "] lacks its type or counts but the descriptor is not layout-only.");
+            }
+        }
+    }
+
+    // A field with nothing set: what a layout-only field is once its names are taken away.
+    private static readonly FieldProfile BareField = new(0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+
     private static void Write(Utf8JsonWriter w, Descriptor d)
     {
         w.WriteStartObject();
@@ -85,6 +147,9 @@ public static class DescriptorWriter
         Write(w, d.Tool);
         w.WritePropertyName("options");
         Write(w, d.Options);
+
+        // Written only for a layout-only profile, so that every other descriptor keeps its bytes.
+        TrueOnly(w, "layoutOnly", d.LayoutOnly);
         w.WritePropertyName("limits");
         Write(w, d.Limits);
         w.WritePropertyName("file");
@@ -98,14 +163,22 @@ public static class DescriptorWriter
         Write(w, d.Kind);
         w.WritePropertyName("layout");
         Write(w, d.Layout);
-        Optional(w, "table", d.Table, Write);
+        Optional(w, "table", d.Table, (writer, table) => Write(writer, table, d.LayoutOnly));
         OptionalList(w, "sections", d.Sections, Write);
         Optional(w, "binary", d.Binary, Write);
         Optional(w, "stdf", d.Stdf, Write);
         w.WritePropertyName("fingerprint");
         Write(w, d.Fingerprint);
         w.WritePropertyName("hints");
-        Write(w, d.Hints);
+        if (d.Hints is { } hints)
+        {
+            Write(w, hints);
+        }
+        else
+        {
+            w.WriteNullValue();
+        }
+
         List(w, "issues", d.Issues, Write);
         List(w, "evidence", d.Evidence, Write);
         w.WriteEndObject();
@@ -337,14 +410,14 @@ public static class DescriptorWriter
         w.WriteEndObject();
     }
 
-    private static void Write(Utf8JsonWriter w, TableSection v)
+    private static void Write(Utf8JsonWriter w, TableSection v, bool layoutOnly)
     {
         w.WriteStartObject();
         w.WriteNumber("rows", v.Rows);
         w.WritePropertyName("fieldCount");
         Write(w, v.FieldCount);
         Optional(w, "rowClasses", v.RowClasses, Write);
-        List(w, "fields", v.Fields, Write);
+        List(w, "fields", v.Fields, layoutOnly ? WriteLayoutOnly : Write);
         w.WriteEndObject();
     }
 
@@ -375,9 +448,9 @@ public static class DescriptorWriter
         w.WriteEndObject();
     }
 
-    private static void Write(Utf8JsonWriter w, FieldProfile v)
+    // The members of a field that a header gives: all that a layout-only profile writes.
+    private static void WriteFieldNames(Utf8JsonWriter w, FieldProfile v)
     {
-        w.WriteStartObject();
         w.WriteNumber("index", v.Index);
         w.WriteString("name", v.Name);
         w.WriteString("rawName", v.RawName);
@@ -395,17 +468,31 @@ public static class DescriptorWriter
                 writer.WriteBoolean("unknownUnit", parts.UnknownUnit);
                 writer.WriteEndObject();
             });
+    }
+
+    // A field of a layout-only profile: index, name, rawName, nameHex and nameParts, and nothing computed from the values.
+    private static void WriteLayoutOnly(Utf8JsonWriter w, FieldProfile v)
+    {
+        w.WriteStartObject();
+        WriteFieldNames(w, v);
+        w.WriteEndObject();
+    }
+
+    private static void Write(Utf8JsonWriter w, FieldProfile v)
+    {
+        w.WriteStartObject();
+        WriteFieldNames(w, v);
         w.WriteString("type", v.Type);
         w.WritePropertyName("dominant");
         w.WriteStartObject();
-        w.WriteString("type", v.Dominant.Type);
+        w.WriteString("type", v.Dominant!.Type);
         Double(w, "share", v.Dominant.Share);
         w.WriteEndObject();
-        Map(w, "typeVotes", v.TypeVotes);
+        Map(w, "typeVotes", v.TypeVotes!);
         Optional(w, "patterns", v.Patterns, WriteMap);
-        w.WriteNumber("count", v.Count);
-        w.WriteNumber("nulls", v.Nulls);
-        w.WriteNumber("nullsExcludingAllNullRows", v.NullsExcludingAllNullRows);
+        w.WriteNumber("count", v.Count!.Value);
+        w.WriteNumber("nulls", v.Nulls!.Value);
+        w.WriteNumber("nullsExcludingAllNullRows", v.NullsExcludingAllNullRows!.Value);
         Nullable(w, "nullTokens", v.NullTokens, WriteMap);
         if (v.NullSpellings is { Count: > 0 } spellings)
         {

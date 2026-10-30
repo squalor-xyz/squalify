@@ -28,8 +28,8 @@ public sealed class HintTests
     private static void AssertEveryRegexMatchesItsLine(Descriptor d, string text)
     {
         var lines = Lines(text);
-        Assert.NotEmpty(d.Hints.StableLines);
-        foreach (var stable in d.Hints.StableLines)
+        Assert.NotEmpty(d.Hints!.StableLines);
+        foreach (var stable in d.Hints!.StableLines)
         {
             var line = lines[(int)stable.Line];
             Assert.True(DotNet(stable.Regex, line), ".NET: " + stable.Regex + " vs " + line);
@@ -44,7 +44,7 @@ public sealed class HintTests
         var text = File.ReadAllText(TestBytes.Fixture("lab/sweep-preamble.csv"));
         var d = Profile(text);
         AssertEveryRegexMatchesItsLine(d, text);
-        var regexes = d.Hints.StableLines.Select(static s => s.Regex).ToArray();
+        var regexes = d.Hints!.StableLines.Select(static s => s.Regex).ToArray();
         Assert.Contains("^Freq\\(MHz\\),Pout\\(dBm\\),Gain\\(dB\\)$", regexes);
         Assert.Contains("^\\s*Lot\\s*[=:]", regexes);
         Assert.Contains("^\\s*Wafer\\s*[=:]", regexes);
@@ -60,7 +60,7 @@ public sealed class HintTests
         var text = "Freq.a,x+y,(p|q),[r],{s},t*u,v?w,x^y,$z,back\\slash\n1,2,3,4,5,6,7,8,9,10\n2,3,4,5,6,7,8,9,10,11\n";
         var d = Profile(text);
         AssertEveryRegexMatchesItsLine(d, text);
-        var full = d.Hints.StableLines.Single(static s => s.Regex.EndsWith('$'));
+        var full = d.Hints!.StableLines.Single(static s => s.Regex.EndsWith('$'));
         Assert.Equal("^Freq\\.a,x\\+y,\\(p\\|q\\),\\[r\\],\\{s\\},t\\*u,v\\?w,x\\^y,\\$z,back\\\\slash$", full.Regex);
     }
 
@@ -69,7 +69,7 @@ public sealed class HintTests
     {
         var text = "Wafer=2\n# note\nLot=1\nSite,Vth,Idsat\n1,0.5,3\n2,0.6,4\n3,0.7,5\n";
         var d = Profile(text);
-        var lines = d.Hints.StableLines;
+        var lines = d.Hints!.StableLines;
         for (var i = 1; i < lines.Count; i++)
         {
             var c = lines[i - 1].Line.CompareTo(lines[i].Line);
@@ -85,7 +85,7 @@ public sealed class HintTests
         var text = File.ReadAllText(TestBytes.Fixture("delimited/padded-annotated.csv"));
         var d = Profile(text);
         AssertEveryRegexMatchesItsLine(d, text);
-        Assert.Equal(5 + 2, d.Hints.StableLines.Count);
+        Assert.Equal(5 + 2, d.Hints!.StableLines.Count);
     }
 
     [Fact]
@@ -93,8 +93,8 @@ public sealed class HintTests
     {
         var text = "\"Site\",\"Vth\",\"Idsat\"\n1,0.5,3\n2,0.6,4\n";
         var d = Profile(text);
-        Assert.Equal(["Site", "Vth", "Idsat"], d.Hints.HeaderFields!.ToArray());
-        var prefix = Assert.Single(d.Hints.StableLines, static s => !s.Regex.EndsWith('$'));
+        Assert.Equal(["Site", "Vth", "Idsat"], d.Hints!.HeaderFields!.ToArray());
+        var prefix = Assert.Single(d.Hints!.StableLines, static s => !s.Regex.EndsWith('$'));
         Assert.True(DotNet(prefix.Regex, Lines(text)[0]));
         Assert.True(Ecma(prefix.Regex, Lines(text)[0]));
         Assert.True(DotNet(prefix.Regex, "Site,Vth,Idsat"));
@@ -107,7 +107,7 @@ public sealed class HintTests
         var text = "\u00A0Lot=A12\nWafer=2\nSite,Vth\n1,0.5\n2,0.6\n3,0.7\n";
         var d = Profile(text);
         AssertEveryRegexMatchesItsLine(d, text);
-        Assert.DoesNotContain(d.Hints.StableLines, static s => s.Line == 0);
+        Assert.DoesNotContain(d.Hints!.StableLines, static s => s.Line == 0);
     }
 
     [Fact]
@@ -115,14 +115,14 @@ public sealed class HintTests
     {
         var text = "# CANARYCOMMENT here\nLot=CANARYVALUE\nCANARYTEXT line\nSite,Vth\n1,0.5\n2,0.6\n3,0.7\n";
         var without = Profile(text);
-        Assert.DoesNotContain("CANARY", string.Join("|", without.Hints.StableLines.Select(static s => s.Regex)), StringComparison.Ordinal);
+        Assert.DoesNotContain("CANARY", string.Join("|", without.Hints!.StableLines.Select(static s => s.Regex)), StringComparison.Ordinal);
         Assert.Equal(
             ["^\\s*Lot\\s*[=:]", "^ *\"?Site\"? *, *\"?Vth\"? *", "^Site,Vth$"],
-            without.Hints.StableLines.Select(static l => l.Regex).ToArray());
+            without.Hints!.StableLines.Select(static l => l.Regex).ToArray());
 
         var with = Profile(text, includeValues: true);
         AssertEveryRegexMatchesItsLine(with, text);
-        var regexes = with.Hints.StableLines.Select(static s => s.Regex).ToArray();
+        var regexes = with.Hints!.StableLines.Select(static s => s.Regex).ToArray();
         Assert.Contains("^# CANARYCOMMENT here$", regexes);
         Assert.Contains("^CANARYTEXT line$", regexes);
         Assert.Contains("^\\s*Lot\\s*[=:]", regexes);
@@ -135,14 +135,14 @@ public sealed class HintTests
     public void Hints_NonNullFields_NeverNull()
     {
         var d = Profile("a,b,c,d\n1,,x,NA\n2,5,,7\n3,6,z,8\n");
-        Assert.Equal([0L], d.Hints.NonNullFields!.ToArray());
-        foreach (var index in d.Hints.NonNullFields!)
+        Assert.Equal([0L], d.Hints!.NonNullFields!.ToArray());
+        foreach (var index in d.Hints!.NonNullFields!)
         {
             Assert.Equal(0, d.Table!.Fields[(int)index].Nulls);
         }
 
         var all = Profile("a,b\n1,x\n2,y\n");
-        Assert.Equal([0L, 1L], all.Hints.NonNullFields!.ToArray());
+        Assert.Equal([0L, 1L], all.Hints!.NonNullFields!.ToArray());
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public sealed class HintTests
         // The blank-field row is a separator: it is all null, so it does not count against a column.
         var d = Profile("a,b,c\n1,x,\n,,\n2,y,\n3,z,w\n,,\n4,q,\n");
         Assert.Equal(2, d.Table!.RowClasses!.AllNullRows);
-        Assert.Equal([0L, 1L], d.Hints.NonNullFields!.ToArray());
+        Assert.Equal([0L, 1L], d.Hints!.NonNullFields!.ToArray());
         Assert.Equal(2, d.Table.Fields[0].Nulls);
         Assert.Equal(0, d.Table.Fields[0].NullsExcludingAllNullRows);
     }
@@ -160,7 +160,7 @@ public sealed class HintTests
     public void Hints_NonNullFields_NullInADataRow_IsNotListed()
     {
         var d = Profile("a,b,c\n1,x,1\n,,\n2,,3\n3,z,4\n");
-        Assert.Equal([0L, 2L], d.Hints.NonNullFields!.ToArray());
+        Assert.Equal([0L, 2L], d.Hints!.NonNullFields!.ToArray());
     }
 
     [Fact]
@@ -169,8 +169,8 @@ public sealed class HintTests
         var d = Profile("a,b\n,\n,\n,\n");
         Assert.NotNull(d.Table);
         Assert.Equal(d.Table!.Rows, d.Table.RowClasses!.AllNullRows);
-        Assert.NotNull(d.Hints.NonNullFields);
-        Assert.Empty(d.Hints.NonNullFields!);
+        Assert.NotNull(d.Hints!.NonNullFields);
+        Assert.Empty(d.Hints!.NonNullFields!);
     }
 
     [Fact]
@@ -187,10 +187,10 @@ public sealed class HintTests
         foreach (var stray in new[] { new byte[] { 0xFF }, new byte[] { 0x01 }, new byte[] { 0x85 } })
         {
             var d = ProfileBytes(File(stray));
-            var regexes = d.Hints.StableLines.Select(static s => s.Regex).ToArray();
+            var regexes = d.Hints!.StableLines.Select(static s => s.Regex).ToArray();
             Assert.Contains("^\\s*Lot\\s*[=:]", regexes);
             Assert.Contains("^\\s*Wafer\\s*[=:]", regexes);
-            Assert.DoesNotContain(d.Hints.StableLines, static s => s.Line == 1);
+            Assert.DoesNotContain(d.Hints!.StableLines, static s => s.Line == 1);
             Assert.Equal(1 + 1 + 2, regexes.Length);
             Assert.DoesNotContain(regexes, static r => r.Any(static c => c < ' ' || c == '\uFFFD' || (c >= '\u007F' && c <= '\u009F')));
         }
@@ -201,8 +201,8 @@ public sealed class HintTests
     {
         var bytes = TestBytes.Concat(TestBytes.Ascii("Lot=A12\nSite,V"), [0xFF], TestBytes.Ascii("th\n1,0.5\n2,0.6\n3,0.7\n"));
         var d = ProfileBytes(bytes);
-        Assert.Equal(["Site", "V\uFFFDth"], d.Hints.HeaderFields!.ToArray());
-        Assert.Equal(["^\\s*Lot\\s*[=:]"], d.Hints.StableLines.Select(static s => s.Regex).ToArray());
+        Assert.Equal(["Site", "V\uFFFDth"], d.Hints!.HeaderFields!.ToArray());
+        Assert.Equal(["^\\s*Lot\\s*[=:]"], d.Hints!.StableLines.Select(static s => s.Regex).ToArray());
     }
 
     [Fact]
@@ -210,8 +210,8 @@ public sealed class HintTests
     {
         var text = "Lot=A12\nSite\tVth\tIdsat\n1\t0.5\t3\n2\t0.6\t4\n3\t0.7\t5\n";
         var d = Profile(text, name: "t.tsv");
-        Assert.Equal("\t", d.Hints.Delimiter);
-        Assert.Equal(3, d.Hints.StableLines.Count);
+        Assert.Equal("\t", d.Hints!.Delimiter);
+        Assert.Equal(3, d.Hints!.StableLines.Count);
         AssertEveryRegexMatchesItsLine(d, text);
     }
 
@@ -220,27 +220,27 @@ public sealed class HintTests
     public void Hints_HeaderPrefix_And_FileNameShape()
     {
         var seven = Profile("c1,c2,c3,c4,c5,c6,c7\n1,2,3,4,5,6,7\n2,3,4,5,6,7,8\n", name: "Run_042.csv");
-        Assert.Equal(["c1", "c2", "c3", "c4", "c5"], seven.Hints.HeaderPrefix!.ToArray());
-        Assert.Equal(["c1", "c2", "c3", "c4", "c5", "c6", "c7"], seven.Hints.HeaderFields!.ToArray());
-        Assert.Equal("Aa{2}_9{3}.a{3}", seven.Hints.FileNameShape);
-        var prefix = Assert.Single(seven.Hints.StableLines, static s => !s.Regex.EndsWith('$'));
+        Assert.Equal(["c1", "c2", "c3", "c4", "c5"], seven.Hints!.HeaderPrefix!.ToArray());
+        Assert.Equal(["c1", "c2", "c3", "c4", "c5", "c6", "c7"], seven.Hints!.HeaderFields!.ToArray());
+        Assert.Equal("Aa{2}_9{3}.a{3}", seven.Hints!.FileNameShape);
+        var prefix = Assert.Single(seven.Hints!.StableLines, static s => !s.Regex.EndsWith('$'));
         Assert.Equal(" *\"?c1\"? *, *\"?c2\"? *, *\"?c3\"? *, *\"?c4\"? *, *\"?c5\"? *", prefix.Regex[1..]);
 
         var three = Profile("x,y,z\n1,2,3\n2,3,4\n", name: "{a}b.CSV");
-        Assert.Equal(["x", "y", "z"], three.Hints.HeaderPrefix!.ToArray());
-        Assert.Equal("?a?a.A{3}", three.Hints.FileNameShape);
-        Assert.Equal(".csv", three.Hints.Extension);
+        Assert.Equal(["x", "y", "z"], three.Hints!.HeaderPrefix!.ToArray());
+        Assert.Equal("?a?a.A{3}", three.Hints!.FileNameShape);
+        Assert.Equal(".csv", three.Hints!.Extension);
 
         var headerless = Profiler.Profile(TestBytes.Fixture("delimited/no-header.tsv"), Options());
-        Assert.Null(headerless.Hints.HeaderFields);
-        Assert.Null(headerless.Hints.HeaderPrefix);
+        Assert.Null(headerless.Hints!.HeaderFields);
+        Assert.Null(headerless.Hints!.HeaderPrefix);
     }
 
     [Fact]
     public void Hints_Members_FromTheTable()
     {
         var d = Profile("# c\nSite,Vth(V),Idsat\n1,0.5,3\n2,0.6,4\n");
-        var h = d.Hints;
+        var h = d.Hints!;
         Assert.Equal(".csv", h.Extension);
         Assert.Null(h.Magic);
         Assert.Equal(new MinMax(3, 3), h.FieldCount);
@@ -254,36 +254,36 @@ public sealed class HintTests
     public void Hints_ExtensionIsAsciiLowerCase()
     {
         var turkish = Profile("a,b\n1,2\n3,4\n", name: "DATA.CSVİ");
-        Assert.Equal(".csvİ", turkish.Hints.Extension);
+        Assert.Equal(".csvİ", turkish.Hints!.Extension);
         var plain = Profile("a,b\n1,2\n3,4\n", name: "x.TXT");
-        Assert.Equal(".txt", plain.Hints.Extension);
+        Assert.Equal(".txt", plain.Hints!.Extension);
     }
 
     [Fact]
     public void Hints_NonTabular_HasNoTableHints()
     {
         var d = Profile("hello world\n", name: "a.txt");
-        Assert.Empty(d.Hints.StableLines);
-        Assert.Null(d.Hints.HeaderFields);
-        Assert.Null(d.Hints.NonNullFields);
-        Assert.Null(d.Hints.FieldCount);
-        Assert.Null(d.Hints.DataStartLine);
-        Assert.Null(d.Hints.Delimiter);
-        Assert.Null(d.Hints.HeaderConvention);
+        Assert.Empty(d.Hints!.StableLines);
+        Assert.Null(d.Hints!.HeaderFields);
+        Assert.Null(d.Hints!.NonNullFields);
+        Assert.Null(d.Hints!.FieldCount);
+        Assert.Null(d.Hints!.DataStartLine);
+        Assert.Null(d.Hints!.Delimiter);
+        Assert.Null(d.Hints!.HeaderConvention);
     }
 
     [Fact]
     public void Hints_Magic_IsStructured()
     {
         var gz = Profiler.Profile(new BytesSource("a.gz", TestBytes.Hex("1F 8B 08 00 00 00 00 00 02 FF")), Options());
-        Assert.Equal(new MagicHint("gzip", 0, "1f8b"), gz.Hints.Magic);
+        Assert.Equal(new MagicHint("gzip", 0, "1f8b"), gz.Hints!.Magic);
         var tar = new byte[600];
         "ustar"u8.CopyTo(tar.AsSpan(257));
         tar[0] = 1;
         var t = Profiler.Profile(new BytesSource("a.tar", tar), Options());
-        Assert.Equal(new MagicHint("tar", 257, "7573746172"), t.Hints.Magic);
+        Assert.Equal(new MagicHint("tar", 257, "7573746172"), t.Hints!.Magic);
         var parquet = Profiler.Profile(new BytesSource("a.parquet", TestBytes.Hex("50 41 52 31 00 00 50 41 52 31")), Options());
-        Assert.Equal(new MagicHint("parquet", 0, "50415231"), parquet.Hints.Magic);
+        Assert.Equal(new MagicHint("parquet", 0, "50415231"), parquet.Hints!.Magic);
         var json = Encoding.UTF8.GetString(DescriptorWriter.ToBytes(gz));
         Assert.Contains("\"magic\": { \"name\": \"gzip\", \"offset\": 0, \"hex\": \"1f8b\" }", json, StringComparison.Ordinal);
     }
@@ -292,7 +292,7 @@ public sealed class HintTests
     public void Hints_HeaderConvention_IsSetFromTheLayout()
     {
         var d = Profile("a(V),b(A)\n1,2\n3,4\n");
-        Assert.Equal(d.Layout.HeaderConvention!.Dominant, d.Hints.HeaderConvention);
+        Assert.Equal(d.Layout.HeaderConvention!.Dominant, d.Hints!.HeaderConvention);
     }
 
     // 11
@@ -309,15 +309,15 @@ public sealed class HintTests
         var text = header + "\n" + row + "\n" + row + "\n" + row + "\n";
         var d = Profile(text);
         Assert.True(((DelimitedDialect)d.Format.Dialect!).HasHeader);
-        var full = Assert.Single(d.Hints.StableLines, static s => s.Regex.EndsWith('$'));
+        var full = Assert.Single(d.Hints!.StableLines, static s => s.Regex.EndsWith('$'));
         Assert.Equal(0, full.Line);
         Assert.Equal(30_000 + 2, full.Regex.Length);
         Assert.StartsWith("^col000000,col000001,", full.Regex, StringComparison.Ordinal);
         var line = Lines(text)[0];
         Assert.True(DotNet(full.Regex, line));
         Assert.True(Ecma(full.Regex, line));
-        Assert.Equal(columns, d.Hints.HeaderFields!.Count);
-        Assert.Equal(5, d.Hints.HeaderPrefix!.Count);
+        Assert.Equal(columns, d.Hints!.HeaderFields!.Count);
+        Assert.Equal(5, d.Hints!.HeaderPrefix!.Count);
         AssertEveryRegexMatchesItsLine(d, text);
     }
 
@@ -326,9 +326,9 @@ public sealed class HintTests
     {
         var text = "Lot=A12\nFreq Pout Gain\n" + string.Concat(Enumerable.Range(1, 12).Select(static i => $"{i * 100} {i}.5 {i}.25\n"));
         var d = Profile(text, name: "t.dat");
-        Assert.Equal("whitespace", d.Hints.Delimiter);
+        Assert.Equal("whitespace", d.Hints!.Delimiter);
         AssertEveryRegexMatchesItsLine(d, text);
-        var prefix = Assert.Single(d.Hints.StableLines, static s => s.Regex.StartsWith("^\\s*\"?", StringComparison.Ordinal));
+        var prefix = Assert.Single(d.Hints!.StableLines, static s => s.Regex.StartsWith("^\\s*\"?", StringComparison.Ordinal));
         Assert.Equal("^\\s*\"?Freq\"?\\s+\"?Pout\"?\\s+\"?Gain\"?\\s*", prefix.Regex);
     }
 }

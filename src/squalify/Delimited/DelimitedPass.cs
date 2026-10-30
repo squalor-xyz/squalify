@@ -24,6 +24,11 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
     private readonly char _delimiterChar;
     private readonly ValuesGate _gate;
 
+    // The layout-only profile (sq-47): no field accumulator is made, so there are no per-field statistics, sketches or buffers.
+    // The null decision that the row classes need comes from the classifier's null check, which is the first step of the
+    // classification that a field accumulator would have made: the same mask, the same classes.
+    private readonly bool _layoutOnly;
+
     // Preamble (the first block's; a later block keeps its own in its BlockInfo).
     private readonly PreambleData _preamble = new();
     private readonly List<(long Line, StableLineKind Kind, string? Key)> _stableLines = [];
@@ -102,6 +107,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         _nullMask = new bool[_k];
         _rowClasses = new RowClassAccumulator(_k, context.Limits.RowClasses);
         _gate = context.Gate;
+        _layoutOnly = context.Options.LayoutOnly;
     }
 
     /// <summary>The per-field caps in effect: the configured caps after the global budget (<see cref="MemoryBudget"/>).</summary>
@@ -287,6 +293,32 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         for (var c = 0; c < _k; c++)
         {
             // rawName is the header cell as the tokenizer gave it (quotes removed, "" unescaped), before the trim that makes name.
+            if (_layoutOnly)
+            {
+                // The header gives the name, the raw name, the hex of a damaged name and the name parts; nothing is computed from values.
+                fields.Add(new FieldProfile(
+                    c,
+                    names[c],
+                    conventions?.Parts[c],
+                    Type: null,
+                    Dominant: null,
+                    TypeVotes: null,
+                    Count: null,
+                    Nulls: null,
+                    NullsExcludingAllNullRows: null,
+                    NullTokens: null,
+                    Flags: null,
+                    Distinct: null,
+                    Length: null,
+                    Shapes: null,
+                    Monotonic: null,
+                    Constant: null,
+                    Unique: null,
+                    NameHex: hex[c],
+                    RawName: _headerRecord?.Cells[c]));
+                continue;
+            }
+
             fields.Add(BuildField(c, names[c], hex[c]) with { NameParts = conventions?.Parts[c], RawName = _headerRecord?.Cells[c] });
             if (_accumulators[c].OrderConflict is { } conflict)
             {
@@ -375,7 +407,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             issues,
             evidence,
             Table: table,
-            StableLines: ReadStableLines(source, sniff),
+            StableLines: _layoutOnly ? null : ReadStableLines(source, sniff),
             EffectiveLimits: MemoryBudget.Record(_context.Limits, _caps));
     }
 
@@ -593,16 +625,20 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             }
         }
 
-        // The decimal separator is known now, and it is always '.' or ',' (a FieldAccumulator rejects anything else).
-        _accumulators = new FieldAccumulator[_k];
-        for (var c = 0; c < _k; c++)
+        // The decimal separator is known now, and it is always '.' or ',' (a FieldAccumulator rejects anything else). A
+        // layout-only profile makes no accumulator.
+        if (!_layoutOnly)
         {
-            var name = h >= 0 ? ValueClassifier.Trim(_headerRecord!.Cells[c]).ToString() : null;
-            var access = new FieldValueAccess(
-                _gate.Allows(ValuesPolicy.FieldTop, name),
-                _gate.Allows(ValuesPolicy.FieldText, name),
-                _gate.Allows(ValuesPolicy.ConstantStatistics, name));
-            _accumulators[c] = new FieldAccumulator(_caps, _decimal, access);
+            _accumulators = new FieldAccumulator[_k];
+            for (var c = 0; c < _k; c++)
+            {
+                var name = h >= 0 ? ValueClassifier.Trim(_headerRecord!.Cells[c]).ToString() : null;
+                var access = new FieldValueAccess(
+                    _gate.Allows(ValuesPolicy.FieldTop, name),
+                    _gate.Allows(ValuesPolicy.FieldText, name),
+                    _gate.Allows(ValuesPolicy.ConstantStatistics, name));
+                _accumulators[c] = new FieldAccumulator(_caps, _decimal, access);
+            }
         }
 
         for (var i = start; i < _sample.Count; i++)
@@ -1047,10 +1083,11 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             return;
         }
 
-        // The null decision is the field accumulator's; the row-class accumulator sees the whole record's mask.
+        // The null decision is the field accumulator's; the row-class accumulator sees the whole record's mask. A layout-only
+        // profile has no accumulator and takes the same decision from the classifier's null check.
         for (var c = 0; c < _k; c++)
         {
-            _nullMask[c] = _accumulators[c].AddText(cells[c]) == ValueVote.Null;
+            _nullMask[c] = _layoutOnly ? ValueClassifier.IsNull(cells[c]) : _accumulators[c].AddText(cells[c]) == ValueVote.Null;
         }
 
         // The exact spelling of each null is counted by its field (AddText). An all-null record is also counted by the one

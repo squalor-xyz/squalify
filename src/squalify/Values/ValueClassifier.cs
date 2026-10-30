@@ -101,6 +101,26 @@ internal static class ValueClassifier
         return Plain(ValueVote.String, flags);
     }
 
+    /// <summary>
+    /// Whether a value is a null token: the first decision of <see cref="Classify"/>, without the rest of it. Used by the
+    /// layout-only profile, which needs the null mask of a record (for the row classes) and no type vote.
+    /// </summary>
+    /// <param name="value">The value. <see cref="TrimChars"/> at either end are ignored.</param>
+    /// <returns>True when <see cref="Classify"/> would vote null.</returns>
+    public static bool IsNull(ReadOnlySpan<char> value)
+    {
+        var v = Trim(value);
+        foreach (var entry in NullEntries)
+        {
+            if (EqualsAsciiIgnoreCase(v, entry))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>Trims <see cref="TrimChars"/> from both ends of a value.</summary>
     /// <param name="value">The value.</param>
     /// <returns>The trimmed value.</returns>

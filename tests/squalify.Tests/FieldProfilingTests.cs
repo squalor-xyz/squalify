@@ -124,9 +124,9 @@ public sealed class FieldProfilingTests
         var values = Enumerable.Repeat("1.5", 99).Append("abc");
         var field = Build(Accumulate(values));
         Assert.Equal("string", field.Type);
-        Assert.Equal("float", field.Dominant.Type);
-        Assert.Equal(0.99, field.Dominant.Share, 12);
-        Assert.Equal(new[] { ("float", 99L), ("string", 1L) }, field.TypeVotes.Select(static e => (e.Key, e.Value)).ToArray());
+        Assert.Equal("float", field.Dominant!.Type);
+        Assert.Equal(0.99, field.Dominant!.Share, 12);
+        Assert.Equal(new[] { ("float", 99L), ("string", 1L) }, field.TypeVotes!.Select(static e => (e.Key, e.Value)).ToArray());
     }
 
     [Fact]
@@ -134,8 +134,8 @@ public sealed class FieldProfilingTests
     {
         var field = Build(Accumulate(["1", "2", "1.5", "2.5"]));
         Assert.Equal("float", field.Type);
-        Assert.Equal("int", field.Dominant.Type);
-        Assert.Equal(0.5, field.Dominant.Share, 12);
+        Assert.Equal("int", field.Dominant!.Type);
+        Assert.Equal(0.5, field.Dominant!.Share, 12);
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public sealed class FieldProfilingTests
         Assert.Equal("string", field.Type);
         Assert.Null(field.Temporal);
         Assert.Null(field.Monotonic);
-        Assert.Equal("date", field.Dominant.Type);
+        Assert.Equal("date", field.Dominant!.Type);
         var evidence = Assert.Single(descriptor.Evidence, static e => e.Stage == "type" && e.Topic == "dateOrderConflict");
         Assert.Equal("string", evidence.Chosen);
         var candidate = Assert.Single(evidence.Candidates);
@@ -806,8 +806,8 @@ public sealed class FieldProfilingTests
     public void Type_DominantTie_UsesTheDocumentedOrder(string values, string expected)
     {
         var field = Build(Accumulate(values.Split(',')));
-        Assert.Equal(expected, field.Dominant.Type);
-        Assert.Equal(0.5, field.Dominant.Share, 12);
+        Assert.Equal(expected, field.Dominant!.Type);
+        Assert.Equal(0.5, field.Dominant!.Share, 12);
     }
 
     [Fact]

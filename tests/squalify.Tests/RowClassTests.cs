@@ -88,8 +88,8 @@ public sealed class RowClassTests
     {
         var d = ProfileText(Header + string.Concat(Interleaved));
         var fields = d.Table!.Fields;
-        Assert.Equal(new long[] { 3, 4, 7, 7, 13 }, fields.Select(static f => f.Nulls).ToArray());
-        Assert.Equal(new long[] { 0, 1, 4, 4, 10 }, fields.Select(static f => f.NullsExcludingAllNullRows).ToArray());
+        Assert.Equal(new long[] { 3, 4, 7, 7, 13 }, fields.Select(static f => f.Nulls!.Value).ToArray());
+        Assert.Equal(new long[] { 0, 1, 4, 4, 10 }, fields.Select(static f => f.NullsExcludingAllNullRows!.Value).ToArray());
         Assert.Equal(3, ClassesOf(d).AllNullRows);
         Assert.All(fields, static f => Assert.Equal(3, f.Nulls - f.NullsExcludingAllNullRows));
 
@@ -196,7 +196,7 @@ public sealed class RowClassTests
         Assert.Equal(8, data.Count);
         Assert.Equal((3, 17), (data.FirstLine, data.LastLine));
         Assert.Equal(9, rc.Classes.Single(static c => c.Id == Id()).Count);
-        Assert.Equal(new long[] { 0, 0, 0, 0 }, d.Table.Fields.Select(static f => f.NullsExcludingAllNullRows).ToArray());
+        Assert.Equal(new long[] { 0, 0, 0, 0 }, d.Table.Fields.Select(static f => f.NullsExcludingAllNullRows!.Value).ToArray());
     }
 
     [Fact]

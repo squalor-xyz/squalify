@@ -144,7 +144,7 @@ public sealed class ValuesTierTests
                     Field("Lot") with { Type = "date", Constant = true, Temporal = new TemporalStats(["YMD"], false, null, "2026-01-02", "2026-01-02", null) },
                     options);
             case "stableLine":
-                return baseline with { Hints = baseline.Hints with { StableLines = [new StableLine(0, "^" + Canary + "$", CarriesValue: true)] } };
+                return baseline with { Hints = baseline.Hints! with { StableLines = [new StableLine(0, "^" + Canary + "$", CarriesValue: true)] } };
             default:
                 throw new ArgumentOutOfRangeException(nameof(name));
         }

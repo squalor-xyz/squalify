@@ -16,7 +16,7 @@ public sealed class ParquetRemovalTests
 
         Assert.Equal("binary", descriptor.Format.Family);
         Assert.NotNull(descriptor.Binary);
-        Assert.Equal(new MagicHint("parquet", 0, "50415231"), descriptor.Hints.Magic);
+        Assert.Equal(new MagicHint("parquet", 0, "50415231"), descriptor.Hints!.Magic);
     }
 
     [Fact]

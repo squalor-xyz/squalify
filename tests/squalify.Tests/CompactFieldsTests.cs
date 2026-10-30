@@ -292,7 +292,7 @@ public class CompactFieldsTests
     private static Descriptor WithHeaderFields(params string[] names)
     {
         var d = TestModels.Minimal();
-        return d with { Hints = d.Hints with { HeaderFields = names } };
+        return d with { Hints = d.Hints! with { HeaderFields = names } };
     }
 
     [Theory]

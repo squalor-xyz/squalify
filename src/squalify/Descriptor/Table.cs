@@ -128,16 +128,22 @@ public sealed record RowClass(string Id, long Count, IReadOnlyList<FieldRange> F
 /// <param name="Last">Last index.</param>
 public sealed record FieldRange(long First, long Last);
 
-/// <summary>One entry of <c>table.fields[]</c>. Members that the schema always writes are written as null when they do not apply.</summary>
+/// <summary>
+/// One entry of <c>table.fields[]</c>. Members that the schema always writes are written as null when they do not apply.
+/// In a layout-only profile (<see cref="Descriptor.LayoutOnly"/>) only <paramref name="Index"/>, <paramref name="Name"/>,
+/// <paramref name="RawName"/>, <paramref name="NameHex"/> and <paramref name="NameParts"/> are set: <paramref name="Type"/>,
+/// <paramref name="Dominant"/>, <paramref name="TypeVotes"/>, <paramref name="Count"/>, <paramref name="Nulls"/> and
+/// <paramref name="NullsExcludingAllNullRows"/> are null (not computed), and so is every other member that is not a name.
+/// </summary>
 /// <param name="Index">Column index.</param>
 /// <param name="Name">The header name, trimmed; null when the table has no header.</param>
 /// <param name="NameParts">Name split into base and unit; null when the table has no header.</param>
-/// <param name="Type">The field type.</param>
-/// <param name="Dominant">The dominant vote.</param>
-/// <param name="TypeVotes">Type votes.</param>
-/// <param name="Count">Non-null plus null values.</param>
-/// <param name="Nulls">Null values.</param>
-/// <param name="NullsExcludingAllNullRows">Null values outside all-null rows.</param>
+/// <param name="Type">The field type; null only in a layout-only profile.</param>
+/// <param name="Dominant">The dominant vote; null only in a layout-only profile.</param>
+/// <param name="TypeVotes">Type votes; null only in a layout-only profile.</param>
+/// <param name="Count">Non-null plus null values; null only in a layout-only profile.</param>
+/// <param name="Nulls">Null values; null only in a layout-only profile.</param>
+/// <param name="NullsExcludingAllNullRows">Null values outside all-null rows; null only in a layout-only profile.</param>
 /// <param name="NullTokens">Null-token counts; null until the field accumulators fill it (sq-05).</param>
 /// <param name="Flags">Value-shape flags; null until sq-05.</param>
 /// <param name="Distinct">Distinct count; null until sq-05.</param>
@@ -163,12 +169,12 @@ public sealed record FieldProfile(
     long Index,
     string? Name,
     NameParts? NameParts,
-    string Type,
-    DominantType Dominant,
-    CountMap TypeVotes,
-    long Count,
-    long Nulls,
-    long NullsExcludingAllNullRows,
+    string? Type,
+    DominantType? Dominant,
+    CountMap? TypeVotes,
+    long? Count,
+    long? Nulls,
+    long? NullsExcludingAllNullRows,
     CountMap? NullTokens,
     FieldFlags? Flags,
     DistinctInfo? Distinct,
@@ -198,12 +204,12 @@ public sealed record FieldProfile(
             && EqualityComparer<long>.Default.Equals(Index, other.Index)
             && EqualityComparer<string?>.Default.Equals(Name, other.Name)
             && EqualityComparer<NameParts?>.Default.Equals(NameParts, other.NameParts)
-            && EqualityComparer<string>.Default.Equals(Type, other.Type)
-            && EqualityComparer<DominantType>.Default.Equals(Dominant, other.Dominant)
-            && EqualityComparer<CountMap>.Default.Equals(TypeVotes, other.TypeVotes)
-            && EqualityComparer<long>.Default.Equals(Count, other.Count)
-            && EqualityComparer<long>.Default.Equals(Nulls, other.Nulls)
-            && EqualityComparer<long>.Default.Equals(NullsExcludingAllNullRows, other.NullsExcludingAllNullRows)
+            && EqualityComparer<string?>.Default.Equals(Type, other.Type)
+            && EqualityComparer<DominantType?>.Default.Equals(Dominant, other.Dominant)
+            && EqualityComparer<CountMap?>.Default.Equals(TypeVotes, other.TypeVotes)
+            && EqualityComparer<long?>.Default.Equals(Count, other.Count)
+            && EqualityComparer<long?>.Default.Equals(Nulls, other.Nulls)
+            && EqualityComparer<long?>.Default.Equals(NullsExcludingAllNullRows, other.NullsExcludingAllNullRows)
             && EqualityComparer<CountMap?>.Default.Equals(NullTokens, other.NullTokens)
             && EqualityComparer<FieldFlags?>.Default.Equals(Flags, other.Flags)
             && EqualityComparer<DistinctInfo?>.Default.Equals(Distinct, other.Distinct)

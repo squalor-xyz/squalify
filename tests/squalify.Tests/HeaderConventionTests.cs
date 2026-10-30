@@ -192,7 +192,7 @@ public sealed class HeaderConventionTests
         var d = ProfileFixture("delimited/no-header.tsv");
         Assert.All(d.Table!.Fields, static f => Assert.Null(f.NameParts));
         Assert.Null(d.Layout.HeaderConvention);
-        Assert.Null(d.Hints.HeaderConvention);
+        Assert.Null(d.Hints!.HeaderConvention);
         Assert.DoesNotContain(d.Evidence, static e => e.Stage == "unit");
     }
 
@@ -204,7 +204,7 @@ public sealed class HeaderConventionTests
         Assert.Equal("nameParenUnit", info.Dominant);
         Assert.Equal(11 / 13.0, info.Share);
         Assert.Equal(new[] { ("nameParenUnit", 11L), ("none", 2L) }, Pairs(info.Counts));
-        Assert.Equal("nameParenUnit", d.Hints.HeaderConvention);
+        Assert.Equal("nameParenUnit", d.Hints!.HeaderConvention);
         var plain = d.Table!.Fields.Where(static f => f.NameParts!.Convention == "none").Select(static f => f.Name).ToArray();
         Assert.Equal(new[] { "SN", "Teststand" }, plain);
         var unknown = d.Table.Fields.Where(static f => f.NameParts!.UnknownUnit).Select(static f => f.Name).ToArray();

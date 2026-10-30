@@ -10,7 +10,11 @@ namespace squalor.squalify;
 /// <param name="Dialect">The family dialect, or null.</param>
 /// <param name="Layout">The layout section.</param>
 /// <param name="Table">The table section, or null for a file that is not tabular.</param>
-internal sealed record ProjectionInput(string Family, string? Charset, Dialect? Dialect, LayoutSection Layout, TableSection? Table)
+/// <param name="LayoutOnly">
+/// True for a layout-only profile: the fields hold no types, so the <c>typed</c> projection cannot be built and the
+/// fingerprint has none. The other three projections do not read a type and are the same as for a full profile.
+/// </param>
+internal sealed record ProjectionInput(string Family, string? Charset, Dialect? Dialect, LayoutSection Layout, TableSection? Table, bool LayoutOnly = false)
 {
     /// <summary>Takes the input from a finished descriptor.</summary>
     /// <param name="descriptor">The descriptor.</param>
@@ -18,7 +22,7 @@ internal sealed record ProjectionInput(string Family, string? Charset, Dialect? 
     public static ProjectionInput From(Descriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return new ProjectionInput(descriptor.Format.Family, descriptor.Encoding.Charset, descriptor.Format.Dialect, descriptor.Layout, descriptor.Table);
+        return new ProjectionInput(descriptor.Format.Family, descriptor.Encoding.Charset, descriptor.Format.Dialect, descriptor.Layout, descriptor.Table, descriptor.LayoutOnly);
     }
 }
 
@@ -55,6 +59,7 @@ internal static class Projection
     /// <summary>The bytes of the <c>typed</c> projection.</summary>
     /// <param name="input">The input.</param>
     /// <returns>Compact canonical JSON, UTF-8.</returns>
+    /// <exception cref="InvalidOperationException">The input is layout-only: the types are not computed.</exception>
     public static byte[] Typed(ProjectionInput input)
     {
         return Parts.Of(input).Layout(typed: true);
@@ -96,11 +101,12 @@ internal static class Projection
 
     private static ProjectionResult Compute(Parts parts)
     {
+        // The typed hash needs the type of every field; a layout-only profile has none, so it has no typed hash (null).
         var fingerprint = new Fingerprint(
             Version,
             Hash(parts.Structure()),
             Hash(parts.Layout(typed: false)),
-            Hash(parts.Layout(typed: true)),
+            parts.LayoutOnly ? null : Hash(parts.Layout(typed: true)),
             Hash(parts.Names()));
         return new ProjectionResult(fingerprint, parts.Excluded);
     }
@@ -163,7 +169,11 @@ internal static class Projection
             {
                 foreach (var field in table.Fields)
                 {
-                    types.Add(field.Type);
+                    if (!input.LayoutOnly)
+                    {
+                        types.Add(field.Type ?? throw new InvalidOperationException("A field has no type: the descriptor is not layout-only."));
+                    }
+
                     if (string.IsNullOrEmpty(field.Name))
                     {
                         fields.Add("#" + Ordinal.Invariant(field.Index));
@@ -189,6 +199,8 @@ internal static class Projection
         }
 
         public long Excluded { get; }
+
+        public bool LayoutOnly => _input.LayoutOnly;
 
         public static Parts Of(ProjectionInput input)
         {
@@ -225,6 +237,11 @@ internal static class Projection
             w.Name("fields").Strings(_fields);
             if (typed)
             {
+                if (_input.LayoutOnly)
+                {
+                    throw new InvalidOperationException("A layout-only profile has no typed projection: the types are not computed.");
+                }
+
                 _contribution.Typed?.Invoke(w);
                 w.Name("types").Strings(_types);
             }

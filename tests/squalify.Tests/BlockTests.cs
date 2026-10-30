@@ -84,7 +84,7 @@ public sealed class BlockTests
         Assert.Equal(18, d.Table.Rows);
         Assert.Equal(new MinMax(3, 3), d.Table.FieldCount);
         Assert.All(d.Table.Fields, static f => Assert.Equal(18, f.Count));
-        Assert.Equal(18, d.Table.Fields[0].TypeVotes.Single(static e => e.Key == "int").Value);
+        Assert.Equal(18, d.Table.Fields[0].TypeVotes!.Single(static e => e.Key == "int").Value);
         Assert.Equal("int", d.Table.Fields[0].Type);
         Assert.Equal("float", d.Table.Fields[2].Type);
         Assert.Equal(18, d.Table.Fields[2].Distinct!.Value);
@@ -106,7 +106,7 @@ public sealed class BlockTests
         Assert.Equal(new[] { (11L, 12L), (13L, 13L), (14L, 19L) }, blocks[1].Regions!.Select(static r => (r.FirstLine, r.LastLine)).ToArray());
         Assert.Equal(new[] { "Site", "Temp(C)" }, blocks[1].Regions![0].Keys);
         Assert.Equal((29L, 29L), (d.Layout.Regions[3].FirstLine, d.Layout.Regions[3].LastLine));
-        Assert.Equal(5, d.Hints.DataStartLine);
+        Assert.Equal(5, d.Hints!.DataStartLine);
 
         // The blocks tile the file: each starts where the previous ended.
         Assert.Equal(0, blocks[0].StartByte);
@@ -127,7 +127,7 @@ public sealed class BlockTests
         Assert.Equal(18 + 2 + 4, shortTail.Table!.Rows);
         Assert.Equal(2, Assert.Single(shortTail.Issues, static i => i.Code == "raggedRows").Count);
         Assert.All(shortTail.Table.Fields, static f => Assert.Equal(22, f.Count));
-        Assert.Equal(1, shortTail.Table.Fields[0].TypeVotes.Single(static e => e.Key == "string").Value);
+        Assert.Equal(1, shortTail.Table.Fields[0].TypeVotes!.Single(static e => e.Key == "string").Value);
     }
 
     [Fact]

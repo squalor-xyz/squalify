@@ -66,7 +66,11 @@ public static class CommandFactory
         {
             Description = "With --max-bytes: fail, profiling nothing, when the first record (line terminator included) is longer than this many bytes, instead of reading it to its end. Off by default",
         };
-        var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor, maxBytes, maxFirstRecordBytes };
+        var layoutOnly = new Option<bool>("--layout-only")
+        {
+            Description = "Compute only the encoding, dialect, layout regions, header names and row classes, and skip the per-field types, statistics and sketches, the hints and the typed fingerprint. The descriptor says so with layoutOnly: true, and writes null for hints and fingerprint.typed and only the names for each field. --include-values then opens only the preamble and annotation values",
+        };
+        var command = new Command("profile", "Profile a data file and write its descriptor") { path, output, includeValues, includeValuesFor, maxBytes, maxFirstRecordBytes, layoutOnly };
         command.SetAction(async (result, _) => await CliApp.ProfileAsync(
             result.GetValue(path)!,
             result.GetValue(output),
@@ -74,6 +78,7 @@ public static class CommandFactory
             result.GetValue(includeValuesFor) ?? [],
             result.GetValue(maxBytes),
             result.GetValue(maxFirstRecordBytes),
+            result.GetValue(layoutOnly),
             stdout,
             stderr,
             result.GetValue(verboseOption)));
