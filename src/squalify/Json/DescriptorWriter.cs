@@ -137,7 +137,26 @@ public static class DescriptorWriter
     }
 
     // A field with nothing set: what a layout-only field is once its names are taken away.
-    private static readonly FieldProfile BareField = new(0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    private static readonly FieldProfile BareField = new()
+    {
+        Index = 0,
+        Name = null,
+        NameParts = null,
+        Type = null,
+        Dominant = null,
+        TypeVotes = null,
+        Count = null,
+        Nulls = null,
+        NullsExcludingAllNullRows = null,
+        NullTokens = null,
+        Flags = null,
+        Distinct = null,
+        Length = null,
+        Shapes = null,
+        Monotonic = null,
+        Constant = null,
+        Unique = null,
+    };
 
     private static void Write(Utf8JsonWriter w, Descriptor d)
     {

@@ -296,26 +296,28 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             if (_layoutOnly)
             {
                 // The header gives the name, the raw name, the hex of a damaged name and the name parts; nothing is computed from values.
-                fields.Add(new FieldProfile(
-                    c,
-                    names[c],
-                    conventions?.Parts[c],
-                    Type: null,
-                    Dominant: null,
-                    TypeVotes: null,
-                    Count: null,
-                    Nulls: null,
-                    NullsExcludingAllNullRows: null,
-                    NullTokens: null,
-                    Flags: null,
-                    Distinct: null,
-                    Length: null,
-                    Shapes: null,
-                    Monotonic: null,
-                    Constant: null,
-                    Unique: null,
-                    NameHex: hex[c],
-                    RawName: _headerRecord?.Cells[c]));
+                fields.Add(new FieldProfile
+                {
+                    Index = c,
+                    Name = names[c],
+                    NameParts = conventions?.Parts[c],
+                    Type = null,
+                    Dominant = null,
+                    TypeVotes = null,
+                    Count = null,
+                    Nulls = null,
+                    NullsExcludingAllNullRows = null,
+                    NullTokens = null,
+                    Flags = null,
+                    Distinct = null,
+                    Length = null,
+                    Shapes = null,
+                    Monotonic = null,
+                    Constant = null,
+                    Unique = null,
+                    NameHex = hex[c],
+                    RawName = _headerRecord?.Cells[c],
+                });
                 continue;
             }
 

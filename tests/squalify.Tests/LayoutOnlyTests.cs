@@ -442,9 +442,9 @@ public sealed class LayoutOnlyTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Options_LayoutOnly_IsATrailingOptionalMember_DefaultFalse_AndPartOfEquality()
+    public void Options_LayoutOnly_IsAnOptionalMember_DefaultFalse_AndPartOfEquality()
     {
-        Assert.False(new ProfileOptions(false, []).LayoutOnly);
+        Assert.False(new ProfileOptions { IncludeValues = false, IncludeValuesFor = [] }.LayoutOnly);
         Assert.False(ProfileOptions.Create(false, []).LayoutOnly);
         Assert.False(ProfileOptions.Create(true, ["a"], 5, 6).LayoutOnly);
         Assert.True(ProfileOptions.Create(false, [], layoutOnly: true).LayoutOnly);
@@ -452,12 +452,12 @@ public sealed class LayoutOnlyTests(ITestOutputHelper output)
         Assert.NotEqual(ProfileOptions.Create(false, []), ProfileOptions.Create(false, [], layoutOnly: true));
         Assert.NotEqual(ProfileOptions.Create(false, []).GetHashCode(), ProfileOptions.Create(false, [], layoutOnly: true).GetHashCode());
         Assert.Equal(ProfileOptions.Create(false, [], layoutOnly: true), ProfileOptions.Create(false, [], layoutOnly: true));
-        var (includeValues, includeValuesFor, maxBytes, maxFirstRecordBytes, layoutOnly) = ProfileOptions.Create(true, ["a"], 5, 6, true);
-        Assert.True(includeValues);
-        Assert.Equal(["a"], includeValuesFor);
-        Assert.Equal(5, maxBytes);
-        Assert.Equal(6, maxFirstRecordBytes);
-        Assert.True(layoutOnly);
+        var options = ProfileOptions.Create(true, ["a"], 5, 6, true);
+        Assert.True(options.IncludeValues);
+        Assert.Equal(["a"], options.IncludeValuesFor);
+        Assert.Equal(5, options.MaxBytes);
+        Assert.Equal(6, options.MaxFirstRecordBytes);
+        Assert.True(options.LayoutOnly);
     }
 
     // The fingerprint

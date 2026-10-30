@@ -231,11 +231,10 @@ public sealed class DescriptorEqualityTests
     public void ModelRecord_EqualsByValue_WithListsInOrder_AndHashCodeAgrees(string typeName)
     {
         var type = typeof(Descriptor).Assembly.GetType(typeName, throwOnError: true)!;
-        var constructor = type.GetConstructors().Single();
-        var parameters = constructor.GetParameters();
+        var parameters = MembersOf(type);
 
-        var listBacked = Construct(constructor, parameters.Select(p => Make(p.ParameterType, 0, asArrays: false)).ToArray());
-        var arrayBacked = Construct(constructor, parameters.Select(p => Make(p.ParameterType, 0, asArrays: true)).ToArray());
+        var listBacked = Construct(type, parameters.Select(p => Make(p.Type, 0, asArrays: false)).ToArray());
+        var arrayBacked = Construct(type, parameters.Select(p => Make(p.Type, 0, asArrays: true)).ToArray());
 
         Assert.NotSame(listBacked, arrayBacked);
         Assert.True(listBacked.Equals(arrayBacked), $"{type.Name}: two instances with equal members are not equal.");
@@ -248,11 +247,11 @@ public sealed class DescriptorEqualityTests
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            foreach (var variant in VariantsOf(parameters[i].ParameterType))
+            foreach (var variant in VariantsOf(parameters[i].Type))
             {
-                var arguments = parameters.Select(p => Make(p.ParameterType, 0, asArrays: false)).ToArray();
-                arguments[i] = Make(parameters[i].ParameterType, variant, asArrays: false);
-                var other = Construct(constructor, arguments);
+                var arguments = parameters.Select(p => Make(p.Type, 0, asArrays: false)).ToArray();
+                arguments[i] = Make(parameters[i].Type, variant, asArrays: false);
+                var other = Construct(type, arguments);
                 var how = variant switch { 1 => "differs", 2 => "is reordered", 3 => "is shorter", _ => "is longer or changed" };
                 Assert.False(listBacked.Equals(other), $"{type.Name}: still equal when member '{parameters[i].Name}' {how}.");
                 Assert.False(other.Equals(listBacked), $"{type.Name}: still equal (reversed) when member '{parameters[i].Name}' {how}.");
@@ -262,9 +261,40 @@ public sealed class DescriptorEqualityTests
         }
     }
 
-    private static object Construct(ConstructorInfo constructor, object?[] arguments)
+    // The members of a model record in construction order: the parameters of its one public constructor, or, for a
+    // non-positional record (sq-49: ProfileOptions, FieldProfile), its public init properties.
+    private static (string Name, Type Type)[] MembersOf(Type type)
     {
-        return constructor.Invoke(arguments);
+        var constructor = type.GetConstructors().Single();
+        var parameters = constructor.GetParameters();
+        if (parameters.Length > 0)
+        {
+            return parameters.Select(static p => (p.Name!, p.ParameterType)).ToArray();
+        }
+
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(static p => p.SetMethod is not null)
+            .Select(static p => (p.Name, p.PropertyType))
+            .ToArray();
+    }
+
+    private static object Construct(Type type, object?[] arguments)
+    {
+        var constructor = type.GetConstructors().Single();
+        if (constructor.GetParameters().Length > 0)
+        {
+            return constructor.Invoke(arguments);
+        }
+
+        var instance = constructor.Invoke([]);
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(static p => p.SetMethod is not null).ToArray();
+        Assert.Equal(properties.Length, arguments.Length);
+        for (var i = 0; i < properties.Length; i++)
+        {
+            properties[i].SetValue(instance, arguments[i]);
+        }
+
+        return instance;
     }
 
     private static int[] VariantsOf(Type type)
@@ -365,10 +395,9 @@ public sealed class DescriptorEqualityTests
         }
 
         var concrete = under == typeof(Dialect) ? typeof(DelimitedDialect) : under;
-        var constructor = concrete.GetConstructors().Single();
         Type[] inside = [.. building ?? [], concrete];
-        var arguments = constructor.GetParameters().Select(p => Make(p.ParameterType, variant == 0 ? 0 : 1, asArrays, inside)).ToArray();
-        return constructor.Invoke(arguments);
+        var arguments = MembersOf(concrete).Select(p => Make(p.Type, variant == 0 ? 0 : 1, asArrays, inside)).ToArray();
+        return Construct(concrete, arguments);
     }
 
     private static void AssertDiffers(Descriptor original, Descriptor changed)
