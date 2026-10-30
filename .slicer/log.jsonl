@@ -635,3 +635,9 @@
 {"when": "2026-10-30T17:55:31Z", "item": "sq-60", "action": "add", "from": "", "to": "open", "note": "PDF diagram text floor"}
 {"when": "2026-10-30T17:55:37Z", "item": "sq-54", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-52→sq-12,sq-60"}
 {"when": "2026-10-30T17:55:37Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51,sq-52,sq-54→sq-12,sq-51,sq-52,sq-54,sq-60"}
+{"when": "2026-10-30T19:25:00Z", "item": "sq-61", "action": "add", "from": "", "to": "open", "note": "Drop doc renders"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-54", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-60→sq-12,sq-61"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51,sq-52,sq-54,sq-60→sq-12,sq-51,sq-52,sq-54,sq-61"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-60", "action": "retire", "from": "open", "to": "retired", "note": "Owner (2026-10-30), verbatim: \"let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed\". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded."}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-54", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-30T19:25:07Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Implement"}

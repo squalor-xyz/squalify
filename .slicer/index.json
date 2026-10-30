@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 61,
+  "next_id": 62,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -4933,7 +4933,7 @@
         "sq-51",
         "sq-52",
         "sq-54",
-        "sq-60"
+        "sq-61"
       ],
       "note_records": [],
       "claim": null,
@@ -4967,7 +4967,7 @@
       "has_slice": true,
       "depends_on": [
         "sq-12",
-        "sq-60"
+        "sq-61"
       ],
       "note_records": [
         {
@@ -5161,7 +5161,7 @@
       "id": "sq-60",
       "title": "PDF diagram text floor",
       "short_title": "PDF diagram text floor",
-      "status": "open",
+      "status": "retired",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
@@ -5180,10 +5180,40 @@
         "key": "docs.pdf-diagram-floor",
         "pass": "v1.0.0",
         "group": "",
-        "reason": "",
+        "reason": "Owner (2026-10-30), verbatim: \"let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed\". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded.",
         "importance": 2,
         "urgency": 3,
         "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-61",
+      "title": "Drop doc renders",
+      "short_title": "Drop doc renders",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-60 review; owner decision 2026-10-30",
+        "discovered_from": "sq-60",
+        "parent": "",
+        "cites": [],
+        "key": "docs.drop-renders",
+        "pass": "v1.0.0",
+        "group": "",
+        "reason": "",
+        "importance": 3,
+        "urgency": 3,
+        "effort": 1,
         "attempts": 0
       }
     }

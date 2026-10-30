@@ -1,0 +1,41 @@
+{
+  "id": "sq-61",
+  "title": "Drop doc renders",
+  "lead": [
+    "Stop generating and committing renders of docs/how-it-works.md. The Markdown with its Mermaid diagrams is the only artifact (GitHub renders Mermaid); the owner exports a PDF or HTML when needed. Remove the committed `docs/how-it-works.html` and `docs/how-it-works.pdf`, `scripts/render-docs.sh`, and every rule, link and checklist step that mentions them. **Not in this slice:** changing what any diagram says; the docs freeze pass (sq-54); the release (sq-53)."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-60 review; owner decision 2026-10-30",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "Owner decision (2026-10-30), verbatim, on the sq-60 architect's question about making poppler a render prerequisite: \"let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed\". Scope answers, verbatim: What drops \"PDF and HTML renders; keep only the .md (Recommended)\" (option text: \"docs/how-it-works.md with Mermaid diagrams stays the single source (GitHub renders Mermaid). Remove .pdf and .html, scripts/render-docs.sh and its docs tests. You export when you want one.\"). Guidance edits \"New 1.0.0 slice 'Drop doc renders' (Recommended)\" (option text: \"One slice edits CONTRIBUTING.md, AGENTS.md, goals, README, release.md and removes the render files/script/tests; it lands before sq-54 and sq-53, which then simply skip the re-render steps. You approve the AGENTS.md and goals wording in the spec check.\"). sq-60 fate \"Retire sq-60 and discard its worktree (Recommended)\". sq-52 (landed) changed one diagram to top-down for the PDF; the Markdown keeps that layout."
+    },
+    {
+      "heading": "Files",
+      "body": "- Remove: `docs/how-it-works.html`, `docs/how-it-works.pdf`, `scripts/render-docs.sh`.\n- `AGENTS.md` (owner approves the wording before the implementer starts; draft below), `CONTRIBUTING.md` (the docs section on renders, the `scripts/` layout line, quire and Mermaid prerequisites, the diagram-rules bullet keeps its plain-language rule and drops the PDF clipping check), `README.md` (the How it works row: drop the PDF link), `docs/release.md` and any release checklist step that regenerates the docs.\n- The goals prose (`slicer prose edit goals`, done by the orchestrator after the owner approves the draft): \"**Explained in plain language.** docs/how-it-works.md, with Mermaid diagrams, kept current at every architectural review.\"\n- Tests: `tests/squalify.Cli.Tests/DocsTests.cs` (a new test below). No existing test reads the renders (checked with rg).\n- AGENTS.md draft (pending owner approval): the Docs paragraph ends \"...with Mermaid diagrams; it is the only copy (no committed renders).\"; \"Regenerate the renders in the same change.\" is deleted; the \"Rendering\" bullet is deleted; the \"Same-commit rule\" bullet stays. CONTRIBUTING.md and the sq-54/sq-53 steps lose their re-render and html/pdf-count checks."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "- **No renders remain:** a docs test asserts that `docs/how-it-works.html`, `docs/how-it-works.pdf` and `scripts/render-docs.sh` do not exist and that README.md, CONTRIBUTING.md, AGENTS.md and docs/release.md contain no mention of them or of `.pdf` renders (the README mention of the pdf magic bytes feature is not a render: match the specific file names and \"render-docs\"/\"quire\").\n- **Links still resolve:** the existing link test on the docs (if any) passes with the PDF link removed; `docs/how-it-works.md` is still linked from the README.\n- Mutation-check: restore one removed file name in README and see the test fail."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Wait for the owner's approval of the AGENTS.md draft. 2. Write the test, watch it fail. 3. Remove the files; edit the guidance; run the docs tests. 4. `slicer check`."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes; `rg -n \"render-docs|how-it-works\\.(html|pdf)|quire\" --glob '!.slicer' --glob '!docs/process' --glob '!docs/reviews'` returns nothing."
+    },
+    {
+      "heading": "Git",
+      "body": "The owner commits. Do not commit; never add Co-Authored-By or similar lines."
+    }
+  ],
+  "notes": []
+}
