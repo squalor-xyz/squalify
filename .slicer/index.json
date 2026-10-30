@@ -3854,7 +3854,7 @@
       "id": "sq-45",
       "title": "Release ahead of the schema freeze",
       "short_title": "Pre-freeze release",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3870,7 +3870,10 @@
           "stale_after": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-10-30T13:47:04Z"
+      },
       "fields": {
         "size": "S",
         "flags": [],
@@ -3887,7 +3890,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": null,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

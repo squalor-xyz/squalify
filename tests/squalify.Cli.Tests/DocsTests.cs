@@ -106,6 +106,44 @@ public sealed class DocsTests
         Assert.Contains("| `ProfiledPrefix` |", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void UserGuide_LabelsTheCurrentChangesWithTheVersionInDirectoryBuildProps()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var version = PackageVersion(root);
+        var lines = File.ReadAllLines(Path.Combine(root, "docs", "user-guide.md"));
+
+        // The library entries of "Guarantees and stability" for the current version name it, and call nothing unreleased.
+        foreach (var prefix in new[] { $"- **API added in {version} (library).**", $"- **Breaking changes in {version} (library).**" })
+        {
+            var entries = lines.Where(line => line.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
+            Assert.True(entries.Length == 1, $"the user guide has one entry that starts with '{prefix}', found {entries.Length}.");
+            Assert.DoesNotContain("unreleased", entries[0], StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("1.0.0", entries[0], StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void GettingStarted_ShowsTheVersionInDirectoryBuildProps()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var version = PackageVersion(root);
+        var text = File.ReadAllText(Path.Combine(root, "docs", "getting-started.md"));
+        var start = text.IndexOf("squalify --version", StringComparison.Ordinal);
+        Assert.True(start >= 0, "getting-started.md shows 'squalify --version'.");
+        var match = Regex.Match(text[start..], @"```text\r?\n([^\r\n]*)\r?\n```");
+        Assert.True(match.Success, "the output block follows the command.");
+        Assert.Equal(version, match.Groups[1].Value);
+    }
+
+    private static string PackageVersion(string root)
+    {
+        var props = File.ReadAllText(Path.Combine(root, "Directory.Build.props"));
+        var match = Regex.Match(props, @"<Version>([^<]+)</Version>");
+        Assert.True(match.Success, "Directory.Build.props has a <Version>.");
+        return match.Groups[1].Value;
+    }
+
     /// <summary>Removes fenced code blocks and inline code, whose brackets are not links.</summary>
     private static string StripCode(string text)
     {
