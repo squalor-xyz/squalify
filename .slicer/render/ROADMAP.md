@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-65 items · — 19 · done 41 · parked 1 · later 1 · retired 3
+65 items · — 18 · done 42 · parked 1 · later 1 · retired 3
 
 ## v1.0.0
 
@@ -47,7 +47,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 16 | [sq-53](slices/sq-53.md) | Release 1.0.0 | M | 2 | docs, core | wave 2026-10-30 | — |
 | 17 | [sq-54](slices/sq-54.md) | Descriptor docs freeze | M | 2 | docs | sq-12 split, wave 2026-10-30 | — |
 | 18 | [sq-60](slices/sq-60.md) | PDF diagram text floor | M | 2 | docs | sq-52 review (page 14 diagram at 3.51 pt) · Owner (2026-10-30), verbatim: "let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded. · discovered from sq-52 | retired |
-| 19 | [sq-61](slices/sq-61.md) | Drop doc renders | S | 1 | docs | sq-60 review; owner decision 2026-10-30 · discovered from sq-60 | — |
+| 19 | [sq-61](slices/sq-61.md) | Drop doc renders | S | 1 | docs | sq-60 review; owner decision 2026-10-30 · discovered from sq-60 | done |
 
 ---
 

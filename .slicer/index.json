@@ -5234,10 +5234,25 @@
       "id": "sq-61",
       "title": "Drop doc renders",
       "short_title": "Drop doc renders",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "9e4270c6-9384-4c7c-b414-641b9ac971e1",
+          "kind": "",
+          "text": "**2026-10-30** — Review FAIL: AGENTS.md line 3 still says \"the docs rendering steps\" although CONTRIBUTING.md has none. Owner answer (2026-10-30), verbatim: AGENTS.md line 3 \"'...and the docs rules' (Recommended)\" (option text: \"CONTRIBUTING's Docs section still has the docs rules (README links, guides, diagram rules).\"). Also add the guard pattern \"rendering steps\" to the render-mention patterns in DocsTests.cs.",
+          "created_at": "2026-10-30T20:02:59Z",
+          "attempt": 1,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -5257,7 +5272,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

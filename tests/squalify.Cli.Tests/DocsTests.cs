@@ -8,6 +8,19 @@ public sealed class DocsTests
 {
     private static readonly string[] FixtureDocs = ["docs/getting-started.md", "docs/examples.md", "README.md"];
 
+    /// <summary>
+    /// What the guides must not say about renders (owner decision, 2026-10-30: the Markdown is the only copy). The README's
+    /// magic-bytes list names pdf as a file type; that is a feature, not a render, and no pattern here matches it.
+    /// </summary>
+    private static readonly Regex[] RenderMentions =
+    [
+        new(@"how-it-works\.(html|pdf)", RegexOptions.CultureInvariant),
+        new(@"render-docs", RegexOptions.CultureInvariant),
+        new(@"\bquire\b", RegexOptions.CultureInvariant),
+        new(@"\.(pdf|html)\b", RegexOptions.CultureInvariant),
+        new(@"rendering steps", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase),
+    ];
+
     [Fact]
     public void Docs_RelativeLinks_Resolve()
     {
@@ -63,6 +76,45 @@ public sealed class DocsTests
         }
 
         Assert.True(missing.Count == 0, $"Missing fixtures: {string.Join("; ", missing)}.");
+    }
+
+    [Fact]
+    public void Docs_RenderFiles_AreRemoved()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var present = new[] { "docs/how-it-works.html", "docs/how-it-works.pdf", "scripts/render-docs.sh" }
+            .Where(file => File.Exists(Path.Combine(root, file.Replace('/', Path.DirectorySeparatorChar))))
+            .ToArray();
+        Assert.True(present.Length == 0, $"The render files are still in the repository: {string.Join(", ", present)}.");
+    }
+
+    [Fact]
+    public void Docs_GuidesAndReadme_MentionNoRenders()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        foreach (var file in new[] { "README.md", "CONTRIBUTING.md", "AGENTS.md", "docs/release.md" })
+        {
+            var text = File.ReadAllText(Path.Combine(root, file.Replace('/', Path.DirectorySeparatorChar)));
+            foreach (var mention in RenderMentions)
+            {
+                foreach (Match match in mention.Matches(text))
+                {
+                    problems.Add($"{file} mentions '{match.Value}'");
+                }
+            }
+        }
+
+        Assert.True(problems.Count == 0, $"The guides still mention renders: {string.Join("; ", problems)}.");
+    }
+
+    [Fact]
+    public void Readme_LinksTheHowItWorksPage()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var text = File.ReadAllText(Path.Combine(root, "README.md"));
+        Assert.Contains("[How it works](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md)", text, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(root, "docs", "how-it-works.md")), "docs/how-it-works.md exists.");
     }
 
     [Fact]

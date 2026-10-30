@@ -55,7 +55,7 @@ squalify profile sweep-preamble.csv | jq -c '{family: .format.family, rows: .tab
 | [Contributing](https://github.com/squalor-xyz/squalify/blob/main/CONTRIBUTING.md) | Build, test, format, docs, releases |
 | [Descriptor schema](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md) | Every member of the descriptor (schema v1, draft) |
 | [Design](https://github.com/squalor-xyz/squalify/blob/main/docs/design.md) | Architecture, pipeline, determinism rules, memory bounds |
-| [How it works](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md) | Diagrams of a profile run ([PDF](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.pdf)) |
+| [How it works](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md) | Diagrams of a profile run |
 | [Releasing](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md) | How a release is cut |
 
 squalify has no dependency on [DataBall](https://github.com/squalor-xyz/DataBall); the descriptor schema is the contract.

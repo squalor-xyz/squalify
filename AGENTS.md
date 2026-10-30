@@ -1,6 +1,6 @@
 # AGENTS.md - squalify
 
-Guidance for coding agents working in this repository. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first: it has the layout, the build, test and format commands, the test categories, the code rules (determinism, dependencies, SPDX headers) and the docs rendering steps, and it applies to agents as it does to people. This file holds only what is specific to agents. The README is the user-facing front page; product goals, non-goals and the queue live in slicer (`slicer goals`, `slicer list`).
+Guidance for coding agents working in this repository. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first: it has the layout, the build, test and format commands, the test categories, the code rules (determinism, dependencies, SPDX headers) and the docs rules, and it applies to agents as it does to people. This file holds only what is specific to agents. The README is the user-facing front page; product goals, non-goals and the queue live in slicer (`slicer goals`, `slicer list`).
 
 squalify is an Apache-2.0 .NET 10 library (`squalor.squalify`) and CLI (`squalify`). It does not reference DataBall; the descriptor schema in `docs/descriptor.md` is the contract.
 
@@ -8,16 +8,13 @@ Before handing off a change, run `dotnet build`, `dotnet test` and `dotnet forma
 
 ## Docs
 
-`docs/how-it-works.md` explains in plain language how squalify works, with Mermaid diagrams; its `.html` and `.pdf` are committed renders (rendering steps and diagram rules are in CONTRIBUTING.md).
+`docs/how-it-works.md` explains in plain language how squalify works, with Mermaid diagrams; it is the only copy (no committed renders).
 
 - **Update it on every architectural review.** Update `docs/how-it-works.md` and its diagrams whenever an architectural review happens. That covers:
   - the relay architect's review of a slice;
   - a spec or design review;
   - any slice that changes the pipeline, an interface, a descriptor section or a determinism rule.
-
-  Regenerate the renders in the same change.
 - **The architect checks for drift.** The architect's brief includes `docs/how-it-works.md`. The architect reports drift between the page and the code as a finding, and the gate does not pass while drift remains.
-- **Rendering.** quire may live in `~/.local/bin`, which is not on the non-interactive PATH; prefix the command with `PATH="$HOME/.local/bin:$PATH"`. Commit the `.md`, `.html` and `.pdf` together.
 - **Same-commit rule.** `docs/design.md`, `docs/descriptor.md`, the README and the guides change in the same commit as the behavior they describe.
 
 ## Tests
