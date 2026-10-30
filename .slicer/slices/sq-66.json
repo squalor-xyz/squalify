@@ -1,0 +1,41 @@
+{
+  "id": "sq-66",
+  "title": "Render-mention test patterns: case-insensitive, narrower",
+  "lead": [
+    "The sq-61 guard patterns in tests/squalify.Cli.Tests/DocsTests.cs (`RenderMentions`) are case-sensitive except `rendering steps`, so \"Quire\" or \".PDF\" would pass, and `\\.(pdf|html)\\b` would flag any future legitimate .html link in README, CONTRIBUTING, AGENTS or release.md. Make them case-insensitive and decide what an allowed .html or .pdf mention is. Also: slice Check greps should use word boundaries (`quire` matches \"require\"), and `.gitattributes` still carries `*.pdf binary` (harmless; prune or keep)."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-61 review (3), (2), (8)",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Failing cases for \"Quire\" and \".PDF\" and one allowed link; 2. adjust the patterns; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

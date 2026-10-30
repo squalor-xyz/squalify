@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 66,
+  "next_id": 67,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -5387,6 +5387,36 @@
         "parent": "",
         "cites": [],
         "key": "later.docs-from-test-output",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-66",
+      "title": "Render-mention test patterns: case-insensitive, narrower",
+      "short_title": "Render-mention patterns",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-61 review (3), (2), (8)",
+        "discovered_from": "sq-61",
+        "parent": "",
+        "cites": [],
+        "key": "later.render-mention-patterns",
         "pass": "v1.x",
         "group": "",
         "reason": "",
