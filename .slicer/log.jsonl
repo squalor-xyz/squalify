@@ -620,3 +620,6 @@
 {"when": "2026-10-30T17:37:43Z", "item": "sq-54", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-10-30T17:41:13Z", "item": "sq-55", "action": "add", "from": "", "to": "open", "note": "Release docs test rejects unrelated version numbers in current entries"}
 {"when": "2026-10-30T17:41:13Z", "item": "sq-56", "action": "add", "from": "", "to": "open", "note": "Release docs test allows a duplicated no-change line"}
+{"when": "2026-10-30T17:41:52Z", "item": "sq-52", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
+{"when": "2026-10-30T17:53:41Z", "item": "sq-52", "action": "note", "from": "", "to": "", "note": "Owner answer (2026-10-30), verbatim: 5.5 pt text \"Accept (Re", "by": "Jon R"}
+{"when": "2026-10-30T17:53:47Z", "item": "sq-52", "action": "status", "from": "started", "to": "done", "note": "Verified outcome: the byte-pass diagram in docs/how-it-works.md section 12 is now top-down (flowchart TD), with no change to its nodes, edges or labels. The smallest diagram text in the PDF went from 2.5 pt to 5.5 pt (bbox-measured in the rendered PDF). The html and pdf were re-rendered. The library tests (1520) and the CLI tests (58) pass and format is clean. The gate returned PASS. The page-14 diagram, whose text is 3.51 pt, is filed by the orchestrator as a separate 1.0.0 slice.", "by": "Jon R"}
