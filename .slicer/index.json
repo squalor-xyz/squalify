@@ -3968,7 +3968,7 @@
       "id": "sq-47",
       "title": "Layout-only profile option",
       "short_title": "Layout-only profile",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3977,6 +3977,17 @@
           "kind": "",
           "text": "**2026-10-30** — Owner decisions 2026-10-30: Cheaper shortfall: \"Accept, amend the spec, file a follow-up (Recommended)\" (filed sq-50). IncludeValues: \"Keep layout values (Recommended)\". Nullable FieldProfile/Hints/Typed members: \"Accept, document the hazard (Recommended)\". Options shape: \"File it for v1.0.0 (Recommended)\" (filed sq-49; sq-12 now waits on it). Review: reviewer ACCEPT WITH FIXES, architect SHAPE OK WITH FIXES (docs honesty, ValueClassifier TryNullEntry single source, deny-list equality test, how-it-works writer sentence). Fix round sent to the implementer.",
           "created_at": "2026-10-30T15:57:03Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
+        },
+        {
+          "id": "72874dab-34cb-405f-9eda-9761ecdf79f3",
+          "kind": "",
+          "text": "**2026-10-30** — Gate: PASS (96f9788). Review and architect fixes applied (docs honesty, TryNullEntry single source, deny-list equality test, how-it-works writer sentence). Owner decisions are in the earlier note on main. Later: sq-49 (non-positional options, v1.0.0), sq-50 (cheaper layout-only, v1.x), sq-12 notes from the architect (oneOf walker, invariants, layout-only golden).",
+          "created_at": "2026-10-30T16:09:26Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",

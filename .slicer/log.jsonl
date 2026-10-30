@@ -597,3 +597,5 @@
 {"when": "2026-10-30T15:57:03Z", "item": "sq-12", "action": "set", "from": "", "to": "", "note": "depends_on sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32,sq-38,sq-39,sq-40,sq-41,sq-42,sq-43,sq-46,sq-47→sq-06,sq-07,sq-31,sq-11,sq-13,sq-14,sq-17,sq-18,sq-32,sq-38,sq-39,sq-40,sq-41,sq-42,sq-43,sq-46,sq-47,sq-49"}
 {"when": "2026-10-30T15:57:03Z", "item": "sq-47", "action": "note", "from": "", "to": "", "note": "Owner decisions 2026-10-30: Cheaper shortfall: \"Accept, amen", "by": "Jon Robbins"}
 {"when": "2026-10-30T15:57:03Z", "item": "sq-49", "action": "note", "from": "", "to": "", "note": "Owner on sq-47 architect note A8: \"File it for v1.0.0 (Recom", "by": "Jon Robbins"}
+{"when": "2026-10-30T16:09:26Z", "item": "sq-47", "action": "note", "from": "", "to": "", "note": "Gate: PASS (96f9788). Review and architect fixes applied (do", "by": "Jon Robbins"}
+{"when": "2026-10-30T16:09:27Z", "item": "sq-47", "action": "status", "from": "open", "to": "done", "note": "", "by": "Jon Robbins"}
