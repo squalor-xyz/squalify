@@ -632,3 +632,6 @@
 {"when": "2026-10-30T17:48:01Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "From sq-49 gate (later): docs/user-guide.md line ~97 has a g", "by": "Jon R"}
 {"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
 {"when": "2026-10-30T17:48:18Z", "item": "sq-12", "action": "edit", "from": "", "to": "", "note": "Files"}
+{"when": "2026-10-30T17:55:31Z", "item": "sq-60", "action": "add", "from": "", "to": "open", "note": "PDF diagram text floor"}
+{"when": "2026-10-30T17:55:37Z", "item": "sq-54", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-52→sq-12,sq-60"}
+{"when": "2026-10-30T17:55:37Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51,sq-52,sq-54→sq-12,sq-51,sq-52,sq-54,sq-60"}
