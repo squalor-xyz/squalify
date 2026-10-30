@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 57,
+  "next_id": 60,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -4953,7 +4953,22 @@
         "sq-12",
         "sq-52"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "3f1ffbba-ea90-4e69-aa38-1399bf017013",
+          "kind": "",
+          "text": "**2026-10-30** — From sq-49 gate (later): docs/user-guide.md line ~97 has a grammar slip, \"Setting a long into these members still compiles (a long converts to long?), but reading is not:\" should read \"but reading does not:\". Fix it in this slice docs pass.",
+          "created_at": "2026-10-30T17:48:01Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
@@ -5027,6 +5042,96 @@
         "parent": "",
         "cites": [],
         "key": "later.docs-test-duplicate-nochange",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-57",
+      "title": "Hash-inequality asserts in NonPositionalRecordsTests can collide",
+      "short_title": "Hash-inequality collisions",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-49 review R2",
+        "discovered_from": "sq-49",
+        "parent": "",
+        "cites": [],
+        "key": "later.hash-inequality-collide",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-58",
+      "title": "Normalize or reject an unsorted or null ProfileOptions.IncludeValuesFor",
+      "short_title": "IncludeValuesFor normalisation",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-49 architect A4",
+        "discovered_from": "sq-49",
+        "parent": "",
+        "cites": [],
+        "key": "later.includevaluesfor-initializer",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-59",
+      "title": "Note required-member compiler support for library consumers",
+      "short_title": "Required-member compiler note",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-49 architect A5",
+        "discovered_from": "sq-49",
+        "parent": "",
+        "cites": [],
+        "key": "later.required-compiler-support",
         "pass": "v1.x",
         "group": "",
         "reason": "",

@@ -1,0 +1,41 @@
+{
+  "id": "sq-57",
+  "title": "Hash-inequality asserts in NonPositionalRecordsTests can collide",
+  "lead": [
+    "tests/squalify.Tests/NonPositionalRecordsTests.cs asserts `NotEqual(baseline.GetHashCode(), changed.GetHashCode())` per member. HashCode is seeded per process, so each case has about a 2^-32 chance of a false failure. Replace the inequality of hash codes with the equality-implies-equal-hash direction only, or assert equality inequality, and mutation-check."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-49 review R2",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Check whether other tests use the same pattern; 2. change the assertions; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

@@ -623,3 +623,7 @@
 {"when": "2026-10-30T17:37:43Z", "item": "sq-54", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-10-30T17:41:13Z", "item": "sq-55", "action": "add", "from": "", "to": "open", "note": "Release docs test rejects unrelated version numbers in current entries"}
 {"when": "2026-10-30T17:41:13Z", "item": "sq-56", "action": "add", "from": "", "to": "open", "note": "Release docs test allows a duplicated no-change line"}
+{"when": "2026-10-30T17:48:01Z", "item": "sq-57", "action": "add", "from": "", "to": "open", "note": "Hash-inequality asserts in NonPositionalRecordsTests can collide"}
+{"when": "2026-10-30T17:48:01Z", "item": "sq-58", "action": "add", "from": "", "to": "open", "note": "Normalize or reject an unsorted or null ProfileOptions.IncludeValuesFor"}
+{"when": "2026-10-30T17:48:01Z", "item": "sq-59", "action": "add", "from": "", "to": "open", "note": "Note required-member compiler support for library consumers"}
+{"when": "2026-10-30T17:48:01Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "From sq-49 gate (later): docs/user-guide.md line ~97 has a g", "by": "Jon R"}
