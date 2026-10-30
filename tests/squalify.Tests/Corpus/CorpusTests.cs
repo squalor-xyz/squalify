@@ -5,7 +5,7 @@ using squalor.squalify;
 namespace squalor.squalify.Tests;
 
 /// <summary>
-/// The private-corpus check. The theory runs only with <c>SQUALIFY_CORPUS</c> set (see <c>scripts/corpus-check.sh</c>);
+/// The private-corpus check. An entry with no golden is reported as "no golden", not as passed. The theory runs only with <c>SQUALIFY_CORPUS</c> set (see <c>scripts/corpus-check.sh</c>);
 /// the other tests use a temporary directory and run in CI.
 /// </summary>
 public sealed class CorpusTests
@@ -13,6 +13,10 @@ public sealed class CorpusTests
     internal const string NotConfiguredKind = "not-configured";
     internal const string ProblemKind = "problem";
     internal const string FileKind = "file";
+    internal const string NoGoldenKind = "no-golden";
+
+    private static readonly object SessionLock = new();
+    private static CorpusSummary? session;
 
     [Fact]
     public void Corpus_Unset_PassesWithMessage()
@@ -65,12 +69,12 @@ public sealed class CorpusTests
             Assert.Equal(CorpusOutcome.Diff, diff.Outcome);
             Assert.Contains("Golden mismatch", diff.Message, StringComparison.Ordinal);
 
-            // No golden: the check passes without one. Update mode then writes the golden from the current output,
+            // No golden: the check reports it as "no golden", not as a pass. Update mode then writes the golden from the current output,
             // and a later check against it matches.
             var nested = Path.Combine(root, "sub", "nested.csv");
             var noGolden = CorpusRunner.Check(nested, update: false);
-            Assert.Equal(CorpusOutcome.Pass, noGolden.Outcome);
-            Assert.Equal("pass: no golden next to the file", noGolden.Message);
+            Assert.Equal(CorpusOutcome.NoGolden, noGolden.Outcome);
+            Assert.Equal("no golden next to the file", noGolden.Message);
             Assert.False(File.Exists(nested + ".squalify.json"));
 
             var written = CorpusRunner.Check(nested, update: true);
@@ -141,7 +145,24 @@ public sealed class CorpusTests
 
         var root = CorpusRunner.ConfiguredRoot() ?? throw new InvalidOperationException($"{CorpusRunner.Variable} changed during the run.");
         var result = CorpusRunner.Check(Path.Combine(root, entry.Replace('/', Path.DirectorySeparatorChar)));
-        Assert.True(result.Outcome == CorpusOutcome.Pass, $"{result.Outcome}: {result.Message}");
+        var require = Record(root, entry, result);
+
+        // An entry with no golden passes this test unless a golden is required, but it is not counted as passed: the
+        // row's kind is "no-golden", and the summary counts it apart.
+        Assert.True(CorpusRunner.Accepts(result.Outcome, require), $"{result.Outcome}: {result.Message}{(result.Outcome == CorpusOutcome.NoGolden ? $" ({CorpusRunner.RequireGoldenVariable} is set)" : string.Empty)}");
+    }
+
+    // Adds the result to the run's tally and rewrites the summary file under the corpus directory. Returns whether a
+    // golden is required.
+    private static bool Record(string root, string entry, CorpusResult result)
+    {
+        lock (SessionLock)
+        {
+            session ??= new CorpusSummary(CorpusRunner.RequireGolden());
+            session.Add(entry, result);
+            session.WriteTo(root);
+            return CorpusRunner.RequireGolden();
+        }
     }
 
     /// <summary>
@@ -181,9 +202,13 @@ public sealed class CorpusTests
             yield break;
         }
 
+        var update = Environment.GetEnvironmentVariable(Golden.UpdateVariable) == "1";
         foreach (var file in files)
         {
-            yield return new object[] { FileKind, file };
+            // In update mode every entry gets a golden, so none is a "no golden" row.
+            var full = Path.Combine(root, file.Replace('/', Path.DirectorySeparatorChar));
+            var kind = !update && !CorpusRunner.HasGolden(full) ? NoGoldenKind : FileKind;
+            yield return new object[] { kind, file };
         }
     }
 }

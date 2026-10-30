@@ -8,7 +8,7 @@ namespace squalor.squalify.Tests;
 /// <summary>The outcome of checking one file.</summary>
 internal enum CorpusOutcome
 {
-    /// <summary>Profiled, deterministic, and the golden (if there is one) matched.</summary>
+    /// <summary>Profiled, deterministic, and the golden matched (or was just written in update mode).</summary>
     Pass,
 
     /// <summary>Profiling threw, or a repeat run or another culture gave different bytes.</summary>
@@ -16,6 +16,9 @@ internal enum CorpusOutcome
 
     /// <summary>Deterministic, but the output differs from the golden next to the file.</summary>
     Diff,
+
+    /// <summary>Deterministic, but there is no golden next to the file, so the output was not compared with anything.</summary>
+    NoGolden,
 }
 
 /// <summary>The outcome of one check, with a message for the reader.</summary>
@@ -30,6 +33,12 @@ internal static class CorpusRunner
     /// <summary>The environment variable that names the corpus directory.</summary>
     public const string Variable = "SQUALIFY_CORPUS";
 
+    /// <summary>
+    /// The environment variable that makes an entry with no golden fail the run when it is <c>1</c>
+    /// (<c>scripts/corpus-check.sh --require-golden</c> sets it).
+    /// </summary>
+    public const string RequireGoldenVariable = "SQUALIFY_REQUIRE_GOLDEN";
+
     private const string GoldenSuffix = ".squalify.json";
 
     // The cultures the output must not depend on, next to the repeat run under the current culture.
@@ -39,6 +48,27 @@ internal static class CorpusRunner
         ("de-DE run", "de-DE"),
         ("tr-TR run", "tr-TR"),
     ];
+
+    /// <summary>True when <see cref="RequireGoldenVariable"/> is <c>1</c>: an entry with no golden then fails the run.</summary>
+    public static bool RequireGolden()
+    {
+        return Environment.GetEnvironmentVariable(RequireGoldenVariable) == "1";
+    }
+
+    /// <summary>Whether a result lets the run stay green: a pass always does, a missing golden only when it is not required.</summary>
+    /// <param name="outcome">The outcome of one entry.</param>
+    /// <param name="requireGolden">True when an entry with no golden fails the run.</param>
+    public static bool Accepts(CorpusOutcome outcome, bool requireGolden)
+    {
+        return outcome == CorpusOutcome.Pass || (outcome == CorpusOutcome.NoGolden && !requireGolden);
+    }
+
+    /// <summary>Whether the golden for a corpus file (<c>&lt;file&gt;.squalify.json</c> next to it) exists.</summary>
+    /// <param name="path">The full path of a file.</param>
+    public static bool HasGolden(string path)
+    {
+        return File.Exists(path + GoldenSuffix);
+    }
 
     /// <summary>The corpus directory from the environment, or null when it is not set or empty.</summary>
     public static string? ConfiguredRoot()
@@ -92,7 +122,7 @@ internal static class CorpusRunner
     /// </summary>
     /// <param name="path">The full path of a file.</param>
     /// <param name="update">True to write the golden from the current output, as <c>SQUALIFY_UPDATE_GOLDEN=1</c> does.</param>
-    /// <returns>The outcome: <see cref="CorpusOutcome.Pass"/>, <see cref="CorpusOutcome.Fail"/> (exception or determinism) or <see cref="CorpusOutcome.Diff"/> (golden).</returns>
+    /// <returns>The outcome: <see cref="CorpusOutcome.Pass"/>, <see cref="CorpusOutcome.Fail"/> (exception or determinism) or <see cref="CorpusOutcome.Diff"/> (golden) or <see cref="CorpusOutcome.NoGolden"/>.</returns>
     public static CorpusResult Check(string path, bool update)
     {
         var options = ProfileOptions.Create(false, Array.Empty<string>());
@@ -178,9 +208,9 @@ internal static class CorpusRunner
 
     private static CorpusResult CheckGolden(string path, Descriptor descriptor, bool update)
     {
-        if (!update && !File.Exists(path + GoldenSuffix))
+        if (!update && !HasGolden(path))
         {
-            return new CorpusResult(CorpusOutcome.Pass, "pass: no golden next to the file");
+            return new CorpusResult(CorpusOutcome.NoGolden, "no golden next to the file");
         }
 
         try
