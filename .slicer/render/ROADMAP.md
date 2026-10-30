@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-54 items · — 12 · done 38 · parked 1 · later 1 · retired 2
+54 items · — 11 · done 39 · parked 1 · later 1 · retired 2
 
 ## v1.0.0
 
@@ -42,7 +42,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 11 | [sq-47](slices/sq-47.md) | Layout-only profile | M | - |  |  | done |
 | 12 | [sq-48](slices/sq-48.md) | Flag corpus entries with no golden | S | - |  |  | done |
 | 13 | [sq-49](slices/sq-49.md) | Options shape | M | 2 | core | discovered from sq-47 | — |
-| 14 | [sq-51](slices/sq-51.md) | Release docs test | S | 1 | docs | sq-45 R6; wave 2026-10-30 | — |
+| 14 | [sq-51](slices/sq-51.md) | Release docs test | S | 1 | docs | sq-45 R6; wave 2026-10-30 | done |
 | 15 | [sq-52](slices/sq-52.md) | Wide diagram legibility | S | 1 | docs | sq-46 R2; wave 2026-10-30 | — |
 | 16 | [sq-53](slices/sq-53.md) | Release 1.0.0 | M | 2 | docs, core | wave 2026-10-30 | — |
 | 17 | [sq-54](slices/sq-54.md) | Descriptor docs freeze | M | 2 | docs | sq-12 split, wave 2026-10-30 | — |
