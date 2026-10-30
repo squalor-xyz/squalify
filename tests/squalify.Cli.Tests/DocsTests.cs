@@ -110,18 +110,188 @@ public sealed class DocsTests
     public void UserGuide_LabelsTheCurrentChangesWithTheVersionInDirectoryBuildProps()
     {
         var root = DotNetTool.RepositoryRoot();
-        var version = PackageVersion(root);
-        var lines = File.ReadAllLines(Path.Combine(root, "docs", "user-guide.md"));
-
-        // The library entries of "Guarantees and stability" for the current version name it, and call nothing unreleased.
-        foreach (var prefix in new[] { $"- **API added in {version} (library).**", $"- **Breaking changes in {version} (library).**" })
-        {
-            var entries = lines.Where(line => line.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
-            Assert.True(entries.Length == 1, $"the user guide has one entry that starts with '{prefix}', found {entries.Length}.");
-            Assert.DoesNotContain("unreleased", entries[0], StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("1.0.0", entries[0], StringComparison.Ordinal);
-        }
+        var problems = CurrentChangesLabelProblems(PackageVersion(root), File.ReadAllText(Path.Combine(root, "docs", "user-guide.md")));
+        Assert.True(problems.Count == 0, $"The user guide's current changes are mislabelled: {string.Join("; ", problems)}.");
     }
+
+    [Theory]
+    [MemberData(nameof(AcceptedCurrentChangesLabels))]
+    public void CurrentChangesLabel_Accepted(string name, string version, string guide)
+    {
+        var problems = CurrentChangesLabelProblems(version, guide);
+        Assert.True(problems.Count == 0, $"{name}: {string.Join("; ", problems)}.");
+    }
+
+    [Theory]
+    [MemberData(nameof(RejectedCurrentChangesLabels))]
+    public void CurrentChangesLabel_Rejected(string name, string version, string guide, string reason)
+    {
+        var problems = CurrentChangesLabelProblems(version, guide);
+        Assert.True(problems.Any(problem => problem.Contains(reason, StringComparison.Ordinal)),
+            $"{name}: no problem says '{reason}'; found {(problems.Count == 0 ? "none" : string.Join("; ", problems))}.");
+    }
+
+    private const string Api030 = "- **API added in 0.3.0 (library).** (sq-38) The public record `SketchLimits`.";
+    private const string Breaking030 = "- **Breaking changes in 0.3.0 (library).** (sq-39) `ProfileOptions` gained a parameter.";
+    private const string Breaking020 = "- **Breaking changes in 0.2.0 (library).** `ProfileOptions` gained a `maxBytes` parameter.";
+
+    public static TheoryData<string, string, string> AcceptedCurrentChangesLabels() => new()
+    {
+        { "1.0.0 names its own entries", "1.0.0", Guide(
+            "- **API added in 1.0.0 (library).** (sq-46) `Issue` gained `Regions`.",
+            "- **Breaking changes in 1.0.0 (library).** (sq-46) `Issue` gained `Regions`.",
+            Api030, Breaking030, Breaking020) },
+        { "patch release with no changes", "0.3.1", Guide(
+            "- **No API or breaking changes in 0.3.1 (library).**",
+            Api030, Breaking030, Breaking020) },
+        { "prerelease with no changes", "0.3.1-rc.1", Guide(
+            "- **No API or breaking changes in 0.3.1-rc.1 (library).**",
+            Api030, Breaking030) },
+        { "patch release with its own entries", "0.3.1", Guide(
+            "- **API added in 0.3.1 (library).** (sq-50) `Issue` gained a member.",
+            "- **Breaking changes in 0.3.1 (library).** None.",
+            Api030, Breaking030) },
+        { "next version unreleased while 0.3.0 is current", "0.3.0", Guide(
+            Api030,
+            "- **API added in 1.0.0 (library, unreleased).** (sq-46) `Issue` gained `Regions`.",
+            "- **Breaking changes in 1.0.0 (library, unreleased).** (sq-46) `Issue` gained `Regions`.",
+            Breaking030, Breaking020) },
+    };
+
+    public static TheoryData<string, string, string, string> RejectedCurrentChangesLabels() => new()
+    {
+        { "patch release still labelled with the previous version", "0.3.1", Guide(Api030, Breaking030, Breaking020), "found 0" },
+        { "older entry marked unreleased beside the no-change line", "0.3.1", Guide(
+            "- **No API or breaking changes in 0.3.1 (library).**",
+            "- **API added in 0.3.0 (library, unreleased).** (sq-38) The public record `SketchLimits`.",
+            Breaking030, Breaking020), "marked unreleased" },
+        { "current entry marked unreleased", "0.3.1", Guide(
+            "- **API added in 0.3.1 (library, unreleased).** (sq-50) `Issue` gained a member.",
+            "- **Breaking changes in 0.3.1 (library).** None.",
+            Api030, Breaking030), "marked unreleased" },
+        { "1.0.0 release still marked unreleased", "1.0.0", Guide(
+            "- **API added in 1.0.0 (library, unreleased).** (sq-46) `Issue` gained `Regions`.",
+            "- **Breaking changes in 1.0.0 (library).** (sq-46) `Issue` gained `Regions`.",
+            Api030, Breaking030), "marked unreleased" },
+        { "current entry names a newer version", "0.3.1", Guide(
+            "- **API added in 0.3.1 (library).** (sq-50) `Issue` gained a member, which 0.4.0 removes.",
+            "- **Breaking changes in 0.3.1 (library).** None.",
+            Api030, Breaking030), "is newer than 0.3.1" },
+        { "no-change line beside entries for the same version", "0.3.1", Guide(
+            "- **No API or breaking changes in 0.3.1 (library).**",
+            "- **API added in 0.3.1 (library).** (sq-50) `Issue` gained a member.",
+            "- **Breaking changes in 0.3.1 (library).** None.",
+            Api030, Breaking030), "has both" },
+        { "two API entries for the same version", "0.3.1", Guide(
+            "- **API added in 0.3.1 (library).** (sq-50) `Issue` gained a member.",
+            "- **API added in 0.3.1 (library).** (sq-50) `Issue` gained a second member.",
+            "- **Breaking changes in 0.3.1 (library).** None.",
+            Api030, Breaking030), "found 2" },
+        { "API entry without a breaking entry", "0.3.1", Guide(
+            "- **API added in 0.3.1 (library).** (sq-50) `Issue` gained a member.",
+            Api030, Breaking030), "Breaking changes in 0.3.1 (library)" },
+        { "final release still labelled with its prerelease", "1.0.0", Guide(
+            "- **API added in 1.0.0-rc.1 (library).** (sq-60) `Issue` gained a member.",
+            "- **Breaking changes in 1.0.0-rc.1 (library).** None.",
+            Api030, Breaking030), "found 0" },
+        { "prerelease 1.0.0-rc.1 still labelled with the final version 1.0.0", "1.0.0-rc.1", Guide(
+            "- **API added in 1.0.0 (library).** (sq-60) `Issue` gained a member.",
+            "- **Breaking changes in 1.0.0 (library).** None.",
+            Api030, Breaking030), "found 0" },
+        { "current entry marked Unreleased in capitals", "0.3.1", Guide(
+            "- **API added in 0.3.1 (library, Unreleased).** (sq-50) `Issue` gained a member.",
+            "- **Breaking changes in 0.3.1 (library).** None.",
+            Api030, Breaking030), "marked unreleased" },
+    };
+
+    /// <summary>Joins guide lines into the text the check reads.</summary>
+    private static string Guide(params string[] lines) => string.Join("\n", lines);
+
+    private static readonly Regex GuaranteeEntry = new(@"^- \*\*(?<kind>API added in|Breaking changes in|No API or breaking changes in) (?<version>[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.]+)?) \(library", RegexOptions.CultureInvariant);
+    private static readonly Regex VersionNumber = new(@"[0-9]+\.[0-9]+\.[0-9]+", RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// The problems with the library entries of "Guarantees and stability" for <paramref name="version"/>; empty when they are right.
+    /// A release labels its changes with one "API added in" and one "Breaking changes in" entry, or, when it has neither,
+    /// with the single "No API or breaking changes in" line. No entry for a version up to <paramref name="version"/> may say
+    /// unreleased, and a current entry may not name a newer version. Entries for later versions are not checked.
+    /// </summary>
+    private static List<string> CurrentChangesLabelProblems(string version, string guide)
+    {
+        var problems = new List<string>();
+        var current = CoreVersion(version);
+        var api = 0;
+        var breaking = 0;
+        var none = 0;
+        foreach (var line in guide.Split('\n').Select(text => text.TrimEnd('\r')))
+        {
+            var match = GuaranteeEntry.Match(line);
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            var label = match.Groups["version"].Value;
+            if (CoreVersion(label) > current)
+            {
+                continue;
+            }
+
+            if (line.Contains("unreleased", StringComparison.OrdinalIgnoreCase))
+            {
+                problems.Add($"'{line}' is marked unreleased, but {label} is not later than {version}");
+            }
+
+            if (label != version)
+            {
+                continue;
+            }
+
+            switch (match.Groups["kind"].Value)
+            {
+                case "API added in":
+                    api++;
+                    break;
+                case "Breaking changes in":
+                    breaking++;
+                    break;
+                default:
+                    none++;
+                    break;
+            }
+
+            foreach (Match number in VersionNumber.Matches(line))
+            {
+                if (CoreVersion(number.Value) > current)
+                {
+                    problems.Add($"'{line}' names {number.Value}, which is newer than {version}");
+                }
+            }
+        }
+
+        if (none > 0)
+        {
+            if (api + breaking > 0)
+            {
+                problems.Add($"the user guide has both '- **No API or breaking changes in {version} (library).**' and entries for {version}");
+            }
+        }
+        else
+        {
+            foreach (var (kind, count) in new[] { ("API added in", api), ("Breaking changes in", breaking) })
+            {
+                if (count != 1)
+                {
+                    problems.Add($"the user guide has one entry that starts with '- **{kind} {version} (library).**', found {count}");
+                }
+            }
+        }
+
+        return problems;
+    }
+
+    /// <summary>The numeric part of a version (the text before any prerelease or build suffix).</summary>
+    private static Version CoreVersion(string version) => Version.Parse(version.Split('-', '+')[0]);
 
     [Fact]
     public void GettingStarted_ShowsTheVersionInDirectoryBuildProps()

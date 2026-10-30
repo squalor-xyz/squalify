@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 55,
+  "next_id": 57,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -4836,10 +4836,25 @@
       "id": "sq-51",
       "title": "Release docs test must pass at 1.0.0 and for patch releases",
       "short_title": "Release docs test",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "839f410d-d21d-4609-b724-375fdf2ac283",
+          "kind": "",
+          "text": "**2026-10-30** — Owner answer (2026-10-30), verbatim: RC labels \"Keep as is (Recommended)\" (option text: \"An rc relabels its entries with the rc version, as before. No code change; release.md already states the rule.\"). Reviewer R3.",
+          "created_at": "2026-10-30T17:27:57Z",
+          "attempt": 1,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -4859,7 +4874,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {
@@ -4958,6 +4973,66 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-55",
+      "title": "Release docs test rejects unrelated version numbers in current entries",
+      "short_title": "Docs test unrelated versions",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-51 review R4",
+        "discovered_from": "sq-51",
+        "parent": "",
+        "cites": [],
+        "key": "later.docs-test-unrelated-versions",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-56",
+      "title": "Release docs test allows a duplicated no-change line",
+      "short_title": "Docs test duplicate no-change",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-51 review R5",
+        "discovered_from": "sq-51",
+        "parent": "",
+        "cites": [],
+        "key": "later.docs-test-duplicate-nochange",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
         "attempts": 0
       }
     }
