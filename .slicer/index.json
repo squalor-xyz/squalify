@@ -3854,7 +3854,7 @@
       "id": "sq-45",
       "title": "Release ahead of the schema freeze",
       "short_title": "Pre-freeze release",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -3868,12 +3868,20 @@
           "verified_by": "",
           "verified_at": "",
           "stale_after": ""
+        },
+        {
+          "id": "9d643a54-6c11-463d-bf5b-c8220e7d0685",
+          "kind": "",
+          "text": "**2026-10-30** — Gate R1: FAIL on docs only (Limits element counts, banner over-claim, release-notes heading, null meaning, comment block); fixed by the orchestrator: user guide and how-it-works banner corrected and re-rendered, release notes corrected (Limits.Default under its own source-breaking heading) and the comment block removed. Packaging, goldens, API diff, descriptor diff and tests were clean. Later (R6): the docs test UserGuide_LabelsTheCurrentChangesWithTheVersionInDirectoryBuildProps requires API-added and Breaking-changes entries for every version, so a patch release with none would fail it; relax it before a 0.3.1.",
+          "created_at": "2026-10-30T14:00:14Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-10-30T13:47:04Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
