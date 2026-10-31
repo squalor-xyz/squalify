@@ -1,0 +1,41 @@
+{
+  "id": "sq-72",
+  "title": "The $id rule: patch releases keep the tag, and prereleases",
+  "lead": [
+    "`Schema_Id_NamesTheTagThatFirstWroteTheSchema` (tests/squalify.Tests/Schema/SchemaValueTests.cs, `IdTagIsRight`) returns true for any `$id` unless the patch is 0 and major.minor equals `schemaVersion`, so nothing rejects `$id` v1.0.1 in a 1.0.1 release, which the rule forbids (\"a release that leaves the schema as it is keeps the `$id` of the release that first wrote it\"). Surviving mutants: the `core.Length != 3` guard and the prerelease split have no case. Also decide what a prerelease of a schema-changing minor does: as written a `1.1.0-rc.1` that writes schema 1.1 must name `v1.1.0-rc.1`, and the final 1.1.0 must edit `$id` again, which contradicts docs/release.md step 1. Add the assertion (1.0.1 with `$id` v1.0.1 fails), cases for a prerelease, align the helper and release.md."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-53 review R5, architect A8",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Owner decision on prerelease pinning; 2. failing cases; 3. fix the helper; 4. docs; mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

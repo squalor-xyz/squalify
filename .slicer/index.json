@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 71,
+  "next_id": 73,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -5263,7 +5263,22 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "0762d028-a38d-4768-b519-b2f41da17f48",
+          "kind": "",
+          "text": "**2026-10-31** — From the sq-53 review (R6): the 1.0.0 upgrade checklist tells consumers to build ProfileOptions and FieldProfile with object initializers that use `required` members, which need C# 11 or later; add one line about this to the 1.0.0 GitHub release notes before `gh release edit`, or when this item lands.",
+          "created_at": "2026-10-31T03:24:36Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
@@ -5654,6 +5669,66 @@
         "parent": "",
         "cites": [],
         "key": "later.patch-policy",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-71",
+      "title": "Enable package validation against the 1.0.0 baseline",
+      "short_title": "Package validation baseline",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-53 architect A7",
+        "discovered_from": "sq-53",
+        "parent": "",
+        "cites": [],
+        "key": "later.package-validation",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-72",
+      "title": "The $id rule: patch releases keep the tag, and prereleases",
+      "short_title": "$id rule hardening",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-53 review R5, architect A8",
+        "discovered_from": "sq-53",
+        "parent": "",
+        "cites": [],
+        "key": "later.id-rule-hardening",
         "pass": "v1.x",
         "group": "",
         "reason": "",

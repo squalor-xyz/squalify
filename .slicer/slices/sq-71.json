@@ -1,0 +1,41 @@
+{
+  "id": "sq-71",
+  "title": "Enable package validation against the 1.0.0 baseline",
+  "lead": [
+    "Neither csproj sets `EnablePackageValidation` or a baseline, so nothing mechanically checks the 1.x API promise (no removals, renames or signature breaks; `ProfileOptions.Create` frozen). After 1.0.0 is on nuget.org, enable package validation for squalor.squalify with `PackageValidationBaselineVersion` 1.0.0 so a 1.x change that breaks the public API fails `pack`. Ask the owner first: it fetches the baseline package from nuget.org during the build (a network dependency in CI and local builds), and the positional records (Issue, EncodingSection, Limits, RowClassesInfo) may legitimately gain trailing members, which validation would flag."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-53 architect A7",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Owner decision on the network fetch and on suppressions for the positional records; 2. enable validation with a suppression file; 3. a failing check: a scratch removal of a public member fails pack; 4. docs (CONTRIBUTING, release.md)."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; pack passes; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
