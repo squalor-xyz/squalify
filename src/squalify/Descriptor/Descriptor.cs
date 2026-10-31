@@ -44,8 +44,11 @@ public sealed record Descriptor(
     StdfSection? Stdf = null,
     ScopeSection? Scope = null)
 {
-    /// <summary>The descriptor schema version written as <c>schemaVersion</c>.</summary>
-    public const string SchemaVersion = "1.0";
+    /// <summary>
+    /// The descriptor schema version written as <c>schemaVersion</c>. A static property, not a constant, so that a caller
+    /// compiles no value in and a later minor that changes the schema can change the value without a rebuild of the caller.
+    /// </summary>
+    public static string SchemaVersion => "1.0";
 
     /// <summary>
     /// True for a layout-only profile (<see cref="ProfileOptions.LayoutOnly"/>): the descriptor was built without the per-field

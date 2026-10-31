@@ -2,7 +2,9 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using squalor.squalify;
+using squalor.squalify.Tests.Schema;
 
 namespace squalor.squalify.Tests;
 
@@ -379,5 +381,29 @@ public sealed class ApiSurfaceTests : IDisposable
         Assert.Equal(new[] { "includeValues", "includeValuesFor", "maxBytes", "maxFirstRecordBytes", "layoutOnly" }, parameters.Select(static p => p.Name!).ToArray());
         Assert.Equal([typeof(bool), typeof(IEnumerable<string>), typeof(long?), typeof(long?), typeof(bool)], parameters.Select(static p => p.ParameterType).ToArray());
         Assert.Equal([false, false, true, true, true], parameters.Select(static p => p.IsOptional).ToArray());
+    }
+
+    // Descriptor.SchemaVersion (sq-68): a static member, not a constant, so that a later minor can change the value
+    // without a rebuild of the consumers.
+
+    [Fact]
+    public void Descriptor_SchemaVersion_IsNotAConstant_AndEqualsTheSchemaFile()
+    {
+        const BindingFlags publicStatic = BindingFlags.Public | BindingFlags.Static;
+        var property = typeof(Descriptor).GetProperty(nameof(Descriptor.SchemaVersion), publicStatic);
+        var field = typeof(Descriptor).GetField(nameof(Descriptor.SchemaVersion), publicStatic);
+
+        // A const is a literal field: a caller compiles its value in, so a later value would not reach that caller.
+        Assert.True(field is null || !field.IsLiteral, "Descriptor.SchemaVersion is a const (a literal field).");
+        Assert.True(property is not null || field is not null, "Descriptor.SchemaVersion is neither a public static property nor a public static field.");
+
+        // A static property or a static readonly field, of type string.
+        Assert.Equal(typeof(string), property?.PropertyType ?? field!.FieldType);
+        var value = property is not null ? property.GetValue(null) : field!.GetValue(null);
+
+        // The value is the schema file's schemaVersion const, read through the schema loader of the tests.
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+        var published = schema.RootElement.GetProperty("properties").GetProperty("schemaVersion").GetProperty("const").GetString();
+        Assert.Equal(published, value);
     }
 }

@@ -509,6 +509,25 @@ public sealed class DocsTests
     }
 
     [Fact]
+    public void UserGuide_StatesWhatAConsumerOfTheSchemaVersionConstGetsAfterTheChange()
+    {
+        // sq-68: a consumer compiled against the old const keeps running with the "1.0" it compiled in, so the entries
+        // must not say "callers recompile" (that phrase means an old binary fails to link elsewhere in the guide).
+        var lines = File.ReadAllLines(Path.Combine(DotNetTool.RepositoryRoot(), "docs", "user-guide.md"));
+
+        var breaking = Assert.Single(lines, static l => l.StartsWith("- **Breaking changes in 1.0.0 (library, unreleased).**", StringComparison.Ordinal));
+        Assert.Contains("(sq-68)", breaking, StringComparison.Ordinal);
+        var sentence = breaking[breaking.IndexOf("(sq-68)", StringComparison.Ordinal)..];
+        Assert.Contains("binary-compatible: a consumer compiled against the `const` still runs, with the `\"1.0\"` it compiled in, and reads the property only once it is recompiled; recompile so that a later value reaches it.", sentence, StringComparison.Ordinal);
+        Assert.DoesNotContain("callers recompile", sentence, StringComparison.Ordinal);
+
+        var added = Assert.Single(lines, static l => l.StartsWith("- **API added in 1.0.0 (library, unreleased).**", StringComparison.Ordinal));
+        Assert.Contains("(sq-68)", added, StringComparison.Ordinal);
+        var addedSentence = added[added.IndexOf("(sq-68)", StringComparison.Ordinal)..];
+        Assert.Contains("a consumer compiled against the property reads the value at run time", addedSentence, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void UserGuide_LabelsTheCurrentChangesWithTheVersionInDirectoryBuildProps()
     {
         var root = DotNetTool.RepositoryRoot();
