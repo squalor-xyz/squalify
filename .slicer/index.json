@@ -24,6 +24,12 @@
       "outro": ""
     },
     {
+      "key": "v1.1.0",
+      "heading": "",
+      "intro": "",
+      "outro": ""
+    },
+    {
       "key": "v1.x",
       "heading": "",
       "intro": "",
@@ -1451,7 +1457,8 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [
-        "sq-05"
+        "sq-05",
+        "sq-62"
       ],
       "note_records": [
         {
@@ -1524,7 +1531,7 @@
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -5275,7 +5282,7 @@
         "parent": "",
         "cites": [],
         "key": "later.includevaluesfor-initializer",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -5425,7 +5432,7 @@
         "parent": "",
         "cites": [],
         "key": "later.issue-code-registry",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -5486,7 +5493,7 @@
         "parent": "",
         "cites": [],
         "key": "later.docs-enums-vs-schema",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 1,
@@ -5667,7 +5674,7 @@
         "parent": "",
         "cites": [],
         "key": "later.flip-checklist",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -5727,7 +5734,7 @@
         "parent": "",
         "cites": [],
         "key": "later.package-validation",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -5757,7 +5764,7 @@
         "parent": "",
         "cites": [],
         "key": "later.id-rule-hardening",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 1,
