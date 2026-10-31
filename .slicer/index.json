@@ -5007,6 +5007,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "8751e69f-bf60-4fdf-946d-ea71c19dbdd1",
+          "kind": "",
+          "text": "**2026-10-31** — From the sq-68 gate (nit): docs/user-guide.md \"Breaking changes in 1.0.0\" sq-68 sentence reads \"(...a const initializer). binary-compatible: ...\" with a lower-case start after a full stop; when this slice relabels the entries, make it \"; binary-compatible:\" or capitalise it and update the pinned string in DocsTests.cs (UserGuide_StatesWhatAConsumerOfTheSchemaVersionConstGetsAfterTheChange).",
+          "created_at": "2026-10-31T02:58:01Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
