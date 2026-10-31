@@ -1,0 +1,41 @@
+{
+  "id": "sq-69",
+  "title": "Planned-to-produced flip checklist for new profilers",
+  "lead": [
+    "Nothing says what sq-09, sq-10 or sq-15 must change when a planned member becomes produced: descriptor.md (key-order rows, dialect table, Planned section, interim members, changelog), the schema (members, enums, oneOf), the schemaVersion const and `$id`, the test lists (DocumentedMembersTests planned list, PlannedMembersTests planned lists, SchemaValueTests enum pins), and the KeyOrderPin exception. Add a checklist bullet in CONTRIBUTING.md next to the schema-change rule and notes on sq-09, sq-10 and sq-15."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-54 architect A8, A7",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. List every place by flipping a planned member in a scratch copy; 2. write the checklist; 3. docs test if the rule lists phrases."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}

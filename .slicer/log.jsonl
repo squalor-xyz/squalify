@@ -660,3 +660,9 @@
 {"when": "2026-10-30T20:38:22Z", "item": "sq-67", "action": "add", "from": "", "to": "open", "note": "Schema tests: pin the property sets of the closed count maps"}
 {"when": "2026-10-30T20:38:56Z", "item": "sq-54", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
 {"when": "2026-10-31T02:11:08Z", "item": "sq-54", "action": "note", "from": "", "to": "", "note": "Owner answers (2026-10-30), verbatim: Dialect rows \"Drop the", "by": "Jon R"}
+{"when": "2026-10-31T02:10:36Z", "item": "sq-68", "action": "add", "from": "", "to": "open", "note": "Descriptor.SchemaVersion is not a compile-time constant"}
+{"when": "2026-10-31T02:10:36Z", "item": "sq-69", "action": "add", "from": "", "to": "open", "note": "Planned-to-produced flip checklist for new profilers"}
+{"when": "2026-10-31T02:10:36Z", "item": "sq-70", "action": "add", "from": "", "to": "open", "note": "What a patch release may change in the descriptor"}
+{"when": "2026-10-31T02:10:45Z", "item": "sq-53", "action": "set", "from": "", "to": "", "note": "depends_on sq-12,sq-51,sq-52,sq-54,sq-61→sq-12,sq-51,sq-52,sq-54,sq-61,sq-68"}
+{"when": "2026-10-31T02:10:45Z", "item": "sq-44", "action": "note", "from": "", "to": "", "note": "Owner decision (2026-10-30, sq-54 architect A4), verbatim: S", "by": "Jon R"}
+{"when": "2026-10-31T02:10:45Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Implement"}

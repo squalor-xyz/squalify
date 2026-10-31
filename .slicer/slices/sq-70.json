@@ -1,0 +1,41 @@
+{
+  "id": "sq-70",
+  "title": "What a patch release may change in the descriptor",
+  "lead": [
+    "The versioning policy is silent on patch releases, but 'Known limits' implies patches fix other defects and so change descriptor bytes for the same input. State what a patch may and may not change (bytes of the descriptor for the same input; `schemaVersion`; `fingerprint.version`) and test the sentence."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-54 architect A9",
+  "size": "S",
+  "flags": [],
+  "trees_note": "docs",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": ""
+    },
+    {
+      "heading": "Files",
+      "body": ""
+    },
+    {
+      "heading": "Failing tests",
+      "body": ""
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Owner decision on whether a patch may change descriptor bytes; 2. policy text and docs test; 3. mutation-check."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, test and format pass; `slicer check` passes."
+    },
+    {
+      "heading": "Git",
+      "body": ""
+    }
+  ],
+  "notes": []
+}
