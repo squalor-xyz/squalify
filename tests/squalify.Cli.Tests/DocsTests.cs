@@ -366,8 +366,8 @@ public sealed class DocsTests
 
     /// <summary>
     /// Release 1.0.0 (sq-53): the docs speak of the freeze and of the version in the present tense. None of them says that the freeze
-    /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", that the project is "early
-    /// (0.3.x)", or calls a change "unreleased"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.
+    /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", or that the project is "early
+    /// (0.3.x)"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.
     /// </summary>
     [Fact]
     public void Docs_SpeakOfTheFreezeAndTheVersionInThePresentTense()
@@ -378,27 +378,27 @@ public sealed class DocsTests
         var descriptor = Collapse(ReadDoc(root, "docs/descriptor.md"));
         Require(problems, "descriptor.md", descriptor, "The schema is frozen from squalify 1.0.0; the 0.x releases also wrote `schemaVersion` `1.0` but changed the descriptor without a bump, so tell them apart by `tool.version`.");
         Require(problems, "descriptor.md", descriptor, "Since 0.3.0 only `layoutOnly`, `encoding.invalidBytesTolerated`, `issues[].regions` and the `firstLines` of `invalidUtf8` and `invalidUnicode` are new; `limits.sketches` and `limits.nullSpellings` were written by 0.3.0 already.");
-        Forbid(problems, "descriptor.md", descriptor, "takes effect with squalify 1.0.0", "may still change the descriptor", "the first release that writes it");
+        Forbid(problems, "descriptor.md", descriptor, "takes effect with squalify 1.0.0", "may still change the descriptor", "the first release that writes it", "before 1.0 a minor");
 
         var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
         Require(problems, "user-guide.md", guide, "Descriptor schema v1 is frozen (`schemaVersion` `1.0`) from 1.0.0. In 1.x, adding a key, written always or only in some cases, or an enum value is a minor change");
         Require(problems, "user-guide.md", guide, "**A descriptor changed after an upgrade.** Expected across squalify versions: the [versioning policy](descriptor.md#versioning-policy) lists what may change in 1.x (new optional keys and enum values, refined sketched values, other kind labels), and the 0.x releases changed the descriptor without a version bump.");
-        Forbid(problems, "user-guide.md", guide, "the freeze takes effect with 1.0.0", "before 1.0 a minor version may", "(library, unreleased)");
+        Forbid(problems, "user-guide.md", guide, "the freeze takes effect with 1.0.0", "before 1.0 a minor", "(library, unreleased)");
 
         var readme = Collapse(ReadDoc(root, "README.md"));
         Require(problems, "README.md", readme, "> **Status: stable (1.x).**");
         Require(problems, "README.md", readme, "the library API and the descriptor schema v1 are frozen");
-        Forbid(problems, "README.md", readme, "early (0.3.x)", "takes effect with 1.0.0", "before 1.0 a minor version may");
+        Forbid(problems, "README.md", readme, "early (0.3.x)", "takes effect with 1.0.0", "before 1.0 a minor");
 
         var gettingStarted = Collapse(ReadDoc(root, "docs/getting-started.md"));
         Require(problems, "getting-started.md", gettingStarted, "descriptor schema v1 is frozen (the [versioning policy](descriptor.md#versioning-policy) says what may change).");
-        Forbid(problems, "getting-started.md", gettingStarted, "takes effect with 1.0.0");
+        Forbid(problems, "getting-started.md", gettingStarted, "takes effect with 1.0.0", "before 1.0 a minor");
 
         var how = Collapse(ReadDoc(root, "docs/how-it-works.md"));
         var version = Version.Parse(PackageVersion(root).Split('-', '+')[0]);
         var series = $"v{version.Major}.{version.Minor}.x";
         Require(problems, "how-it-works.md", how, $"> **Status ({series}).**");
-        Forbid(problems, "how-it-works.md", how, "(sq-46", "(sq-47", "Status (v0.", "takes effect with 1.0.0", "main after v0.3.0");
+        Forbid(problems, "how-it-works.md", how, "(sq-46", "(sq-47", "Status (v0.", "takes effect with 1.0.0", "main after v0.3.0", "before 1.0 a minor");
 
         var banner = how[..how.IndexOf(" When an architectural review", StringComparison.Ordinal)];
         if (Regex.Matches(banner, "scaled by the field count", RegexOptions.CultureInvariant).Count != 1)
@@ -407,7 +407,7 @@ public sealed class DocsTests
         }
 
         var design = Collapse(ReadDoc(root, "docs/design.md"));
-        Forbid(problems, "design.md", design, "early (0.3.x)", "takes effect with 1.0.0", "before 1.0 a minor version may");
+        Forbid(problems, "design.md", design, "early (0.3.x)", "takes effect with 1.0.0", "before 1.0 a minor");
 
         Assert.True(problems.Count == 0, "The docs do not speak of the released version in the present tense:\n" + string.Join("\n", problems));
     }

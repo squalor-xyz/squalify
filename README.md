@@ -19,7 +19,7 @@ dotnet add package squalor.squalify          # the library
 
 ## Use as a library
 
-`squalor.squalify` runs the same profiler as the CLI. Descriptor bytes are identical for the same input, options and squalify version only within one .NET runtime major version: the JSON writer takes its text escaping of unassigned characters from the runtime, so moving to a new runtime major can change those bytes; pin the package version and the runtime. Fingerprint hashes do not depend on the runtime. Before 1.0 a minor squalify version may also change the descriptor. See the [user guide](https://github.com/squalor-xyz/squalify/blob/main/docs/user-guide.md#guarantees-and-stability).
+`squalor.squalify` runs the same profiler as the CLI. Descriptor bytes are identical for the same input, options and squalify version only within one .NET runtime major version: the JSON writer takes its text escaping of unassigned characters from the runtime, so moving to a new runtime major can change those bytes; pin the package version and the runtime. Fingerprint hashes do not depend on the runtime. The 0.x releases changed the descriptor without a version bump. See the [user guide](https://github.com/squalor-xyz/squalify/blob/main/docs/user-guide.md#guarantees-and-stability).
 
 ## Quick start
 
