@@ -4993,6 +4993,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "a65514cd-6d80-4881-84d5-d1bc74d4e66a",
+          "kind": "",
+          "text": "**2026-10-31** — From the sq-54 re-gate (2026-10-30), three items for this slice: (1) CONTRIBUTING.md ~53 (the schema-change rule) must add: the first schema-changing commit after a release bumps schemaVersion \"and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const)\"; today a contributor who bumps the const per CONTRIBUTING sees the $id test go red. (2) REPLACE the planned test `Schema_Id_NamesTheReleaseTag` (tie to <Version>) by: the `$id` tag major.minor equals `schemaVersion`; it equals <Version> only in a release that writes a new schemaVersion (1.0.0 included); a 1.0.1 or a 1.1.0 that leaves the schema as it is keeps $id v1.0.0 with const 1.0. (3) Nit: the Major-changes bullet in descriptor.md says \"except the widenings listed below\"; make it \"except the widenings listed below and the rules that follow\" (Reclassified files, Sketched values are also explicit minor exceptions) and pin it.",
+          "created_at": "2026-10-31T02:38:39Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -5523,7 +5537,22 @@
       "depends_on": [
         "sq-54"
       ],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "66405d8b-9c66-4d00-8795-9eb00b0f2bf8",
+          "kind": "",
+          "text": "**2026-10-31** — From the sq-54 gate: lock-step means schemaVersion = the major.minor of the squalify release that first writes a CHANGED schema, not every minor. Read this slice lead (\"changing at every squalify minor\") accordingly: the value changes at a minor that changes the schema; a minor that leaves the schema as it is keeps it.",
+          "created_at": "2026-10-31T02:28:55Z",
+          "attempt": 0,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",
