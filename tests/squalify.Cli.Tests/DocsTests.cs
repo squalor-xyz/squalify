@@ -156,7 +156,7 @@ public sealed class DocsTests
             "a member may become null only behind a documented top-level marker such as `layoutOnly: true`",
             "otherwise making an always-present member null is a major change",
             "Sketched values (quantiles, approximate distinct and top counts) and the precision mapping in `limits.sketches` may be refined in a minor; keys, types and the stated error bounds stay",
-            "A sketch with only a probabilistic bound is a major change",
+            "Replacing a sketch whose stated bound is deterministic (the `rankError` of the quantiles, the `maxError` of `top`) with one whose bound is only probabilistic (for example KLL) is a major change",
             "`schemaVersion` is `major.minor`, in lock-step with the squalify minor: it is the major.minor of the squalify release that first writes the schema it describes",
             "The first schema-changing commit after a release bumps it, and later ones before the next release share the bump",
             "Adding a key, written always or only in some cases, is a minor change",
@@ -170,7 +170,10 @@ public sealed class DocsTests
             "`format.dialect` becomes a `oneOf` over the per-family dialects",
             "`hints.stdf` changes from `null` to an object",
             "`table.rowClasses` changes from required to optional",
-            "The `const` of `schemaVersion` changes at each minor, in lock-step with the squalify minor",
+            "The `const` of `schemaVersion` changes at each minor that changes the schema, to that release's major.minor (see Rules); `Descriptor.SchemaVersion` changes with it",
+            "a release that carries a schema change is a minor or major release, never a patch",
+            "edited only in a release that writes a new `schemaVersion`, to name that release's tag",
+            "a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema",
             "consumers must not validate with the closed schema",
             "kind label values may change for the same input in a minor release, and rule ids are permanent",
             "constructors and `Deconstruct` of the model records are outside the compatibility promise",
@@ -182,7 +185,7 @@ public sealed class DocsTests
         }
 
         // One wording of the schemaVersion rule everywhere, and the key rule without its older form.
-        foreach (var stale in new[] { "with every minor release", "making an optional key required", "removing, renaming or changing the meaning or the type of a key" })
+        foreach (var stale in new[] { "with every minor release", "making an optional key required", "removing, renaming or changing the meaning or the type of a key", "A sketch with only a probabilistic bound", "changes at each minor, in lock-step", "edited at each release" })
         {
             if (policy.Contains(stale, StringComparison.OrdinalIgnoreCase))
             {
@@ -272,6 +275,8 @@ public sealed class DocsTests
             "`FieldProfile` built by name with init members",
             "The model types of planned members (`TouchstoneDialect`, `KeyValueDialect`, `StdfDialect`, `KeyValueSection`, `BlockStats`, `StdfSection`, `StdfRecordCount`, `StdfTest`, `StdfHints`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks` and `BinarySection.Segments`) are provisional until their profiler ships and may change in a minor",
             "New options are added to `ProfileOptions` as init members, and the parameter list of `ProfileOptions.Create` never changes after 1.0",
+            "adding a key, written always or only in some cases, or an enum value is a minor change (it bumps the schema's minor version)",
+            "A file that a new profiler reclaims (one an earlier minor described as text, binary or delimited) changes its hashes without a `fingerprint.version` bump",
         })
         {
             Require(problems, "user-guide.md, Guarantees and stability", stability, phrase);
@@ -330,6 +335,12 @@ public sealed class DocsTests
         // The release steps and CONTRIBUTING say the same about schemaVersion as the policy.
         var release = Collapse(ReadDoc(root, "docs/release.md"));
         Require(problems, "release.md", release, "and, in a minor release that changed the schema, the `schemaVersion` value");
+        Require(problems, "release.md", release, "Edit the `$id` of `schema/descriptor-v1.schema.json` only in a release that writes a new `schemaVersion`");
+        Require(problems, "release.md", release, "a release that leaves the schema as it is keeps the `$id` of the release that first wrote it");
+        if (Collapse(userGuide).Contains("adding optional keys or enum values bumps", StringComparison.Ordinal))
+        {
+            problems.Add("user-guide.md still says 'adding optional keys or enum values bumps'");
+        }
         if (release.Contains("for a new minor schema version", StringComparison.Ordinal))
         {
             problems.Add("release.md still says 'for a new minor schema version'");
