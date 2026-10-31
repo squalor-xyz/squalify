@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-67 items · — 18 · done 43 · parked 1 · later 1 · retired 3 · started 1
+70 items · — 21 · done 43 · parked 1 · later 1 · retired 3 · started 1
 
 ## v1.0.0
 
@@ -48,6 +48,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 17 | [sq-54](slices/sq-54.md) | Descriptor docs freeze | M | 2 | docs | sq-12 split, wave 2026-10-30 | started |
 | 18 | [sq-60](slices/sq-60.md) | PDF diagram text floor | M | 2 | docs | sq-52 review (page 14 diagram at 3.51 pt) · Owner (2026-10-30), verbatim: "let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded. · discovered from sq-52 | retired |
 | 19 | [sq-61](slices/sq-61.md) | Drop doc renders | S | 1 | docs | sq-60 review; owner decision 2026-10-30 · discovered from sq-60 | done |
+| 20 | [sq-68](slices/sq-68.md) | SchemaVersion not const | S | 1 | core | sq-54 architect A6b · discovered from sq-54 | — |
 
 ---
 
@@ -55,15 +56,15 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 20 | [sq-11](slices/sq-11.md) | Sketches and memory bounds | M | 2 | core |  | done |
-| 21 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | done |
-| 22 | [sq-22](slices/sq-22.md) | Runtime-stable escaping | S | 1 | core | sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02 | done |
-| 23 | [sq-24](slices/sq-24.md) | Invalid UTF-16/32 reporting | S | 1 | core | sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03 | done |
-| 24 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | done |
-| 25 | [sq-34](slices/sq-34.md) | Claim degenerate delimited tables | M | 2 | core |  | done |
-| 26 | [sq-35](slices/sq-35.md) | Byte-limited profiling | S | 1 | core |  | done |
-| 27 | [sq-36](slices/sq-36.md) | Exact null spellings | S | 1 | core | Owner decision (2026-10-28), verbatim: "Retire it (Recommended)". The exact-spellings part was dropped by the owner ("trim whitespace, case insensitive for nulls. a null is a null."); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows. | done |
-| 28 | [sq-37](slices/sq-37.md) | Raw header names | S | 1 | core |  | done |
+| 21 | [sq-11](slices/sq-11.md) | Sketches and memory bounds | M | 2 | core |  | done |
+| 22 | [sq-13](slices/sq-13.md) | Repeated blocks | M | 2 | core |  | done |
+| 23 | [sq-22](slices/sq-22.md) | Runtime-stable escaping | S | 1 | core | sq-02 architect finding 4: JavaScriptEncoder escapes BMP code points the runtime's Unicode tables leave unassigned, so an app hosting the library on a newer .NET can get different bytes from the same squalify version. design.md:310 covers only the CLI (tool.version bump). Owner decision needed: document the guarantee as per runtime major version, or ship an in-repo escape table. · discovered from sq-02 | done |
+| 24 | [sq-24](slices/sq-24.md) | Invalid UTF-16/32 reporting | S | 1 | core | sq-03 review finding 1: TextDecoder turns lone surrogates, an odd trailing byte and out-of-range UTF-32 values into U+FFFD, while encoding.invalidBytes stays 0 and no issue is raised (e.g. UTF-16LE 'hello world\n' plus one stray byte). sq-03 documents the gap; this item adds a count and an issue (name to be decided, e.g. invalidUtf16) with tests and the schema-doc change. · discovered from sq-03 | done |
+| 25 | [sq-32](slices/sq-32.md) | Compact field profiles | M | 2 | core |  | done |
+| 26 | [sq-34](slices/sq-34.md) | Claim degenerate delimited tables | M | 2 | core |  | done |
+| 27 | [sq-35](slices/sq-35.md) | Byte-limited profiling | S | 1 | core |  | done |
+| 28 | [sq-36](slices/sq-36.md) | Exact null spellings | S | 1 | core | Owner decision (2026-10-28), verbatim: "Retire it (Recommended)". The exact-spellings part was dropped by the owner ("trim whitespace, case insensitive for nulls. a null is a null."); the separator-row counts already ship as table.fields[].nullsExcludingAllNullRows. | done |
+| 29 | [sq-37](slices/sq-37.md) | Raw header names | S | 1 | core |  | done |
 
 ---
 
@@ -71,8 +72,8 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 29 | [sq-30](slices/sq-30.md) | Package icon | S | 1 |  | discovered from sq-29 | done |
-| 30 | [sq-33](slices/sq-33.md) | User and developer docs | M | 2 | docs |  | done |
+| 30 | [sq-30](slices/sq-30.md) | Package icon | S | 1 |  | discovered from sq-29 | done |
+| 31 | [sq-33](slices/sq-33.md) | User and developer docs | M | 2 | docs |  | done |
 
 ---
 
@@ -80,50 +81,52 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 31 | [sq-09](slices/sq-09.md) | Touchstone and key=value docs | M | 2 | core |  | — |
-| 32 | [sq-10](slices/sq-10.md) | Binary and STDF | L | 3 | core |  | — |
-| 33 | [sq-15](slices/sq-15.md) | Kind label | M | 2 | core |  | — |
-| 34 | sq-21 | Header-name grammar hint | L | 3 | core |  | later |
-| 35 | sq-23 | sq-02 review nits | S | 1 | core | sq-02 architect nits: (1) how-it-works.md:34 small text 'hints builder' is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02 | — |
-| 36 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · Owner decision (2026-10-27), verbatim: "Fold into sq-34". Scope moved to sq-34. · discovered from sq-27 | retired |
-| 37 | [sq-44](slices/sq-44.md) | Bounded-size GK sketch | L | 3 | core | discovered from sq-38 | — |
-| 38 | [sq-50](slices/sq-50.md) | Cheaper layout-only | M | 2 | core | discovered from sq-47 | — |
-| 39 | [sq-55](slices/sq-55.md) | Docs test unrelated versions | S | 1 | docs | sq-51 review R4 · discovered from sq-51 | — |
-| 40 | [sq-56](slices/sq-56.md) | Docs test duplicate no-change | S | 1 | docs | sq-51 review R5 · discovered from sq-51 | — |
-| 41 | [sq-57](slices/sq-57.md) | Hash-inequality collisions | S | 1 | core | sq-49 review R2 · discovered from sq-49 | — |
-| 42 | [sq-58](slices/sq-58.md) | IncludeValuesFor normalisation | S | 1 | core | sq-49 architect A4 · discovered from sq-49 | — |
-| 43 | [sq-59](slices/sq-59.md) | Required-member compiler note | S | 1 | docs | sq-49 architect A5 · discovered from sq-49 | — |
-| 44 | [sq-62](slices/sq-62.md) | Issue code registry | M | 2 | core | sq-12 review R3, R4; architect A4 · discovered from sq-12 | — |
-| 45 | [sq-63](slices/sq-63.md) | Validator duplicate keys | S | 1 | core | sq-12 review R5 · discovered from sq-12 | — |
-| 46 | [sq-64](slices/sq-64.md) | Docs enums vs schema | S | 1 | core, docs | sq-12 architect A3(ii), A7 · discovered from sq-12 | — |
-| 47 | [sq-65](slices/sq-65.md) | Docs from test output | S | 1 | core | sq-12 architect A6 (sq-25 L8) · discovered from sq-12 | — |
-| 48 | [sq-66](slices/sq-66.md) | Render-mention patterns | S | 1 | docs | sq-61 review (3), (2), (8) · discovered from sq-61 | — |
-| 49 | [sq-67](slices/sq-67.md) | Pin count-map keys | S | 1 | core | sq-12 gate L1, L2 · discovered from sq-12 | — |
+| 32 | [sq-09](slices/sq-09.md) | Touchstone and key=value docs | M | 2 | core |  | — |
+| 33 | [sq-10](slices/sq-10.md) | Binary and STDF | L | 3 | core |  | — |
+| 34 | [sq-15](slices/sq-15.md) | Kind label | M | 2 | core |  | — |
+| 35 | sq-21 | Header-name grammar hint | L | 3 | core |  | later |
+| 36 | sq-23 | sq-02 review nits | S | 1 | core | sq-02 architect nits: (1) how-it-works.md:34 small text 'hints builder' is not a type name (re-render docs); (2) CanonicalNumber.FormatFinite (CanonicalNumber.cs:24) is used only by tests; (3) no test exercises the SQUALIFY_UPDATE_GOLDEN=1 switch itself (Golden.cs:26); (4) CountMap.FromOrdinal/FromNumeric throw ArgumentException, not SqualifyException (CountMap.cs:42,62); (5) model records compare lists by reference, so Descriptor equality is shallow. · discovered from sq-02 | — |
+| 37 | sq-28 | Ragged skip by field count | S | 1 | core | sq-27 review M1 option C: replace the lead rule (RunStartMinLeadRecords = 3) with 'skip only ragged records that have at least 2 fields'. key=value, title and comment lines are 1-field, so they still fail the window and stay preamble, while short or long data rows are tolerated at any position, including data records 1-2. Costs: a 1-field stray row near the top is no longer tolerated; a preamble line with a comma is still absorbed. Adopt only if every golden stays unchanged. Owner (2026-10-27): keep lead = 3 now, refine later. · Owner decision (2026-10-27), verbatim: "Fold into sq-34". Scope moved to sq-34. · discovered from sq-27 | retired |
+| 38 | [sq-44](slices/sq-44.md) | Bounded-size GK sketch | L | 3 | core | discovered from sq-38 | — |
+| 39 | [sq-50](slices/sq-50.md) | Cheaper layout-only | M | 2 | core | discovered from sq-47 | — |
+| 40 | [sq-55](slices/sq-55.md) | Docs test unrelated versions | S | 1 | docs | sq-51 review R4 · discovered from sq-51 | — |
+| 41 | [sq-56](slices/sq-56.md) | Docs test duplicate no-change | S | 1 | docs | sq-51 review R5 · discovered from sq-51 | — |
+| 42 | [sq-57](slices/sq-57.md) | Hash-inequality collisions | S | 1 | core | sq-49 review R2 · discovered from sq-49 | — |
+| 43 | [sq-58](slices/sq-58.md) | IncludeValuesFor normalisation | S | 1 | core | sq-49 architect A4 · discovered from sq-49 | — |
+| 44 | [sq-59](slices/sq-59.md) | Required-member compiler note | S | 1 | docs | sq-49 architect A5 · discovered from sq-49 | — |
+| 45 | [sq-62](slices/sq-62.md) | Issue code registry | M | 2 | core | sq-12 review R3, R4; architect A4 · discovered from sq-12 | — |
+| 46 | [sq-63](slices/sq-63.md) | Validator duplicate keys | S | 1 | core | sq-12 review R5 · discovered from sq-12 | — |
+| 47 | [sq-64](slices/sq-64.md) | Docs enums vs schema | S | 1 | core, docs | sq-12 architect A3(ii), A7 · discovered from sq-12 | — |
+| 48 | [sq-65](slices/sq-65.md) | Docs from test output | S | 1 | core | sq-12 architect A6 (sq-25 L8) · discovered from sq-12 | — |
+| 49 | [sq-66](slices/sq-66.md) | Render-mention patterns | S | 1 | docs | sq-61 review (3), (2), (8) · discovered from sq-61 | — |
+| 50 | [sq-67](slices/sq-67.md) | Pin count-map keys | S | 1 | core | sq-12 gate L1, L2 · discovered from sq-12 | — |
+| 51 | [sq-69](slices/sq-69.md) | Planned flip checklist | S | 1 | docs | sq-54 architect A8, A7 · discovered from sq-54 | — |
+| 52 | [sq-70](slices/sq-70.md) | Patch release policy | S | 1 | docs | sq-54 architect A9 · discovered from sq-54 | — |
 
 ---
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 50 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | parked |
-| 51 | [sq-20](slices/sq-20.md) | Compact evidence | M | 2 | core | Owner decision (2026-10-27), verbatim: "Retire, refile on fields (Recommended)". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo. | retired |
+| 53 | [sq-08](slices/sq-08.md) | Parquet profiler | M | 2 | core |  | parked |
+| 54 | [sq-20](slices/sq-20.md) | Compact evidence | M | 2 | core | Owner decision (2026-10-27), verbatim: "Retire, refile on fields (Recommended)". The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo. | retired |
 
 ---
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
-| 52 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |
-| 53 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | done |
-| 54 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | done |
-| 55 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | done |
-| 56 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | done |
-| 57 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | done |
-| 58 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | done |
-| 59 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | done |
-| 60 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | done |
-| 61 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | done |
-| 62 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | done |
-| 63 | [sq-25](slices/sq-25.md) | Consumer classification contract | S | 1 | core |  | done |
-| 64 | [sq-26](slices/sq-26.md) | NuGet package for library consumers | S | 1 | core |  | done |
-| 65 | [sq-27](slices/sq-27.md) | Ragged run start | S | 1 | core | sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25 | done |
-| 66 | [sq-29](slices/sq-29.md) | Release workflow | S | 1 |  |  | done |
-| 67 | [sq-31](slices/sq-31.md) | Drop Parquet from v1 | S | 1 |  |  | done |
+| 55 | [sq-01](slices/sq-01.md) | Solution skeleton | S | 1 | build |  | done |
+| 56 | [sq-02](slices/sq-02.md) | Canonical descriptor writer | M | 2 | core |  | done |
+| 57 | [sq-03](slices/sq-03.md) | Byte sniff and generic profile | M | 2 | core |  | done |
+| 58 | [sq-16](slices/sq-16.md) | Value classifier | M | 2 | core |  | done |
+| 59 | [sq-04](slices/sq-04.md) | Delimited dialect and regions | L | 3 | core |  | done |
+| 60 | [sq-05](slices/sq-05.md) | Field profiling | M | 2 | core |  | done |
+| 61 | [sq-17](slices/sq-17.md) | Row classes | M | 2 | core |  | done |
+| 62 | [sq-18](slices/sq-18.md) | Private-corpus harness | S | 1 | core |  | done |
+| 63 | [sq-06](slices/sq-06.md) | Fingerprints and hints | M | 2 | core |  | done |
+| 64 | [sq-07](slices/sq-07.md) | Values tier | S | 1 | core, cli |  | done |
+| 65 | [sq-14](slices/sq-14.md) | Header-unit conventions | M | 2 | core |  | done |
+| 66 | [sq-25](slices/sq-25.md) | Consumer classification contract | S | 1 | core |  | done |
+| 67 | [sq-26](slices/sq-26.md) | NuGet package for library consumers | S | 1 | core |  | done |
+| 68 | [sq-27](slices/sq-27.md) | Ragged run start | S | 1 | core | sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25 | done |
+| 69 | [sq-29](slices/sq-29.md) | Release workflow | S | 1 |  |  | done |
+| 70 | [sq-31](slices/sq-31.md) | Drop Parquet from v1 | S | 1 |  |  | done |
