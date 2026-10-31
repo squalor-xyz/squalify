@@ -4969,7 +4969,7 @@
       "id": "sq-53",
       "title": "Release 1.0.0",
       "short_title": "Release 1.0.0",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-12",
@@ -5037,10 +5037,7 @@
           "retracted_reason": ""
         }
       ],
-      "claim": {
-        "owner": "Jon R",
-        "at": "2026-10-31T03:00:52Z"
-      },
+      "claim": null,
       "fields": {
         "size": "M",
         "flags": [],
