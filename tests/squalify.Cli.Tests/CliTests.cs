@@ -50,6 +50,20 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public async Task Cli_Version_PrintsTheVersionOfDirectoryBuildProps_AndIsAtLeast1_0_0()
+    {
+        // sq-53: the tool, the package and the descriptor's tool.version are one string, and no release after 1.0.0 is below it.
+        var props = File.ReadAllText(Path.Combine(DotNetTool.RepositoryRoot(), "Directory.Build.props"));
+        var match = System.Text.RegularExpressions.Regex.Match(props, "<Version>([^<]+)</Version>");
+        Assert.True(match.Success, "Directory.Build.props has a <Version>.");
+
+        var (code, output, _) = await RunAsync("--version");
+        Assert.Equal(0, code);
+        Assert.Equal(match.Groups[1].Value + Environment.NewLine, output);
+        Assert.True(System.Version.Parse(output.Trim().Split('-', '+')[0]) >= new System.Version(1, 0, 0), $"squalify --version prints {output.Trim()}, below 1.0.0.");
+    }
+
+    [Fact]
     public async Task Cli_Profile_MissingPath_ExitsOne()
     {
         var (code, output, error) = await RunAsync("profile");

@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/squalor-xyz/squalify</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
-    <Version>0.3.0</Version>
+    <Version>1.0.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Deterministic>true</Deterministic>
     <!-- Symbol packages (snupkg) for every packable project. Only projects that set IsPackable pack at all. -->

@@ -365,6 +365,46 @@ public class SchemaValueTests
         Assert.False(IdMatches("https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/other.schema.json", "1.0"));
     }
 
+    [Fact]
+    public void Schema_Id_NamesTheTagThatFirstWroteTheSchema()
+    {
+        // sq-53: the $id is edited only in a release that writes a new schemaVersion, to that release's tag. So when <Version>
+        // is x.y.0 and x.y is the schemaVersion, the tag is exactly v<Version>; a patch release, or a minor that leaves the
+        // schema as it is, keeps the earlier tag (Schema_Id_IsATagPinnedRawUrlOfTheSchemaVersion ties its major.minor to the const).
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+        var id = schema.RootElement.GetProperty("$id").GetString()!;
+        var schemaVersion = schema.RootElement.GetProperty("properties").GetProperty("schemaVersion").GetProperty("const").GetString()!;
+        Assert.True(IdTagIsRight(id, ToolInfo.Version, schemaVersion), $"$id {id} does not name the tag that first wrote schema {schemaVersion} (squalify {ToolInfo.Version}).");
+
+        // The rule itself.
+        const string V100 = "https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json";
+        const string V110 = "https://raw.githubusercontent.com/squalor-xyz/squalify/v1.1.0/schema/descriptor-v1.schema.json";
+        Assert.True(IdTagIsRight(V100, "1.0.0", "1.0"));
+        Assert.True(IdTagIsRight(V110, "1.1.0", "1.1"));
+        Assert.True(IdTagIsRight(V100, "1.0.1", "1.0"), "a patch release keeps the tag of the release that first wrote the schema");
+        Assert.True(IdTagIsRight(V100, "1.1.0", "1.0"), "a minor that leaves the schema as it is keeps the earlier tag");
+        Assert.True(IdTagIsRight(V100, "1.1.4", "1.0"));
+        Assert.True(IdTagIsRight(V100, "0.3.0", "1.0"), "before the release that writes the schema nothing is tied to the version");
+        Assert.False(IdTagIsRight(V100, "1.1.0", "1.1"), "a 1.1.0 that writes schema 1.1 names v1.1.0");
+        Assert.False(IdTagIsRight(V110, "1.0.0", "1.0"), "1.0.0 names v1.0.0, not a later tag");
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.1/schema/descriptor-v1.schema.json", "1.0.0", "1.0"), "a tag with another patch is not v<Version>");
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0/schema/descriptor-v1.schema.json", "1.0.0", "1.0"), "the tag is v<Version> exactly");
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/main/schema/descriptor-v1.schema.json", "1.0.0", "1.0"));
+    }
+
+    private static bool IdTagIsRight(string id, string version, string schemaVersion)
+    {
+        const string Prefix = "https://raw.githubusercontent.com/squalor-xyz/squalify/";
+        const string Suffix = "/schema/descriptor-v1.schema.json";
+        var core = version.Split('-', '+')[0].Split('.');
+        if (core.Length != 3 || core[2] != "0" || core[0] + "." + core[1] != schemaVersion)
+        {
+            return true;
+        }
+
+        return id == Prefix + "v" + version + Suffix;
+    }
+
     private static bool IdMatches(string id, string schemaVersion)
     {
         const string Prefix = "https://raw.githubusercontent.com/squalor-xyz/squalify/";

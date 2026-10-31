@@ -160,7 +160,7 @@ public sealed class DocsTests
             "`schemaVersion` is `major.minor`, in lock-step with the squalify minor: it is the major.minor of the squalify release that first writes the schema it describes",
             "The first schema-changing commit after a release bumps it, and later ones before the next release share the bump",
             "Adding a key, written always or only in some cases, is a minor change",
-            "are major changes, except the widenings listed below",
+            "are major changes, except the widenings listed below and the rules that follow",
             "A profiler added in a minor may claim files an earlier minor described as text, binary or delimited; their family, dialect, sections and hashes change (minor); `fingerprint.version` bumps only when a projection of an existing family changes",
             "The model types of planned members (`TouchstoneDialect`, `KeyValueDialect`, `StdfDialect`, `KeyValueSection`, `BlockStats`, `StdfSection`, `StdfRecordCount`, `StdfTest`, `StdfHints`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks` and `BinarySection.Segments`) are provisional until their profiler ships and may change in a minor",
             "New options are added to `ProfileOptions` as init members, and the parameter list of `ProfileOptions.Create` never changes after 1.0",
@@ -311,7 +311,8 @@ public sealed class DocsTests
 
         var how = ReadDoc(root, "docs/how-it-works.md");
         Require(problems, "how-it-works.md", Collapse(how), "The descriptor schema v1 is frozen");
-        Require(problems, "how-it-works.md", Collapse(how), "This page describes main after v0.3.0");
+        var packageVersion = Version.Parse(PackageVersion(root).Split('-', '+')[0]);
+        Require(problems, "how-it-works.md", Collapse(how), $"This page describes squalify {packageVersion.Major}.{packageVersion.Minor}.x");
         Require(problems, "how-it-works.md", Collapse(how), "its enum values against the code and lists in the tests");
         if (Collapse(how).Contains("describes the code of v0.3.0", StringComparison.Ordinal))
         {
@@ -337,6 +338,9 @@ public sealed class DocsTests
         Require(problems, "release.md", release, "and, in a minor release that changed the schema, the `schemaVersion` value");
         Require(problems, "release.md", release, "Edit the `$id` of `schema/descriptor-v1.schema.json` only in a release that writes a new `schemaVersion`");
         Require(problems, "release.md", release, "a release that leaves the schema as it is keeps the `$id` of the release that first wrote it");
+        Require(problems, "release.md", release, "re-record them (`SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"`)");
+        Require(problems, "release.md", release, "In a minor or major release also set the `Status (vX.Y.x)` banner of `docs/how-it-works.md` to the new series");
+        Require(problems, "release.md", release, "runs the tests (everything except `Category=Corpus`, `Category=Package` and `Category=Large`, then the Package tests as their own step)");
         if (Collapse(userGuide).Contains("adding optional keys or enum values bumps", StringComparison.Ordinal))
         {
             problems.Add("user-guide.md still says 'adding optional keys or enum values bumps'");
@@ -346,7 +350,7 @@ public sealed class DocsTests
             problems.Add("release.md still says 'for a new minor schema version'");
         }
 
-        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it, and later ones before the next release share the bump");
+        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const), and later ones before the next release share the bump");
 
         foreach (var file in new[] { "README.md", "docs/getting-started.md", "docs/user-guide.md", "docs/design.md", "docs/how-it-works.md" })
         {
@@ -358,6 +362,83 @@ public sealed class DocsTests
         }
 
         Assert.True(problems.Count == 0, "The freeze is not stated:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
+    /// Release 1.0.0 (sq-53): the docs speak of the freeze and of the version in the present tense. None of them says that the freeze
+    /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", that the project is "early
+    /// (0.3.x)", or calls a change "unreleased"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.
+    /// </summary>
+    [Fact]
+    public void Docs_SpeakOfTheFreezeAndTheVersionInThePresentTense()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+
+        var descriptor = Collapse(ReadDoc(root, "docs/descriptor.md"));
+        Require(problems, "descriptor.md", descriptor, "The schema is frozen from squalify 1.0.0; the 0.x releases also wrote `schemaVersion` `1.0` but changed the descriptor without a bump, so tell them apart by `tool.version`.");
+        Require(problems, "descriptor.md", descriptor, "Since 0.3.0 only `layoutOnly`, `encoding.invalidBytesTolerated`, `issues[].regions` and the `firstLines` of `invalidUtf8` and `invalidUnicode` are new; `limits.sketches` and `limits.nullSpellings` were written by 0.3.0 already.");
+        Forbid(problems, "descriptor.md", descriptor, "takes effect with squalify 1.0.0", "may still change the descriptor", "the first release that writes it");
+
+        var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
+        Require(problems, "user-guide.md", guide, "Descriptor schema v1 is frozen (`schemaVersion` `1.0`) from 1.0.0. In 1.x, adding a key, written always or only in some cases, or an enum value is a minor change");
+        Require(problems, "user-guide.md", guide, "**A descriptor changed after an upgrade.** Expected across squalify versions: the [versioning policy](descriptor.md#versioning-policy) lists what may change in 1.x (new optional keys and enum values, refined sketched values, other kind labels), and the 0.x releases changed the descriptor without a version bump.");
+        Forbid(problems, "user-guide.md", guide, "the freeze takes effect with 1.0.0", "before 1.0 a minor version may", "(library, unreleased)");
+
+        var readme = Collapse(ReadDoc(root, "README.md"));
+        Require(problems, "README.md", readme, "> **Status: stable (1.x).**");
+        Require(problems, "README.md", readme, "the library API and the descriptor schema v1 are frozen");
+        Forbid(problems, "README.md", readme, "early (0.3.x)", "takes effect with 1.0.0", "before 1.0 a minor version may");
+
+        var gettingStarted = Collapse(ReadDoc(root, "docs/getting-started.md"));
+        Require(problems, "getting-started.md", gettingStarted, "descriptor schema v1 is frozen (the [versioning policy](descriptor.md#versioning-policy) says what may change).");
+        Forbid(problems, "getting-started.md", gettingStarted, "takes effect with 1.0.0");
+
+        var how = Collapse(ReadDoc(root, "docs/how-it-works.md"));
+        var version = Version.Parse(PackageVersion(root).Split('-', '+')[0]);
+        var series = $"v{version.Major}.{version.Minor}.x";
+        Require(problems, "how-it-works.md", how, $"> **Status ({series}).**");
+        Forbid(problems, "how-it-works.md", how, "(sq-46", "(sq-47", "Status (v0.", "takes effect with 1.0.0", "main after v0.3.0");
+
+        var banner = how[..how.IndexOf(" When an architectural review", StringComparison.Ordinal)];
+        if (Regex.Matches(banner, "scaled by the field count", RegexOptions.CultureInvariant).Count != 1)
+        {
+            problems.Add("how-it-works.md: the banner must say once that the sketch precision is scaled by the field count");
+        }
+
+        var design = Collapse(ReadDoc(root, "docs/design.md"));
+        Forbid(problems, "design.md", design, "early (0.3.x)", "takes effect with 1.0.0", "before 1.0 a minor version may");
+
+        Assert.True(problems.Count == 0, "The docs do not speak of the released version in the present tense:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
+    /// The owner decision for 1.0.0: a later option is a new optional <c>init</c> member of <c>ProfileOptions</c>, and
+    /// <c>ProfileOptions.Create</c> keeps its five parameters and defaults and never changes after 1.0. No doc promises a new
+    /// <c>Create</c> overload or explains the ambiguity that overloads would cause.
+    /// </summary>
+    [Fact]
+    public void Docs_SayThatCreateIsFrozenAndANewOptionIsAnInitMember()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        const string Rule = "a later option is a new optional `init` member of `ProfileOptions`; `Create` keeps its five parameters and defaults and never changes after 1.0";
+        foreach (var file in new[] { "docs/user-guide.md", "docs/design.md" })
+        {
+            var text = Collapse(ReadDoc(root, file));
+            Require(problems, file, text, Rule);
+            Forbid(problems, file, text, "a new `Create` overload", "CS0121", "absorbs the short calls");
+        }
+
+        Assert.True(problems.Count == 0, "The Create rule is not stated:\n" + string.Join("\n", problems));
+    }
+
+    private static void Forbid(List<string> problems, string where, string text, params string[] phrases)
+    {
+        foreach (var phrase in phrases.Where(phrase => text.Contains(phrase, StringComparison.OrdinalIgnoreCase)))
+        {
+            problems.Add($"{where} still says '{phrase}'");
+        }
     }
 
     // "the schema ... draft" or "draft ... schema" within one sentence, and the "until the v1 freeze" wording that went with it.
@@ -515,13 +596,13 @@ public sealed class DocsTests
         // must not say "callers recompile" (that phrase means an old binary fails to link elsewhere in the guide).
         var lines = File.ReadAllLines(Path.Combine(DotNetTool.RepositoryRoot(), "docs", "user-guide.md"));
 
-        var breaking = Assert.Single(lines, static l => l.StartsWith("- **Breaking changes in 1.0.0 (library, unreleased).**", StringComparison.Ordinal));
+        var breaking = Assert.Single(lines, static l => l.StartsWith("- **Breaking changes in 1.0.0 (library).**", StringComparison.Ordinal));
         Assert.Contains("(sq-68)", breaking, StringComparison.Ordinal);
         var sentence = breaking[breaking.IndexOf("(sq-68)", StringComparison.Ordinal)..];
-        Assert.Contains("binary-compatible: a consumer compiled against the `const` still runs, with the `\"1.0\"` it compiled in, and reads the property only once it is recompiled; recompile so that a later value reaches it.", sentence, StringComparison.Ordinal);
+        Assert.Contains("; binary-compatible: a consumer compiled against the `const` still runs, with the `\"1.0\"` it compiled in, and reads the property only once it is recompiled; recompile so that a later value reaches it.", sentence, StringComparison.Ordinal);
         Assert.DoesNotContain("callers recompile", sentence, StringComparison.Ordinal);
 
-        var added = Assert.Single(lines, static l => l.StartsWith("- **API added in 1.0.0 (library, unreleased).**", StringComparison.Ordinal));
+        var added = Assert.Single(lines, static l => l.StartsWith("- **API added in 1.0.0 (library).**", StringComparison.Ordinal));
         Assert.Contains("(sq-68)", added, StringComparison.Ordinal);
         var addedSentence = added[added.IndexOf("(sq-68)", StringComparison.Ordinal)..];
         Assert.Contains("a consumer compiled against the property reads the value at run time", addedSentence, StringComparison.Ordinal);

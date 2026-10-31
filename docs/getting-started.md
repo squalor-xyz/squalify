@@ -22,7 +22,7 @@ squalify --version
 ```
 
 ```text
-0.3.0
+1.0.0
 ```
 
 Your version may be newer. If the shell says `squalify: command not found`, add `~/.dotnet/tools` to your `PATH` and open a new shell. Update later with `dotnet tool update -g squalor.squalify.Cli`.
@@ -150,4 +150,4 @@ byte[] json = DescriptorWriter.ToBytes(descriptor);   // the exact bytes the CLI
 - Recipes for drift checks, CI gates and directories: [Examples](examples.md).
 - Every option, the formats and what each produces, and troubleshooting: [User guide](user-guide.md).
 - What each descriptor member means: [Descriptor schema](descriptor.md).
-- Status today: delimited text is fully profiled; other files get the generic text or binary profile, and descriptor schema v1 is frozen (the [versioning policy](descriptor.md#versioning-policy) says what may change; the freeze takes effect with 1.0.0).
+- Status today: delimited text is fully profiled; other files get the generic text or binary profile, and descriptor schema v1 is frozen (the [versioning policy](descriptor.md#versioning-policy) says what may change).

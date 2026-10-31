@@ -677,3 +677,5 @@
 {"when": "2026-10-31T03:00:27Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Files"}
 {"when": "2026-10-31T03:00:28Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Failing tests"}
 {"when": "2026-10-31T03:00:28Z", "item": "sq-53", "action": "edit", "from": "", "to": "", "note": "Implement"}
+{"when": "2026-10-31T03:00:52Z", "item": "sq-53", "action": "status", "from": "open", "to": "started", "note": "", "by": "Jon R"}
+{"when": "2026-10-31T03:24:54Z", "item": "sq-53", "action": "note", "from": "", "to": "", "note": "Review decisions (2026-10-31), applied in fix round 1: the a", "by": "Jon R"}

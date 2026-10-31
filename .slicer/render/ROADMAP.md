@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-70 items · — 20 · done 45 · parked 1 · later 1 · retired 3
+70 items · — 19 · done 45 · parked 1 · later 1 · retired 3 · started 1
 
 ## v1.0.0
 
@@ -44,7 +44,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 13 | [sq-49](slices/sq-49.md) | Options shape | M | 2 | core | discovered from sq-47 | done |
 | 14 | [sq-51](slices/sq-51.md) | Release docs test | S | 1 | docs | sq-45 R6; wave 2026-10-30 | done |
 | 15 | [sq-52](slices/sq-52.md) | Wide diagram legibility | S | 1 | docs | sq-46 R2; wave 2026-10-30 | done |
-| 16 | [sq-53](slices/sq-53.md) | Release 1.0.0 | M | 2 | docs, core | wave 2026-10-30 | — |
+| 16 | [sq-53](slices/sq-53.md) | Release 1.0.0 | M | 2 | docs, core | wave 2026-10-30 | started |
 | 17 | [sq-54](slices/sq-54.md) | Descriptor docs freeze | M | 2 | docs | sq-12 split, wave 2026-10-30 | done |
 | 18 | [sq-60](slices/sq-60.md) | PDF diagram text floor | M | 2 | docs | sq-52 review (page 14 diagram at 3.51 pt) · Owner (2026-10-30), verbatim: "let's just drop all the render to pdfs-- too much. markdowns with diagrams are fine, and i can export if needed". Superseded by sq-61 (Drop doc renders). Nothing from this slice landed; its worktree was discarded. · discovered from sq-52 | retired |
 | 19 | [sq-61](slices/sq-61.md) | Drop doc renders | S | 1 | docs | sq-60 review; owner decision 2026-10-30 · discovered from sq-60 | done |

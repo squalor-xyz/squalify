@@ -50,7 +50,7 @@ Run the first three before you send a change; CI runs them on all three operatin
 - No ML, no LLM calls, no network access.
 - Literal data values appear in a descriptor only under `--include-values` or `--include-values-for` (see `ValuesPolicy` and [the values tier](docs/design.md#values-tier)).
 - Prefer the BCL and in-repo code. Ask the owner before adding any package. Approved dependencies: System.CommandLine 2.0.11 (CLI), and in the test projects only Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3 and xunit.runner.visualstudio 3.1.5.
-- A descriptor schema change updates `docs/descriptor.md` and bumps `schemaVersion` according to the policy there, in the same commit: the first schema-changing commit after a release bumps it, and later ones before the next release share the bump.
+- A descriptor schema change updates `docs/descriptor.md` and bumps `schemaVersion` according to the policy there, in the same commit: the first schema-changing commit after a release bumps it and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const), and later ones before the next release share the bump.
 - README and `docs/` change in the same commit as the behavior they describe.
 
 ## Docs
