@@ -82,6 +82,8 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
   - **Test-first docs:** policy sentences pinned by docs tests with mutation checks caught three contradictions before review.
   - **Folding nits into the next slice's spec** instead of reopening a passed gate kept the rounds short.
 - Changes: the rows added to "Changes adopted" above.
+- Release (2026-10-31, on the owner's explicit go): tag `v1.0.0` on `1a9e253` (origin/main, CI green); the Release run passed and nuget.org accepted all four packages. Checks after the push: both packages listed on nuget.org, `dotnet tool install squalor.squalify.cli --version 1.0.0` into a scratch directory, `squalify --version` prints 1.0.0, a profile reports `schemaVersion` "1.0" and `tool.version` "1.0.0", the tag-pinned schema URL is byte-identical to `schema/descriptor-v1.schema.json`, the GitHub release is not a pre-release and has the four assets, and the generated notes were replaced with the reviewed notes (`gh release edit --notes-file`). The prism consumer check was not reported back to the orchestrator before the tag; the owner gave the go without it.
+  - **nuget.org lag:** the flat container listed 1.0.0 about 9 minutes after the push, and `dotnet tool install` failed with "not found" for a few more minutes after that. A tool-install check right after the Release run needs a retry loop, not a failure.
 
 ### v0.1.1 to v0.2.0 wave: sq-33, sq-34, sq-11, sq-13, sq-22, sq-24, sq-35, sq-32, sq-37, sq-36 (2026-10-27 to 2026-10-28)
 
