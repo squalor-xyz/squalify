@@ -40,6 +40,10 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 | 2026-10-27 | Gates and implementers also run the suite with `GITHUB_ACTIONS=true` | sq-29 |
 | 2026-10-28 | Briefs give the test filter `Category!=Corpus&Category!=Large`, `find -type f` for samples, and ask for every test project's summary line | v0.2.0 wave |
 | 2026-10-28 | Before a release tag, the consumer's open slices are checked against the release | v0.2.0 wave |
+| 2026-10-31 | Before every `git merge --ff-only` the orchestrator runs `git status` on main: spec notes and filings are committed first, and `slicer land` output is read, not piped to `head` | v1.0.0 wave (sq-54) |
+| 2026-10-31 | A slice brief says "no new tool or package dependency, including a build or render prerequisite: stop and ask"; an implementer that adds one is a deviation | v1.0.0 wave (sq-60) |
+| 2026-10-31 | A compatibility claim in a guide or release note (source- or binary-breaking) is checked by running a real consumer against the old and new binaries, not by reasoning | v1.0.0 wave (sq-68) |
+| 2026-10-31 | Review nits that touch a later slice's files are filed as a note on that slice instead of reopening a passed gate | v1.0.0 wave (sq-54, sq-68) |
 
 ## Proposed upstream (slicer)
 
@@ -52,6 +56,32 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 - A Check item that needs another slice to land first (sq-18's corpus run after sq-04) has no place in the contract. The finish step was deferred until after the merge.
 
 ## Entries
+
+### v1.0.0 wave: sq-51, sq-49, sq-52, sq-12, sq-61, sq-54, sq-68, sq-53 (2026-10-30 to 2026-10-31)
+
+- Lineup: spec check sonnet/medium (one batch of five slices); implementers sonnet/high (sq-49, sq-52, sq-12, sq-54, sq-53) and haiku/xhigh (sq-51, sq-61, sq-68); reviewer and gate opus/medium; architect opus/high on M slices; the S slices ran a lite relay with the reviewer also acting as the gate. The owner asked for a Codex implementer by default: both Codex runs (sq-49, sq-51) stopped at once with "Your workspace is out of credits", recorded as failed steps, and the same round was rerun on the next matching matrix row (Claude), as the contract says for a vendor limit. Up to two slices ran at a time, each in its own worktree; they landed one at a time.
+- Metrics:
+  - **Gate verdicts:** sq-51 PASS after a fix round; sq-49 PASS after a docs fix round; sq-52 PASS; sq-61 FAIL, PASS (a stale line in `AGENTS.md`); sq-12 PASS after one fix round; sq-54 FAIL, PASS (two policy sentences that contradicted the rest); sq-68 FAIL, PASS (a wrong binary-compatibility sentence); sq-53 PASS, then a drift fix and a re-gate. No FAIL was a code defect: every one was a documentation claim or a test gap.
+  - **Owner decisions:** asked in a pre-pass and then in several sittings, mostly while another role ran. The owner reversed the direction once: the PDF diagram-size slice (sq-60) was retired after its implementer made poppler a render prerequisite, and the owner dropped all committed doc renders (sq-61).
+  - **Large benchmarks at the release:** 3 of 3 pass; memory growth within the ceilings (padded wide 1 GiB: 149.0 MB against 159.1 MB, margin 10.1 MB, 2.5 MB less than on 2026-10-29). The full-profile timings were about 1.5 times slower than the 2026-10-29 note; an alternating A/B with the 256 MiB probe showed the old and new commits equally fast on that day's machine, so the difference was the machine (note on sq-53).
+  - **Slices filed from friction:** sq-51 to sq-72. For v1.0.0: sq-51, sq-52, sq-53, sq-54, sq-61 and sq-68 (sq-60 was filed and retired); the rest are v1.x.
+- Frictions:
+  - **Codex out of credits** (above).
+  - **My sq-12 spec refresh described files that never existed on main** (it copied an architect's obstacle list about a discarded branch). The spec check caught it by grepping the repository.
+  - **sq-60 cost a whole cycle** (implementer, reviewer, architect) before the owner dropped the renders. The slice said "no new dependency without the owner" and the implementer still made poppler a hard prerequisite; the architect, not the implementer, raised it.
+  - **A landing mistake:** main had an uncommitted `.slicer` note, `git merge --ff-only` refused, the output was piped through `head`, and a "sq-54 done" commit went to main before sq-54 was merged. It was fixed by merging properly (the mislabelled commit stays in history, pushed).
+  - **A wrong claim from the orchestrator's brief:** "binary: callers recompile" for a const-to-property change (sq-68). The reviewer ran a real consumer and showed an old binary keeps running with the inlined value.
+  - **Policy text contradicted itself** twice (sq-54): `schemaVersion` "at each minor" against "a change that leaves the schema as it is bumps nothing", and a "probabilistic bound is major" rule that would have made the existing distinct sketch a major change. Both were caught by reading the whole section as a contract.
+  - **A gate and an architect disagreed** (sq-53): the gate passed while the architect found one drifted README line. The project rule (no pass while drift remains) decided it.
+  - **Roles stopping with their own background work** (reviewers running the suite): the harness reported them as waiting, and their reports arrived later; no resume was needed.
+  - **CI queue times** of 7 to 20 minutes on some pushes (3.5 minutes on others); all runs were green.
+  - **A merge conflict in `CONTRIBUTING.md`** (sq-12 and sq-61) was resolved by the orchestrator although the contract sends a left-over conflict to the owner; the resolution was mechanical and was disclosed.
+- Wins:
+  - **Reviewers that measured:** 390 descriptors from 54 inputs validated against the new schema; 587 schema mutants swept; a real consumer built against the old and new library; a reflection diff of the public API between 0.3.0 and the branch compared with the release notes line by line; 44 CLI runs on both versions compared byte for byte.
+  - **The spec check** (sonnet/medium, two minutes) found the sq-12 error, three real owner questions for sq-49, and the file overlaps that allowed the parallel runs.
+  - **Test-first docs:** policy sentences pinned by docs tests with mutation checks caught three contradictions before review.
+  - **Folding nits into the next slice's spec** instead of reopening a passed gate kept the rounds short.
+- Changes: the rows added to "Changes adopted" above.
 
 ### v0.1.1 to v0.2.0 wave: sq-33, sq-34, sq-11, sq-13, sq-22, sq-24, sq-35, sq-32, sq-37, sq-36 (2026-10-27 to 2026-10-28)
 
