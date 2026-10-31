@@ -943,7 +943,9 @@ public sealed class ConsumerSubsetTests
         Assert.DoesNotMatch(@"\bD\d+\b", section);
         Assert.Contains("not `schemaVersion`", section, StringComparison.Ordinal);
         Assert.DoesNotContain("sq-27", section, StringComparison.Ordinal);
-        Assert.Contains("pending sq-12", section, StringComparison.Ordinal);
+        // The enum rule is in the versioning policy (sq-12 landed it; sq-54 dropped the "pending" wording).
+        Assert.DoesNotContain("sq-12", section, StringComparison.Ordinal);
+        Assert.Contains("[versioning policy](#versioning-policy)", section, StringComparison.Ordinal);
     }
 
     [Fact]

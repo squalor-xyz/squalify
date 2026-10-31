@@ -6,7 +6,7 @@ squalify profiles one data file and writes a **descriptor**: a versioned JSON do
 
 Other tools read the descriptor to decide what to do with the file: recognize a known file type, pick an import route, or draft a loader config. squalify only describes the file; it never converts or matches it.
 
-> **Status: early (0.3.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled; statistics are exact up to fixed caps, then deterministic sketches marked approximate. Every other file gets the generic text or binary profile. Touchstone, key=value and STDF profilers and the `kind` label are still to come. The descriptor schema is a **draft** until the v1 schema freeze; before 1.0 a minor version may change it.
+> **Status: early (0.3.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled; statistics are exact up to fixed caps, then deterministic sketches marked approximate. Every other file gets the generic text or binary profile. The Touchstone, key=value and STDF profilers and the `kind` rules are planned for 1.x minor releases. The descriptor schema v1 is frozen (`schemaVersion` `1.0`; see the [versioning policy](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md#versioning-policy)); the freeze takes effect with 1.0.0, and before 1.0 a minor version may still change the descriptor.
 
 ## Install
 
@@ -33,7 +33,7 @@ squalify profile sweep-preamble.csv | jq -c '{family: .format.family, rows: .tab
 {"family":"delimited","rows":20,"regions":[["preamble",1,7],["header",8,8],["units",9,9],["data",10,29],["footer",30,31]],"issues":[]}
 ```
 
-`squalify profile data.csv` alone writes the whole descriptor (about 620 lines for this 31-line file) to stdout; `-o descriptor.json` writes it to a file. The exit code is 0 on success and 1 on any error.
+`squalify profile data.csv` alone writes the whole descriptor (about 280 lines for this 31-line file) to stdout; `-o descriptor.json` writes it to a file. The exit code is 0 on success and 1 on any error.
 
 ## What it is for
 
@@ -53,7 +53,7 @@ squalify profile sweep-preamble.csv | jq -c '{family: .format.family, rows: .tab
 | [User guide](https://github.com/squalor-xyz/squalify/blob/main/docs/user-guide.md) | CLI and library reference, formats, values policy, guarantees, troubleshooting |
 | [Examples](https://github.com/squalor-xyz/squalify/blob/main/docs/examples.md) | Task recipes with real output |
 | [Contributing](https://github.com/squalor-xyz/squalify/blob/main/CONTRIBUTING.md) | Build, test, format, docs, releases |
-| [Descriptor schema](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md) | Every member of the descriptor (schema v1, draft) |
+| [Descriptor schema](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md) | Every member of the descriptor (schema v1, frozen) |
 | [Design](https://github.com/squalor-xyz/squalify/blob/main/docs/design.md) | Architecture, pipeline, determinism rules, memory bounds |
 | [How it works](https://github.com/squalor-xyz/squalify/blob/main/docs/how-it-works.md) | Diagrams of a profile run |
 | [Releasing](https://github.com/squalor-xyz/squalify/blob/main/docs/release.md) | How a release is cut |

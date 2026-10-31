@@ -11,10 +11,10 @@ squalify reads one data file and writes a descriptor. Consumers use the descript
 | Decision | Choice |
 |---|---|
 | Scope | One tool. It outputs a descriptor only. No config proposal, no conversion, no matching against a user library of known types. |
-| Kind label | A generic `kind` label from a fixed, built-in rule set, with evidence (sq-15). |
+| Kind label | A generic `kind` label from a fixed, built-in rule set, with evidence (sq-15). Schema 1.0 writes only the interim labels `binary`, `empty` and `text`; the rule table is [planned for a 1.x minor release](descriptor.md#planned-for-a-1x-minor-release). |
 | Stack | .NET 10, standalone. No reference to DataBall. |
 | Names | Namespace `squalor.squalify`, CLI `squalify`, slicer ids `sq-NN`. |
-| v1 formats | Delimited text (with preambles, units rows and repeated blocks), Touchstone, whole-file key=value/INI documents, binary (STDF V4 walk plus a generic byte profile). Parquet is not in v1 (owner decision, 2026-10-27): a Parquet file is profiled as binary, with the `parquet` magic hint. It can be added later if a consumer needs it. |
+| v1 formats | Delimited text (with preambles, units rows and repeated blocks), plus the generic text and binary profiles with a byte profile. Touchstone, whole-file key=value/INI documents and the STDF V4 walk are [planned for a 1.x minor release](descriptor.md#planned-for-a-1x-minor-release) (owner decision, 2026-10-28): the schema describes what 1.0.0 produces. Parquet is not in v1 (owner decision, 2026-10-27): a Parquet file is profiled as binary, with the `parquet` magic hint. It can be added later if a consumer needs it. |
 | Compressed and archive files | Described as binary with a named magic. No decompression in v1. |
 | Read depth | A full streaming scan with bounded memory. |
 | Values | Opt-in through `--include-values`. See [Values tier](#values-tier). |
@@ -431,6 +431,8 @@ Hints are neutral facts that a consumer can turn into match rules. A layout-only
 ## Kind label
 
 A fixed, ordered rule table runs over the finished descriptor only, never the file, and the first match wins. Every rule's matched or missed reason goes into the evidence.
+
+Schema 1.0 writes only the interim labels `binary` (`K11`), `empty` (`K12`) and `text` (`K09`); the rule table below is [planned for a 1.x minor release](descriptor.md#planned-for-a-1x-minor-release). Label values may change for the same input in a minor release, and rule ids are permanent (see the [versioning policy](descriptor.md#versioning-policy)).
 
 The labels are:
 

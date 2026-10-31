@@ -5006,7 +5006,7 @@
       "id": "sq-54",
       "title": "Descriptor docs freeze pass",
       "short_title": "Descriptor docs freeze",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [
         "sq-12",
@@ -5040,9 +5040,26 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "67613e6a-aaa2-4e0c-9250-bcb67accc183",
+          "kind": "",
+          "text": "**2026-10-31** — Owner answers (2026-10-30), verbatim: Dialect rows \"Drop the three rows (Recommended)\"; Schema asset \"No, the tag-pinned raw URL is enough (Recommended)\"; schemaVersion \"Lock-step with the squalify minor (Recommended)\"; Reclassified files \"Yes, add a rule (Recommended)\"; Sketch rule \"Widen, keep the bounds (Recommended)\"; Planned types \"State they are provisional (Recommended)\"; Create params \"Init members only; Create frozen at 1.0 (Recommended)\"; SchemaVersion const \"Make it static readonly now; file a 1.0.0 slice (Recommended)\" (filed as sq-68, lands after this slice); Key rule \"Adding a key, written always or only in some cases, is minor; drop optional-to-required as major (Recommended)\". Review: fix round 1.",
+          "created_at": "2026-10-31T02:11:08Z",
+          "attempt": 1,
+          "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
-      "claim": null,
+      "claim": {
+        "owner": "Jon R",
+        "at": "2026-10-30T20:38:56Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -5061,7 +5078,7 @@
         "importance": 3,
         "urgency": 3,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

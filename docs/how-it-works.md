@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Status (v0.3.x).** This page describes the code of v0.3.0, the release made from main before the schema freeze; over v0.2.0 it publishes the null-spelling bounds (`limits.nullSpellings`) and counts the distinct dropped spellings, scales the sketch precision by the field count and publishes it (`limits.sketches`), and adds the opt-in first-record ceiling and `Profiler.ProfilePrefix`. The schema is still a draft. Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, sketch precision scaled by the field count to nominally fit a memory allowance, and memory accounting with a tested ceiling. Also built: prefix profiling (the byte limit with its cut at a whole line, the opt-in first-record ceiling, and `Profiler.ProfilePrefix`, which returns the descriptor with the exact prefix bytes from one read). Still to come: the Touchstone, key=value and STDF profilers and the kind label; their source files are marked *(planned)*. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. After v0.3.0 (sq-46, unreleased) the issues `invalidUtf8` and `invalidUnicode` also carry the line and the layout region of each invalid byte, and `encoding.invalidBytesTolerated` marks a charset kept despite stray bytes. After that (sq-47, unreleased) the option `--layout-only` (`ProfileOptions.LayoutOnly`) computes only the encoding, dialect, layout, header names and row classes: it builds no field accumulators and no hints, and the descriptor says so with `layoutOnly: true` and null sections (section 13). When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Status (v0.3.x).** This page describes main after v0.3.0: the code of v0.3.0, the release made from main before the schema freeze, plus the unreleased changes named below; over v0.2.0 it publishes the null-spelling bounds (`limits.nullSpellings`) and counts the distinct dropped spellings, scales the sketch precision by the field count and publishes it (`limits.sketches`), and adds the opt-in first-record ceiling and `Profiler.ProfilePrefix`. The descriptor schema v1 is frozen: `schemaVersion` is `1.0`, `schema/descriptor-v1.schema.json` describes exactly what the profiler writes, and `docs/descriptor.md` is normative and holds the versioning policy and the changelog; the freeze takes effect with 1.0.0. Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, sketch precision scaled by the field count to nominally fit a memory allowance, and memory accounting with a tested ceiling. Also built: prefix profiling (the byte limit with its cut at a whole line, the opt-in first-record ceiling, and `Profiler.ProfilePrefix`, which returns the descriptor with the exact prefix bytes from one read). Still to come, as 1.x minor releases: the Touchstone, key=value and STDF profilers and the kind rule table (until then the kind is one of three interim labels, `binary`, `empty` or `text`); their source files are marked *(planned)*, and `docs/descriptor.md` lists the planned members and values. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. After v0.3.0 (sq-46, unreleased) the issues `invalidUtf8` and `invalidUnicode` also carry the line and the layout region of each invalid byte, and `encoding.invalidBytesTolerated` marks a charset kept despite stray bytes. After that (sq-47, unreleased) the option `--layout-only` (`ProfileOptions.LayoutOnly`) computes only the encoding, dialect, layout, header names and row classes: it builds no field accumulators and no hints, and the descriptor says so with `layoutOnly: true` and null sections (section 13). When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -14,7 +14,7 @@ The `squalify` command is a thin shell around the library. Each kind of file has
 flowchart LR
     CLI["squalify command<br/><small>squalify.Cli</small>"] --> Lib
     Host["Your app"] --> Lib
-    Lib["Profiler library<br/><small>Profiler.Profile, Profiler.ProfilePrefix</small>"] --> Profilers["Format profilers<br/><small>delimited, touchstone,<br/>keyValue, stdf, text, binary</small>"]
+    Lib["Profiler library<br/><small>Profiler.Profile, Profiler.ProfilePrefix</small>"] --> Profilers["Format profilers<br/><small>delimited, text, binary;<br/>touchstone, keyValue, stdf (planned)</small>"]
     Lib --> Out["Descriptor JSON"]
     Out --> Consumers["DataBall and other tools"]
 ```
@@ -31,7 +31,7 @@ flowchart TD
     A["1. Byte pass: hash, encoding,<br/>text or binary, magic bytes<br/><small>ByteSniffer</small>"] --> B["2. Choose a format<br/><small>FormatRegistry</small>"]
     B --> C["3. Read the structure:<br/>regions, header, unit conventions, records<br/><small>IFormatProfiler, HeaderConventionParser</small>"]
     C --> D["4. Profile every field:<br/>types and statistics, and group the rows<br/><small>FieldAccumulator, RowClassAccumulator</small>"]
-    D --> E["5. Summarize: fingerprints, hints,<br/>kind label<br/><small>Projection, HintBuilder, KindRules</small>"]
+    D --> E["5. Summarize: fingerprints, hints,<br/>interim kind label<br/><small>Projection, HintBuilder, Profiler.InterimKind</small>"]
     E --> F["6. Check the values policy,<br/>then write canonical JSON<br/><small>ValuesPolicy.Verify, DescriptorWriter</small>"]
 ```
 
@@ -59,9 +59,9 @@ Every profiler looks at the file and gives a score from 0 to 1. The highest scor
 
 ```mermaid
 flowchart LR
-    S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF: FAR record at start → 1.0"]
-    S --> P3["Touchstone: extension + option line → 0.9"]
-    S --> P4["Key=value document → up to 0.6"]
+    S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF (planned): FAR record at start → 1.0"]
+    S --> P3["Touchstone (planned): extension + option line → 0.9"]
+    S --> P4["Key=value document (planned) → up to 0.6"]
     S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score (0.5 for a header-only or one-column table)<br/><small>DelimitedProfiler</small>"]
     S --> P6["Plain text / other binary (a Parquet file included) → 0.1–0.2"]
     P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
@@ -307,7 +307,7 @@ A column with one value for the whole file, such as a serial number, is a specia
 flowchart LR
     subgraph always["Always included"]
         direction TB
-        A1["Header names, preamble keys,<br/>STDF test names"]
+        A1["Header names, preamble keys,<br/>STDF test names (planned)"]
         A2["Types, counts, shapes"]
         A3["Number and date ranges,<br/>means, quantiles<br/><small>not for one-value columns</small>"]
         A4["Units parsed from header names"]
@@ -315,7 +315,7 @@ flowchart LR
     end
     subgraph optin["Only with --include-values<br/>(or --include-values-for, for the names given)"]
         direction TB
-        O1["Preamble and key=value values"]
+        O1["Values of preamble key=value lines"]
         O2["Ten most common values and their counts,<br/>text min/max<br/><small>TopK</small>"]
         O3["Units-row and annotation cells,<br/>comment text"]
         O4["Statistics of one-value columns"]
@@ -435,7 +435,7 @@ flowchart LR
 
 *Source: `Units/HeaderConventionParser.cs`, `Delimited/DelimitedPass.cs`, `Hints/HintBuilder.cs`.*
 
-A second rule set, the **kind label**, is still planned. It will read the finished descriptor (never the file) and suggest a generic label such as `labSweepTable`, `stdfTestLog` or `touchstoneNetwork`. The first rule in a fixed, ordered list that matches wins, and every rule's result is kept as evidence.
+A second rule set, the **kind label**, is still planned: today `Profiler` writes only an interim label from the byte-pass class, `empty` (`K12`), `binary` (`K11`) or `text` (`K09`). The rule set will read the finished descriptor (never the file) and suggest a generic label such as `labSweepTable`, `stdfTestLog` or `touchstoneNetwork`. The first rule in a fixed, ordered list that matches wins, and every rule's result is kept as evidence.
 
 ```mermaid
 flowchart LR
@@ -497,7 +497,7 @@ flowchart TD
     B -. "tests compare with" .-> G["Golden file<br/><small>Golden</small>"]
 ```
 
-*Source: `Descriptor/`, `Json/DescriptorWriter.cs`, `Json/CompactLayout.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.* The key order is part of the schema: see [descriptor.md](descriptor.md#canonical-form).
+*Source: `Descriptor/`, `Json/DescriptorWriter.cs`, `Json/CompactLayout.cs`, `Json/CanonicalNumber.cs`; `../../tests/squalify.Tests/Golden.cs`.* The key order is part of the schema: see [descriptor.md](descriptor.md#canonical-form). The schema file `schema/descriptor-v1.schema.json` (a closed subset of JSON Schema 2020-12) describes the same shapes; the tests validate every golden against it, check its members against the tables in `descriptor.md`, and check its enum values against the code and lists in the tests, so that the document, the schema and the writer cannot drift apart.
 
 ## 12. Text, binary or empty?
 

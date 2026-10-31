@@ -48,7 +48,7 @@ curl -fsSLO https://raw.githubusercontent.com/squalor-xyz/squalify/main/tests/sq
 squalify profile sweep-preamble.csv -o sweep.json
 ```
 
-`-o` writes the descriptor to a file; without it the descriptor goes to stdout. The file is about 620 lines of JSON. You do not read all of it; the next section says where to look.
+`-o` writes the descriptor to a file; without it the descriptor goes to stdout. The file is about 280 lines of JSON. You do not read all of it; the next section says where to look.
 
 ## 3. Read the descriptor
 
@@ -150,4 +150,4 @@ byte[] json = DescriptorWriter.ToBytes(descriptor);   // the exact bytes the CLI
 - Recipes for drift checks, CI gates and directories: [Examples](examples.md).
 - Every option, the formats and what each produces, and troubleshooting: [User guide](user-guide.md).
 - What each descriptor member means: [Descriptor schema](descriptor.md).
-- Status today: delimited text is fully profiled; other files get the generic text or binary profile, and the schema is a draft until the v1 freeze.
+- Status today: delimited text is fully profiled; other files get the generic text or binary profile, and descriptor schema v1 is frozen (the [versioning policy](descriptor.md#versioning-policy) says what may change; the freeze takes effect with 1.0.0).
