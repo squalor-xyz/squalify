@@ -8,7 +8,7 @@
     <PackageTags>squalify;profiling;descriptor;csv;data-profiling</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>squalify-512.png</PackageIcon>
-    <!-- Package validation: dotnet pack fails when the public API no longer matches the 1.0.0 package on nuget.org (the
+    <!-- Package validation: dotnet pack fails when the public API no longer matches the baseline package on nuget.org (the
          1.x promise). The baseline is a PackageDownload, so restore fetches it and a pack without restore reads it from the
          NuGet cache. Library only; see docs/release.md, "Package validation". -->
     <EnablePackageValidation>true</EnablePackageValidation>

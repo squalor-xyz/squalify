@@ -419,6 +419,31 @@ public sealed class DocsTests
     }
 
     /// <summary>
+    /// Package validation follow-ups (sq-74): only a stable release moves <c>PackageValidationBaselineVersion</c> (step 5 of
+    /// release.md says so itself, since a prerelease value fails the Package test that parses it as a Version), and the docs name the
+    /// test that checks every suppression for an allowed kind and a user-guide entry.
+    /// </summary>
+    [Fact]
+    public void Docs_SayOnlyStableReleasesMoveTheBaseline_AndNameTheSuppressionCheck()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        var releaseText = ReadDoc(root, "docs/release.md");
+        var step5 = Collapse(Regex.Match(releaseText, @"^5\. .*$", RegexOptions.Multiline).Value);
+        var section = Collapse(Section(releaseText, "## Package validation"));
+        var contributing = Collapse(ReadDoc(root, "CONTRIBUTING.md"));
+
+        Require(problems, "release.md step 5", step5, "Only a stable release moves `PackageValidationBaselineVersion`");
+        Require(problems, "release.md step 5", step5, "a prerelease such as `1.1.0-rc.1` never does");
+        Require(problems, "release.md", section, "Only a stable release is a baseline");
+        Require(problems, "release.md", section, "`Suppressions_AreAllowedKindsWithAUserGuideEntry`");
+        Require(problems, "CONTRIBUTING.md", contributing, "Only a stable release moves the baseline");
+        Require(problems, "CONTRIBUTING.md", contributing, "`Suppressions_AreAllowedKindsWithAUserGuideEntry`");
+
+        Assert.True(problems.Count == 0, "The baseline rule or the suppression check is not documented:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
     /// Release 1.0.0 (sq-53): the docs speak of the freeze and of the version in the present tense. None of them says that the freeze
     /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", or that the project is "early
     /// (0.3.x)"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.

@@ -443,6 +443,22 @@ public class SchemaValueTests
     }
 
     [Fact]
+    public void Id_VersionThatIsNotSemVer_Rejected()
+    {
+        // sq-74 (sq-72 gate L1): the helper reads the version as SemVer 2: no leading zero in a number, no empty prerelease or build.
+        Assert.False(IdTagIsRight(V100, "01.0.0", "1.0"), "a leading zero in the major");
+        Assert.False(IdTagIsRight(V100, "1.00.0", "1.0"), "a leading zero in the minor");
+        Assert.False(IdTagIsRight(V100, "1.0.00", "1.0"), "a leading zero in the patch");
+        Assert.False(IdTagIsRight(V100, "1.0.0-", "1.0"), "an empty prerelease");
+        Assert.False(IdTagIsRight(V100, "1.0.0+", "1.0"), "an empty build");
+        Assert.False(IdTagIsRight(V100, "1.0.0-rc.1+", "1.0"));
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v01.0.0/schema/descriptor-v1.schema.json", "1.0.0", "01.0"), "a leading zero in the schema version");
+        Assert.True(IdTagIsRight(V100, "1.0.0", "1.0"));
+        Assert.True(IdTagIsRight(V100, "1.0.0-rc.1+build.5", "1.0"));
+        Assert.True(IdTagIsRight(V100, "0.3.0", "1.0"), "a zero number is not a leading zero");
+    }
+
+    [Fact]
     public void Id_SchemaVersionAheadOfVersionByMoreThanOneStep_Rejected()
     {
         // sq-72 review R2: ahead of <Version> only by its own major.minor, the next minor of the same major, or (next major).0;
@@ -490,7 +506,12 @@ public class SchemaValueTests
         const string Prefix = "https://raw.githubusercontent.com/squalor-xyz/squalify/";
         const string Suffix = "/schema/descriptor-v1.schema.json";
 
-        // A prerelease or build suffix is not part of the tag: an rc and its final share one $id.
+        // SemVer 2: no leading zero in a number, no empty prerelease or build. A suffix is not part of the tag: an rc and its final share one $id.
+        if (!System.Text.RegularExpressions.Regex.IsMatch(version, @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$"))
+        {
+            return false;
+        }
+
         var core = version.Split('-', '+')[0].Split('.');
         var series = schemaVersion.Split('.');
         if (core.Length != 3 || series.Length != 2 || !core.All(IsNumber) || !series.All(IsNumber))
@@ -513,7 +534,7 @@ public class SchemaValueTests
         return id == Prefix + "v" + schemaVersion + ".0" + Suffix;
     }
 
-    private static bool IsNumber(string part) => int.TryParse(part, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _);
+    private static bool IsNumber(string part) => (part == "0" || !part.StartsWith('0')) && int.TryParse(part, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _);
 
     private static bool IdMatches(string id, string schemaVersion)
     {

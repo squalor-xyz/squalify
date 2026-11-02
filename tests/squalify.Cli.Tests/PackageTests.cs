@@ -10,7 +10,7 @@ namespace squalor.squalify.Cli.Tests;
 /// <summary>
 /// Tests the NuGet package. They run dotnet, so the class carries the Package category and CI runs it as its own step.
 /// Nothing here reaches the network: the consumer restores from the local feed only, and the library has no package
-/// dependencies to fetch. The one download is the 1.0.0 baseline of package validation, which the solution restore
+/// dependencies to fetch. The one download is the baseline of package validation, which the solution restore
 /// (before the tests) puts in the NuGet cache; the removal test restores a copy of the library from that cache.
 /// </summary>
 [Collection(PackageCollection.Name)]
@@ -248,7 +248,7 @@ public sealed class PackageTests(PackageFeed feed)
 
     /// <summary>
     /// A copy of the library project with one public member removed (ToolInfo.Name, which the profiler reads, so the
-    /// copy swaps in the literal) fails dotnet pack with the API compatibility error CP0002: the 1.0.0 baseline has the
+    /// copy swaps in the literal) fails dotnet pack with the API compatibility error CP0002: the baseline has the
     /// member and the package does not. The copy lives in a temporary folder, so the repository is untouched, and it
     /// restores from the NuGet cache that the solution restore filled with the baseline.
     /// </summary>
