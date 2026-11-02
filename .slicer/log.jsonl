@@ -729,3 +729,4 @@
 {"when": "2026-11-02T15:55:36Z", "item": "sq-09", "action": "note", "from": "", "to": "", "note": "From sq-62 (2026-11-02, review R4/R5 and architect A3-A6, A8", "by": "Jon Robbins"}
 {"when": "2026-11-02T16:09:34Z", "item": "sq-72", "action": "status", "from": "started", "to": "done", "note": "The $id must equal v<schemaVersion>.0 for every well-formed version, patches and prereleases included, and a schemaVersion more than one step ahead of Version is rejected; CONTRIBUTING, release.md step 1 and descriptor.md agree and are pinned in DocsTests. 1767 + 70 tests green.", "by": "Jon Robbins"}
 {"when": "2026-11-02T16:11:23Z", "item": "sq-74", "action": "note", "from": "", "to": "", "note": "From sq-72 (2026-11-02, gate L1, later): the $id test helper", "by": "Jon Robbins"}
+{"when": "2026-11-02T16:11:53Z", "item": "sq-74", "action": "promote", "from": "", "to": "", "note": ""}

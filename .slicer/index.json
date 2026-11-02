@@ -5896,7 +5896,7 @@
       "title": "Package validation follow-ups: stable-only bump, baseline-neutral comments, suppression-entry check",
       "short_title": "Package validation follow-ups",
       "status": "open",
-      "has_slice": false,
+      "has_slice": true,
       "depends_on": [],
       "note_records": [
         {
