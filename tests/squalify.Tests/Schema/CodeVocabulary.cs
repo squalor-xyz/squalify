@@ -80,6 +80,46 @@ internal static class CodeVocabulary
     public static IReadOnlyList<string> IlIssueCodes() => IssueScan.Value;
 
     /// <summary>
+    /// The places where an <c>Issue</c> is made without the code coming from the registry, as <c>Type.Method</c> (ordinally sorted). The check
+    /// is positive: every <c>newobj Issue::.ctor</c> and every call of <c>LocatedIssue</c> must have a load of an <c>IssueCodes</c> field
+    /// (<c>ldsfld</c>) since the previous such site in the same method. A literal, a code built from a variable or by concatenation, and a
+    /// field of another class all fail it. Two sites are exempt by name, because they pass a code on and do not choose one:
+    /// the copy constructor that the compiler makes for the record <c>Issue</c> (<c>Issue.&lt;Clone&gt;$</c>, behind a <c>with</c>), and
+    /// <c>Profiler.LocatedIssue</c>, the forwarder whose callers pass the registry field in.
+    /// </summary>
+    /// <param name="exempt">The sites to skip, as <c>Type.Method</c>; the default is the two named above.</param>
+    public static IReadOnlyList<string> IlIssueSitesWithoutARegistryCode(IReadOnlyCollection<string>? exempt = null)
+    {
+        exempt ??= ExemptIssueSites;
+        var found = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var (owner, method, body) in ReadMethodBodies().Where(static b => b.Owner != "IssueCodes"))
+        {
+            var loadedARegistryField = false;
+            foreach (var instruction in body)
+            {
+                if (instruction.Code == OpCodes.Ldsfld.Value && instruction.TargetType == "IssueCodes")
+                {
+                    loadedARegistryField = true;
+                }
+                else if (IsCall(instruction) && BuildsAnIssue(instruction))
+                {
+                    if (!loadedARegistryField && !exempt.Contains(owner + "." + method))
+                    {
+                        found.Add(owner + "." + method);
+                    }
+
+                    loadedARegistryField = false;
+                }
+            }
+        }
+
+        return found.ToArray();
+    }
+
+    /// <summary>The two sites that make an <c>Issue</c> without choosing its code; see <see cref="IlIssueSitesWithoutARegistryCode"/>.</summary>
+    public static readonly IReadOnlyList<string> ExemptIssueSites = ["Issue.<Clone>$", "Profiler.LocatedIssue"];
+
+    /// <summary>
     /// The stage that a literal puts in <c>new Evidence(</c>, as the IL scan reads it: a string literal loaded right before another string
     /// literal (the topic) that no field load precedes, within the instructions before the constructor call. Ordinally sorted. A stage that
     /// comes from the registry is a field load, so it is not found; every stage found is a literal that bypasses the registry.
@@ -97,12 +137,12 @@ internal static class CodeVocabulary
 
     private readonly record struct Instruction(ushort Code, string? Literal, string? TargetType, string? TargetName);
 
-    private static List<(string Owner, Instruction[] Body)> ReadMethodBodies()
+    private static List<(string Owner, string Method, Instruction[] Body)> ReadMethodBodies()
     {
         var opCodes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static)
             .Select(static f => (OpCode)f.GetValue(null)!)
             .ToDictionary(static o => (ushort)o.Value);
-        var bodies = new List<(string, Instruction[])>();
+        var bodies = new List<(string, string, Instruction[])>();
         using var stream = File.OpenRead(typeof(Profiler).Assembly.Location);
         using var pe = new PEReader(stream);
         var metadata = pe.GetMetadataReader();
@@ -147,7 +187,7 @@ internal static class CodeVocabulary
                 };
             }
 
-            bodies.Add((metadata.GetString(metadata.GetTypeDefinition(definition.GetDeclaringType()).Name), instructions.ToArray()));
+            bodies.Add((metadata.GetString(metadata.GetTypeDefinition(definition.GetDeclaringType()).Name), metadata.GetString(definition.Name), instructions.ToArray()));
         }
 
         return bodies;
@@ -177,7 +217,7 @@ internal static class CodeVocabulary
     private static IReadOnlyList<string> ScanIssueCodes()
     {
         var codes = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var (_, body) in ReadMethodBodies().Where(static b => b.Owner != "IssueCodes"))
+        foreach (var (_, _, body) in ReadMethodBodies().Where(static b => b.Owner != "IssueCodes"))
         {
             string? literal = null;
             var sinceLiteral = 0;
@@ -206,7 +246,7 @@ internal static class CodeVocabulary
     private static IReadOnlyList<string> ScanLiteralsBeforeConstructor(string type, string registry)
     {
         var literals = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var (_, body) in ReadMethodBodies().Where(b => b.Owner != registry))
+        foreach (var (_, _, body) in ReadMethodBodies().Where(b => b.Owner != registry))
         {
             for (var i = 0; i < body.Length; i++)
             {
@@ -224,7 +264,7 @@ internal static class CodeVocabulary
     {
         var stages = new SortedSet<string>(StringComparer.Ordinal);
         var literals = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var (_, body) in ReadMethodBodies())
+        foreach (var (_, _, body) in ReadMethodBodies())
         {
             for (var i = 0; i < body.Length; i++)
             {

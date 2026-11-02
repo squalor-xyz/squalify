@@ -285,6 +285,26 @@ public class SchemaTests
     }
 
     [Fact]
+    public void IssueCodes_EveryIssueSiteLoadsARegistryField()
+    {
+        // The positive check: no Issue is made from a literal, a variable, a concatenation or a field of another class, whatever the
+        // negative scans would see. The only exempt sites are the compiler's copy constructor and the forwarder LocatedIssue.
+        Assert.Empty(CodeVocabulary.IlIssueSitesWithoutARegistryCode());
+    }
+
+    [Fact]
+    public void IssueCodes_EveryIssueSiteCheck_NeedsBothExemptions()
+    {
+        // The two exemptions are real: without them the check names both sites, and without only one it names the other.
+        var withoutAny = CodeVocabulary.IlIssueSitesWithoutARegistryCode([]);
+        Assert.Contains("Issue.<Clone>$", withoutAny);
+        Assert.Contains("Profiler.LocatedIssue", withoutAny);
+        Assert.Equal(CodeVocabulary.ExemptIssueSites.Order(StringComparer.Ordinal), CodeVocabulary.ExemptIssueSites);
+        Assert.Contains("Profiler.LocatedIssue", CodeVocabulary.IlIssueSitesWithoutARegistryCode(["Issue.<Clone>$"]));
+        Assert.Contains("Issue.<Clone>$", CodeVocabulary.IlIssueSitesWithoutARegistryCode(["Profiler.LocatedIssue"]));
+    }
+
+    [Fact]
     public void IssueCodes_NoStringLiteralPassedToIssueCtorOutsideRegistry()
     {
         // Every call site names its code through the registry (a field load), so the scan finds no literal at all.
