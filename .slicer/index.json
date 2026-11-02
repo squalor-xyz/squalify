@@ -5912,6 +5912,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "888a6022-545c-4c44-8c87-4669b6c529ae",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-72 (2026-11-02, gate L1, later): the $id test helper IdTagIsRight (tests/squalify.Tests/Schema/SchemaValueTests.cs) still accepts a version with leading zeros (01.0.0) or a trailing '-' (1.0.0-); tighten it if this slice touches the version parsing anyway.",
+          "created_at": "2026-11-02T16:11:23Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
