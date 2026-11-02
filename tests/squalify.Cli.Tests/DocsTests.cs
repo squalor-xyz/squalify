@@ -584,9 +584,12 @@ public sealed class DocsTests
 
     /// <summary>
     /// sq-69: the CONTRIBUTING checklist for making a planned member, family or dialect produced names types, test classes, methods,
-    /// files and doc sections. The checklist cannot rot silently: every type, <c>Type.Member</c> and method it names in code spans is
-    /// declared in the source, every path exists, every quoted section or phrase on a line about a doc occurs in that doc, and all
-    /// nine areas are still there.
+    /// files, schema definitions and doc sections. The checklist cannot rot silently. Comments of the C# files are ignored, so a name
+    /// that survives only in a comment is gone. Every type in a code span has a class, record, struct, interface or enum declaration;
+    /// every <c>Type.Member</c> has a declaration-shaped member (not after a dot, followed by a brace, an arrow, an equals sign, a
+    /// parenthesis, a semicolon or a comma) in a file that declares the type; every method (a name with an underscore) is declared;
+    /// every path exists; every <c>$defs.X</c> is a key of <c>$defs</c> in the schema; every quoted section or phrase on a line about a
+    /// doc occurs in that doc; and all nine areas are still there.
     /// </summary>
     [Fact]
     public void Contributing_FlipChecklist_NamesOnlyWhatExists()
@@ -612,11 +615,13 @@ public sealed class DocsTests
         }
 
         var declared = DeclaredTypes(root);
+        using var schema = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "schema", "descriptor-v1.schema.json")));
+        var definitions = schema.RootElement.GetProperty("$defs").EnumerateObject().Select(static p => p.Name).ToHashSet(StringComparer.Ordinal);
         foreach (var line in block)
         {
             foreach (Match span in Regex.Matches(line, "`([^`]+)`"))
             {
-                CheckChecklistName(problems, root, declared, span.Groups[1].Value);
+                CheckChecklistName(problems, root, declared, definitions, span.Groups[1].Value);
             }
 
             // A line about a doc: each quoted section or phrase occurs in that doc (white space collapsed, code ticks ignored).
@@ -641,8 +646,18 @@ public sealed class DocsTests
     }
 
     /// <summary>One name from a code span of the checklist: a path, a type, a <c>Type.Member</c> or a test method; anything else is prose.</summary>
-    private static void CheckChecklistName(List<string> problems, string root, Dictionary<string, List<string>> declared, string name)
+    private static void CheckChecklistName(List<string> problems, string root, Dictionary<string, List<string>> declared, HashSet<string> definitions, string name)
     {
+        if (name.StartsWith("$defs.", StringComparison.Ordinal))
+        {
+            if (!definitions.Contains(name["$defs.".Length..]))
+            {
+                problems.Add($"`{name}` is not a key of $defs in schema/descriptor-v1.schema.json");
+            }
+
+            return;
+        }
+
         if (Regex.IsMatch(name, @"^[A-Za-z0-9._/-]+$") && (name.Contains('/', StringComparison.Ordinal) || Regex.IsMatch(name, @"\.(md|json|cs|sh)$")))
         {
             var path = Path.Combine(root, name.Replace('/', Path.DirectorySeparatorChar));
@@ -658,9 +673,9 @@ public sealed class DocsTests
         var typeName = member.Success ? member.Groups["type"].Value : name;
         if (Regex.IsMatch(name, @"^[A-Z][A-Za-z0-9]*_[A-Za-z0-9_]+$"))
         {
-            if (!declared.Values.SelectMany(static files => files).Distinct().Any(text => Regex.IsMatch(text, @"\b" + Regex.Escape(name) + @"\s*\(")))
+            if (!declared.Values.SelectMany(static files => files).Distinct().Any(text => Regex.IsMatch(text, @"[\w>\]]\s+" + Regex.Escape(name) + @"\s*\(")))
             {
-                problems.Add($"`{name}` is not a method in the source");
+                problems.Add($"`{name}` is not a method declared in the source");
             }
 
             return;
@@ -675,13 +690,13 @@ public sealed class DocsTests
         {
             problems.Add($"`{name}`: no type {typeName} is declared in src or tests");
         }
-        else if (member.Success && !texts.Any(text => Regex.IsMatch(text, @"\b" + Regex.Escape(member.Groups["member"].Value) + @"\b")))
+        else if (member.Success && !texts.Any(text => Regex.IsMatch(text, @"(?<![.\w])" + Regex.Escape(member.Groups["member"].Value) + @"\b\s*(\{|=>|=|\(|;|,)")))
         {
-            problems.Add($"`{name}`: {typeName} has no member {member.Groups["member"].Value}");
+            problems.Add($"`{name}`: {typeName} has no declared member {member.Groups["member"].Value}");
         }
     }
 
-    /// <summary>The source text of every declaration of each type (class, record, struct, interface or enum) under src and tests.</summary>
+    /// <summary>The comment-free source text of every declaration of each type (class, record, struct, interface or enum) under src and tests.</summary>
     private static Dictionary<string, List<string>> DeclaredTypes(string root)
     {
         var declared = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -692,7 +707,7 @@ public sealed class DocsTests
                     && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal));
             foreach (var file in files)
             {
-                var text = File.ReadAllText(file);
+                var text = WithoutComments(File.ReadAllText(file));
                 foreach (Match match in Regex.Matches(text, @"\b(?:class|record|struct|interface|enum)\s+([A-Za-z_][A-Za-z0-9_]*)"))
                 {
                     if (!declared.TryGetValue(match.Groups[1].Value, out var list))
@@ -706,6 +721,13 @@ public sealed class DocsTests
         }
 
         return declared;
+    }
+
+    /// <summary>C# source without its line comments (including <c>///</c>) and block comments.</summary>
+    private static string WithoutComments(string source)
+    {
+        source = Regex.Replace(source, @"(?s)/\*.*?\*/", string.Empty);
+        return Regex.Replace(source, @"(?m)(?<=^|\s)//.*$", string.Empty);
     }
 
     private static void Forbid(List<string> problems, string where, string text, params string[] phrases)
