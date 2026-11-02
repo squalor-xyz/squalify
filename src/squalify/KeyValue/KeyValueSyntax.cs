@@ -120,7 +120,7 @@ internal static class KeyValueSyntax
         var inside = false;
         foreach (var c in text)
         {
-            var space = c is ' ' or '\t' or ' ' or '\v' or '\f';
+            var space = c is ' ' or '\t' or '\u00A0' or '\v' or '\f';
             if (!space && !inside)
             {
                 count++;
