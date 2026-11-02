@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 75,
+  "next_id": 76,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -5948,6 +5948,51 @@
         "urgency": 2,
         "effort": 1,
         "attempts": 1
+      }
+    },
+    {
+      "id": "sq-75",
+      "title": "Suppression check hardening: non-record Deconstruct, tighter entry match, ASCII baseline digits",
+      "short_title": "Suppression check hardening",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "ae2e2ae3-70cc-4c87-95b6-4c0873d4dc83",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-74 (2026-11-02, later): (1) reject a non-record type with a hand-written public Deconstruct (the <Clone>$ requirement in IsPositionalRecord is an equivalent mutant today; add a row if such a type appears); (2) the entry match accepts any code-span mention of the type in any newer Breaking-changes entry, so an 'X is unchanged' sentence satisfies it; tighten if a prose convention emerges; (3) the baseline regex uses \\d (Unicode digits) and accepts 01.0.0; use [0-9] and reject leading zeros.",
+          "created_at": "2026-11-02T18:14:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-74 gate later notes, review R3",
+        "discovered_from": "sq-74",
+        "parent": "",
+        "cites": [],
+        "key": "later.suppression-check-hardening",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
       }
     }
   ],
