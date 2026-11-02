@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 73,
+  "next_id": 74,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -5770,6 +5770,36 @@
         "importance": 1,
         "urgency": 1,
         "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-73",
+      "title": "Prefix cut contract: whole characters in every charset",
+      "short_title": "Prefix cut contract: whole characters in every charset",
+      "status": "open",
+      "has_slice": true,
+      "depends_on": [],
+      "note_records": [],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [
+          "needs-owner"
+        ],
+        "trees": [],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.1.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 2,
         "attempts": 0
       }
     }
