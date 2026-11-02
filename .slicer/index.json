@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 74,
+  "next_id": 75,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -5859,6 +5859,51 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-74",
+      "title": "Package validation follow-ups: stable-only bump, baseline-neutral comments, suppression-entry check",
+      "short_title": "Package validation follow-ups",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "13c15099-f5aa-4826-92a7-38b36885a883",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-71 (2026-11-02; owner placed it in v1.1.0 so the first baseline bump after 1.1.0 is clean): (L1) release.md step 5 should say only stable releases move PackageValidationBaselineVersion (a prerelease value makes Version.TryParse in Pack_PassesAgainstBaseline_OnMain fail); (L2) three comments still name 1.0.0 and go stale at the first bump: the squalify.csproj comment, the PackageTests class summary, the Pack_FailsWhenAPublicMemberIsRemoved summary; reword to 'the baseline'; (R3) a mechanical check that every type or member named in CompatibilitySuppressions.xml has a 'Breaking changes in X (library)' user-guide entry, and is one of the two kinds release.md allows.",
+          "created_at": "2026-11-02T15:38:11Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-71 review R3, gate L1, L2",
+        "discovered_from": "sq-71",
+        "parent": "",
+        "cites": [],
+        "key": "later.package-validation-followups",
+        "pass": "v1.1.0",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": 1,
         "attempts": 0
       }
     }
