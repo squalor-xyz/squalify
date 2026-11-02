@@ -216,6 +216,64 @@ public sealed class KeyValueTests
     }
 
     [Fact]
+    public void KeyValue_Sections_AreCappedAtTheRegionLimit_AndTheRestIsCounted()
+    {
+        var limit = (int)Limits.Default.Regions;
+        string Doc(int sections) => string.Concat(Enumerable.Range(0, sections).Select(static i => "[s" + i.ToString(CultureInfo.InvariantCulture) + "]\nName = n" + i.ToString(CultureInfo.InvariantCulture) + "\nSize = " + i.ToString(CultureInfo.InvariantCulture) + "\n"));
+
+        // At the limit nothing is dropped; one more section is counted and not held.
+        var exact = Profile(Doc(limit));
+        Assert.Equal(limit, exact.Sections!.Count);
+        Assert.DoesNotContain(exact.Issues, static i => i.Code == "sectionsTruncated");
+        Assert.Equal(limit, exact.Table!.Rows);
+
+        var over = Profile(Doc(limit + 1));
+        Assert.Equal(limit, over.Sections!.Count);
+        var issue = Assert.Single(over.Issues, static i => i.Code == "sectionsTruncated");
+        Assert.Equal(1, issue.Count);
+        Assert.Equal([(long)((limit + 1) * 3 - 2)], issue.FirstLines);
+
+        // The dropped section still counts: it is a row, its keys are in the table's field count, and its values feed the fields.
+        Assert.Equal(limit + 1, over.Table!.Rows);
+        Assert.Equal(new MinMax(2, 2), over.Table.FieldCount);
+        Assert.All(over.Table.Fields, f => Assert.Equal(limit + 1, f.Count));
+        Assert.Equal(["Name", "Size"], over.Table.Fields.Select(static f => f.Name!).ToArray());
+    }
+
+    [Fact]
+    public void KeyValue_DroppedSections_HoldNoKeysOrValues_SoTheDescriptorStaysBounded()
+    {
+        var count = 30_000;
+        var text = string.Concat(Enumerable.Range(0, count).Select(static i => "[s" + i.ToString(CultureInfo.InvariantCulture) + "]\nName = n\nSize = " + i.ToString(CultureInfo.InvariantCulture) + "\n"));
+        var d = Profile(text, "t.ini", includeValues: true);
+        Assert.Equal(Limits.Default.Regions, d.Sections!.Count);
+        Assert.Equal(count - Limits.Default.Regions, Assert.Single(d.Issues, static i => i.Code == "sectionsTruncated").Count);
+        Assert.Equal(count, d.Table!.Rows);
+
+        // The values of the dropped sections are not held: only the kept sections carry values.
+        Assert.Equal(Limits.Default.Regions * 2, d.Sections.Sum(static s => s.Values!.Count));
+        Assert.True(DescriptorWriter.ToBytes(d).Length < 2_000_000, "the descriptor does not grow with the dropped sections");
+    }
+
+    [Fact]
+    public void KeyValue_DuplicateKeys_InADroppedSection_AreStillCounted()
+    {
+        var limit = (int)Limits.Default.Regions;
+        var text = string.Concat(Enumerable.Range(0, limit).Select(static i => "[s" + i.ToString(CultureInfo.InvariantCulture) + "]\nA = 1\n")) + "[late]\nA = 1\nA = 2\n";
+        var d = Profile(text);
+        Assert.Equal(1, Assert.Single(d.Issues, static i => i.Code == "sectionsTruncated").Count);
+        Assert.Equal(1, Assert.Single(d.Issues, static i => i.Code == "duplicateKey").Count);
+    }
+
+    [Fact]
+    public void KeyValue_DistinctKeys_AreCappedAtTenThousand()
+    {
+        string Doc(int keys) => string.Concat(Enumerable.Range(0, keys).Select(static i => "Key" + i.ToString(CultureInfo.InvariantCulture) + " = 1\n"));
+        Assert.Equal("keyValue", Profile(Doc((int)KeyValueProfiler.MaxKeys), "t.cfg").Format.Family);
+        Assert.NotEqual("keyValue", Profile(Doc((int)KeyValueProfiler.MaxKeys + 1), "t.cfg").Format.Family);
+    }
+
+    [Fact]
     public void KeyValue_LayoutOnly_KeepsTheSections()
     {
         var full = ProfileFixture("keyvalue/instrument.ini");

@@ -422,6 +422,49 @@ public sealed class TouchstoneTests
         Assert.Equal(3, d.Table!.Rows);
     }
 
+    [Fact]
+    public void Touchstone_V1Noise_StartingAtTheLastNetworkFrequency_IsNoise()
+    {
+        // IBIS: the first noise frequency is less than or equal to the highest network frequency. A line of exactly 5 values at a block start
+        // whose frequency equals the last network frequency begins the noise block.
+        var text = "# GHz S MA R 50\n1.0 0.9 -10 0.02 70 0.02 70 0.87 -9\n2.0 0.8 -20 0.04 60 0.04 60 0.85 -19\n2.0 0.82 0.54 31.5 0.19\n3.0 0.91 0.51 55.0 0.17\n";
+        var d = Profile(text, "a.s2p");
+        Assert.True(Dialect(d).Noise);
+        Assert.Equal(2, d.Table!.Rows);
+        Assert.Equal(2, d.Table.Fields.Last().Count);
+        Assert.DoesNotContain(d.Issues, static i => i.Code is "incompleteBlock" or "nonMonotonicFrequency");
+        var noise = Assert.Single(d.Evidence, static e => e.Stage == "dialect" && e.Topic == "noise");
+        Assert.Equal("frequencyDrop", noise.Chosen);
+
+        // An equal frequency on a line of 9 values is a duplicate network point, not noise.
+        var duplicate = Profile("# GHz S MA R 50\n1.0 0.9 -10 0.02 70 0.02 70 0.87 -9\n1.0 0.8 -20 0.04 60 0.04 60 0.85 -19\n", "a.s2p");
+        Assert.False(Dialect(duplicate).Noise);
+        Assert.Equal(2, duplicate.Table!.Rows);
+    }
+
+    [Theory]
+    [InlineData("#")]
+    [InlineData("# hz")]
+    [InlineData("# MA")]
+    public void Touchstone_ContentOnly_NeedsAnOptionLineWithTwoRecognisedTokens(string first)
+    {
+        // A whitespace table of numbers whose first line is a bare "#" or one recognised token stays what it was in 1.0 (delimited).
+        var rows = string.Concat(Enumerable.Range(1, 10).Select(static i => i.ToString(CultureInfo.InvariantCulture) + ".5 0.9 -10 0.02 70 0.02 70 0.87 -9\n"));
+        var table = Profile(first + "\n" + rows, "a.dat");
+        Assert.Equal("delimited", table.Format.Family);
+        var family = Assert.Single(table.Evidence, static e => e.Stage == "format" && e.Topic == "family");
+        Assert.Equal(0.0, family.Candidates.Single(static c => c.Value == "touchstone").Score);
+
+        // The same with the 3-column shape of a 1-port file.
+        var one = string.Concat(Enumerable.Range(1, 10).Select(static i => i.ToString(CultureInfo.InvariantCulture) + ".5 0.9 -10\n"));
+        Assert.NotEqual("touchstone", Profile(first + "\n" + one, "a.dat").Format.Family);
+
+        // Two recognised tokens, or [Version], make it Touchstone without the extension; the extension path is unchanged.
+        Assert.Equal("touchstone", Profile("# GHz S\n" + one, "a.dat").Format.Family);
+        Assert.Equal("touchstone", Profile("[Version] 2.0\n[Number of Ports] 1\n[Network Data]\n" + one, "a.dat").Format.Family);
+        Assert.Equal("touchstone", Profile(first + "\n" + one, "a.s1p").Format.Family);
+    }
+
     [Theory]
     [MemberData(nameof(FixtureNames))]
     public void Profile_Golden(string fixture)

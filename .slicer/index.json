@@ -1586,6 +1586,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "9c251cee-0a57-47cf-9103-b6468cb72b60",
+          "kind": "",
+          "text": "**2026-11-02** — IBIS note correction (fix round 1, 2026-11-02): this RETRACTS deviation (2) of the earlier IBIS note. v1 noise now starts at a block start of a two-port file when the frequency is lower than the last network frequency (scikit-rf) OR equal to it on a line of exactly 5 values (IBIS 2.0: first noise frequency <= highest network frequency); an equal frequency on a line of any other width is a repeated network point. Also changed per owner answers: content-only Touchstone (no extension) needs [Version] or an option line of 2+ recognised tokens (a bare # or '# hz' no longer counts); keyValue keeps the first limits.regions (1,000) sections and counts the rest in the issue sectionsTruncated (dropped sections hold no keys or values but still count as table rows and feed the fields).",
+          "created_at": "2026-11-02T18:41:33Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": {

@@ -394,16 +394,18 @@ internal static class DescriptorInvariants
 
             if (family == "keyValue")
             {
+                // Sections past limits.regions are counted by the issue sectionsTruncated and not listed (their keys still count in the fields).
+                var truncated = Items(Get("issues")).Where(static i => Get(i, "code") is { ValueKind: JsonValueKind.String } c && c.GetString() == "sectionsTruncated").Select(static i => Number(Get(i, "count")) ?? 0).Sum();
                 var occurrences = Items(Get("sections")).Sum(static s => (long)Items(Get(s, "keys")).Count());
                 var counted = fields.Sum(static f => Number(Get(f, "count")) ?? 0);
-                if (fields.All(static f => Number(Get(f, "count")) is not null) && counted != occurrences)
+                if (fields.All(static f => Number(Get(f, "count")) is not null) && (truncated == 0 ? counted != occurrences : counted < occurrences))
                 {
                     _v.Add($"the counts of the fields add up to {Text(counted)}, not the number of keys in the sections ({Text(occurrences)})");
                 }
 
-                if (rows is { } r && r != Items(Get("sections")).Count())
+                if (rows is { } r && r != Items(Get("sections")).Count() + truncated)
                 {
-                    _v.Add($"table.rows ({Text(r)}) is not the number of sections ({Items(Get("sections")).Count().ToString(CultureInfo.InvariantCulture)})");
+                    _v.Add($"table.rows ({Text(r)}) is not the number of sections ({Items(Get("sections")).Count().ToString(CultureInfo.InvariantCulture)}) plus those truncated ({Text(truncated)})");
                 }
             }
         }

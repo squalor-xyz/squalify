@@ -351,9 +351,11 @@ internal sealed class TouchstonePass
             {
                 first = false;
 
-                // Version 1 marks the noise data of a two-port file by a frequency that is lower than the last one, where a block begins.
+                // Version 1 marks the noise data of a two-port file by a frequency that is lower than the last one, where a block begins, or
+                // equal to it on a line of exactly 5 values (IBIS: the first noise frequency is at most the highest network frequency).
                 if (!_inNoise && !_versionSeen && _ports == 2 && _position == 0 && _haveFrequency
-                    && TouchstoneSyntax.TryNumber(token, out var frequency) && frequency < _lastFrequency)
+                    && TouchstoneSyntax.TryNumber(token, out var frequency)
+                    && (frequency < _lastFrequency || (frequency == _lastFrequency && count == TouchstoneSyntax.NoiseValues)))
                 {
                     StartNoise("frequencyDrop", line.Number);
                 }

@@ -254,7 +254,7 @@ public class SchemaValueTests
             ["$defs/regionKind"] = ["preamble", "annotation", "header", "units", "data", "footer", "block", "unknown"],
             ["$defs/childRegionKind"] = ["preamble", "annotation", "header", "units", "data", "footer", "unknown"],
             ["$defs/issueRegion"] = ["preamble", "annotation", "header", "units", "data", "footer", "unknown", "other"],
-            ["$defs/issueCode"] = ["blocksTruncated", "commentInData", "duplicateHeader", "duplicateKey", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched", "incompleteBlock", "invalidUnicode", "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "nonMonotonicFrequency", "portMismatch", "raggedRows", "tooIrregular"],
+            ["$defs/issueCode"] = ["blocksTruncated", "commentInData", "duplicateHeader", "duplicateKey", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched", "incompleteBlock", "invalidUnicode", "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "nonMonotonicFrequency", "portMismatch", "raggedRows", "sectionsTruncated", "tooIrregular"],
             ["$defs/region/properties/label"] = ["noise"],
             ["$defs/touchstoneDialect/properties/frequencyUnit"] = ["Hz", "kHz", "MHz", "GHz"],
             ["$defs/touchstoneDialect/properties/parameter"] = ["S", "Y", "Z", "H", "G"],

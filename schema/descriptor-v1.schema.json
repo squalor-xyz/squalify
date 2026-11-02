@@ -21,7 +21,7 @@
       "enum": [
         "blocksTruncated", "commentInData", "duplicateHeader", "duplicateKey", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched",
         "incompleteBlock", "invalidUnicode", "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "nonMonotonicFrequency",
-        "portMismatch", "raggedRows", "tooIrregular"
+        "portMismatch", "raggedRows", "sectionsTruncated", "tooIrregular"
       ]
     },
     "evidenceStage": { "enum": ["encoding", "format", "dialect", "header", "unit", "type"] },

@@ -61,6 +61,9 @@ internal static class IssueCodes
     /// <summary>A record whose field count differs from the header's.</summary>
     public static readonly string RaggedRows = "raggedRows";
 
+    /// <summary>A key=value document has more sections than <c>limits.regions</c> allows: the rest are counted and not held.</summary>
+    public static readonly string SectionsTruncated = "sectionsTruncated";
+
     /// <summary>The delimited profiler declined a file as too irregular.</summary>
     public static readonly string TooIrregular = "tooIrregular";
 
@@ -83,6 +86,7 @@ internal static class IssueCodes
         NonMonotonicFrequency,
         PortMismatch,
         RaggedRows,
+        SectionsTruncated,
         TooIrregular,
     ];
 }

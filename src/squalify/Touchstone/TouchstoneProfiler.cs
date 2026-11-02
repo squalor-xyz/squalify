@@ -8,7 +8,8 @@ namespace squalor.squalify;
 /// <param name="FirstLine">The line of the option line or <c>[Version]</c>.</param>
 /// <param name="KeywordPorts">The port count of <c>[Number of Ports]</c>, or null.</param>
 /// <param name="DataValues">The number of values on the first numeric data line, or -1 when the head holds none.</param>
-internal sealed record TouchstoneHead(string? Reason, long FirstLine, long? KeywordPorts, int DataValues);
+/// <param name="Anchored">True when the file starts with <c>[Version]</c> or an option line of at least two recognised tokens.</param>
+internal sealed record TouchstoneHead(string? Reason, long FirstLine, long? KeywordPorts, int DataValues, bool Anchored);
 
 /// <summary>
 /// The Touchstone profiler (v1 and v2): an option line, a port count, network data read as a flat stream of numbers, noise data, and the
@@ -68,6 +69,13 @@ internal sealed class TouchstoneProfiler : IFormatProfiler
             return new FormatScore(ExtensionScore, "Touchstone extension, option line or [Version] on line " + line);
         }
 
+        // Without the extension the file must say what it is: [Version], or an option line of at least two recognised tokens (a bare # or
+        // "# hz" starts a comment of a table of numbers as well).
+        if (!head.Anchored)
+        {
+            return new FormatScore(0.0, "no Touchstone extension, and no [Version] or option line of 2 tokens");
+        }
+
         return head.DataValues > 0
             ? new FormatScore(ContentScore, "option line or [Version] on line " + line + ", then numeric data")
             : new FormatScore(0.0, "no Touchstone extension, no numeric data after the option line");
@@ -114,6 +122,7 @@ internal sealed class TouchstoneProfiler : IFormatProfiler
         var versionSeen = false;
         var networkSeen = false;
         var optionSeen = false;
+        var anchored = false;
         var count = 0;
         LineScan.Scan(source, sniff, null, line =>
         {
@@ -137,10 +146,11 @@ internal sealed class TouchstoneProfiler : IFormatProfiler
             if (firstLine == 0)
             {
                 // The first line that is not a comment is the option line (Version 1) or [Version] (Version 2).
-                if (content.Length > 0 && content[0] == '#' && TouchstoneSyntax.ParseOption(content) is not null)
+                if (content.Length > 0 && content[0] == '#' && TouchstoneSyntax.ParseOption(content) is { } option)
                 {
                     firstLine = line.Number;
                     optionSeen = true;
+                    anchored = option.Recognised >= 2;
                     return true;
                 }
 
@@ -148,6 +158,7 @@ internal sealed class TouchstoneProfiler : IFormatProfiler
                 {
                     firstLine = line.Number;
                     versionSeen = true;
+                    anchored = true;
                     return true;
                 }
 
@@ -212,6 +223,6 @@ internal sealed class TouchstoneProfiler : IFormatProfiler
             reason = "no option line or [Version]";
         }
 
-        return new TouchstoneHead(reason, firstLine, keywordPorts, dataValues);
+        return new TouchstoneHead(reason, firstLine, keywordPorts, dataValues, anchored);
     }
 }

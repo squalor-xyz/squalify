@@ -452,6 +452,30 @@ public sealed class DocsTests
     /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", or that the project is "early
     /// (0.3.x)"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.
     /// </summary>
+    /// <summary>
+    /// sq-09 (fix round 1): the docs say exactly which files change family in 1.1.0, and none says that a delimited file keeps its family
+    /// without the exception (a whitespace file of "Key = Value" lines that 1.0.0 scored delimited 0.7 becomes keyValue 0.8).
+    /// </summary>
+    [Fact]
+    public void Docs_SayWhichFilesChangeFamilyIn110()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        var descriptor = Collapse(ReadDoc(root, "docs/descriptor.md"));
+        Require(problems, "descriptor.md, Changelog 1.1", descriptor, "Files that change family in 1.1.0 are exactly these.");
+        Require(problems, "descriptor.md, Changelog 1.1", descriptor, "(a file of `Lot = A12` lines: delimited, score 0.7); it is now `keyValue`, score 0.8");
+        Require(problems, "descriptor.md, Changelog 1.1", descriptor, "a bare `#` or `# hz` does not qualify, and the file stays what it was");
+        Require(problems, "descriptor.md, Changelog 1.1", descriptor, "a comma, tab, semicolon or bar table, with or without a key=value preamble, stays delimited");
+        Forbid(problems, "descriptor.md", descriptor, "a delimited file keeps its family, its score and its descriptor, apart from");
+
+        var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
+        Require(problems, "user-guide.md, Formats", guide, "Two kinds of file change family in 1.1.0");
+        Require(problems, "user-guide.md, Formats", guide, "a file of `Lot = A12` lines was delimited, score 0.7; it is now `keyValue`, score 0.8");
+        Require(problems, "user-guide.md, Breaking changes in 1.1.0", guide, "Files that change family: a whitespace-delimited file of `Key = Value` or `Key: Value` lines that 1.0.0 scored delimited 0.7 is now `keyValue` (0.8)");
+        Forbid(problems, "user-guide.md", guide, "a delimited file keeps its family.");
+        Assert.True(problems.Count == 0, "The docs do not say which files change family:\n" + string.Join("\n", problems));
+    }
+
     [Fact]
     public void Docs_SpeakOfTheFreezeAndTheVersionInThePresentTense()
     {

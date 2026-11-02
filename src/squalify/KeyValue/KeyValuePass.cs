@@ -26,6 +26,12 @@ internal sealed class KeyValuePass
     private readonly long[] _kinds = new long[5];
     private readonly long[] _separators = new long[2];
     private readonly List<long> _duplicateLines = [];
+    private readonly List<long> _droppedLines = [];
+    private readonly long _maxSections;
+    private long _sectionCount;
+    private long _dropped;
+    private long _minKeys = long.MaxValue;
+    private long _maxKeysInSection;
     private long _duplicates;
     private long _stableText;
     private long _stableKeys;
@@ -41,6 +47,7 @@ internal sealed class KeyValuePass
         _gate = context.Gate;
         _layoutOnly = context.Options.LayoutOnly;
         _caps = MemoryBudget.Effective(context.Limits, structure.DistinctKeys);
+        _maxSections = context.Limits.Regions;
     }
 
     /// <summary>Receives one physical line.</summary>
@@ -61,8 +68,7 @@ internal sealed class KeyValuePass
             case KeyValueLineKind.Section:
                 _kinds[4]++;
                 _hasSections = true;
-                _current = new SectionBuilder(kind.Name!, line.Number);
-                _sections.Add(_current);
+                StartSection(kind.Name!, line.Number);
                 OfferText(line);
                 break;
             case KeyValueLineKind.Pair:
@@ -92,6 +98,11 @@ internal sealed class KeyValuePass
             issues.Add(new Issue(IssueCodes.DuplicateKey, _duplicates, FirstLines: _duplicateLines.ToArray()));
         }
 
+        if (_dropped > 0)
+        {
+            issues.Add(new Issue(IssueCodes.SectionsTruncated, _dropped, FirstLines: _droppedLines.ToArray()));
+        }
+
         if (counter.MixedLineEndings() is { } mixed)
         {
             issues.Add(mixed);
@@ -103,9 +114,8 @@ internal sealed class KeyValuePass
             fields.Add(Field(i));
         }
 
-        var minKeys = _sections.Count == 0 ? 0 : _sections.Min(static s => s.Keys.Count);
-        var maxKeys = _sections.Count == 0 ? 0 : _sections.Max(static s => s.Keys.Count);
-        var table = new TableSection(_sections.Count, new MinMax(minKeys, maxKeys), fields);
+        EndSection();
+        var table = new TableSection(_sectionCount, new MinMax(_sectionCount == 0 ? 0 : _minKeys, _maxKeysInSection), fields);
 
         var kinds = new List<KeyValuePair<string, long>>();
         string[] names = ["blank", "comment", "keyValue", "keyDelimValue", "text"];
@@ -147,6 +157,38 @@ internal sealed class KeyValuePass
             Sections: sections);
     }
 
+    // A section past limits.regions is counted (it is a row, its keys count and its values feed the fields) but holds no keys or values.
+    private void StartSection(string name, long line)
+    {
+        EndSection();
+        _sectionCount++;
+        var dropped = _sectionCount > _maxSections;
+        _current = new SectionBuilder(name, line, dropped);
+        if (dropped)
+        {
+            _dropped++;
+            if (_droppedLines.Count < MaxListedLines)
+            {
+                _droppedLines.Add(line);
+            }
+        }
+        else
+        {
+            _sections.Add(_current);
+        }
+    }
+
+    // The key count of the section that just ended enters the field count of the table.
+    private void EndSection()
+    {
+        if (_current is { } ended)
+        {
+            _minKeys = Math.Min(_minKeys, ended.KeyCount);
+            _maxKeysInSection = Math.Max(_maxKeysInSection, ended.KeyCount);
+            _current = null;
+        }
+    }
+
     // The more common of the two separators; a tie goes to =. A method of its own: the literals stay out of the method that makes the issues.
     private string Separator()
     {
@@ -160,11 +202,10 @@ internal sealed class KeyValuePass
         if (_current is null)
         {
             // Keys before any section header belong to an unnamed section that starts at the first of them.
-            _current = new SectionBuilder(string.Empty, line.Number);
-            _sections.Add(_current);
+            StartSection(string.Empty, line.Number);
         }
 
-        if (!_current.Seen.Add(key))
+        if (!_current!.Seen.Add(key))
         {
             _duplicates++;
             if (_duplicateLines.Count < MaxListedLines)
@@ -173,8 +214,13 @@ internal sealed class KeyValuePass
             }
         }
 
-        _current.Keys.Add(key);
-        _current.Values.Add(_gate.Allows(ValuesPolicy.SectionValues, key) ? pair.Value : null);
+        _current.KeyCount++;
+        if (!_current.Dropped)
+        {
+            _current.Keys.Add(key);
+            _current.Values.Add(_gate.Allows(ValuesPolicy.SectionValues, key) ? pair.Value : null);
+        }
+
         if (_stableKeys < MaxStableLines && line.Text.Length <= MaxStableLength)
         {
             _stableKeys++;
@@ -264,8 +310,12 @@ internal sealed class KeyValuePass
         return bytes;
     }
 
-    private sealed class SectionBuilder(string name, long line)
+    private sealed class SectionBuilder(string name, long line, bool dropped = false)
     {
+        public bool Dropped { get; } = dropped;
+
+        public long KeyCount { get; set; }
+
         public string Name { get; } = name;
 
         public long Line { get; } = line;

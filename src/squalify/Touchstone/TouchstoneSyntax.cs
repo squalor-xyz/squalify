@@ -8,7 +8,11 @@ namespace squalor.squalify;
 /// <param name="Parameter"><c>S</c>, <c>Y</c>, <c>Z</c>, <c>H</c> or <c>G</c>, or null.</param>
 /// <param name="Format"><c>DB</c>, <c>MA</c> or <c>RI</c>, or null.</param>
 /// <param name="Reference">The reference resistance (the first value after <c>R</c>), or null.</param>
-internal sealed record OptionLine(string? Unit, string? Parameter, string? Format, double? Reference);
+internal sealed record OptionLine(string? Unit, string? Parameter, string? Format, double? Reference)
+{
+    /// <summary>The number of tokens the line gives: a unit, a parameter, a data format, and <c>R</c> with its value count one each.</summary>
+    public int Recognised => (Unit is null ? 0 : 1) + (Parameter is null ? 0 : 1) + (Format is null ? 0 : 1) + (Reference is null ? 0 : 1);
+}
 
 /// <summary>The known keywords of a Version 2 file, by their canonical spelling.</summary>
 internal enum TouchstoneKeyword
