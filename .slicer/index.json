@@ -1520,7 +1520,7 @@
       ],
       "claim": null,
       "fields": {
-        "size": "M",
+        "size": "L",
         "flags": [],
         "trees": [
           "core"
@@ -5475,7 +5475,7 @@
       "id": "sq-64",
       "title": "Tie the docs enum lists and the kind enums to the schema",
       "short_title": "Docs enums vs schema",
-      "status": "open",
+      "status": "retired",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
@@ -5495,7 +5495,7 @@
         "key": "later.docs-enums-vs-schema",
         "pass": "v1.1.0",
         "group": "",
-        "reason": "",
+        "reason": "Merged into sq-62 (owner, 2026-11-02, spec check): same vocabulary scan and test files; the remaining scope (issue-code tables and kind enums tied to the schema) is listed in sq-62's Files and Failing tests.",
         "importance": 1,
         "urgency": 1,
         "effort": 1,
@@ -5660,7 +5660,22 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "92e5b877-f7aa-4aab-8334-8975e84a7e3d",
+          "kind": "",
+          "text": "**2026-11-02** — Owner plan (2026-11-02): sq-69 runs after sq-09 (wave 3), so the checklist is drawn from sq-09's real planned-to-produced flip rather than a scratch copy; keep the notes for sq-10 and sq-15.",
+          "created_at": "2026-11-02T14:36:05Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "S",

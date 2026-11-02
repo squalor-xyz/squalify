@@ -26,7 +26,7 @@
     },
     {
       "heading": "Implement",
-      "body": "1. Owner decision on prerelease pinning; 2. failing cases; 3. fix the helper; 4. docs; mutation-check."
+      "body": "1. Owner decision on prerelease pinning; 2. failing cases; 3. fix the helper; 4. docs; mutation-check.\n\nOwner decisions (2026-11-02, spec check sq-72 Q1), verbatim: \"The final tag (Recommended)\" (option text: \"$id is always v<schemaVersion>.0 for every patch and prerelease of that series; rc and final share one $id; matches CONTRIBUTING and release.md step 1. The URL 404s until the final tag, as today.\"). Spec check notes: the existing cases must still hold (V100/1.0.0/1.0 true, V110/1.0.0/1.0 false, V100/1.1.0/1.1 false, V100/1.1.4/1.0 true, V100/0.3.0/1.0 true, which needs a pre-1.0 carve-out); the test at SchemaValueTests.cs line ~384 that asserts V100 passes for 1.0.1 is consistent with the rule. Files: `tests/squalify.Tests/Schema/SchemaValueTests.cs` (`IdTagIsRight` and its test), `docs/release.md` step 1, `CONTRIBUTING.md` ($id rule), `tests/squalify.Cli.Tests/DocsTests.cs` pins, `docs/descriptor.md` only if wording changes. Failing tests: `Id_PatchRelease_KeepsFirstWritingTag` (1.0.1 with $id v1.0.1 must fail; passes today), `Id_Prerelease_NamesFinalTag` (1.1.0-rc.1 with v1.1.0 true, with v1.1.0-rc.1 false), `Id_MalformedVersion_Rejected` (the `core.Length != 3` guard). Mutation-check both surviving mutants."
     },
     {
       "heading": "Check",

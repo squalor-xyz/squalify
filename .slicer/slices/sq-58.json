@@ -26,7 +26,7 @@
     },
     {
       "heading": "Implement",
-      "body": "1. Owner decision on normalise vs reject vs document; 2. failing test with an unsorted list and with null; 3. implement; 4. docs."
+      "body": "1. Owner decision on normalise vs reject vs document; 2. failing test with an unsorted list and with null; 3. implement; 4. docs.\n\nOwner decisions (2026-11-02, spec check sq-58 Q1), verbatim: \"Normalize (Recommended)\" (option text: \"Profiler sorts ordinal and drops duplicates; null throws SqualifyException. Bytes change only for hand-built unsorted lists; no schema change; matches the docs.\"). Spec check notes: the `ProfileOptions` record stays as is (NonPositionalRecordsTests asserts order-sensitive equality); Profile normalizes before building `Descriptor.Options`. Files: `src/squalify/Profiler.cs` (Validate/ProfileCore) or a helper in `src/squalify/Descriptor/Options.cs`; tests `OrdinalTests.cs`, `NonPositionalRecordsTests.cs`, `ValuesTierTests.cs`; docs `docs/user-guide.md` (values policy and a labelled 1.1 entry), `docs/descriptor.md` includeValuesFor wording. Failing tests: `Profile_UnsortedIncludeValuesFor_WritesSortedOptions`, `Profile_DuplicateIncludeValuesFor_WritesOnce`, `Profile_NullIncludeValuesFor_ThrowsSqualifyException` (NullReferenceException today), `Profile_ByNameUnsorted_ByteIdenticalToCreate`."
     },
     {
       "heading": "Check",
