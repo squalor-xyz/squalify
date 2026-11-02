@@ -5895,7 +5895,7 @@
       "id": "sq-74",
       "title": "Package validation follow-ups: stable-only bump, baseline-neutral comments, suppression-entry check",
       "short_title": "Package validation follow-ups",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -5928,10 +5928,7 @@
           "retracted_reason": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-11-02T16:12:09Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
