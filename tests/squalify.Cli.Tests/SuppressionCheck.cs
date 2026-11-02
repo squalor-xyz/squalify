@@ -7,7 +7,7 @@ namespace squalor.squalify.Cli.Tests;
 /// <summary>
 /// The mechanical check of package-validation suppressions (sq-74). It holds every entry of
 /// <c>src/squalify/CompatibilitySuppressions.xml</c> to the rule of docs/release.md, "Package validation": the target is
-/// (a) a constructor or <c>Deconstruct</c> of a model record, or (b) a provisional model type or member that the user guide
+/// (a) a constructor or <c>Deconstruct</c> of a positional model record, or (b) a provisional model type or member that the user guide
 /// lists, and its type is named in a "Breaking changes in X (library)" user-guide entry of a version newer than the baseline.
 /// No file means no suppression, and passes. The XML is read with the BCL; the user guide is Markdown text.
 /// </summary>
@@ -34,7 +34,7 @@ internal static class SuppressionCheck
 
         var project = XDocument.Load(Path.Combine(root, "src", "squalify", "squalify.csproj"));
         var text = project.Descendants("PackageValidationBaselineVersion").Select(element => element.Value.Trim()).SingleOrDefault();
-        if (!Version.TryParse(text, out var baseline))
+        if (text is null || !Regex.IsMatch(text, @"^\d+\.\d+\.\d+$") || !Version.TryParse(text, out var baseline))
         {
             return [$"PackageValidationBaselineVersion '{text}' in squalify.csproj is not a stable release (X.Y.Z)."];
         }
@@ -109,6 +109,7 @@ internal static class SuppressionCheck
         var kind = target[0];
         var name = target[(colon + 1 + LibraryNamespace.Length)..];
         var open = name.IndexOf('(', StringComparison.Ordinal);
+        var parameters = open >= 0 ? name[(open + 1)..].TrimEnd(')') : string.Empty;
         if (open >= 0)
         {
             name = name[..open];
@@ -132,12 +133,12 @@ internal static class SuppressionCheck
             member = name[(dot + 1)..];
         }
 
-        var allowed = (kind == 'M' && member is ("#ctor" or "Deconstruct") && IsModelRecord(type))
+        var allowed = (kind == 'M' && member is ("#ctor" or "Deconstruct") && IsPositionalRecord(type) && parameters != LibraryNamespace + type)
             || provisional.Contains(type)
             || (member is not null && provisional.Contains(type + "." + PropertyName(member)));
         if (!allowed)
         {
-            return "not one of the two kinds that release.md allows to be suppressed in 1.x (a constructor or Deconstruct of a model record, or a provisional model type or member of the user guide).";
+            return "not one of the two kinds that release.md allows to be suppressed in 1.x (a constructor or Deconstruct of a positional model record, not a copy constructor, or a provisional model type or member of the user guide).";
         }
 
         var simple = Regex.Replace(type[(type.LastIndexOf('.') + 1)..], "`.*$", string.Empty);
@@ -150,11 +151,16 @@ internal static class SuppressionCheck
     private static string PropertyName(string member) =>
         Regex.Replace(member, "^(get_|set_|add_|remove_)", string.Empty);
 
-    /// <summary>True when the type is a record of the library (a class or struct with the compiler's clone method).</summary>
-    private static bool IsModelRecord(string type)
+    /// <summary>
+    /// True when the type is a positional record of the library: a record (the compiler's clone method) with a public instance
+    /// Deconstruct, which the compiler writes for a primary constructor and for nothing else. A record built by name, such as
+    /// ProfileOptions and FieldProfile, has none, and its constructor is a stable construction path.
+    /// </summary>
+    private static bool IsPositionalRecord(string type)
     {
         var resolved = typeof(ToolInfo).Assembly.GetType(LibraryNamespace + type.Replace('.', '+'), throwOnError: false);
-        return resolved?.GetMethod("<Clone>$") is not null;
+        return resolved?.GetMethod("<Clone>$") is not null
+            && resolved.GetMethod("Deconstruct", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) is not null;
     }
 
     /// <summary>True when a code span of the entry holds the type's name as an identifier (`Issue`, `new Issue(...)`, `Descriptor.Sections`).</summary>

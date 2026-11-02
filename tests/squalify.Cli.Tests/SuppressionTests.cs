@@ -16,7 +16,7 @@ public sealed class SuppressionTests
     /// <summary>A user guide in miniature: a 1.1.0 entry that names Issue, Profiler and Descriptor.Sections, an entry for the baseline that names EncodingSection, and the provisional list.</summary>
     private const string Guide = """
         - **Model records.** Constructors and `Deconstruct` of the model records are outside the compatibility promise. The model types of planned members (`TouchstoneDialect`, `StdfSection`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks`) are provisional until their profiler ships and may change in a minor.
-        - **Breaking changes in 1.1.0 (library, unreleased).** (sq-1) `Issue` gained a trailing member, so `new Issue(...)` and its deconstruction change. `Profiler.Profile` now throws. The `Descriptor.Sections` list moved. `TouchstoneDialect` changed. Limits changed too, named here without a code span. `FileSource` changed.
+        - **Breaking changes in 1.1.0 (library, unreleased).** (sq-1) `Issue` gained a trailing member, so `new Issue(...)` and its deconstruction change. `Profiler.Profile` now throws. The `Descriptor.Sections` list moved. `TouchstoneDialect` changed. Limits changed too, named here without a code span. `FileSource` changed. `ProfileOptions` and `FieldProfile` were reshaped.
         - **Breaking changes in 1.0.0 (library).** (sq-2) `EncodingSection` gained a member.
         """;
 
@@ -27,6 +27,9 @@ public sealed class SuppressionTests
         { "record constructor named only in an entry for the baseline or older", Target("M", "EncodingSection.#ctor(System.Int32)"), false },
         { "record constructor named only in prose, without a code span", Target("M", "Limits.#ctor(System.Int32)"), false },
         { "constructor of a class that is not a record", Target("M", "FileSource.#ctor(System.String)"), false },
+        { "constructor of a record that is not positional (ProfileOptions), with an entry", Target("M", "ProfileOptions.#ctor"), false },
+        { "constructor of a record that is not positional (FieldProfile), with an entry", Target("M", "FieldProfile.#ctor"), false },
+        { "copy constructor of a positional record, with an entry", Target("M", "Issue.#ctor(squalor.squalify.Issue)"), false },
         { "provisional type removed, with an entry", Target("T", "TouchstoneDialect"), true },
         { "member of a provisional type, with an entry", Target("M", "TouchstoneDialect.Parse(System.String)"), true },
         { "provisional type with no entry", Target("T", "StdfSection"), false },
@@ -104,6 +107,25 @@ public sealed class SuppressionTests
         Assert.Equal(Path.Combine(root, "src", "squalify", "CompatibilitySuppressions.xml"), SuppressionCheck.PathIn(root));
         File.WriteAllText(Path.Combine(work.Path, "src", "squalify", "CompatibilitySuppressions.xml"), SuppressionsXml(Target("M", "Profiler.Profile(System.String)")));
         Assert.NotEmpty(SuppressionCheck.Problems(work.Path));
+    }
+
+    [Theory]
+    [InlineData("1.0.0", true)]
+    [InlineData("1.1", false)]
+    [InlineData("1", false)]
+    [InlineData("1.0.0.0", false)]
+    [InlineData("1.1.0-rc.1", false)]
+    [InlineData("", false)]
+    public void Suppressions_BaselineMustBeThreeNumericParts(string baseline, bool passes)
+    {
+        // Version.TryParse accepts "1.1" and "1.0.0.0"; a baseline is X.Y.Z, as release.md says.
+        using var work = TempFolder.Create("squalify-baseline-");
+        Directory.CreateDirectory(Path.Combine(work.Path, "src", "squalify"));
+        Directory.CreateDirectory(Path.Combine(work.Path, "docs"));
+        File.WriteAllText(Path.Combine(work.Path, "src", "squalify", "squalify.csproj"), $"<Project><PropertyGroup><PackageValidationBaselineVersion>{baseline}</PackageValidationBaselineVersion></PropertyGroup></Project>");
+        File.WriteAllText(Path.Combine(work.Path, "docs", "user-guide.md"), Guide);
+        File.WriteAllText(Path.Combine(work.Path, "src", "squalify", "CompatibilitySuppressions.xml"), SuppressionsXml(Target("M", "Issue.#ctor(System.String)")));
+        Assert.True(passes == (SuppressionCheck.Problems(work.Path).Count == 0), $"baseline '{baseline}'");
     }
 
     [Fact]

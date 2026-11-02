@@ -436,6 +436,8 @@ public sealed class DocsTests
         Require(problems, "release.md step 5", step5, "Only a stable release moves `PackageValidationBaselineVersion`");
         Require(problems, "release.md step 5", step5, "a prerelease such as `1.1.0-rc.1` never does");
         Require(problems, "release.md", section, "Only a stable release is a baseline");
+        Require(problems, "release.md", section, "a constructor or `Deconstruct` of a positional model record");
+        Require(problems, "CONTRIBUTING.md", contributing, "`Deconstruct` of the positional model records");
         Require(problems, "release.md", section, "`Suppressions_AreAllowedKindsWithAUserGuideEntry`");
         Require(problems, "CONTRIBUTING.md", contributing, "Only a stable release moves the baseline");
         Require(problems, "CONTRIBUTING.md", contributing, "`Suppressions_AreAllowedKindsWithAUserGuideEntry`");
