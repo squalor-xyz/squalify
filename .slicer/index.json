@@ -6160,7 +6160,7 @@
         "reason": "",
         "importance": 2,
         "urgency": 2,
-        "effort": null,
+        "effort": 2,
         "attempts": 0
       }
     },
@@ -6203,7 +6203,7 @@
         "reason": "",
         "importance": 2,
         "urgency": 2,
-        "effort": null,
+        "effort": 2,
         "attempts": 0
       }
     },
@@ -6246,7 +6246,7 @@
         "reason": "",
         "importance": 2,
         "urgency": 2,
-        "effort": null,
+        "effort": 1,
         "attempts": 0
       }
     }

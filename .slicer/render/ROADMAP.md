@@ -114,9 +114,9 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 55 | [sq-67](slices/sq-67.md) | Pin count-map keys | S | 1 | core | sq-12 gate L1, L2 · discovered from sq-12 | — |
 | 56 | [sq-70](slices/sq-70.md) | Patch release policy | S | 1 | docs | sq-54 architect A9 · discovered from sq-54 | — |
 | 57 | sq-75 | Suppression check hardening | S | 1 | core | sq-74 gate later notes, review R3 · discovered from sq-74 | — |
-| 58 | sq-76 | Touchstone/keyValue fidelity | M | - |  | discovered from sq-09 | — |
-| 59 | sq-77 | One splitter, one score | M | - |  | discovered from sq-09 | — |
-| 60 | sq-78 | ASCII source test | S | - |  | discovered from sq-09 | — |
+| 58 | sq-76 | Touchstone/keyValue fidelity | M | 2 |  | discovered from sq-09 | — |
+| 59 | sq-77 | One splitter, one score | M | 2 |  | discovered from sq-09 | — |
+| 60 | sq-78 | ASCII source test | S | 1 |  | discovered from sq-09 | — |
 
 ---
 

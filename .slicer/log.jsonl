@@ -751,3 +751,6 @@
 {"when": "2026-11-02T21:28:47Z", "item": "sq-77", "action": "note", "from": "", "to": "", "note": "From sq-09 review and architect (2026-11-02, later): (1) A5:", "by": "Jon Robbins"}
 {"when": "2026-11-02T21:28:47Z", "item": "sq-78", "action": "add", "from": "", "to": "open", "note": "Source is ASCII test; narrow IlIssueCodes to the code argument"}
 {"when": "2026-11-02T21:28:47Z", "item": "sq-78", "action": "note", "from": "", "to": "", "note": "From sq-09 gate and implementer (2026-11-02, later): (1) L1:", "by": "Jon Robbins"}
+{"when": "2026-11-02T21:28:54Z", "item": "sq-76", "action": "set", "from": "", "to": "", "note": "effort -→2"}
+{"when": "2026-11-02T21:28:54Z", "item": "sq-77", "action": "set", "from": "", "to": "", "note": "effort -→2"}
+{"when": "2026-11-02T21:28:54Z", "item": "sq-78", "action": "set", "from": "", "to": "", "note": "effort -→1"}
