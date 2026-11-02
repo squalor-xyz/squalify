@@ -23,18 +23,18 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-73 items · — 20 · done 46 · parked 1 · later 1 · retired 4 · started 1
+73 items · — 19 · done 48 · parked 1 · later 1 · retired 4
 
 ## v1.1.0
 
 | # | Slice | Title | Size | Effort | Trees | Findings | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | [sq-09](slices/sq-09.md) | Touchstone and key=value docs | L | 2 | core |  | — |
-| 2 | [sq-58](slices/sq-58.md) | IncludeValuesFor normalisation | S | 1 | core | sq-49 architect A4 · discovered from sq-49 | — |
+| 2 | [sq-58](slices/sq-58.md) | IncludeValuesFor normalisation | S | 1 | core | sq-49 architect A4 · discovered from sq-49 | done |
 | 3 | [sq-62](slices/sq-62.md) | Issue code registry | M | 2 | core | sq-12 review R3, R4; architect A4 · discovered from sq-12 | — |
 | 4 | [sq-64](slices/sq-64.md) | Docs enums vs schema | S | 1 | core, docs | sq-12 architect A3(ii), A7 · Merged into sq-62 (owner, 2026-11-02, spec check): same vocabulary scan and test files; the remaining scope (issue-code tables and kind enums tied to the schema) is listed in sq-62's Files and Failing tests. · discovered from sq-12 | retired |
 | 5 | [sq-69](slices/sq-69.md) | Planned flip checklist | S | 1 | docs | sq-54 architect A8, A7 · discovered from sq-54 | — |
-| 6 | [sq-71](slices/sq-71.md) | Package validation baseline | S | 1 | core | sq-53 architect A7 · discovered from sq-53 | started |
+| 6 | [sq-71](slices/sq-71.md) | Package validation baseline | S | 1 | core | sq-53 architect A7 · discovered from sq-53 | done |
 | 7 | [sq-72](slices/sq-72.md) | $id rule hardening | S | 1 | core | sq-53 review R5, architect A8 · discovered from sq-53 | — |
 | 8 | [sq-73](slices/sq-73.md) | Prefix cut contract: whole characters in every charset | M `[needs-owner]` | 2 |  |  | — |
 

@@ -5761,7 +5761,7 @@
       "id": "sq-71",
       "title": "Enable package validation against the 1.0.0 baseline",
       "short_title": "Package validation baseline",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -5780,10 +5780,7 @@
           "retracted_reason": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-11-02T14:37:51Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
