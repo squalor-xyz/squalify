@@ -174,6 +174,7 @@ public sealed class DocsTests
             "a release that carries a schema change is a minor or major release, never a patch",
             "edited only in a release that writes a new `schemaVersion`, to name that release's tag",
             "a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema",
+            "The `$id` is always the tag `v<schemaVersion>.0`, for every patch and prerelease of the series, so a release candidate and its final share one `$id`",
             "consumers must not validate with the closed schema",
             "kind label values may change for the same input in a minor release, and rule ids are permanent",
             "constructors and `Deconstruct` of the model records are outside the compatibility promise",
@@ -338,6 +339,7 @@ public sealed class DocsTests
         Require(problems, "release.md", release, "and, in a minor release that changed the schema, the `schemaVersion` value");
         Require(problems, "release.md", release, "Edit the `$id` of `schema/descriptor-v1.schema.json` only in a release that writes a new `schemaVersion`");
         Require(problems, "release.md", release, "a release that leaves the schema as it is keeps the `$id` of the release that first wrote it");
+        Require(problems, "release.md", release, "so every patch and every prerelease of the series, the rc included, keeps the `$id` of its `x.y.0`, and the rc and the final share one `$id`");
         Require(problems, "release.md", release, "re-record them (`SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"`)");
         Require(problems, "release.md", release, "In a minor or major release also set the `Status (vX.Y.x)` banner of `docs/how-it-works.md` to the new series");
         Require(problems, "release.md", release, "runs the tests (everything except `Category=Corpus`, `Category=Package` and `Category=Large`, then the Package tests as their own step)");
@@ -350,7 +352,7 @@ public sealed class DocsTests
             problems.Add("release.md still says 'for a new minor schema version'");
         }
 
-        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const), and later ones before the next release share the bump");
+        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const), and later ones before the next release share the bump. The `$id` is always `v<schemaVersion>.0`, the final tag of the series, for every patch and prerelease of it, so an rc and its final share one `$id`");
 
         foreach (var file in new[] { "README.md", "docs/getting-started.md", "docs/user-guide.md", "docs/design.md", "docs/how-it-works.md" })
         {

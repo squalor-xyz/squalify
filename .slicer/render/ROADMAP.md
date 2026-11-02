@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-74 items · — 20 · done 48 · parked 1 · later 1 · retired 4
+74 items · — 19 · done 48 · parked 1 · later 1 · retired 4 · started 1
 
 ## v1.1.0
 
@@ -35,7 +35,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 4 | [sq-64](slices/sq-64.md) | Docs enums vs schema | S | 1 | core, docs | sq-12 architect A3(ii), A7 · Merged into sq-62 (owner, 2026-11-02, spec check): same vocabulary scan and test files; the remaining scope (issue-code tables and kind enums tied to the schema) is listed in sq-62's Files and Failing tests. · discovered from sq-12 | retired |
 | 5 | [sq-69](slices/sq-69.md) | Planned flip checklist | S | 1 | docs | sq-54 architect A8, A7 · discovered from sq-54 | — |
 | 6 | [sq-71](slices/sq-71.md) | Package validation baseline | S | 1 | core | sq-53 architect A7 · discovered from sq-53 | done |
-| 7 | [sq-72](slices/sq-72.md) | $id rule hardening | S | 1 | core | sq-53 review R5, architect A8 · discovered from sq-53 | — |
+| 7 | [sq-72](slices/sq-72.md) | $id rule hardening | S | 1 | core | sq-53 review R5, architect A8 · discovered from sq-53 | started |
 | 8 | [sq-73](slices/sq-73.md) | Prefix cut contract: whole characters in every charset | M `[needs-owner]` | 2 |  |  | — |
 | 9 | sq-74 | Package validation follow-ups | S | 1 | core | sq-71 review R3, gate L1, L2 · discovered from sq-71 | — |
 
