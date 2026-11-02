@@ -13,7 +13,13 @@ public sealed record ProfileOptions
     /// <summary>True when literal values are included.</summary>
     public required bool IncludeValues { get; init; }
 
-    /// <summary>Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both).</summary>
+    /// <summary>
+    /// Allow-listed names, a sorted set: ordinal order, no exact duplicates (<see cref="Create"/> does both). A list built by name
+    /// may be in any order and hold duplicates: <see cref="Profiler"/> sorts it and drops exact duplicates before it writes the
+    /// <c>options</c> section, so the descriptor is the one <see cref="Create"/> gives. A null list, or a null name, is rejected by
+    /// <see cref="Profiler"/> with a <see cref="SqualifyException"/>. Names that differ only in case are kept apart here;
+    /// the allow-list matches them with ASCII case folding.
+    /// </summary>
     public required IReadOnlyList<string> IncludeValuesFor { get; init; }
 
     /// <summary>
@@ -65,6 +71,16 @@ public sealed record ProfileOptions
             MaxFirstRecordBytes = maxFirstRecordBytes,
             LayoutOnly = layoutOnly,
         };
+    }
+
+    /// <summary>
+    /// The options with the allow-list as a sorted set (sorted ordinally, exact duplicates dropped, as <see cref="Create"/> builds it),
+    /// so that options built by name give the same descriptor as <see cref="Create"/> (sq-58). The profiler calls it, after it
+    /// has checked that the list and its names are not null; the options it is called on are not changed.
+    /// </summary>
+    internal ProfileOptions Normalized()
+    {
+        return this with { IncludeValuesFor = Ordinal.Sorted(IncludeValuesFor.Distinct(StringComparer.Ordinal)) };
     }
 
     /// <inheritdoc />

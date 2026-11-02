@@ -434,7 +434,7 @@ public sealed class DocsTests
         var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
         Require(problems, "user-guide.md", guide, "Descriptor schema v1 is frozen (`schemaVersion` `1.0`) from 1.0.0. In 1.x, adding a key, written always or only in some cases, or an enum value is a minor change");
         Require(problems, "user-guide.md", guide, "**A descriptor changed after an upgrade.** Expected across squalify versions: the [versioning policy](descriptor.md#versioning-policy) lists what may change in 1.x (new optional keys and enum values, refined sketched values, other kind labels), and the 0.x releases changed the descriptor without a version bump.");
-        Forbid(problems, "user-guide.md", guide, "the freeze takes effect with 1.0.0", "before 1.0 a minor", "(library, unreleased)");
+        Forbid(problems, "user-guide.md", guide, "the freeze takes effect with 1.0.0", "before 1.0 a minor", "1.0.0 (library, unreleased)");
 
         var readme = Collapse(ReadDoc(root, "README.md"));
         Require(problems, "README.md", readme, "> **Status: stable (1.x).**");

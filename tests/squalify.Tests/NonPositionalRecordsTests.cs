@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+using System.Text.Json;
+
 namespace squalor.squalify.Tests;
 
 /// <summary>
@@ -99,6 +101,77 @@ public sealed class NonPositionalRecordsTests
         Assert.NotEqual(baseline, baseline with { IncludeValuesFor = ["b", "a"] });
         Assert.Equal(baseline, baseline with { IncludeValuesFor = new List<string> { "a", "b" } });
         Assert.Equal(baseline.GetHashCode(), (baseline with { IncludeValuesFor = new List<string> { "a", "b" } }).GetHashCode());
+    }
+
+    // sq-58: the profiler normalizes the allow-list of options built by name, so the descriptor does not depend on how the
+    // options were built.
+    private static byte[] CanaryBytes() => File.ReadAllBytes(TestBytes.Fixture("canary/canary-preamble.csv"));
+
+    private static ProfileOptions Named(IReadOnlyList<string> allow) => new() { IncludeValues = false, IncludeValuesFor = allow };
+
+    [Fact]
+    public void Profile_UnsortedIncludeValuesFor_WritesSortedOptions()
+    {
+        var descriptor = Profiler.Profile(new BytesSource("c.csv", CanaryBytes()), Named(["serial", "b", "a", "A"]));
+        Assert.Equal(["A", "a", "b", "serial"], descriptor.Options.IncludeValuesFor);
+        using var document = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
+        Assert.Equal(
+            ["A", "a", "b", "serial"],
+            document.RootElement.GetProperty("options").GetProperty("includeValuesFor").EnumerateArray().Select(static e => e.GetString()!).ToArray());
+    }
+
+    [Fact]
+    public void Profile_DuplicateIncludeValuesFor_WritesOnce()
+    {
+        // Exact duplicates are dropped; names that differ only in case are kept (ordinal, as Create does).
+        var descriptor = Profiler.Profile(new BytesSource("c.csv", CanaryBytes()), Named(["b", "a", "b", "B", "a"]));
+        Assert.Equal(["B", "a", "b"], descriptor.Options.IncludeValuesFor);
+        using var document = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
+        Assert.Equal(3, document.RootElement.GetProperty("options").GetProperty("includeValuesFor").GetArrayLength());
+    }
+
+    [Fact]
+    public void Profile_NullIncludeValuesFor_ThrowsSqualifyException()
+    {
+        var options = Named(null!);
+        Assert.Throws<SqualifyException>(() => Profiler.Profile(new BytesSource("c.csv", CanaryBytes()), options));
+        Assert.Throws<SqualifyException>(() => Profiler.Profile(new BytesSource("c.csv", CanaryBytes()), options with { MaxBytes = 100 }));
+        Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(new BytesSource("c.csv", CanaryBytes()), options with { MaxBytes = 100 }));
+        Assert.Throws<SqualifyException>(() => Profiler.Profile(TestBytes.Fixture("canary/canary-preamble.csv"), options));
+    }
+
+    [Fact]
+    public void Profile_NullNameInIncludeValuesFor_ThrowsSqualifyException()
+    {
+        Assert.Throws<SqualifyException>(() => Profiler.Profile(new BytesSource("c.csv", CanaryBytes()), Named(["a", null!])));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Profile_ByNameUnsorted_ByteIdenticalToCreate(bool prefix)
+    {
+        string[] allow = ["Operator", "Lot", "Program", "Lot", "nothing", "operator"];
+        var bytes = CanaryBytes();
+        var created = ProfileOptions.Create(false, allow, prefix ? 200 : null);
+        var named = Named(allow) with { MaxBytes = created.MaxBytes };
+        var viaCreate = prefix
+            ? Profiler.ProfilePrefix(new BytesSource("c.csv", bytes), created).Descriptor
+            : Profiler.Profile(new BytesSource("c.csv", bytes), created);
+        var viaName = prefix
+            ? Profiler.ProfilePrefix(new BytesSource("c.csv", bytes), named).Descriptor
+            : Profiler.Profile(new BytesSource("c.csv", bytes), named);
+        Assert.Equal(DescriptorWriter.ToBytes(viaCreate), DescriptorWriter.ToBytes(viaName));
+        Assert.Equal(viaCreate, viaName);
+        Assert.Contains(viaName.Issues, static i => i.Code == "includeValuesForUnmatched");
+    }
+
+    [Fact]
+    public void Profile_DoesNotChangeTheOptionsItIsGiven()
+    {
+        var given = Named(["b", "a", "b"]);
+        Profiler.Profile(new BytesSource("c.csv", CanaryBytes()), given);
+        Assert.Equal(["b", "a", "b"], given.IncludeValuesFor);
     }
 
     private static FieldProfile Minimal(long index = 0) => new()
