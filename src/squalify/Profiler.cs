@@ -4,9 +4,6 @@ namespace squalor.squalify;
 /// <summary>The entry point of the library: profiles one file into a <see cref="Descriptor"/>.</summary>
 public static class Profiler
 {
-    // The pipeline order of the evidence stages: evidence is sorted by stage, then by topic. Later slices append stages.
-    private static readonly string[] StageOrder = ["encoding", "format", "dialect", "header", "unit", "type"];
-
     /// <summary>Profiles a source: the byte pass, the format choice, then the winning format profiler.</summary>
     /// <param name="source">The source.</param>
     /// <param name="options">The options that affect output.</param>
@@ -170,7 +167,7 @@ public static class Profiler
         var invalidBytesTolerated = sniff.Charset is "ascii" or "utf-8" && facts.InvalidSequences > 0;
         if (invalidBytesTolerated)
         {
-            issues.Add(LocatedIssue("invalidUtf8", facts.InvalidSequences, facts.InvalidOffsets, source, sniff, profile.Layout));
+            issues.Add(LocatedIssue(IssueCodes.InvalidUtf8, facts.InvalidSequences, facts.InvalidOffsets, source, sniff, profile.Layout));
         }
 
         // A UTF-16 or UTF-32 charset comes from the BOM or the NUL pattern, so it has no latin-1 fallback and no tolerance:
@@ -178,7 +175,7 @@ public static class Profiler
         var unicode = InvalidUnicodeScanner.Scan(source, sniff);
         if (unicode.Units > 0)
         {
-            issues.Add(LocatedIssue("invalidUnicode", unicode.Units, unicode.Offsets, source, sniff, profile.Layout));
+            issues.Add(LocatedIssue(IssueCodes.InvalidUnicode, unicode.Units, unicode.Offsets, source, sniff, profile.Layout));
         }
 
         var evidence = new List<Evidence>(sniff.Evidence) { choice.Evidence };
@@ -188,7 +185,7 @@ public static class Profiler
         var projection = Projection.Compute(new ProjectionInput(choice.Family, sniff.Charset, profile.Dialect, profile.Layout, profile.Table, options.LayoutOnly));
         if (projection.Excluded > 0)
         {
-            issues.Add(new Issue("nameExcludedFromFingerprint", projection.Excluded));
+            issues.Add(new Issue(IssueCodes.NameExcludedFromFingerprint, projection.Excluded));
         }
 
         var descriptor = new Descriptor(
@@ -207,7 +204,7 @@ public static class Profiler
                 facts.ControlBytes,
                 invalidBytesTolerated),
             Format: new FormatSection(choice.Family, profile.Dialect, choice.Score),
-            Kind: InterimKind(sniff.Kind),
+            Kind: InterimKinds.For(sniff.Kind),
             Layout: profile.Layout,
             Fingerprint: projection.Fingerprint,
             Hints: options.LayoutOnly ? null : HintBuilder.Build(source.Name, sniff, profile.Dialect, profile.Layout, profile.Table, profile.StableLines ?? []),
@@ -222,7 +219,7 @@ public static class Profiler
         var unmatched = ValuesPolicy.UnmatchedNames(descriptor);
         if (unmatched.Count > 0)
         {
-            issues.Add(new Issue("includeValuesForUnmatched", unmatched.Count, Names: unmatched));
+            issues.Add(new Issue(IssueCodes.IncludeValuesForUnmatched, unmatched.Count, Names: unmatched));
             descriptor = descriptor with { Issues = Ordinal.SortedBy(issues, static i => i.Code) };
         }
 
@@ -242,29 +239,13 @@ public static class Profiler
             Regions: InvalidByteLocator.RegionNames(layout, offsets));
     }
 
-    // Until sq-15 adds the rule table, the kind label follows the byte-pass class. The rule ids are those of the
-    // proposed sq-15 table (K09 text, K11 binary, K12 empty).
-    private static KindLabel InterimKind(string encodingKind)
-    {
-        return encodingKind switch
-        {
-            "empty" => new KindLabel("empty", "K12", 1.0),
-            "binary" => new KindLabel("binary", "K11", 1.0),
-            _ => new KindLabel("text", "K09", 1.0),
-        };
-    }
-
+    // Sorted by the place of the stage in EvidenceStages.Order, then by topic. A stage outside the registry is refused (the closed
+    // schema would reject the descriptor), not sorted last.
     internal static IReadOnlyList<Evidence> SortEvidence(IEnumerable<Evidence> evidence)
     {
         return evidence
-            .OrderBy(static e => StageRank(e.Stage))
+            .OrderBy(static e => EvidenceStages.Rank(e.Stage))
             .ThenBy(static e => e.Topic, StringComparer.Ordinal)
             .ToArray();
-    }
-
-    private static int StageRank(string stage)
-    {
-        var index = Array.IndexOf(StageOrder, stage);
-        return index < 0 ? StageOrder.Length : index;
     }
 }

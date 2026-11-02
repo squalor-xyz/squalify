@@ -5415,11 +5415,14 @@
       "id": "sq-62",
       "title": "Internal issue-code registry and evidence-stage constants",
       "short_title": "Issue code registry",
-      "status": "open",
+      "status": "started",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
-      "claim": null,
+      "claim": {
+        "owner": "Jon Robbins",
+        "at": "2026-11-02T14:37:51Z"
+      },
       "fields": {
         "size": "M",
         "flags": [],
@@ -5438,7 +5441,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 2,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

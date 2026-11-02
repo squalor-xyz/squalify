@@ -223,7 +223,7 @@ internal static class HeaderDetector
                 + ", blank or repeated names=" + Ordinal.Invariant(namesCount)
                 + ", fits every typed column=" + Ordinal.Invariant(fitsCount) + ")"));
 
-        var evidence = new Evidence("header", "candidates", header < 0 ? null : Ordinal.Invariant(records[header].Line), candidates);
+        var evidence = new Evidence(EvidenceStages.Header, "candidates", header < 0 ? null : Ordinal.Invariant(records[header].Line), candidates);
         var units = -1;
         if (header >= 0 && header + 1 < n && records[header + 1] is { IsComment: false } next && next.FieldCount == k)
         {

@@ -330,28 +330,28 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
         if (_ragged > 0)
         {
-            issues.Add(new Issue("raggedRows", _ragged, FirstLines: _raggedLines.ToArray()));
+            issues.Add(new Issue(IssueCodes.RaggedRows, _ragged, FirstLines: _raggedLines.ToArray()));
         }
 
         if (_commentsInData > 0)
         {
-            issues.Add(new Issue("commentInData", _commentsInData, FirstLines: _commentLines.ToArray()));
+            issues.Add(new Issue(IssueCodes.CommentInData, _commentsInData, FirstLines: _commentLines.ToArray()));
         }
 
         if (_rows == 0)
         {
             // A header (or units row) and no data record: a table with zero rows, described as such.
-            issues.Add(new Issue("noDataRows", 1, FirstLines: [_headerRecord?.Line ?? _runFirstLine]));
+            issues.Add(new Issue(IssueCodes.NoDataRows, 1, FirstLines: [_headerRecord?.Line ?? _runFirstLine]));
         }
 
         if (_unprofiledBlocks > 0)
         {
-            issues.Add(new Issue("heterogeneousBlocks", _unprofiledBlocks, FirstLines: _unprofiledLines.ToArray()));
+            issues.Add(new Issue(IssueCodes.HeterogeneousBlocks, _unprofiledBlocks, FirstLines: _unprofiledLines.ToArray()));
         }
 
         if (_truncatedBlocks > 0)
         {
-            issues.Add(new Issue("blocksTruncated", _truncatedBlocks, FirstLines: _truncatedLines.ToArray()));
+            issues.Add(new Issue(IssueCodes.BlocksTruncated, _truncatedBlocks, FirstLines: _truncatedLines.ToArray()));
         }
 
         var regions = BuildRegions(structure.Counter.Lines, sniff.Length);
@@ -590,7 +590,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
         }
 
         _decimalEvidence = new Evidence(
-            "dialect",
+            EvidenceStages.Dialect,
             "decimalSeparator",
             useComma ? "," : ".",
             [
@@ -1193,12 +1193,12 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
 
         if (repeated > 0)
         {
-            issues.Add(new Issue("duplicateHeader", repeated, FirstLines: [line]));
+            issues.Add(new Issue(IssueCodes.DuplicateHeader, repeated, FirstLines: [line]));
         }
 
         if (empty > 0)
         {
-            issues.Add(new Issue("emptyHeaderName", empty, FirstLines: [line]));
+            issues.Add(new Issue(IssueCodes.EmptyHeaderName, empty, FirstLines: [line]));
         }
     }
 
@@ -1447,7 +1447,7 @@ internal sealed class DelimitedPass : IRecordSink, IPhysicalLineSink
             HeaderDetector.SummaryValue,
             0.0,
             "candidates=" + Ordinal.Invariant(_candidates.Count) + "; blocks=" + Ordinal.Invariant(1 + _later.Count) + "; profiled=" + Ordinal.Invariant(profiled)));
-        return new Evidence("dialect", "blocks", Ordinal.Invariant(1 + _later.Count), candidates);
+        return new Evidence(EvidenceStages.Dialect, "blocks", Ordinal.Invariant(1 + _later.Count), candidates);
     }
 
     private static CountMap KindMap(long[] counts)

@@ -241,8 +241,8 @@ public class SchemaTests
         using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
 
         // No code the profiler can emit is missing from the schema, and none is listed that it cannot emit.
-        Assert.Equal(CodeVocabulary.IssueCodes(), EnumOf(Definition(schema, "issueCode")).Order(StringComparer.Ordinal));
-        Assert.Equal(CodeVocabulary.EvidenceStages(), EnumOf(Definition(schema, "evidenceStage")).Order(StringComparer.Ordinal));
+        Assert.Equal(IssueCodes.All.Order(StringComparer.Ordinal), EnumOf(Definition(schema, "issueCode")).Order(StringComparer.Ordinal));
+        Assert.Equal(EvidenceStages.Order.Order(StringComparer.Ordinal), EnumOf(Definition(schema, "evidenceStage")).Order(StringComparer.Ordinal));
         var family = schema.RootElement.GetProperty("properties").GetProperty("format").GetProperty("properties").GetProperty("family");
         Assert.Equal(CodeVocabulary.Families(), EnumOf(family).Order(StringComparer.Ordinal));
 
@@ -253,10 +253,96 @@ public class SchemaTests
     }
 
     [Fact]
+    public void IssueCodes_All_EqualsSchemaEnum()
+    {
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+
+        // The schema lists the codes in ordinal order, and so does the registry: adding a code is the constant, its place in All and
+        // the schema enum, and nothing else.
+        Assert.Equal(IssueCodes.All, EnumOf(Definition(schema, "issueCode")));
+        Assert.Equal(IssueCodes.All.Order(StringComparer.Ordinal), IssueCodes.All);
+        Assert.Equal(IssueCodes.All.Count, IssueCodes.All.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void IssueCodes_All_ListsEveryCodeTheRegistryNames()
+    {
+        var named = typeof(IssueCodes).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            .Where(static f => f.FieldType == typeof(string))
+            .Select(static f => (string)f.GetValue(null)!)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Assert.NotEmpty(named);
+        Assert.Equal(named, IssueCodes.All);
+    }
+
+    [Fact]
+    public void IssueCodes_ILScan_IsSubsetOfAll()
+    {
+        // The scan finds a code only where a literal is passed to the Issue constructor or to LocatedIssue. A literal that the registry
+        // does not hold is a code the schema may be missing.
+        Assert.Empty(CodeVocabulary.IlIssueCodes().Except(IssueCodes.All, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void IssueCodes_NoStringLiteralPassedToIssueCtorOutsideRegistry()
+    {
+        // Every call site names its code through the registry (a field load), so the scan finds no literal at all.
+        Assert.Empty(CodeVocabulary.IlIssueCodes());
+    }
+
+    [Fact]
+    public void EvidenceStages_ScanOfLiteralsAtEvidenceSites_IsSubsetOfStageOrder()
+    {
+        Assert.Empty(CodeVocabulary.IlEvidenceStageLiterals().Except(EvidenceStages.Order, StringComparer.Ordinal));
+
+        // And no site writes the name of a stage as a literal: it goes through the registry.
+        Assert.Empty(CodeVocabulary.IlLiteralsAtEvidenceSites().Intersect(EvidenceStages.Order, StringComparer.Ordinal));
+        Assert.Empty(CodeVocabulary.IlEvidenceStageLiterals());
+    }
+
+    [Fact]
+    public void EvidenceStages_Order_EqualsSchemaEnumAndListsEveryStageTheRegistryNames()
+    {
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+        Assert.Equal(EvidenceStages.Order, EnumOf(Definition(schema, "evidenceStage")));
+        Assert.Equal(EvidenceStages.Order.Count, EvidenceStages.Order.Distinct(StringComparer.Ordinal).Count());
+
+        var named = typeof(EvidenceStages).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            .Where(static f => f.FieldType == typeof(string))
+            .Select(static f => (string)f.GetValue(null)!)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(named, EvidenceStages.Order.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void InterimKinds_NoStringLiteralPassedToKindLabelOutsideRegistry()
+    {
+        // The label and the rule id come from the registry: the profiler never builds a KindLabel from a literal.
+        Assert.Empty(CodeVocabulary.IlLiteralsAtKindLabelSites());
+    }
+
+    [Fact]
+    public void Schema_KindLabelAndRuleIdEnums_EqualInterimKindConstants()
+    {
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+        var kind = schema.RootElement.GetProperty("properties").GetProperty("kind").GetProperty("properties");
+        Assert.Equal(InterimKinds.Labels, EnumOf(kind.GetProperty("label")));
+        Assert.Equal(InterimKinds.RuleIds, EnumOf(kind.GetProperty("ruleId")));
+
+        // Each class of the byte pass gets one of the labels, with the rule id that goes with it, and the constants name no other.
+        var pairs = new[] { "empty", "binary", "text" }.Select(static k => InterimKinds.For(k)).ToArray();
+        Assert.Equal(InterimKinds.Labels, pairs.Select(static p => p.Label).Order(StringComparer.Ordinal));
+        Assert.Equal(InterimKinds.RuleIds, pairs.Select(static p => p.RuleId).Order(StringComparer.Ordinal));
+        Assert.All(pairs, static p => Assert.Equal(1.0, p.Confidence));
+    }
+
+    [Fact]
     public void Schema_ClosedEnums_RejectACodeStageOrFamilyTheCodeCannotProduce()
     {
         var node = GoldenNode("delimited/ragged-first-rows.csv");
-        foreach (var code in CodeVocabulary.IssueCodes())
+        foreach (var code in IssueCodes.All)
         {
             node["issues"]![0]!["code"] = code;
             Assert.Empty(Validate(node));

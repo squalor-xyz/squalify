@@ -327,7 +327,7 @@ internal sealed class FieldAccumulator
                 "string: no date order fits every value; " + Ordinal.Invariant(c.Counts.Values) + " date values; DMY " + Ordinal.Invariant(c.Counts.Dmy)
                     + ", MDY " + Ordinal.Invariant(c.Counts.Mdy) + ", YMD " + Ordinal.Invariant(c.Counts.Ymd)))
             .ToArray();
-        return new Evidence("type", "dateOrderConflict", "string", candidates);
+        return new Evidence(EvidenceStages.Type, "dateOrderConflict", "string", candidates);
     }
 
     /// <summary>Builds the field profile. <c>nameParts</c> is left null (the delimited pass sets it from the header, sq-14), and so is <c>unit</c>. <c>top</c> and <c>text</c> are set only when the access given at construction allows them.</summary>

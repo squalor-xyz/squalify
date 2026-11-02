@@ -101,7 +101,7 @@ internal static class HeaderConventionParser
         }
 
         var info = new HeaderConventionInfo(Conventions[dominant], share, CountMap.FromOrdinal(entries));
-        return new HeaderConventions(parts, info, new Evidence("unit", "headerConvention", info.Dominant, candidates));
+        return new HeaderConventions(parts, info, new Evidence(EvidenceStages.Unit, "headerConvention", info.Dominant, candidates));
     }
 
     private static int IndexOf(string convention)
