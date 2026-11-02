@@ -1454,7 +1454,7 @@
       "id": "sq-09",
       "title": "squalify must profile Touchstone files and key=value/INI documents",
       "short_title": "Touchstone and key=value docs",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [
         "sq-05",
@@ -1630,10 +1630,7 @@
           "retracted_reason": ""
         }
       ],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-11-02T15:56:43Z"
-      },
+      "claim": null,
       "fields": {
         "size": "L",
         "flags": [],
