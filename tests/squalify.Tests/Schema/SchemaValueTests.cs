@@ -368,8 +368,8 @@ public class SchemaValueTests
     [Fact]
     public void Schema_Id_NamesTheTagThatFirstWroteTheSchema()
     {
-        // sq-53, sq-72: the $id is edited only in a release that writes a new schemaVersion, to that release's tag, and it is
-        // v<schemaVersion>.0 for every patch and prerelease of the series and every later minor that leaves the schema as it is
+        // sq-53, sq-72: the $id is v<schemaVersion>.0 whatever <Version> is: the first schema-changing commit after a release sets it to
+        // the coming final tag, and every patch, prerelease and later minor that leaves the schema as it is keeps it
         // (Schema_Id_IsATagPinnedRawUrlOfTheSchemaVersion ties its major.minor to the const).
         using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
         var id = schema.RootElement.GetProperty("$id").GetString()!;
@@ -382,7 +382,7 @@ public class SchemaValueTests
         Assert.True(IdTagIsRight(V100, "1.0.1", "1.0"), "a patch release keeps the tag of the release that first wrote the schema");
         Assert.True(IdTagIsRight(V100, "1.1.0", "1.0"), "a minor that leaves the schema as it is keeps the earlier tag");
         Assert.True(IdTagIsRight(V100, "1.1.4", "1.0"));
-        Assert.True(IdTagIsRight(V100, "0.3.0", "1.0"), "before the release that writes the schema nothing is tied to the version");
+        Assert.True(IdTagIsRight(V100, "0.3.0", "1.0"), "0.x wrote schema 1.0 and its $id is v1.0.0 too");
         Assert.False(IdTagIsRight(V100, "1.1.0", "1.1"), "a 1.1.0 that writes schema 1.1 names v1.1.0");
         Assert.False(IdTagIsRight(V110, "1.0.0", "1.0"), "1.0.0 names v1.0.0, not a later tag");
         Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.1/schema/descriptor-v1.schema.json", "1.0.0", "1.0"), "a tag with another patch is not v<Version>");
@@ -417,21 +417,53 @@ public class SchemaValueTests
         Assert.False(IdTagIsRight(V101, "1.0.1-rc.1", "1.0"));
         Assert.True(IdTagIsRight(V100, "1.1.0-rc.1", "1.0"), "an rc of a minor that leaves the schema as it is keeps the earlier tag");
         Assert.False(IdTagIsRight(V110, "1.1.0-rc.1", "1.0"), "an rc of a minor that leaves the schema as it is does not name v1.1.0");
-        Assert.True(IdTagIsRight(V100, "0.9.0-rc.1", "1.0"), "before the release that writes the schema nothing is tied to the version");
+        Assert.True(IdTagIsRight(V100, "0.9.0-rc.1", "1.0"), "the $id is the same whatever the version");
     }
 
     [Fact]
-    public void Id_BeforeTheReleaseThatWritesTheSchema_IsNotTiedToTheVersion()
+    public void Id_IsTheSchemaVersionTagWhateverTheVersion()
     {
+        // sq-72 review R1: no version-dependent branch. In the window after a release, when the first schema-changing commit
+        // bumps schemaVersion to 1.1 while <Version> is still 1.0.0, the $id already names the coming v1.1.0 and nothing else.
         const string Main = "https://raw.githubusercontent.com/squalor-xyz/squalify/main/schema/descriptor-v1.schema.json";
-        Assert.True(IdTagIsRight(Main, "0.3.0", "1.0"), "a 0.x release that writes schema 1.0 is not tied");
-        Assert.True(IdTagIsRight(V110, "0.3.0", "1.0"));
-        Assert.True(IdTagIsRight(Main, "0.9.0-rc.1", "1.0"), "an earlier major with a later minor is still earlier");
-        Assert.True(IdTagIsRight(V110, "1.0.0", "1.1"), "after a release, the first schema-changing commit names the coming tag while <Version> is still the old one");
-        Assert.True(IdTagIsRight(V100, "1.0.3", "1.1"), "an earlier minor of the same major is earlier");
-        Assert.False(IdTagIsRight(Main, "1.1.0", "1.1"), "from the release that writes the schema the tag is tied");
-        Assert.False(IdTagIsRight(Main, "2.0.0", "1.5"), "a later major is tied even with a lower minor");
+        Assert.True(IdTagIsRight(V110, "1.0.0", "1.1"), "the coming tag, before the release bump");
+        Assert.False(IdTagIsRight(V100, "1.0.0", "1.1"), "schema 1.1 with the old tag");
+        Assert.False(IdTagIsRight(V111, "1.0.0", "1.1"), "a patch tag of the coming minor");
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v1.7.7/schema/descriptor-v1.schema.json", "1.0.0", "1.1"));
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/vX/schema/descriptor-v1.schema.json", "1.0.0", "1.1"));
+        Assert.False(IdTagIsRight(Main, "1.0.0", "1.1"));
+        Assert.False(IdTagIsRight(V100, "1.0.3", "1.1"));
+        Assert.True(IdTagIsRight(V100, "0.3.0", "1.0"), "0.x wrote schema 1.0 and its $id is v1.0.0 too");
+        Assert.False(IdTagIsRight(Main, "0.3.0", "1.0"));
+        Assert.False(IdTagIsRight(V110, "0.3.0", "1.0"));
+        Assert.False(IdTagIsRight(Main, "0.9.0-rc.1", "1.0"));
+        Assert.False(IdTagIsRight(Main, "1.1.0", "1.1"));
+        Assert.False(IdTagIsRight(Main, "2.0.0", "1.5"));
         Assert.True(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v1.5.0/schema/descriptor-v1.schema.json", "2.0.0", "1.5"));
+    }
+
+    [Fact]
+    public void Id_SchemaVersionAheadOfVersionByMoreThanOneStep_Rejected()
+    {
+        // sq-72 review R2: ahead of <Version> only by its own major.minor, the next minor of the same major, or (next major).0;
+        // behind it is fine (a minor that leaves the schema as it is).
+        const string V120 = "https://raw.githubusercontent.com/squalor-xyz/squalify/v1.2.0/schema/descriptor-v1.schema.json";
+        const string V200 = "https://raw.githubusercontent.com/squalor-xyz/squalify/v2.0.0/schema/descriptor-v1.schema.json";
+        const string V210 = "https://raw.githubusercontent.com/squalor-xyz/squalify/v2.1.0/schema/descriptor-v1.schema.json";
+        Assert.True(IdTagIsRight(V100, "1.0.0", "1.0"), "today");
+        Assert.True(IdTagIsRight(V110, "1.0.0", "1.1"), "the next minor");
+        Assert.True(IdTagIsRight(V200, "1.0.0", "2.0"), "the next major, .0");
+        Assert.True(IdTagIsRight(V200, "1.4.2", "2.0"));
+        Assert.True(IdTagIsRight(V110, "1.0.0-rc.1", "1.1"), "a prerelease counts as its x.y.z");
+        Assert.True(IdTagIsRight(V100, "0.3.0", "1.0"), "0.x to the next major");
+        Assert.False(IdTagIsRight(V120, "1.0.0", "1.2"), "two minors ahead");
+        Assert.False(IdTagIsRight(V210, "1.0.0", "2.1"), "the next major, but not .0");
+        Assert.False(IdTagIsRight("https://raw.githubusercontent.com/squalor-xyz/squalify/v3.0.0/schema/descriptor-v1.schema.json", "1.0.0", "3.0"), "two majors ahead");
+        Assert.False(IdTagIsRight(V110, "0.3.0", "1.1"), "0.x is not followed by 1.1");
+        Assert.False(IdTagIsRight(V120, "1.1.5", "1.3"));
+        Assert.True(IdTagIsRight(V120, "1.1.5", "1.2"));
+        Assert.True(IdTagIsRight(V100, "1.3.0", "1.0"), "behind is fine");
+        Assert.True(IdTagIsRight(V100, "2.0.0", "1.0"), "a major behind is fine");
     }
 
     [Fact]
@@ -466,14 +498,18 @@ public class SchemaValueTests
             return false;
         }
 
-        // Before the release that writes the schema nothing is tied to the version (the first schema-changing commit bumps
-        // schemaVersion and names the coming tag while <Version> is still the old one).
-        if ((int.Parse(core[0]), int.Parse(core[1])).CompareTo((int.Parse(series[0]), int.Parse(series[1]))) < 0)
+        // schemaVersion may not run ahead of <Version> by more than one step: its own major.minor, the next minor of the same
+        // major, or (next major).0. Behind <Version> is fine (a minor that leaves the schema as it is).
+        var (major, minor) = (int.Parse(core[0]), int.Parse(core[1]));
+        var (schemaMajor, schemaMinor) = (int.Parse(series[0]), int.Parse(series[1]));
+        var ahead = (schemaMajor, schemaMinor).CompareTo((major, minor)) > 0;
+        if (ahead && !(schemaMajor == major && schemaMinor == minor + 1) && !(schemaMajor == major + 1 && schemaMinor == 0))
         {
-            return true;
+            return false;
         }
 
-        // From then on every patch, prerelease and later minor that leaves the schema as it is names v<schemaVersion>.0.
+        // No version-dependent branch: every patch, prerelease and later minor of the series, and the window after a release
+        // when the first schema-changing commit has bumped schemaVersion but <Version> has not moved, names v<schemaVersion>.0.
         return id == Prefix + "v" + schemaVersion + ".0" + Suffix;
     }
 

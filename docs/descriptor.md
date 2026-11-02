@@ -880,7 +880,7 @@ These widen constructs that exist in 1.0. Each is a minor change.
 
 ### The schema file
 
-`schema/descriptor-v1.schema.json` is in the repository and is not packed in the NuGet packages. Its `$id` is a tag-pinned raw URL, `https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json`, edited only in a release that writes a new `schemaVersion`, to name that release's tag, so the major.minor of the tag equals the `schemaVersion` of the schema file: a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema. The `$id` is always the tag `v<schemaVersion>.0`, for every patch and prerelease of the series, so a release candidate and its final share one `$id`.
+`schema/descriptor-v1.schema.json` is in the repository and is not packed in the NuGet packages. Its `$id` is a tag-pinned raw URL, `https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json`, set by the first commit that bumps `schemaVersion` after a release, to the final tag `v<schemaVersion>.0` of the release that will write it (a release candidate gets no tag of its own in the `$id`), so the major.minor of the tag equals the `schemaVersion` of the schema file: a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema, and so does every patch and prerelease of the series, so a release candidate and its final share one `$id`.
 
 ### Changelog
 

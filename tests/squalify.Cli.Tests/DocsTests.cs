@@ -172,9 +172,9 @@ public sealed class DocsTests
             "`table.rowClasses` changes from required to optional",
             "The `const` of `schemaVersion` changes at each minor that changes the schema, to that release's major.minor (see Rules); `Descriptor.SchemaVersion` changes with it",
             "a release that carries a schema change is a minor or major release, never a patch",
-            "edited only in a release that writes a new `schemaVersion`, to name that release's tag",
+            "set by the first commit that bumps `schemaVersion` after a release, to the final tag `v<schemaVersion>.0` of the release that will write it",
             "a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema",
-            "The `$id` is always the tag `v<schemaVersion>.0`, for every patch and prerelease of the series, so a release candidate and its final share one `$id`",
+            "and so does every patch and prerelease of the series, so a release candidate and its final share one `$id`",
             "consumers must not validate with the closed schema",
             "kind label values may change for the same input in a minor release, and rule ids are permanent",
             "constructors and `Deconstruct` of the model records are outside the compatibility promise",
@@ -337,8 +337,9 @@ public sealed class DocsTests
         // The release steps and CONTRIBUTING say the same about schemaVersion as the policy.
         var release = Collapse(ReadDoc(root, "docs/release.md"));
         Require(problems, "release.md", release, "and, in a minor release that changed the schema, the `schemaVersion` value");
-        Require(problems, "release.md", release, "Edit the `$id` of `schema/descriptor-v1.schema.json` only in a release that writes a new `schemaVersion`");
+        Require(problems, "release.md", release, "Check that the `$id` of `schema/descriptor-v1.schema.json` is already the raw URL of the final tag of the series");
         Require(problems, "release.md", release, "a release that leaves the schema as it is keeps the `$id` of the release that first wrote it");
+        Require(problems, "release.md", release, "and edit it only if it is not");
         Require(problems, "release.md", release, "so every patch and every prerelease of the series, the rc included, keeps the `$id` of its `x.y.0`, and the rc and the final share one `$id`");
         Require(problems, "release.md", release, "re-record them (`SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"`)");
         Require(problems, "release.md", release, "In a minor or major release also set the `Status (vX.Y.x)` banner of `docs/how-it-works.md` to the new series");
@@ -352,7 +353,7 @@ public sealed class DocsTests
             problems.Add("release.md still says 'for a new minor schema version'");
         }
 
-        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const), and later ones before the next release share the bump. The `$id` is always `v<schemaVersion>.0`, the final tag of the series, for every patch and prerelease of it, so an rc and its final share one `$id`");
+        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at `v<schemaVersion>.0`, the final tag of the coming release (the schema tests tie it to the const), and later ones before the next release share the bump. The `$id` is the same for every patch and prerelease of the series, so an rc and its final share one `$id`, and a release only checks it");
 
         foreach (var file in new[] { "README.md", "docs/getting-started.md", "docs/user-guide.md", "docs/design.md", "docs/how-it-works.md" })
         {
