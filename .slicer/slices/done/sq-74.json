@@ -1,0 +1,41 @@
+{
+  "id": "sq-74",
+  "title": "Package validation follow-ups: stable-only bump, baseline-neutral comments, suppression-entry check",
+  "lead": [
+    "Make the package-validation setup from sq-71 safe for its first baseline bump after 1.1.0 ships: say that only stable releases move the baseline, stop comments from naming 1.0.0, and check mechanically that every suppression is an allowed kind with a user-guide entry. **Not in this slice:** changing the baseline value (it stays 1.0.0 until 1.1.0 is on nuget.org); any public API change."
+  ],
+  "depends_note": null,
+  "findings_note": "sq-71 review R3, gate L1, L2",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "sq-71 review R3 and gate L1, L2. The first bump (to 1.1.0) happens right after the 1.1.0 release; stale comments and a prerelease baseline value would break or mislead it, and a suppression without a user-guide entry is today only a documented rule."
+    },
+    {
+      "heading": "Files",
+      "body": "- `docs/release.md` (step 5 and the Package validation section), `CONTRIBUTING.md` (package-validation bullet) and the pins in `tests/squalify.Cli.Tests/DocsTests.cs`.\n- `src/squalify/squalify.csproj` (the comment), `tests/squalify.Cli.Tests/PackageTests.cs` (class summary, `Pack_FailsWhenAPublicMemberIsRemoved` summary, and the new check).\n- `tests/squalify.Tests/Schema/SchemaValueTests.cs` only for the optional sq-72 L1 tightening."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. A DocsTests pin that release.md step 5 says only stable releases move `PackageValidationBaselineVersion` (fails today: the phrase is absent).\n2. `Comments_DoNotNameTheBaselineVersion` (or a grep-style test): the csproj and PackageTests comments do not hard-code the baseline version (fails today: three name 1.0.0).\n3. `Suppressions_AreAllowedKindsWithAUserGuideEntry`: when `src/squalify/CompatibilitySuppressions.xml` exists, every suppressed target is a positional-record constructor or Deconstruct, or a provisional type the user guide lists, and its type appears in a \"Breaking changes in X (library)\" user-guide entry. With no file it passes vacuously; prove it with theory rows over synthetic suppression XML (an allowed entry with an entry passes; an allowed entry without one fails; a disallowed member fails).\n4. Optional (sq-72 L1): `IdTagIsRight` rejects leading zeros and a trailing '-'."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. Failing tests first, each red for the stated reason. 2. Docs and comments. 3. The suppression check, reading the XML with the BCL and the user guide through the existing docs loader. 4. Mutation-check every new test."
+    },
+    {
+      "heading": "Check",
+      "body": "Build, the filtered suite (normal and GITHUB_ACTIONS=true), the Package category, `dotnet format --verify-no-changes` and `slicer check` pass."
+    },
+    {
+      "heading": "Git",
+      "body": "One commit on the slice branch, by the orchestrator."
+    }
+  ],
+  "notes": []
+}

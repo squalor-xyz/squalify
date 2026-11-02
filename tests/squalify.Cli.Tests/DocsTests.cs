@@ -172,8 +172,9 @@ public sealed class DocsTests
             "`table.rowClasses` changes from required to optional",
             "The `const` of `schemaVersion` changes at each minor that changes the schema, to that release's major.minor (see Rules); `Descriptor.SchemaVersion` changes with it",
             "a release that carries a schema change is a minor or major release, never a patch",
-            "edited only in a release that writes a new `schemaVersion`, to name that release's tag",
+            "set by the first commit that bumps `schemaVersion` after a release, to the final tag `v<schemaVersion>.0` of the release that will write it",
             "a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema",
+            "and so does every patch and prerelease of the series, so a release candidate and its final share one `$id`",
             "consumers must not validate with the closed schema",
             "kind label values may change for the same input in a minor release, and rule ids are permanent",
             "constructors and `Deconstruct` of the model records are outside the compatibility promise",
@@ -338,8 +339,10 @@ public sealed class DocsTests
         // The release steps and CONTRIBUTING say the same about schemaVersion as the policy.
         var release = Collapse(ReadDoc(root, "docs/release.md"));
         Require(problems, "release.md", release, "and, in a minor release that changed the schema, the `schemaVersion` value");
-        Require(problems, "release.md", release, "Edit the `$id` of `schema/descriptor-v1.schema.json` only in a release that writes a new `schemaVersion`");
+        Require(problems, "release.md", release, "Check that the `$id` of `schema/descriptor-v1.schema.json` is already the raw URL of the final tag of the series");
         Require(problems, "release.md", release, "a release that leaves the schema as it is keeps the `$id` of the release that first wrote it");
+        Require(problems, "release.md", release, "and edit it only if it is not");
+        Require(problems, "release.md", release, "so every patch and every prerelease of the series, the rc included, keeps the `$id` of its `x.y.0`, and the rc and the final share one `$id`");
         Require(problems, "release.md", release, "re-record them (`SQUALIFY_UPDATE_GOLDEN=1 dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"`)");
         Require(problems, "release.md", release, "In a minor or major release also set the `Status (vX.Y.x)` banner of `docs/how-it-works.md` to the new series");
         Require(problems, "release.md", release, "runs the tests (everything except `Category=Corpus`, `Category=Package` and `Category=Large`, then the Package tests as their own step)");
@@ -352,7 +355,7 @@ public sealed class DocsTests
             problems.Add("release.md still says 'for a new minor schema version'");
         }
 
-        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at the tag of the coming release (the schema tests tie its major.minor to the const), and later ones before the next release share the bump");
+        Require(problems, "CONTRIBUTING.md", Collapse(ReadDoc(root, "CONTRIBUTING.md")), "the first schema-changing commit after a release bumps it and points `$id` at `v<schemaVersion>.0`, the final tag of the coming release (the schema tests tie it to the const), and later ones before the next release share the bump. The `$id` is the same for every patch and prerelease of the series, so an rc and its final share one `$id`, and a release only checks it");
 
         foreach (var file in new[] { "README.md", "docs/getting-started.md", "docs/user-guide.md", "docs/design.md", "docs/how-it-works.md" })
         {
@@ -415,6 +418,33 @@ public sealed class DocsTests
         Require(problems, "CONTRIBUTING.md", contributing, "[Package validation](docs/release.md#package-validation)");
 
         Assert.True(problems.Count == 0, "Package validation is not documented:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
+    /// Package validation follow-ups (sq-74): only a stable release moves <c>PackageValidationBaselineVersion</c> (step 5 of
+    /// release.md says so itself, since a prerelease value fails the Package test that parses it as a Version), and the docs name the
+    /// test that checks every suppression for an allowed kind and a user-guide entry.
+    /// </summary>
+    [Fact]
+    public void Docs_SayOnlyStableReleasesMoveTheBaseline_AndNameTheSuppressionCheck()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        var releaseText = ReadDoc(root, "docs/release.md");
+        var step5 = Collapse(Regex.Match(releaseText, @"^5\. .*$", RegexOptions.Multiline).Value);
+        var section = Collapse(Section(releaseText, "## Package validation"));
+        var contributing = Collapse(ReadDoc(root, "CONTRIBUTING.md"));
+
+        Require(problems, "release.md step 5", step5, "Only a stable release moves `PackageValidationBaselineVersion`");
+        Require(problems, "release.md step 5", step5, "a prerelease such as `1.1.0-rc.1` never does");
+        Require(problems, "release.md", section, "Only a stable release is a baseline");
+        Require(problems, "release.md", section, "a constructor or `Deconstruct` of a positional model record");
+        Require(problems, "CONTRIBUTING.md", contributing, "`Deconstruct` of the positional model records");
+        Require(problems, "release.md", section, "`Suppressions_AreAllowedKindsWithAUserGuideEntry`");
+        Require(problems, "CONTRIBUTING.md", contributing, "Only a stable release moves the baseline");
+        Require(problems, "CONTRIBUTING.md", contributing, "`Suppressions_AreAllowedKindsWithAUserGuideEntry`");
+
+        Assert.True(problems.Count == 0, "The baseline rule or the suppression check is not documented:\n" + string.Join("\n", problems));
     }
 
     /// <summary>
