@@ -5994,13 +5994,26 @@
       "status": "open",
       "has_slice": true,
       "depends_on": [],
-      "note_records": [],
+      "note_records": [
+        {
+          "id": "23fc3f26-4706-4ba0-a71a-9d8dd9b72d2e",
+          "kind": "decision",
+          "text": "**2026-11-02** — Q4: expose the first-record refusal as an error-code property on SqualifyException (additive). Q5: do not report the prefix length in characters; document the cut contract only, no schema change. Decided by Jon R, 2026-11-02.",
+          "created_at": "2026-11-02T21:30:41Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
       "claim": null,
       "fields": {
         "size": "M",
-        "flags": [
-          "needs-owner"
-        ],
+        "flags": [],
         "trees": [],
         "trees_literal": false,
         "findings": "",

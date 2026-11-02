@@ -7,12 +7,10 @@
   "depends_note": null,
   "findings_note": "",
   "size": "M",
-  "flags": [
-    "needs-owner"
-  ],
+  "flags": [],
   "trees_note": "",
   "trees_plural": false,
-  "boundary": "**Not in this slice:** new charsets; changing where the cut falls for files that already cut correctly.",
+  "boundary": "**Not in this slice:** new charsets; changing where the cut falls for files that already cut correctly; a prefix length in characters (owner Q5); codes for other SqualifyException throw sites.",
   "sections": [
     {
       "heading": "Why",
@@ -20,19 +18,19 @@
     },
     {
       "heading": "Files",
-      "body": "- `src/squalify/Profiler.cs` (`ProfilePrefix` doc), `src/squalify/Sources/ScopeCut.cs`, `src/squalify/Descriptor/Options.cs` (`MaxFirstRecordBytes` doc).\n- `src/squalify/SqualifyException.cs` or an issue code: a way to recognise \"first record longer than MaxFirstRecordBytes\" without parsing the message (public API: owner choice, see Implement).\n- Tests in `tests/squalify.Tests/` (a new `PrefixCutTests.cs`).\n- `docs/user-guide.md`, `docs/design.md`, README (same-commit rule)."
+      "body": "- `src/squalify/Profiler.cs` (`ProfilePrefix` doc), `src/squalify/Sources/ScopeCut.cs` (the first-record refusal, about line 104), `src/squalify/Descriptor/Options.cs` (`MaxFirstRecordBytes` doc).\n- `src/squalify/SqualifyException.cs` (new `Code` property and constructors) and a new public `src/squalify/SqualifyErrorCodes.cs`.\n- Tests in `tests/squalify.Tests/` (a new `PrefixCutTests.cs`; extend `ProfilePrefixTests.cs` where the agreement test lives).\n- `docs/user-guide.md`, `docs/design.md`, README (same-commit rule); the public API baseline or package-validation file if the repo keeps one (sq-71), updated for the additive members."
     },
     {
       "heading": "Failing tests",
-      "body": "- `The_cut_never_splits_a_character`: for UTF-8 (2-, 3- and 4-byte sequences straddling MaxBytes), UTF-16LE and UTF-16BE (a surrogate pair and a CRLF straddling the limit), UTF-32LE/BE, with and without a BOM: the prefix decodes without replacement characters, ends at a terminator, and its line and character counts equal those of the same lines decoded from the whole file.\n- `CR_only_and_mixed_terminators_cut_at_a_whole_line` (CR, LF, CRLF; a CR that ends the limit takes its LF).\n- `A_first_record_over_the_ceiling_is_recognisable`: the refusal can be told apart from other `SqualifyException`s without the message text, for each charset.\n- `ProfilePrefix_and_Profile_agree` on the same files (descriptor equality), extended to the cases above."
+      "body": "- `The_cut_never_splits_a_character`: for UTF-8 (2-, 3- and 4-byte sequences straddling MaxBytes), UTF-16LE and UTF-16BE (a surrogate pair and a CRLF straddling the limit), UTF-32LE/BE, with and without a BOM: the prefix decodes without replacement characters, ends at a terminator, and its line and character counts equal those of the same lines decoded from the whole file.\n- `CR_only_and_mixed_terminators_cut_at_a_whole_line` (CR, LF, CRLF; a CR that ends the limit takes its LF).\n- `A_first_record_over_the_ceiling_has_its_error_code`: for each charset above, `ProfilePrefix` with `MaxFirstRecordBytes` below the first record's length throws a `SqualifyException` whose `Code == SqualifyErrorCodes.FirstRecordTooLong`; another failure (for example a zero `MaxBytes`) has `Code == null`.\n- `ProfilePrefix_and_Profile_agree` on the same files (descriptor equality), extended to the cases above."
     },
     {
       "heading": "Implement",
-      "body": "1. Write the tests above first; fix any cut that splits a character or terminator.\n2. Owner choice before coding the public part: how a consumer recognises the first-record refusal (a new `SqualifyException` subtype, an error-code property on `SqualifyException`, or an issue code in a returned descriptor).\n3. Owner question (from the request \"the encoding shouldn't mess up the char count\"): should `scope` also report the prefix length in characters (Unicode scalar values), beside `bytesRead`? A schema addition if yes.\n4. Docs: state the cut contract (whole characters, whole lines, which terminators, the overshoot) in the user guide and design."
+      "body": "1. Write the tests above first; fix any cut that splits a character or terminator.\n2. Owner (Q4, 2026-11-02): an error-code property on `SqualifyException`, additive:\n   - `public string? Code { get; }`, null unless set. Add constructors `SqualifyException(string message, string code)` and `SqualifyException(string message, string code, Exception innerException)`; keep the two existing ones unchanged (Code null).\n   - New `public static class SqualifyErrorCodes` with `public const string FirstRecordTooLong = \"firstRecordTooLong\";` (camelCase, as the issue codes in `Descriptor/IssueCodes.cs` are). `const` is right here, unlike `IssueCodes`: consumers switch on it, and no schema test scans for these. XML docs say the values are stable public API and new codes may be added.\n   - `ScopeCut` throws the first-record refusal with that code. No other throw site gets a code in this slice.\n3. Owner (Q5, 2026-11-02): do not report the prefix length in characters. No schema or descriptor change.\n4. Docs: state the cut contract (whole characters in the sniffed charset, whole lines, which terminators, the overshoot up to `MaxFirstRecordBytes`) and the `Code` property with `firstRecordTooLong` in the user guide, design and the `ProfilePrefix` and `MaxFirstRecordBytes` doc comments. Follow the repo's AGENTS.md for the changelog or release-notes entry, if it keeps one."
     },
     {
       "heading": "Check",
-      "body": "- Build, test and format for `squalify.sln` as the repo's AGENTS.md says; 0 warnings.\n- Mutation-check: cut at the byte limit without the code-unit rule, treat CR as not a terminator, make the refusal a plain `SqualifyException`; tests turn red."
+      "body": "- Build, test and format for `squalify.sln` as the repo's AGENTS.md says; 0 warnings.\n- Mutation-check: cut at the byte limit without the code-unit rule, treat CR as not a terminator, throw the refusal without the code; tests turn red."
     },
     {
       "heading": "Git",

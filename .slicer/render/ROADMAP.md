@@ -36,7 +36,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 5 | [sq-69](slices/sq-69.md) | Planned flip checklist | S | 1 | docs | sq-54 architect A8, A7 · discovered from sq-54 | — |
 | 6 | [sq-71](slices/sq-71.md) | Package validation baseline | S | 1 | core | sq-53 architect A7 · discovered from sq-53 | done |
 | 7 | [sq-72](slices/sq-72.md) | $id rule hardening | S | 1 | core | sq-53 review R5, architect A8 · discovered from sq-53 | done |
-| 8 | [sq-73](slices/sq-73.md) | Prefix cut contract: whole characters in every charset | M `[needs-owner]` | 2 |  |  | — |
+| 8 | [sq-73](slices/sq-73.md) | Prefix cut contract: whole characters in every charset | M | 2 |  |  | — |
 | 9 | [sq-74](slices/sq-74.md) | Package validation follow-ups | S | 1 | core | sq-71 review R3, gate L1, L2 · discovered from sq-71 | done |
 
 ---
