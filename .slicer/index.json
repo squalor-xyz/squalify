@@ -5835,14 +5835,11 @@
       "id": "sq-72",
       "title": "The $id rule: patch releases keep the tag, and prereleases",
       "short_title": "$id rule hardening",
-      "status": "started",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [],
-      "claim": {
-        "owner": "Jon Robbins",
-        "at": "2026-11-02T15:43:11Z"
-      },
+      "claim": null,
       "fields": {
         "size": "S",
         "flags": [],
