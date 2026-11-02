@@ -76,7 +76,7 @@ Every object of the descriptor has a row here, or is listed inside the row of it
 |---|---|---|---|
 | `schemaVersion` | string | yes | `"1.0"` |
 | `tool` | object | yes | `{ "name": "squalify", "version": "x.y.z" }` |
-| `options` | object | yes | Options that affect output: `{ "includeValues": false, "includeValuesFor": [] }`. Two options are carried outside it: `layoutOnly` is the top-level member of that name, and the byte limit is in `scope`. `includeValuesFor` lists allow-listed names as a sorted set (ordinal order, exact duplicates dropped); names that match nothing are reported as the issue `includeValuesForUnmatched`. |
+| `options` | object | yes | Options that affect output: `{ "includeValues": false, "includeValuesFor": [] }`. Two options are carried outside it: `layoutOnly` is the top-level member of that name, and the byte limit is in `scope`. `includeValuesFor` lists allow-listed names as a sorted set (ordinal order, exact duplicates dropped; the profiler normalizes a list that was built by name, so the descriptor does not depend on how the options were made); names that match nothing are reported as the issue `includeValuesForUnmatched`. |
 | `layoutOnly` | boolean | only with `--layout-only` | `true` when the profile skipped the per-field work (sq-47): then `hints` and `fingerprint.typed` are `null` and `table.fields[]` holds only names. Absent otherwise, never `false`. See [Layout-only profile](#layout-only-profile). |
 | `limits` | object | yes | Caps and table versions in effect (layout-only: those a full profile would use). See below. |
 | `file` | object | yes | `name` (not a path), `size` (bytes, of the whole file), `sha256` (omitted when only a prefix was read) |

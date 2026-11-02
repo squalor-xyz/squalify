@@ -14,6 +14,8 @@ public static class Profiler
     /// <exception cref="SqualifyException">
     /// The source cannot be read, its <see cref="IProfileSource.Name"/> is null, empty or contains <c>/</c> or <c>\</c> (a backslash is
     /// refused on every platform, also where a file name may hold one), or
+    /// <see cref="ProfileOptions.IncludeValuesFor"/> is null or holds a null name (any other list is sorted ordinally and
+    /// stripped of exact duplicates before it is written), or
     /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
     /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
     /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled), or a limit is given and the source reports
@@ -117,6 +119,11 @@ public static class Profiler
         ArgumentNullException.ThrowIfNull(options);
         SourceNameGuard.Check(source.Name);
 
+        if (options.IncludeValuesFor is null || options.IncludeValuesFor.Any(static name => name is null))
+        {
+            throw new SqualifyException("The allow-list (IncludeValuesFor) must be a list of names, none of them null.");
+        }
+
         if (options.MaxBytes is <= 0)
         {
             throw new SqualifyException("The byte limit (--max-bytes) must be a positive number of bytes.");
@@ -141,6 +148,7 @@ public static class Profiler
     private static Descriptor ProfileCore(IProfileSource source, ProfileOptions options, ProfileLimits fieldLimits, MemoryTrace? trace)
     {
         var limits = fieldLimits.ApplyTo(Limits.Default);
+        options = options.Normalized();
 
         // A byte limit profiles a prefix view of the source: every pass below reads the view, so no stage reads past the cut.
         var whole = source;
