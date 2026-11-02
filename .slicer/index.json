@@ -1600,6 +1600,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "7ddda9d3-18c3-4070-a632-a1f6a459e057",
+          "kind": "",
+          "text": "**2026-11-02** — Owner answer (2026-11-02, architect A1, blocker): \"New region kind noise (Recommended)\" (option text: \"Add noise to the region kinds; block keeps its 1.0 meaning; Region.Label and the schema label are dropped, so 1.1.0 adds no public API. Reverses the spec's block+label choice, cheap while 1.1.0 is unreleased.\").",
+          "created_at": "2026-11-02T19:24:58Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": {
