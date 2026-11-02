@@ -10,7 +10,8 @@ namespace squalor.squalify.Cli.Tests;
 /// <summary>
 /// Tests the NuGet package. They run dotnet, so the class carries the Package category and CI runs it as its own step.
 /// Nothing here reaches the network: the consumer restores from the local feed only, and the library has no package
-/// dependencies to fetch.
+/// dependencies to fetch. The one download is the 1.0.0 baseline of package validation, which the solution restore
+/// (before the tests) puts in the NuGet cache; the removal test restores a copy of the library from that cache.
 /// </summary>
 [Collection(PackageCollection.Name)]
 [Trait("Category", "Package")]
@@ -208,6 +209,111 @@ public sealed class PackageTests(PackageFeed feed)
             .Concat(Regex.Matches(text, @"^ {0,3}\[[^\]\n]+\]:\s*<?(\S+)", RegexOptions.Multiline).Select(match => match.Groups[1].Value));
         var relative = targets.Where(target => !target.StartsWith('#') && !Regex.IsMatch(target, "^[A-Za-z][A-Za-z0-9+.-]*:")).ToArray();
         Assert.True(relative.Length == 0, $"README.md has relative link targets: {string.Join(", ", relative)}.");
+    }
+
+    /// <summary>
+    /// Package validation is on for the library, against a baseline release from nuget.org, and the pack of main passes it:
+    /// no 1.x change has broken the public API except through suppressions. The baseline is fetched at restore (a
+    /// PackageDownload), so the project's assets file must list it: the pack runs with --no-restore and reads it from the
+    /// NuGet cache. The CLI tool project is not validated; its properties are parsed from msbuild's JSON, so the check
+    /// cannot pass on an empty or garbled read.
+    /// </summary>
+    [Fact]
+    public void Pack_PassesAgainstBaseline_OnMain()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var library = Path.Combine(root, "src", "squalify", "squalify.csproj");
+        var properties = EvaluatedProperties(library, "EnablePackageValidation", "PackageValidationBaselineVersion");
+        Assert.Equal("true", properties["EnablePackageValidation"]);
+        var baseline = properties["PackageValidationBaselineVersion"];
+        Assert.True(
+            Version.TryParse(baseline, out var baselineVersion) && baselineVersion <= Version.Parse(ToolInfo.Version.Split('-')[0]),
+            $"PackageValidationBaselineVersion '{baseline}' is not a release at or below the tool version {ToolInfo.Version}.");
+
+        var cli = EvaluatedProperties(Path.Combine(root, "src", "squalify.Cli", "squalify.Cli.csproj"), "EnablePackageValidation", "PackageValidationBaselineVersion");
+        Assert.True(cli.ContainsKey("EnablePackageValidation"), "The CLI project's properties were not read.");
+        Assert.Equal("false", cli["EnablePackageValidation"]); // the SDK forces false for a PackAsTool project
+        Assert.Equal(string.Empty, cli["PackageValidationBaselineVersion"]);
+
+        var assets = File.ReadAllText(Path.Combine(root, "src", "squalify", "obj", "project.assets.json"));
+        using var json = JsonDocument.Parse(assets);
+        var downloads = json.RootElement.GetProperty("project").GetProperty("frameworks").EnumerateObject()
+            .SelectMany(framework => framework.Value.TryGetProperty("downloadDependencies", out var list) ? list.EnumerateArray() : [])
+            .Select(entry => entry.GetProperty("name").GetString() + " " + entry.GetProperty("version").GetString())
+            .ToArray();
+        Assert.Contains($"{PackageFeed.PackageId} [{baseline}, {baseline}]", downloads);
+
+        Assert.True(feed.PackExitCode == 0, $"dotnet pack exited with {feed.PackExitCode}.\n{feed.PackLog}");
+    }
+
+    /// <summary>
+    /// A copy of the library project with one public member removed (ToolInfo.Name, which the profiler reads, so the
+    /// copy swaps in the literal) fails dotnet pack with the API compatibility error CP0002: the 1.0.0 baseline has the
+    /// member and the package does not. The copy lives in a temporary folder, so the repository is untouched, and it
+    /// restores from the NuGet cache that the solution restore filled with the baseline.
+    /// </summary>
+    [Fact]
+    public void Pack_FailsWhenAPublicMemberIsRemoved()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        using var work = TempFolder.Create("squalify-removal-");
+        var project = Path.Combine(work.Path, "src", "squalify");
+        CopyTree(Path.Combine(root, "src", "squalify"), project);
+        foreach (var file in new[] { "Directory.Build.props", "global.json", "README.md", Path.Combine("assets", "squalify-512.png") })
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(work.Path, file))!);
+            File.Copy(Path.Combine(root, file), Path.Combine(work.Path, file));
+        }
+
+        ReplaceOnce(Path.Combine(project, "ToolInfo.cs"), "    public const string Name = \"squalify\";", string.Empty);
+        ReplaceOnce(Path.Combine(project, "Profiler.cs"), "new ToolSection(ToolInfo.Name,", "new ToolSection(\"squalify\",");
+
+        var output = Path.Combine(work.Path, "out");
+        var pack = DotNetTool.Run(work.Path, "pack", Path.Combine(project, "squalify.csproj"), "--configuration", "Release", "--output", output);
+        Assert.NotEqual(0, pack.ExitCode);
+        Assert.Contains("CP0002", pack.Log, StringComparison.Ordinal);
+        Assert.Contains("squalor.squalify.ToolInfo.Name", pack.Log, StringComparison.Ordinal);
+    }
+
+    /// <summary>Evaluates MSBuild properties of a project (dotnet msbuild -getProperty), without building it.</summary>
+    private static Dictionary<string, string> EvaluatedProperties(string project, params string[] names)
+    {
+        // With one property, msbuild prints a bare value and no JSON, so ask for at least two and parse the JSON.
+        Assert.True(names.Length >= 2, "Ask for two properties or more.");
+        var arguments = new[] { "msbuild", project }.Concat(names.Select(name => "-getProperty:" + name)).ToArray();
+        var result = DotNetTool.Run(Path.GetDirectoryName(project)!, arguments);
+        Assert.True(result.ExitCode == 0, $"dotnet msbuild exited with {result.ExitCode}.\n{result.Log}");
+        using var json = JsonDocument.Parse(result.Stdout);
+        var properties = json.RootElement.GetProperty("Properties");
+        return names.ToDictionary(name => name, name => properties.GetProperty(name).GetString() ?? string.Empty);
+    }
+
+    /// <summary>Copies a folder tree, leaving out build output (bin and obj).</summary>
+    private static void CopyTree(string source, string target)
+    {
+        Directory.CreateDirectory(target);
+        foreach (var file in Directory.EnumerateFiles(source))
+        {
+            File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+        }
+
+        foreach (var directory in Directory.EnumerateDirectories(source))
+        {
+            var name = Path.GetFileName(directory);
+            if (name is not ("bin" or "obj"))
+            {
+                CopyTree(directory, Path.Combine(target, name));
+            }
+        }
+    }
+
+    /// <summary>Replaces one occurrence of a text in a file, and fails if the text is not there exactly once.</summary>
+    private static void ReplaceOnce(string path, string oldText, string newText)
+    {
+        var text = File.ReadAllText(path);
+        var index = text.IndexOf(oldText, StringComparison.Ordinal);
+        Assert.True(index >= 0 && text.IndexOf(oldText, index + 1, StringComparison.Ordinal) < 0, $"{Path.GetFileName(path)} does not hold '{oldText}' exactly once.");
+        File.WriteAllText(path, text.Remove(index, oldText.Length).Insert(index, newText), new UTF8Encoding(false));
     }
 
     /// <summary>Writes the synthetic lab-style table that both the CLI and the consumer profile.</summary>

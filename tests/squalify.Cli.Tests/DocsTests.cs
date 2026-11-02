@@ -365,6 +365,57 @@ public sealed class DocsTests
     }
 
     /// <summary>
+    /// Package validation (sq-71): release.md says what the check is, where the baseline comes from, which 1.x changes may take a
+    /// suppression (the positional records' constructors and Deconstruct, the provisional types; any other CP error is a bug),
+    /// how one is added (with a user-guide "Breaking changes" entry), and the baseline lifecycle (a release step moves it up after
+    /// each release); CONTRIBUTING.md says the same in brief.
+    /// </summary>
+    [Fact]
+    public void Docs_DescribePackageValidation()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        var releaseText = ReadDoc(root, "docs/release.md");
+        var release = Collapse(releaseText);
+        var section = Collapse(Section(releaseText, "## Package validation"));
+        if (section.Length == 0)
+        {
+            problems.Add("release.md has no '## Package validation' section");
+        }
+
+        Require(problems, "release.md", section, "`squalor.squalify` is packed with package validation against a baseline release from nuget.org (`EnablePackageValidation` and `PackageValidationBaselineVersion` in `src/squalify/squalify.csproj`)");
+        Require(problems, "release.md", section, "a change that removes or renames a public member or changes a signature fails `dotnet pack`");
+        Require(problems, "release.md", section, "The baseline package is fetched from nuget.org at restore, not at pack");
+        Require(problems, "release.md", section, "the CLI tool project is not validated");
+        Require(problems, "release.md", section, "Only two kinds of change may take a suppression in 1.x: (a) constructors and `Deconstruct` of the positional model records, which are outside the compatibility promise");
+        Require(problems, "release.md", section, "and (b) the provisional model types that the user guide says \"may change in a minor\" (`TouchstoneDialect`, `KeyValueDialect`, `StdfDialect`, `KeyValueSection`, `BlockStats`, `StdfSection`, `StdfRecordCount`, `StdfTest`, `StdfHints`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks` and `BinarySection.Segments`");
+        Require(problems, "release.md", section, "Any other `CP` error in 1.x is a bug to fix, not to suppress: removing, renaming or changing the signature of any other public member needs a major version");
+        Require(problems, "release.md", section, "-p:ApiCompatGenerateSuppressionFile=true");
+        Require(problems, "release.md", section, "`src/squalify/CompatibilitySuppressions.xml`");
+        Require(problems, "release.md", section, "a `Breaking changes in X (library)` entry in the user guide in the same commit");
+        Require(problems, "release.md", section, "A suppression that is no longer needed fails the pack (`error : Unnecessary suppressions found`)");
+        Require(problems, "release.md", section, "After each release is listed on nuget.org, the next commit to `main` sets `PackageValidationBaselineVersion` to that release and removes the suppressions the pack then reports as unnecessary");
+        Require(problems, "release.md", section, "A new major release moves the baseline to X.0.0 and drops the suppressions");
+        Require(problems, "release.md", release, "5. When nuget.org lists the release, move the package validation baseline up: commit to `main` the new `PackageValidationBaselineVersion` in `src/squalify/squalify.csproj`");
+        Require(problems, "release.md", release, "[Package validation](#package-validation)");
+        foreach (var stale in new[] { "The baseline stays 1.0.0", "the baseline is not bumped", "Leave `PackageValidationBaselineVersion` alone" })
+        {
+            if (release.Contains(stale, StringComparison.Ordinal))
+            {
+                problems.Add($"release.md still says '{stale}'");
+            }
+        }
+
+        var contributing = Collapse(ReadDoc(root, "CONTRIBUTING.md"));
+        Require(problems, "CONTRIBUTING.md", contributing, "`dotnet pack` of the library runs package validation against a baseline release from nuget.org (`PackageValidationBaselineVersion` in `src/squalify/squalify.csproj`)");
+        Require(problems, "CONTRIBUTING.md", contributing, "After each release is listed on nuget.org, the next commit to `main` moves the baseline up to it and drops the suppressions that are no longer needed");
+        Require(problems, "CONTRIBUTING.md", contributing, "Only constructors and `Deconstruct` of the positional model records and the provisional model types of the user guide may be suppressed in 1.x");
+        Require(problems, "CONTRIBUTING.md", contributing, "[Package validation](docs/release.md#package-validation)");
+
+        Assert.True(problems.Count == 0, "Package validation is not documented:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
     /// Release 1.0.0 (sq-53): the docs speak of the freeze and of the version in the present tense. None of them says that the freeze
     /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", or that the project is "early
     /// (0.3.x)"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.

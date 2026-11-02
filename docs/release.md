@@ -14,6 +14,7 @@ squalify publishes two packages to nuget.org from a version tag: `squalor.squali
    ```
 
 4. Watch the Release run in GitHub Actions.
+5. When nuget.org lists the release, move the package validation baseline up: commit to `main` the new `PackageValidationBaselineVersion` in `src/squalify/squalify.csproj` (the release you just published), regenerate or edit `src/squalify/CompatibilitySuppressions.xml` so that it holds no suppression the pack reports as unnecessary, and wait for CI to pass. See [Package validation](#package-validation).
 
 The release is ungated by owner decision: there is no required reviewer on the `release` environment, so any `v*` tag on a commit that is on `main` publishes. The workflow fails, before it builds anything, if the tag version differs from `<Version>`.
 
@@ -27,6 +28,15 @@ The release is ungated by owner decision: there is no required reviewer on the `
 - No entry for a version up to X may say "unreleased". An entry for a later version may, since that version is not released yet.
 
 A prerelease X keeps its suffix, for example `0.3.1-rc.1`; the test compares the numbers before the suffix.
+
+## Package validation
+
+`squalor.squalify` is packed with package validation against a baseline release from nuget.org (`EnablePackageValidation` and `PackageValidationBaselineVersion` in `src/squalify/squalify.csproj`). A change that removes or renames a public member or changes a signature fails `dotnet pack` with an API compatibility error (`CP0002`, for example), in CI, in the release workflow and locally. The CLI tool project is not validated.
+
+- **Where the baseline comes from.** The baseline package is fetched from nuget.org at restore, not at pack: the SDK adds it as a `PackageDownload`, so `dotnet restore squalify.sln` puts `squalor.squalify` at the baseline version in the NuGet cache, and a later `dotnet pack --no-restore` (the Package tests, the release workflow) reads it from there. A restore that cannot reach nuget.org and has no copy in the cache fails. A pack with `--no-restore` and no copy in the cache fails with a `FileNotFoundException`. The check is incremental: a pack that changed nothing in the package does not run it again.
+- **What may take a suppression.** Only two kinds of change may take a suppression in 1.x: (a) constructors and `Deconstruct` of the positional model records, which are outside the compatibility promise (so that a record such as `Issue`, `EncodingSection`, `Limits` or `RowClassesInfo` can gain a trailing member in a minor release; validation reports the old constructor and `Deconstruct` as removed), and (b) the provisional model types that the user guide says "may change in a minor" (`TouchstoneDialect`, `KeyValueDialect`, `StdfDialect`, `KeyValueSection`, `BlockStats`, `StdfSection`, `StdfRecordCount`, `StdfTest`, `StdfHints`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks` and `BinarySection.Segments`; see "Model records" in the [user guide](user-guide.md#guarantees-and-stability)). Any other `CP` error in 1.x is a bug to fix, not to suppress: removing, renaming or changing the signature of any other public member needs a major version.
+- **Adding a suppression.** Run `dotnet pack src/squalify/squalify.csproj -c Release -p:ApiCompatGenerateSuppressionFile=true -o <folder>`, which writes the entries to `src/squalify/CompatibilitySuppressions.xml`; check that they name only members of the two kinds above; and commit them with the change and a `Breaking changes in X (library)` entry in the user guide in the same commit (X is the version that ships it). A suppression without that entry is a defect.
+- **The baseline moves up with each release.** After each release is listed on nuget.org, the next commit to `main` sets `PackageValidationBaselineVersion` to that release and removes the suppressions the pack then reports as unnecessary. A suppression that is no longer needed fails the pack (`error : Unnecessary suppressions found`), so the bump cannot leave one behind; running the pack with `-p:ApiCompatGenerateSuppressionFile=true` rewrites the file without them (delete the file when no entry is left). A new major release moves the baseline to X.0.0 and drops the suppressions. So a member added in 1.1 cannot disappear in 1.2 unnoticed.
 
 ## What the workflow does
 
