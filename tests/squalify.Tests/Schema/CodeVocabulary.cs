@@ -82,17 +82,20 @@ internal static class CodeVocabulary
     /// <summary>
     /// The places where an <c>Issue</c> is made without the code coming from the registry, as <c>Type.Method</c> (ordinally sorted). The check
     /// is positive: every <c>newobj Issue::.ctor</c> and every call of <c>LocatedIssue</c> must have a load of an <c>IssueCodes</c> field
-    /// (<c>ldsfld</c>) since the previous such site in the same method. A literal, a code built from a variable or by concatenation, and a
-    /// field of another class all fail it. Two sites are exempt by name, because they pass a code on and do not choose one:
+    /// (<c>ldsfld</c>) since the previous such site in the same method. A literal, a variable and a field of another
+    /// class fail it, and so does a concatenation of those. It does not prove that the loaded field is the code: an expression that also loads a
+    /// registry field (<c>IssueCodes.X + suffix</c>) passes. The check proves itself on a probe (<c>IssueSiteProbe</c>). Two sites are exempt by name, because they pass a code on and do not choose one:
     /// the copy constructor that the compiler makes for the record <c>Issue</c> (<c>Issue.&lt;Clone&gt;$</c>, behind a <c>with</c>), and
     /// <c>Profiler.LocatedIssue</c>, the forwarder whose callers pass the registry field in.
     /// </summary>
     /// <param name="exempt">The sites to skip, as <c>Type.Method</c>; the default is the two named above.</param>
-    public static IReadOnlyList<string> IlIssueSitesWithoutARegistryCode(IReadOnlyCollection<string>? exempt = null)
+    /// <param name="assembly">The assembly to read; the library by default. Only the test of the scan itself reads another.</param>
+    /// <param name="onlyType">Read only this top-level type and the types nested in it (a lambda is in one); every type by default.</param>
+    public static IReadOnlyList<string> IlIssueSitesWithoutARegistryCode(IReadOnlyCollection<string>? exempt = null, Assembly? assembly = null, string? onlyType = null)
     {
         exempt ??= ExemptIssueSites;
         var found = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var (owner, method, body) in ReadMethodBodies().Where(static b => b.Owner != "IssueCodes"))
+        foreach (var (owner, method, body) in ReadMethodBodies(assembly, onlyType).Where(static b => b.Owner != "IssueCodes"))
         {
             var loadedARegistryField = false;
             foreach (var instruction in body)
@@ -137,19 +140,25 @@ internal static class CodeVocabulary
 
     private readonly record struct Instruction(ushort Code, string? Literal, string? TargetType, string? TargetName);
 
-    private static List<(string Owner, string Method, Instruction[] Body)> ReadMethodBodies()
+    private static List<(string Owner, string Method, Instruction[] Body)> ReadMethodBodies(Assembly? assembly = null, string? onlyType = null)
     {
         var opCodes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static)
             .Select(static f => (OpCode)f.GetValue(null)!)
             .ToDictionary(static o => (ushort)o.Value);
         var bodies = new List<(string, string, Instruction[])>();
-        using var stream = File.OpenRead(typeof(Profiler).Assembly.Location);
+        using var stream = File.OpenRead((assembly ?? typeof(Profiler).Assembly).Location);
         using var pe = new PEReader(stream);
         var metadata = pe.GetMetadataReader();
         foreach (var handle in metadata.MethodDefinitions)
         {
             var definition = metadata.GetMethodDefinition(handle);
             if (definition.RelativeVirtualAddress == 0)
+            {
+                continue;
+            }
+
+            var owner = TypePath(metadata, definition.GetDeclaringType());
+            if (onlyType is not null && owner.Split('+')[0] != onlyType)
             {
                 continue;
             }
@@ -187,10 +196,19 @@ internal static class CodeVocabulary
                 };
             }
 
-            bodies.Add((metadata.GetString(metadata.GetTypeDefinition(definition.GetDeclaringType()).Name), metadata.GetString(definition.Name), instructions.ToArray()));
+            bodies.Add((owner, metadata.GetString(definition.Name), instructions.ToArray()));
         }
 
         return bodies;
+    }
+
+    // The name of a type, with the names of the types that enclose it in front, joined by '+' (a lambda lives in IssueSiteProbe+<>c).
+    private static string TypePath(MetadataReader metadata, TypeDefinitionHandle handle)
+    {
+        var definition = metadata.GetTypeDefinition(handle);
+        var name = metadata.GetString(definition.Name);
+        var outer = definition.GetDeclaringType();
+        return outer.IsNil ? name : TypePath(metadata, outer) + "+" + name;
     }
 
     // The type name and the member name that a method, member or field token names, or nulls for any other kind of token.

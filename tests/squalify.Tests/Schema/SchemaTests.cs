@@ -287,21 +287,44 @@ public class SchemaTests
     [Fact]
     public void IssueCodes_EveryIssueSiteLoadsARegistryField()
     {
-        // The positive check: no Issue is made from a literal, a variable, a concatenation or a field of another class, whatever the
-        // negative scans would see. The only exempt sites are the compiler's copy constructor and the forwarder LocatedIssue.
+        // The positive check: every Issue is made after a load of an IssueCodes field in its method (since the previous site), so a literal,
+        // a variable and a field of another class are caught, whatever the negative scans would see. It does not prove that the loaded
+        // field is the code (IssueCodes.X + suffix passes); the goldens against the schema and review cover that.
+        // The only exempt sites are the compiler's copy constructor and the forwarder LocatedIssue.
         Assert.Empty(CodeVocabulary.IlIssueSitesWithoutARegistryCode());
     }
 
     [Fact]
     public void IssueCodes_EveryIssueSiteCheck_NeedsBothExemptions()
     {
-        // The two exemptions are real: without them the check names both sites, and without only one it names the other.
+        // The two exemptions are real: without them the check names both sites, so neither is dead.
         var withoutAny = CodeVocabulary.IlIssueSitesWithoutARegistryCode([]);
         Assert.Contains("Issue.<Clone>$", withoutAny);
         Assert.Contains("Profiler.LocatedIssue", withoutAny);
         Assert.Equal(CodeVocabulary.ExemptIssueSites.Order(StringComparer.Ordinal), CodeVocabulary.ExemptIssueSites);
-        Assert.Contains("Profiler.LocatedIssue", CodeVocabulary.IlIssueSitesWithoutARegistryCode(["Issue.<Clone>$"]));
-        Assert.Contains("Issue.<Clone>$", CodeVocabulary.IlIssueSitesWithoutARegistryCode(["Profiler.LocatedIssue"]));
+    }
+
+    [Fact]
+    public void IssueSiteScan_FlagsExactlyTheProbeSitesThatDoNotLoadARegistryField()
+    {
+        // The scan proves itself on a probe: it is pointed at the test assembly, and at the probe type only. Each site is flagged when no
+        // registry field was loaded since the previous site of the same method, and a load in another method does not count.
+        var flagged = CodeVocabulary.IlIssueSitesWithoutARegistryCode([], typeof(IssueSiteProbe).Assembly, nameof(IssueSiteProbe));
+        string[] expected =
+        [
+            "IssueSiteProbe.RegistryThenVariable",
+            "IssueSiteProbe.RegistryThenOtherClassField",
+            "IssueSiteProbe+<>c.<LambdaFromVariable>b__",
+            "IssueSiteProbe.<LocalFunctionFromVariable>g__Make",
+            "IssueSiteProbe.SiteAloneAfterAMethodThatLoadedTheRegistry",
+        ];
+        Assert.Equal(expected.Length, flagged.Count);
+        foreach (var name in expected)
+        {
+            Assert.Single(flagged, f => f.StartsWith(name, StringComparison.Ordinal));
+        }
+
+        Assert.DoesNotContain(flagged, static f => f.Contains("TwoRegistrySites", StringComparison.Ordinal) || f.Contains("LoadsRegistryAndMakesNoIssue", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -114,7 +114,7 @@ public class DocumentedMembersTests
         var order = DocumentedMembers.Section(SchemaFiles.ReadDoc(), "## `evidence[]`")
             .Split('\n')
             .First(static l => l.StartsWith("**Order of entries.**", StringComparison.Ordinal));
-        var listed = System.Text.RegularExpressions.Regex.Matches(order[..order.IndexOf("then any stage added later", StringComparison.Ordinal)], "`([a-z]+)`")
+        var listed = System.Text.RegularExpressions.Regex.Matches(order[..order.IndexOf("; a stage added later", StringComparison.Ordinal)], "`([a-z]+)`")
             .Select(static m => m.Groups[1].Value)
             .ToArray();
         Assert.Equal(EvidenceStages.Order, listed);
