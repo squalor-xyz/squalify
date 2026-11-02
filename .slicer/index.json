@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 76,
+  "next_id": 79,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -1628,6 +1628,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "4d3280cb-381a-4fc9-9634-7ceb605fe40c",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-09 (2026-11-02, later, for 1.1.0 release prep): (1) R11/L2: the how-it-works banner still says squalify 1.0.x while describing 1.1 behaviour; set it at release prep, pinned to <Version>. (2) B1: \"noise block\" prose in design.md (about lines 164-165), descriptor.md (about 267, 271, 481, 743) and the TouchstoneRegions.cs doc comment (about line 54) means the noise data, not kind block; reword to \"noise data\" or \"the noise region\".",
+          "created_at": "2026-11-02T21:28:46Z",
+          "attempt": 1,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -1723,6 +1737,20 @@
           "kind": "",
           "text": "**2026-10-27** — From sq-06 architect (K6): Fingerprint.ProjectionInput has no binary/STDF member; add one and extend From() so the STDF contributor (record types, endianness, test catalog, test names) can be fed. Test names must go through IsExcluded.",
           "created_at": "2026-10-27T16:14:11Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        },
+        {
+          "id": "ae85152c-082e-4d34-9945-42b6127f4a15",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-09 architect (2026-11-02, later, A7): ProjectionInput and FormatProfile each gained a family-specific optional member (Sections); sq-10 would add Stdf the same way. Consider one family payload instead of a member per family.",
+          "created_at": "2026-11-02T21:28:47Z",
           "attempt": 0,
           "by": "Jon Robbins",
           "verified_by": "",
@@ -5816,6 +5844,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "b92a4af2-9350-4929-a713-4f471c416f54",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-09 architect (2026-11-02): the places sq-09 touched to flip touchstone and keyValue from planned to produced. Use as the checklist seed.\n1. Code: FormatRegistry.Default; the new FormatProfile member copied by Profiler.cs into Descriptor and ProjectionInput; FingerprintContributors.All plus the contributor class; IssueCodes and its All list; model members (Equals/GetHashCode, init members to avoid a suppression); DescriptorWriter; Descriptor.SchemaVersion.\n2. Schema: $id and the schemaVersion const; family enum, dialect oneOf and dialect $defs; the new top-level member, region member and enums (issueCode, regionKind, issueRegion); table.rowClasses required to optional.\n3. Tests: SchemaValueTests enum pins; PlannedMembersTests; DocumentedMembers row parser and tests; DescriptorInvariants per family; ProfilerTests and FormatRegistryTests candidate lists; hard-coded version strings (CompactFieldsTests, DescriptorWriterTests, SchemaTests, ValuesTierTests); tests whose expected family changed (DegenerateTableTests); canary fixtures and theory; every golden re-recorded; a docs test for family changes.\n4. descriptor.md: status line, top-level table, key-order rows, \"Optional versus null\"; by-family dialect table and its \"produced\" sentence; per-family layout and table sections; Planned section, interim members, issue and evidence tables, values-tier list; versioning policy and changelog entry.\n5. design.md: v1 formats row, scoring table, family sections, limits table, fingerprint section.\n6. user-guide.md: formats table, family-change paragraph, values table, Versions and Model records bullets, \"API added\" and \"Breaking changes\" entries, troubleshooting.\n7. README status line.\n8. how-it-works.md: banner (release prep), diagrams of sections 1, 3, 6, 7 (plus a new section) and their Source lines.\n9. A local corpus-check reclassification run (real samples stay out of the repo).",
+          "created_at": "2026-11-02T21:28:46Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -6076,6 +6118,135 @@
         "importance": 1,
         "urgency": 1,
         "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-76",
+      "title": "Touchstone and key=value fidelity follow-ups",
+      "short_title": "Touchstone/keyValue fidelity",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "7c6b70fc-1fea-4599-bfd7-5bacb85eb6bf",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-09 review (2026-11-02, later): (1) R5: Touchstone referenceOhms ignores the v2 [Reference] keyword and reports the option-line default. (2) R6: Touchstone v1.1 files (multi-value R in the option line, IBIS 2.1) report version \"1.0\"; the first R value is kept. (3) R7: [Begin Information]/[End Information] are not in the known keyword set (counted as text; harmless). (4) [Number of Frequencies] is read but not interpreted (no count check). (5) R10: email headers, \"INFO: x\" logs and YAML-lite files now become keyValue; consider a stricter repeat gate.",
+          "created_at": "2026-11-02T21:28:47Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-09",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": null,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-77",
+      "title": "One line splitter and one delimited score per run",
+      "short_title": "One splitter, one score",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "def4d971-bd59-432d-bdd9-9bbdad0717ea",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-09 review and architect (2026-11-02, later): (1) A5: Text/LineScan is a third CR/LF/CRLF splitter beside TextScanner and LineCounter, with no agreement test on line numbers and byte offsets; move to one splitter in Text/ behind a line sink (see sq-04 A11) plus an agreement test. (2) A6/R8: a text file now takes 4 full reads plus the Touchstone head, and a keyValue win takes 5, because KeyValueProfiler.Score calls DelimitedProfiler.Score a second time; cache the delimited score once per run (sq-19 follow-up).",
+          "created_at": "2026-11-02T21:28:47Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "M",
+        "flags": [],
+        "trees": [],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-09",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": null,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-78",
+      "title": "Source is ASCII test; narrow IlIssueCodes to the code argument",
+      "short_title": "ASCII source test",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "1daf7fa4-fcdc-4ca6-8b78-0dc4c7eeee0e",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-09 gate and implementer (2026-11-02, later): (1) L1: add a test that every file under src/ is ASCII (the gate caught a literal U+00A0 in a char literal by hand). (2) Narrow IlIssueCodes to the code argument, as sq-62 A6 did for stages.",
+          "created_at": "2026-11-02T21:28:47Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [],
+        "trees_literal": false,
+        "findings": "",
+        "discovered_from": "sq-09",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 2,
+        "urgency": 2,
+        "effort": null,
         "attempts": 0
       }
     }
