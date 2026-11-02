@@ -612,7 +612,7 @@ The issues `invalidUtf8` and `invalidUnicode` (sq-46) say where the invalid byte
   { "value": ";", "score": 0, "reason": "k=1; no run" } ] }
 ```
 
-**Order of entries.** Entries are sorted by stage in pipeline order (`encoding`, `format`, `dialect`, `header`, `unit`, `type`, then any stage added later), and within a stage by `topic`, ordinally. A stage that is not in the list ranks after the known ones, so every new stage must be added to `Profiler.StageOrder` and listed here.
+**Order of entries.** Entries are sorted by stage in pipeline order (`encoding`, `format`, `dialect`, `header`, `unit`, `type`; a stage added later takes its place in that order, as `EvidenceStages.Order` lists it), and within a stage by `topic`, ordinally. A stage that is not in the list is refused when the evidence is sorted (the closed schema would reject the descriptor), so every new stage must be added to `EvidenceStages` (the constant and `EvidenceStages.Order`), to the schema enum and to this list.
 
 **Order of `candidates`.** The order is never insertion order. Each topic documents its own key, and a topic with a fixed set of candidates uses a fixed table. A later slice documents its topics here when it adds them.
 

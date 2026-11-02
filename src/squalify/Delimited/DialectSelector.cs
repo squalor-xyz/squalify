@@ -144,7 +144,7 @@ internal static class DialectSelector
         var candidates = results
             .Select(static r => new Candidate(DelimiterCandidates.Text(r.Kind), r.Disqualified == Disqualification.None ? r.Score : 0.0, r.Reason))
             .ToArray();
-        var evidence = new Evidence("dialect", "delimiter", best is null ? null : DelimiterCandidates.Text(best.Kind), candidates);
+        var evidence = new Evidence(EvidenceStages.Dialect, "delimiter", best is null ? null : DelimiterCandidates.Text(best.Kind), candidates);
 
         Issue? irregular = null;
         if (best is null)
@@ -156,7 +156,7 @@ internal static class DialectSelector
                 .ToArray();
             if (lines.Length > 0)
             {
-                irregular = new Issue("tooIrregular", lines.Length, FirstLines: lines.Take(MaxListedLines).ToArray());
+                irregular = new Issue(IssueCodes.TooIrregular, lines.Length, FirstLines: lines.Take(MaxListedLines).ToArray());
             }
         }
 

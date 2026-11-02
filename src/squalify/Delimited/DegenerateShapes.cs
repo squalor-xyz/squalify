@@ -79,7 +79,7 @@ internal static class DegenerateShapes
         return Claim(
             selection,
             claimed,
-            new Evidence("dialect", "delimiter", DelimiterCandidates.Text(best.Kind), selection.Evidence.Candidates),
+            new Evidence(EvidenceStages.Dialect, "delimiter", DelimiterCandidates.Text(best.Kind), selection.Evidence.Candidates),
             ShapeEvidence("headerOnly", reason, "a line has several fields"),
             "delimiter " + DelimiterCandidates.Word(best.Kind) + "; " + reason);
     }
@@ -179,7 +179,7 @@ internal static class DegenerateShapes
         return Claim(
             selection,
             claimed,
-            new Evidence("dialect", "delimiter", DelimiterCandidates.NoneName, selection.Evidence.Candidates),
+            new Evidence(EvidenceStages.Dialect, "delimiter", DelimiterCandidates.NoneName, selection.Evidence.Candidates),
             ShapeEvidence("singleColumn", reason, "no line has several fields"),
             reason);
     }
@@ -194,7 +194,7 @@ internal static class DegenerateShapes
         var singleColumn = taken == "singleColumn"
             ? new Candidate("singleColumn", 1.0, reason)
             : new Candidate("singleColumn", 0.0, "declined: " + declinedBecause);
-        return new Evidence("dialect", "shape", taken, [headerOnly, singleColumn]);
+        return new Evidence(EvidenceStages.Dialect, "shape", taken, [headerOnly, singleColumn]);
     }
 
     private static DialectSelection Claim(DialectSelection selection, CandidateResult claimed, Evidence delimiter, Evidence shape, string reason)

@@ -194,7 +194,7 @@ internal sealed class SniffResult
             candidates.Add(value == chosen ? new Candidate(value, 1.0, reason) : new Candidate(value, 0.0, "not chosen"));
         }
 
-        return new Evidence("encoding", "class", chosen, candidates);
+        return new Evidence(EvidenceStages.Encoding, "class", chosen, candidates);
     }
 
     // Candidates are sorted ordinally by value. Rules 3 and 4 name the one charset they imply; rule 6 weighs ascii, utf-8 and latin-1.
@@ -204,7 +204,7 @@ internal sealed class SniffResult
         if (impliedReason is not null)
         {
             candidates.Add(new Candidate(chosen, 1.0, impliedReason));
-            return new Evidence("encoding", "charset", chosen, candidates);
+            return new Evidence(EvidenceStages.Encoding, "charset", chosen, candidates);
         }
 
         var invalid = facts.InvalidSequences;
@@ -225,6 +225,6 @@ internal sealed class SniffResult
         candidates.Add(new Candidate("ascii", chosen == "ascii" ? 1.0 : 0.0, asciiReason));
         candidates.Add(new Candidate("latin-1", chosen == "latin-1" ? 1.0 : 0.0, latin1Reason));
         candidates.Add(new Candidate("utf-8", chosen == "utf-8" ? 1.0 : 0.0, utf8Reason));
-        return new Evidence("encoding", "charset", chosen, candidates);
+        return new Evidence(EvidenceStages.Encoding, "charset", chosen, candidates);
     }
 }

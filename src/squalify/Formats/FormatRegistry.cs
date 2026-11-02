@@ -87,7 +87,7 @@ internal sealed class FormatRegistry
 
         if (sniff.Kind == "empty" || best is null || bestScore is null)
         {
-            return new FormatChoice("empty", 1.0, null, new Evidence("format", "family", "empty", candidates));
+            return new FormatChoice("empty", 1.0, null, new Evidence(EvidenceStages.Format, "family", "empty", candidates));
         }
 
         var issues = new List<Issue>();
@@ -101,7 +101,7 @@ internal sealed class FormatRegistry
             }
         }
 
-        return new FormatChoice(best.Family, bestScore.Score, best, new Evidence("format", "family", best.Family, candidates), bestScore, issues, evidence);
+        return new FormatChoice(best.Family, bestScore.Score, best, new Evidence(EvidenceStages.Format, "family", best.Family, candidates), bestScore, issues, evidence);
     }
 
     private static int IndexOf(string family)

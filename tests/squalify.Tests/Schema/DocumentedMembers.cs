@@ -82,6 +82,65 @@ internal static partial class DocumentedMembers
         return new DocumentedSet(sections, planned.Distinct(StringComparer.Ordinal).ToArray());
     }
 
+    /// <summary>The issue codes that the tables under "## `issues[]`" list, one row each, in the order of the document.</summary>
+    /// <param name="markdown">The text of the document.</param>
+    /// <returns>The codes.</returns>
+    /// <exception cref="InvalidDataException">The section or a table row cannot be read.</exception>
+    public static IReadOnlyList<string> IssueCodeTableCodes(string markdown)
+    {
+        var section = Section(markdown, "## `issues[]`");
+        var codes = new List<string>();
+        foreach (var line in section.Split('\n').Where(static l => l.StartsWith('|')))
+        {
+            var cell = UnescapedBar().Split(line.Trim().Trim('|'))[0].Trim();
+            if (cell is "Code" or "---")
+            {
+                continue;
+            }
+
+            codes.Add(CodeName(cell) ?? throw new InvalidDataException($"A row of the issue tables has a first cell that is not a code in code font: {cell}"));
+        }
+
+        return codes;
+    }
+
+    /// <summary>The issue codes that the layout-only paragraph says are written, by name.</summary>
+    /// <param name="markdown">The text of the document.</param>
+    /// <returns>The codes.</returns>
+    /// <exception cref="InvalidDataException">The bullet is missing.</exception>
+    public static IReadOnlyList<string> LayoutOnlyIssueCodes(string markdown)
+    {
+        var bullet = markdown.Split('\n').FirstOrDefault(static l => l.StartsWith("- **Issues.** Every issue code", StringComparison.Ordinal))
+            ?? throw new InvalidDataException("The layout-only section has no '- **Issues.** Every issue code' bullet.");
+        var from = bullet.IndexOf("So no code is dropped:", StringComparison.Ordinal);
+        var to = bullet.IndexOf(" are written with", StringComparison.Ordinal);
+        if (from < 0 || to < from)
+        {
+            throw new InvalidDataException("The layout-only issue bullet no longer reads 'So no code is dropped: ... are written with'.");
+        }
+
+        return NameListItem().Matches(bullet[from..to]).Select(static m => m.Groups[1].Value).ToArray();
+    }
+
+    /// <summary>The text of a section: from a heading line up to the next heading of the same or a higher level.</summary>
+    /// <param name="markdown">The text of the document.</param>
+    /// <param name="heading">The heading line, for example <c>## Planned for a 1.x minor release</c>.</param>
+    /// <returns>The lines after the heading.</returns>
+    /// <exception cref="InvalidDataException">The heading is missing.</exception>
+    public static string Section(string markdown, string heading)
+    {
+        var lines = markdown.Split('\n');
+        var start = Array.FindIndex(lines, l => l.TrimEnd() == heading);
+        if (start < 0)
+        {
+            throw new InvalidDataException($"The document has no heading '{heading}'.");
+        }
+
+        var level = heading.TakeWhile(static c => c == '#').Count();
+        var end = Array.FindIndex(lines, start + 1, l => l.StartsWith('#') && l.TakeWhile(static c => c == '#').Count() <= level);
+        return string.Join('\n', lines[(start + 1)..(end < 0 ? lines.Length : end)]);
+    }
+
     private static void ReadRow(string[] cells, Dictionary<string, DocumentedSection> sections, List<string> planned)
     {
         var match = ObjectCell().Match(cells[0]);

@@ -92,6 +92,122 @@ public class DocumentedMembersTests
     }
 
     [Fact]
+    public void Docs_IssueCodeTables_EqualSchemaEnum()
+    {
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+        var enumerated = schema.RootElement.GetProperty("$defs").GetProperty("issueCode").GetProperty("enum").EnumerateArray().Select(static e => e.GetString()!).ToArray();
+        var document = SchemaFiles.ReadDoc();
+
+        // One table row per code, in the section on issues: no code missing, none listed that the schema and the registry do not have.
+        var tables = DocumentedMembers.IssueCodeTableCodes(document);
+        Assert.Equal(tables.Count, tables.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(enumerated, tables.Order(StringComparer.Ordinal));
+        Assert.Equal(IssueCodes.All, tables.Order(StringComparer.Ordinal));
+
+        // The layout-only section says that no code is dropped, and names them all.
+        Assert.Equal(enumerated, DocumentedMembers.LayoutOnlyIssueCodes(document).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Docs_EvidenceStageList_IsThePipelineOrderOfTheRegistry()
+    {
+        var order = DocumentedMembers.Section(SchemaFiles.ReadDoc(), "## `evidence[]`")
+            .Split('\n')
+            .First(static l => l.StartsWith("**Order of entries.**", StringComparison.Ordinal));
+        var listed = System.Text.RegularExpressions.Regex.Matches(order[..order.IndexOf("; a stage added later", StringComparison.Ordinal)], "`([a-z]+)`")
+            .Select(static m => m.Groups[1].Value)
+            .ToArray();
+        Assert.Equal(EvidenceStages.Order, listed);
+        Assert.DoesNotContain("Profiler.StageOrder", order, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Docs_FamilyAndLabelLists_MarkPlannedValues()
+    {
+        using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
+        var properties = schema.RootElement.GetProperty("properties");
+        string[] Enum(JsonElement node) => node.GetProperty("enum").EnumerateArray().Select(static e => e.GetString()!).ToArray();
+        var families = Enum(properties.GetProperty("format").GetProperty("properties").GetProperty("family"));
+        var labels = Enum(properties.GetProperty("kind").GetProperty("properties").GetProperty("label"));
+        var ruleIds = Enum(properties.GetProperty("kind").GetProperty("properties").GetProperty("ruleId"));
+        var document = SchemaFiles.ReadDoc();
+        var names = new System.Text.RegularExpressions.Regex("`([^`]+)`");
+        string[] Names(string text) => names.Matches(text).Select(static m => m.Groups[1].Value).ToArray();
+
+        // The by-family table: a family is marked "(planned)" exactly when the schema does not have it.
+        var byFamily = DocumentedMembers.Section(document, "## `format.dialect` by family").Split('\n').Where(static l => l.StartsWith("| ", StringComparison.Ordinal)).Skip(1).ToArray();
+        var produced = byFamily.Where(static l => !l.Split('|')[1].Contains("(planned)", StringComparison.Ordinal)).Select(static l => l.Split('|')[1].Trim()).ToArray();
+        var planned = byFamily.Where(static l => l.Split('|')[1].Contains("(planned)", StringComparison.Ordinal)).Select(static l => l.Split('|')[1].Replace("(planned)", string.Empty, StringComparison.Ordinal).Trim()).ToArray();
+        Assert.Equal(["delimited"], produced);
+        Assert.Empty(planned.Intersect(families));
+        Assert.Empty(produced.Except(families));
+
+        // The top-level table names the families the schema has, then those that are planned.
+        var formatRow = document.Split('\n').First(static l => l.StartsWith("| `format` | object", StringComparison.Ordinal));
+        var familyCell = formatRow[(formatRow.IndexOf("`family` (", StringComparison.Ordinal) + "`family` (".Length)..];
+        familyCell = familyCell[..familyCell.IndexOf(')', StringComparison.Ordinal)];
+        var semicolon = familyCell.IndexOf(';', StringComparison.Ordinal);
+        Assert.Equal(families.Order(StringComparer.Ordinal), Names(familyCell[..semicolon]).Order(StringComparer.Ordinal));
+        Assert.Contains("planned", familyCell[semicolon..], StringComparison.Ordinal);
+        Assert.Equal(planned.Order(StringComparer.Ordinal), Names(familyCell[semicolon..]).Order(StringComparer.Ordinal));
+
+        // The kind section and the interim members name each label with its rule id, and the planned section says what the schema writes.
+        var pair = new System.Text.RegularExpressions.Regex("`([a-zA-Z]+)` \\(`(K[0-9]+)`\\)");
+        var expected = InterimKinds.Labels.Select(static l => InterimKinds.For(l)).Select(static k => k.Label + ":" + k.RuleId).Order(StringComparer.Ordinal).ToArray();
+        foreach (var heading in new[] { "## `kind`", "## Interim members" })
+        {
+            var section = DocumentedMembers.Section(document, heading);
+            var line = section.Split('\n').First(static l => l.Contains("`K09`", StringComparison.Ordinal));
+            Assert.Equal(expected, pair.Matches(line).Select(static m => m.Groups[1].Value + ":" + m.Groups[2].Value).Order(StringComparer.Ordinal));
+        }
+
+        var plannedSection = DocumentedMembers.Section(document, "## Planned for a 1.x minor release");
+        var labelBullet = plannedSection.Split('\n').First(static l => l.StartsWith("- `kind.label`:", StringComparison.Ordinal));
+        var writes = labelBullet[..labelBullet.IndexOf(" The labels", StringComparison.Ordinal)];
+        Assert.Equal(labels, Names(writes[..writes.IndexOf('(', StringComparison.Ordinal)]).Skip(1).Order(StringComparer.Ordinal));
+        Assert.Equal(ruleIds, Names(writes[writes.IndexOf('(', StringComparison.Ordinal)..]).Order(StringComparer.Ordinal));
+        var plannedLabels = Names(labelBullet[labelBullet.IndexOf(" The labels", StringComparison.Ordinal)..]);
+        Assert.NotEmpty(plannedLabels);
+        Assert.Empty(plannedLabels.Intersect(labels));
+
+        var familyBullet = plannedSection.Split('\n').First(static l => l.StartsWith("- `format.family`:", StringComparison.Ordinal));
+        var plannedByBullet = Names(familyBullet[..familyBullet.IndexOf(" Schema 1.0 writes", StringComparison.Ordinal)]).Skip(1).ToArray();
+        Assert.Equal(planned.Order(StringComparer.Ordinal), plannedByBullet.Order(StringComparer.Ordinal));
+        Assert.Equal(families.Order(StringComparer.Ordinal), Names(familyBullet[familyBullet.IndexOf(" Schema 1.0 writes", StringComparison.Ordinal)..]).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void DocumentedMembers_ReadsIssueCodeTablesAndSections()
+    {
+        const string markdown = """
+            # t
+
+            ## `issues[]`
+
+            Intro.
+
+            | Code | When |
+            |---|---|
+            | `a` | x |
+            | `b` | y |
+
+            ### Sub
+
+            text `notACode`
+
+            ## `evidence[]`
+
+            | Code | When |
+            |---|---|
+            | `later` | z |
+            """;
+        Assert.Equal(["a", "b"], DocumentedMembers.IssueCodeTableCodes(markdown));
+        Assert.Throws<InvalidDataException>(() => DocumentedMembers.IssueCodeTableCodes("# t\n"));
+        Assert.Throws<InvalidDataException>(() => DocumentedMembers.IssueCodeTableCodes("## `issues[]`\n\n| Code | When |\n|---|---|\n| plain | x |\n"));
+        Assert.Equal(["a", "b"], DocumentedMembers.LayoutOnlyIssueCodes("- **Issues.** Every issue code that squalify writes comes from here. So no code is dropped: `a` and `b` are written with the same counts"));
+    }
+
+    [Fact]
     public void DocumentedMembers_ReadsRowsAndNestedKeys()
     {
         const string markdown = """

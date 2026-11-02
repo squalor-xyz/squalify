@@ -124,7 +124,7 @@ internal sealed class LineCounter
         }
 
         others.Sort();
-        return new Issue("mixedLineEndings", Crlf + Lf + Cr - counts[dominant], FirstLines: others.Take(MaxListedLines).ToArray());
+        return new Issue(IssueCodes.MixedLineEndings, Crlf + Lf + Cr - counts[dominant], FirstLines: others.Take(MaxListedLines).ToArray());
     }
 
     private void Remember(int kind, long line)

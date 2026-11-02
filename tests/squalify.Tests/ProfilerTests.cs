@@ -215,13 +215,30 @@ public sealed class ProfilerTests : IDisposable
         var shuffled = new[]
         {
             new Evidence("format", "family", null, Array.Empty<Candidate>()),
-            new Evidence("zzz-later", "a", null, Array.Empty<Candidate>()),
+            new Evidence("unit", "headerConvention", null, Array.Empty<Candidate>()),
             new Evidence("encoding", "class", null, Array.Empty<Candidate>()),
             new Evidence("encoding", "charset", null, Array.Empty<Candidate>()),
         };
         Assert.Equal(
-            new[] { "encoding/charset", "encoding/class", "format/family", "zzz-later/a" },
+            new[] { "encoding/charset", "encoding/class", "format/family", "unit/headerConvention" },
             Profiler.SortEvidence(shuffled).Select(static e => e.Stage + "/" + e.Topic).ToArray());
+
+        // Every stage of the registry sorts at its place in the registry's order, whatever order the entries come in.
+        var reversed = EvidenceStages.Order.Reverse().Select(static s => new Evidence(s, "t", null, Array.Empty<Candidate>()));
+        Assert.Equal(EvidenceStages.Order, Profiler.SortEvidence(reversed).Select(static e => e.Stage).ToArray());
+    }
+
+    [Fact]
+    public void Profiler_UnknownStage_IsRejectedNotSortedLast()
+    {
+        // A stage that is not in the registry would write a descriptor that the closed schema refuses, so it is a defect, not a late stage.
+        var evidence = new[]
+        {
+            new Evidence("encoding", "class", null, Array.Empty<Candidate>()),
+            new Evidence("zzz-later", "a", null, Array.Empty<Candidate>()),
+        };
+        var thrown = Assert.Throws<InvalidOperationException>(() => Profiler.SortEvidence(evidence));
+        Assert.Contains("zzz-later", thrown.Message, StringComparison.Ordinal);
     }
 
     [Fact]
