@@ -1530,6 +1530,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "ab838599-e719-4d0b-b107-07e9c61a0cc8",
+          "kind": "",
+          "text": "**2026-11-02** — From sq-62 (2026-11-02, review R4/R5 and architect A3-A6, A8; later, for this slice):\n- A3: a new Issue forwarder (e.g. a TouchstoneProfiler.BlockIssue(code, ...)) needs two edits nothing ties together: exempting it in ExemptIssueSites, and naming it in BuildsAnIssue (which matches the hard-coded name LocatedIssue), else its callers go unchecked. Derive the builder names from the exemptions; IsCall skips callvirt, so an instance forwarder is missed.\n- A5/R5: Docs_FamilyAndLabelLists_MarkPlannedValues hard-codes [\"delimited\"], anchors on \"Schema 1.0 writes\" (sq-09's 1.1 wording change makes IndexOf -1 and the slice throws ArgumentOutOfRange), requires 'planned' in the split family cell (throws once sq-10 ships the last planned family), and Assert.NotEmpty(plannedLabels) breaks at sq-15. Make each anchor optional with a clear message. sq-09 must also drop \"sections\" from the hard-coded list in Schema_PlannedMembers; sq-10 drops stdf and binary.\n- A6/R4: the stage scan (IlLiteralsAtEvidenceSites intersect Order must be empty) flags any literal within 48 instructions before new Evidence that equals a stage name (\"format\", \"type\", \"unit\", \"header\"), in any argument; Touchstone/keyValue evidence will be built near such words. It also misses a non-literal topic. Narrow it to the stage argument slot.\n- A8: IssueCodes stays internal; a public IssueCodes for prism (which matches codes as literals) would be an additive minor, an owner call later.",
+          "created_at": "2026-11-02T15:55:36Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
