@@ -448,11 +448,6 @@ public sealed class DocsTests
     }
 
     /// <summary>
-    /// Release 1.0.0 (sq-53): the docs speak of the freeze and of the version in the present tense. None of them says that the freeze
-    /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", or that the project is "early
-    /// (0.3.x)"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.
-    /// </summary>
-    /// <summary>
     /// sq-09 (fix round 1): the docs say exactly which files change family in 1.1.0, and none says that a delimited file keeps its family
     /// without the exception (a whitespace file of "Key = Value" lines that 1.0.0 scored delimited 0.7 becomes keyValue 0.8).
     /// </summary>
@@ -476,6 +471,38 @@ public sealed class DocsTests
         Assert.True(problems.Count == 0, "The docs do not say which files change family:\n" + string.Join("\n", problems));
     }
 
+    /// <summary>
+    /// sq-09 (fix round 2): the docs follow the code on the noise region (a region kind of its own, not a labelled block), the v1 noise
+    /// rule, the cap on key=value sections, the scope of row classes and the Touchstone scoring without the extension.
+    /// </summary>
+    [Fact]
+    public void Docs_FollowTheNoiseRegionAndTheScoringRules()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        var descriptor = Collapse(ReadDoc(root, "docs/descriptor.md"));
+        Require(problems, "descriptor.md", descriptor, "- `noise`: the noise data of a two-port file.");
+        Require(problems, "descriptor.md", descriptor, "or equal to it on a line of exactly 5 values");
+        Require(problems, "descriptor.md", descriptor, "`regions` is the most blocks of a delimited file that are recognised, and the most sections of a key=value document that are listed");
+        Require(problems, "descriptor.md", descriptor, "`headerConvention` (delimited tables with a header), `maxLineLength` (text, delimited, touchstone and keyValue; in characters)");
+        Forbid(problems, "descriptor.md", descriptor, "`block` with `label` `noise`", "the line whose frequency is lower than the last network frequency", "`label` (block: `noise`)");
+
+        var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
+        Require(problems, "user-guide.md", guide, "without a Touchstone extension the first line must be `[Version]` or an option line with at least two recognised tokens");
+        Forbid(problems, "user-guide.md", guide, "`Region` gained the optional init member `Label`");
+
+        var how = Collapse(ReadDoc(root, "docs/how-it-works.md"));
+        Require(problems, "how-it-works.md", how, "Row classes are for delimited tables only");
+        Require(problems, "how-it-works.md", how, "when the first line is [Version] or an option line of 2+ recognised tokens, then numeric data");
+        Require(problems, "how-it-works.md", how, "(1 + N(N+1) for Lower/Upper)");
+        Assert.True(problems.Count == 0, "The docs do not follow the code:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
+    /// Release 1.0.0 (sq-53): the docs speak of the freeze and of the version in the present tense. None of them says that the freeze
+    /// "takes effect with 1.0.0", that "before 1.0 a minor version may still change the descriptor", or that the project is "early
+    /// (0.3.x)"; the how-it-works banner names the release series of <c>Directory.Build.props</c>.
+    /// </summary>
     [Fact]
     public void Docs_SpeakOfTheFreezeAndTheVersionInThePresentTense()
     {

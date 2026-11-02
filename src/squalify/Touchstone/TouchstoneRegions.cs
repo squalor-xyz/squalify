@@ -16,7 +16,7 @@ internal enum LineClass
 
 /// <summary>
 /// Tracks the regions of a Touchstone file as its lines stream by: the <c>preamble</c> (everything before the first data line), the
-/// <c>data</c> (the network data), the <c>block</c> labelled <c>noise</c> (a Version 2 file's block starts at its <c>[Noise Data]</c>
+/// <c>data</c> (the network data), the <c>noise</c> (a Version 2 file's block starts at its <c>[Noise Data]</c>
 /// keyword, a Version 1 file's at its first line of noise data), and the <c>footer</c> (the lines after the last line of data that are not
 /// blank). A blank line belongs to the region before it, and so does a comment or a keyword line that comes before the next line of data,
 /// so the regions tile the file. Lines that are not data are counted by kind (<c>blank</c>, <c>comment</c>, <c>text</c>); the lines of
@@ -56,7 +56,7 @@ internal sealed class TouchstoneRegions
     {
         if (startsNoise)
         {
-            Transition("block", line);
+            Transition("noise", line);
             _current.Counts[(int)kind]++;
             return;
         }
@@ -93,7 +93,7 @@ internal sealed class TouchstoneRegions
     /// <param name="noise">True for a line of noise data.</param>
     public void Data(TextLine line, bool noise)
     {
-        var kind = noise ? "block" : "data";
+        var kind = noise ? "noise" : "data";
         if (_current.Kind == "preamble" || _current.Kind != kind)
         {
             Transition(kind, line);
@@ -181,16 +181,7 @@ internal sealed class TouchstoneRegions
             }
         }
 
-        _done.Add(new Region(
-            open.Kind,
-            open.FirstLine,
-            lastLine,
-            open.StartByte,
-            endByte,
-            LineKinds: kinds.Count == 0 ? null : CountMap.FromOrdinal(kinds))
-        {
-            Label = open.Kind == "block" ? "noise" : null,
-        });
+        _done.Add(new Region(open.Kind, open.FirstLine, lastLine, open.StartByte, endByte, LineKinds: kinds.Count == 0 ? null : CountMap.FromOrdinal(kinds)));
     }
 
     private sealed class Open(string kind, long firstLine, long startByte)

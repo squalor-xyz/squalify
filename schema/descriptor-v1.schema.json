@@ -14,9 +14,9 @@
     "valueType": { "enum": ["empty", "bool", "int", "float", "date", "datetime", "time", "string"] },
     "convention": { "enum": ["nameParenUnit", "nameBracketUnit", "nameUnderscoreUnit", "unitsRow", "none"] },
     "delimiter": { "enum": [",", "\t", ";", "|", "whitespace", "none"] },
-    "regionKind": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "block", "unknown"] },
+    "regionKind": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "noise", "block", "unknown"] },
     "childRegionKind": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "unknown"] },
-    "issueRegion": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "unknown", "other"] },
+    "issueRegion": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "noise", "unknown", "other"] },
     "issueCode": {
       "enum": [
         "blocksTruncated", "commentInData", "duplicateHeader", "duplicateKey", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched",
@@ -147,7 +147,6 @@
       "properties": {
         "kind": { "$ref": "#/$defs/regionKind" },
         "index": { "$ref": "#/$defs/count" },
-        "label": { "enum": ["noise"] },
         "lines": { "$ref": "#/$defs/pair" },
         "bytes": { "$ref": "#/$defs/pair" },
         "lineKinds": { "$ref": "#/$defs/lineKinds" },

@@ -86,7 +86,7 @@ internal static class InvalidByteLocator
 
     /// <summary>
     /// The name of the layout region that each offset falls in: the kind of the region whose byte range holds it
-    /// (<c>preamble</c>, <c>annotation</c>, <c>header</c>, <c>units</c>, <c>data</c>, <c>footer</c> or <c>unknown</c>). In a file with
+    /// (<c>preamble</c>, <c>annotation</c>, <c>header</c>, <c>units</c>, <c>data</c>, <c>footer</c>, <c>noise</c> or <c>unknown</c>). In a file with
     /// several blocks it is the kind of the block's child region, never <c>block</c>. A byte that lies in no region (a gap in the
     /// layout, a block that has no child holding it, or a layout with no regions) is <see cref="OtherRegion"/>.
     /// </summary>
@@ -115,9 +115,19 @@ internal static class InvalidByteLocator
                 continue;
             }
 
-            return region.Kind == "block" ? Name(region.Regions ?? [], offset) : region.Kind;
+            // A block is a container: the name is its child's. Every other kind that the layouts write is a name of its own; a kind that
+            // is not listed (none today) is not guessed at.
+            if (region.Kind == "block")
+            {
+                return Name(region.Regions ?? [], offset);
+            }
+
+            return Array.IndexOf(RegionKinds, region.Kind) >= 0 ? region.Kind : OtherRegion;
         }
 
         return OtherRegion;
     }
+
+    /// <summary>The region kinds that <c>issues[].regions</c> can name (the closed set <c>issueRegion</c> of the schema, without <c>other</c>).</summary>
+    internal static readonly string[] RegionKinds = ["preamble", "annotation", "header", "units", "data", "footer", "noise", "unknown"];
 }

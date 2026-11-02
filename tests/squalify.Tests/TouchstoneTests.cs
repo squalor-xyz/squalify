@@ -255,15 +255,14 @@ public sealed class TouchstoneTests
         // network data, 12 [Noise Data] (the noise block starts at its keyword), 13 and 14 the noise, 15 [End].
         var text = new TouchstoneBuilder { Ports = 2, V2 = true, Frequencies = 3, NoiseFrequencies = 2 }.Comment(" synthetic").Build();
         var d = Profile(text, "a.ts");
-        Assert.Equal(["preamble", "data", "block", "footer"], d.Layout.Regions.Select(static r => r.Kind).ToArray());
+        Assert.Equal(["preamble", "data", "noise", "footer"], d.Layout.Regions.Select(static r => r.Kind).ToArray());
 
         using var json = JsonDocument.Parse(Json(d));
         var regions = json.RootElement.GetProperty("layout").GetProperty("regions").EnumerateArray().ToArray();
         Assert.Equal([1, 8], Pair(regions[0], "lines"));
         Assert.Equal(1, regions[0].GetProperty("lineKinds").GetProperty("comment").GetInt32());
         Assert.Equal([9, 11], Pair(regions[1], "lines"));
-        Assert.Equal("block", regions[2].GetProperty("kind").GetString());
-        Assert.Equal("noise", regions[2].GetProperty("label").GetString());
+        Assert.Equal("noise", regions[2].GetProperty("kind").GetString());
         Assert.Equal([12, 14], Pair(regions[2], "lines"));
         Assert.Equal([15, 15], Pair(regions[3], "lines"));
 
@@ -277,13 +276,28 @@ public sealed class TouchstoneTests
 
         Assert.Equal(text.Length, end);
 
-        // Only the noise block is labelled.
-        Assert.DoesNotContain(regions.Where(static r => r.GetProperty("kind").GetString() != "block"), static r => r.TryGetProperty("label", out _));
+        // A region has no label.
+        Assert.DoesNotContain(regions, static r => r.TryGetProperty("label", out _));
     }
 
     private static int[] Pair(JsonElement region, string name)
     {
         return region.GetProperty(name).EnumerateArray().Select(static e => e.GetInt32()).ToArray();
+    }
+
+    [Fact]
+    public void Touchstone_InvalidByte_InTheNoiseData_IsLocatedInTheNoiseRegion()
+    {
+        // A stray invalid UTF-8 byte inside the noise data (found by the architect): the issue says "noise", not "other".
+        var text = new TouchstoneBuilder { Ports = 2, V2 = true, Frequencies = 3, NoiseFrequencies = 2 }.Build();
+        var at = text.IndexOf("[Noise Data]", StringComparison.Ordinal);
+        var noiseLine = text.IndexOf('\n', at) + 1;
+        var bytes = Encoding.ASCII.GetBytes(text[..(noiseLine + 3)]).Concat(new byte[] { 0x89 }).Concat(Encoding.ASCII.GetBytes(text[(noiseLine + 3)..])).ToArray();
+        var d = Profiler.Profile(new BytesSource("a.s2p", bytes), Options());
+        Assert.Equal("touchstone", d.Format.Family);
+        var issue = Assert.Single(d.Issues, static i => i.Code == "invalidUtf8");
+        Assert.Equal(["noise"], issue.Regions);
+        Assert.Equal([noiseLine + 3L], issue.Offsets);
     }
 
     [Fact]

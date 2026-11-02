@@ -400,8 +400,9 @@ public class SchemaTests
         using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
         var names = CodeVocabulary.RegionNames();
 
-        // The eight names of issues[].regions: the seven region kinds that hold bytes, and "other" for a byte that no region holds.
-        Assert.Equal(8, names.Count);
+        // The nine names of issues[].regions: the eight region kinds that hold bytes (noise included, sq-09), and "other" for a byte that no region holds.
+        Assert.Equal(9, names.Count);
+        Assert.Equal(names.Where(static n => n != "other").Order(StringComparer.Ordinal), InvalidByteLocator.RegionKinds.Order(StringComparer.Ordinal));
         Assert.Equal(names, EnumOf(Definition(schema, "issueRegion")).Order(StringComparer.Ordinal));
         var issues = schema.RootElement.GetProperty("properties").GetProperty("issues").GetProperty("items").GetProperty("properties");
         Assert.Equal("#/$defs/issueRegion", issues.GetProperty("regions").GetProperty("items").GetProperty("$ref").GetString());
@@ -411,7 +412,7 @@ public class SchemaTests
         Assert.Equal(CodeVocabulary.RegionKinds(), kinds);
         Assert.Equal(names.Where(static n => n != "other").Append("block").Order(StringComparer.Ordinal), kinds);
         Assert.DoesNotContain("block", names);
-        Assert.Equal(EnumOf(Definition(schema, "childRegionKind")).Order(StringComparer.Ordinal), kinds.Where(static k => k != "block"));
+        Assert.Equal(EnumOf(Definition(schema, "childRegionKind")).Order(StringComparer.Ordinal), kinds.Where(static k => k is not ("block" or "noise")));
     }
 
     [Fact]
@@ -649,29 +650,28 @@ public class SchemaTests
     }
 
     [Fact]
-    public void Region_BlockLabel_Noise_InSchema()
+    public void Region_Noise_IsARegionKindInTheSchema_AndBlockKeepsItsMeaning()
     {
-        // sq-09: a block region may carry the label "noise" (the noise block of a Touchstone file). The label is a member of the region
-        // of the top level, and nowhere else.
+        // sq-09 (owner answer, A1): the noise data of a Touchstone file is a region of the kind "noise", not a block with a label. A block
+        // keeps its meaning (a repeated header-and-table block of a delimited file), and a region has no label.
         Assert.Empty(Validate(GoldenNode("delimited/per-site-blocks.csv")));
+        var noise = GoldenNode("delimited/per-site-blocks.csv");
+        noise["layout"]!["regions"]![1]!["kind"] = "noise";
+        Assert.Empty(Validate(noise));
         var labelled = GoldenNode("delimited/per-site-blocks.csv");
         labelled["layout"]!["regions"]![1]!.AsObject().Insert(1, "label", "noise");
-        Assert.Empty(Validate(labelled));
+        Assert.NotEmpty(Validate(labelled));
 
-        // Only the value noise is in the set.
-        var other = GoldenNode("delimited/per-site-blocks.csv");
-        other["layout"]!["regions"]![1]!.AsObject().Insert(1, "label", "site");
-        Assert.NotEmpty(Validate(other));
-
-        // A child region has no label.
+        // A child of a block is never noise.
         var child = GoldenNode("delimited/per-site-blocks.csv");
-        child["layout"]!["regions"]![0]!["regions"]![0]!.AsObject().Insert(1, "label", "noise");
+        child["layout"]!["regions"]![0]!["regions"]![0]!["kind"] = "noise";
         Assert.NotEmpty(Validate(child));
 
-        // The noise block of a Touchstone file is written with it, and the descriptor is valid.
+        // The noise data of a Touchstone file is written as that kind, with no block and no label, and the descriptor is valid.
         var touchstone = DescriptorInvariantsTests.Profile("touchstone/s2p-v1-noise.s2p");
-        var block = touchstone["layout"]!["regions"]!.AsArray().Single(static r => r!["kind"]!.GetValue<string>() == "block")!;
-        Assert.Equal("noise", block["label"]!.GetValue<string>());
+        var regions = touchstone["layout"]!["regions"]!.AsArray();
+        Assert.Equal("noise", Assert.Single(regions, static r => r!["kind"]!.GetValue<string>() == "noise")!["kind"]!.GetValue<string>());
+        Assert.DoesNotContain(regions, static r => r!["kind"]!.GetValue<string>() == "block" || r.AsObject().ContainsKey("label"));
         Assert.Empty(Validate(touchstone));
     }
 }

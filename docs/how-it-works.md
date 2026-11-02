@@ -60,7 +60,7 @@ Every profiler looks at the file and gives a score from 0 to 1. The highest scor
 ```mermaid
 flowchart LR
     S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF (planned): FAR record at start → 1.0"]
-    S --> P3["Touchstone: extension + option line → 0.9 (0.7 without the extension)<br/><small>TouchstoneProfiler, reads only the head</small>"]
+    S --> P3["Touchstone: extension + option line → 0.9 (0.7 without the extension, when the first line is [Version] or an option line of 2+ recognised tokens, then numeric data)<br/><small>TouchstoneProfiler, reads only the head</small>"]
     S --> P4["Key=value document: 80 percent of the lines are key/value lines, and no table → 0.8<br/><small>KeyValueProfiler</small>"]
     S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score (0.5 for a header-only or one-column table)<br/><small>DelimitedProfiler</small>"]
     S --> P6["Plain text / other binary (a Parquet file included) → 0.1–0.2"]
@@ -93,9 +93,9 @@ Two profilers read a file as lines and not as records, with one streaming line r
 flowchart TD
     L["Lines, one by one<br/><small>LineScan</small>"] --> T{"Which profiler won?"}
     T -- "touchstone" --> T1["Option line and keywords<br/><small>TouchstoneSyntax</small>"]
-    T1 --> T2["Numbers of the data lines as one flat stream,<br/>cut into blocks of 1 + 2N² values<br/><small>TouchstonePass</small>"]
+    T1 --> T2["Numbers of the data lines as one flat stream,<br/>cut into blocks of 1 + 2N² values<br/>(1 + N(N+1) for Lower/Upper)<br/><small>TouchstonePass</small>"]
     T2 --> T3["Whole blocks go to the field accumulators:<br/>freq, S11.mag, S11.ang, ...; noise.* for noise data<br/><small>FieldAccumulator</small>"]
-    T --> T4["Regions: preamble, data, noise block, footer<br/><small>TouchstoneRegions</small>"]
+    T --> T4["Regions: preamble, data, noise, footer<br/><small>TouchstoneRegions</small>"]
     T -- "keyValue" --> K1["Sections, keys and values per line<br/><small>KeyValueSyntax, KeyValuePass</small>"]
     K1 --> K2["Each value goes to the accumulator of its key:<br/>one field per different key<br/><small>FieldAccumulator</small>"]
     T3 & T4 & K2 --> D["Dialect, sections, table, issues, evidence"]
@@ -489,7 +489,7 @@ Logarithms are the one place where platforms can disagree: the system math libra
 
 ## 10. Row classes
 
-Some exports mix several kinds of row in one table: measurement rows, setup rows, error rows and empty separator rows, switching kind on almost every line. Regions cannot describe that, because a region is one stretch of lines. squalify groups the data rows by which columns are filled in, and reports each group, how often the kind switches, and how many rows are completely empty. Column null counts are also given without the empty rows, so separators do not look like missing measurements.
+Row classes are for delimited tables only: a Touchstone or key=value table has none (`table.rowClasses` is left out). Some exports mix several kinds of row in one table: measurement rows, setup rows, error rows and empty separator rows, switching kind on almost every line. Regions cannot describe that, because a region is one stretch of lines. squalify groups the data rows by which columns are filled in, and reports each group, how often the kind switches, and how many rows are completely empty. Column null counts are also given without the empty rows, so separators do not look like missing measurements.
 
 ```mermaid
 flowchart TD
@@ -547,6 +547,8 @@ flowchart TD
 *Source: `Sniff/ByteSniffer.cs`, `Sniff/SniffResult.cs`, `Sniff/MagicTable.cs`, `Text/InvalidUnicodeScanner.cs`, `Text/TextDecoder.cs`, `Text/InvalidByteLocator.cs`, `Profiler.cs`.* The exact thresholds and the magic table are in [descriptor.md](descriptor.md#encoding).
 
 ## 13. The layout-only profile
+
+Row classes exist for delimited tables only. A Touchstone or key=value file keeps its dialect, regions, sections and field names in a layout-only profile, and has no row classes to compute.
 
 A consumer that only classifies a file reads the encoding, the dialect, the layout regions, the header names and the row classes, and nothing a field's values give. With `--layout-only` squalify does that part of the work and leaves the rest out. The byte pass, the choice of format, the regions, the header and units rows, the header conventions, the blocks and the padding are the same steps, and they read the sampled rows, not the field accumulators, so they give the same answer as a full profile. What changes is the pass over the data rows: no field accumulator is made, so nothing is typed, counted, sketched or shaped, and each cell only gets one check, is it an empty marker, because the row classes group rows by which fields are empty. The check is the first test of the classifier in section 5, so the row classes are the same as a full profile's.
 

@@ -65,7 +65,7 @@
     "regions": [
       { "kind": "preamble", "lines": [1, 9], "bytes": [0, 227], "lineKinds": { "comment": 1, "text": 8 } },
       { "kind": "data", "lines": [10, 12], "bytes": [227, 377] },
-      { "kind": "block", "label": "noise", "lines": [13, 16], "bytes": [377, 463], "lineKinds": { "comment": 1, "text": 1 } },
+      { "kind": "noise", "lines": [13, 16], "bytes": [377, 463], "lineKinds": { "comment": 1, "text": 1 } },
       { "kind": "footer", "lines": [17, 17], "bytes": [463, 469], "lineKinds": { "text": 1 } }
     ],
     "maxLineLength": 55
@@ -456,9 +456,9 @@
   },
   "fingerprint": {
     "version": 2,
-    "structure": "sha256:3f5effe3f95f458a9a875fb85dc794d2c474ed01e2fee2761946d885fe55574e",
-    "layout": "sha256:f92be6385a7fce4ee7ed6148e842782849d580ac4fb0ac6fdc2ba84998142482",
-    "typed": "sha256:8076d4788fe5f5427064acb7742ba0509742d37f55e471311179714f53a2a24d",
+    "structure": "sha256:297066b088d91aa66012f58cceafa5664b51becc7f158f1966fad94fee96ad70",
+    "layout": "sha256:01385d7b8525b76cb19c546f512281c6165486e9257f007a709698d29836a829",
+    "typed": "sha256:478a3a012493fd249800d8bea7ff96d9c615a39842859d8fb8e942d0570bc035",
     "names": "sha256:81b49e8f8389694e46d82f812379c265618431080a3d0c004437a74fe2afa289"
   },
   "hints": {
