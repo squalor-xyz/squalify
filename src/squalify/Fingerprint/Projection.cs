@@ -14,7 +14,8 @@ namespace squalor.squalify;
 /// True for a layout-only profile: the fields hold no types, so the <c>typed</c> projection cannot be built and the
 /// fingerprint has none. The other three projections do not read a type and are the same as for a full profile.
 /// </param>
-internal sealed record ProjectionInput(string Family, string? Charset, Dialect? Dialect, LayoutSection Layout, TableSection? Table, bool LayoutOnly = false)
+/// <param name="Sections">The sections of a key=value document, or null.</param>
+internal sealed record ProjectionInput(string Family, string? Charset, Dialect? Dialect, LayoutSection Layout, TableSection? Table, bool LayoutOnly = false, IReadOnlyList<KeyValueSection>? Sections = null)
 {
     /// <summary>Takes the input from a finished descriptor.</summary>
     /// <param name="descriptor">The descriptor.</param>
@@ -22,7 +23,7 @@ internal sealed record ProjectionInput(string Family, string? Charset, Dialect? 
     public static ProjectionInput From(Descriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return new ProjectionInput(descriptor.Format.Family, descriptor.Encoding.Charset, descriptor.Format.Dialect, descriptor.Layout, descriptor.Table, descriptor.LayoutOnly);
+        return new ProjectionInput(descriptor.Format.Family, descriptor.Encoding.Charset, descriptor.Format.Dialect, descriptor.Layout, descriptor.Table, descriptor.LayoutOnly, descriptor.Sections);
     }
 }
 

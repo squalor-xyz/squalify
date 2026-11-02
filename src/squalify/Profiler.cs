@@ -190,7 +190,7 @@ public static class Profiler
         evidence.AddRange(profile.Evidence);
         evidence.AddRange(choice.NotChosenEvidence ?? []);
 
-        var projection = Projection.Compute(new ProjectionInput(choice.Family, sniff.Charset, profile.Dialect, profile.Layout, profile.Table, options.LayoutOnly));
+        var projection = Projection.Compute(new ProjectionInput(choice.Family, sniff.Charset, profile.Dialect, profile.Layout, profile.Table, options.LayoutOnly, profile.Sections));
         if (projection.Excluded > 0)
         {
             issues.Add(new Issue(IssueCodes.NameExcludedFromFingerprint, projection.Excluded));
@@ -219,6 +219,7 @@ public static class Profiler
             Issues: Ordinal.SortedBy(issues, static i => i.Code),
             Evidence: SortEvidence(evidence),
             Table: profile.Table,
+            Sections: profile.Sections,
             Binary: profile.Binary,
             Scope: scope);
 

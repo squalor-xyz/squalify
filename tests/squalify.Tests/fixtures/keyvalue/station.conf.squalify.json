@@ -1,0 +1,236 @@
+{
+  "schemaVersion": "1.1",
+  "tool": { "name": "squalify", "version": "1.0.0" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "shapeCharsPerField": 53312,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
+    "stdfTests": 10000,
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
+    "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
+    "nullSpellings": { "max": 64, "maxChars": 256, "maxDistinctOther": 64 },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": { "name": "station.conf", "size": 161, "sha256": "0ba527a9469119463102fc05b960a9e2bc0c9489e4e944ff642bb97107d029a3" },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": { "crlf": 0, "lf": 7, "cr": 0 },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": { "family": "keyValue", "dialect": { "separator": ":", "hasSections": false }, "score": 0.8 },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
+  "layout": {
+    "regions": [{ "kind": "data", "lines": [1, 7], "bytes": [0, 161], "lineKinds": { "comment": 1, "keyValue": 6 } }],
+    "maxLineLength": 58
+  },
+  "table": {
+    "rows": 1,
+    "fieldCount": { "min": 6, "max": 6 },
+    "fields": [
+      {
+        "index": 0,
+        "name": "Station",
+        "rawName": "Station",
+        "nameParts": null,
+        "type": "string",
+        "dominant": { "type": "string", "share": 1 },
+        "typeVotes": { "string": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": null,
+        "length": { "min": 8, "max": 8, "mean": 8 },
+        "shapes": [{ "mask": "A{5}-9{2}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 1,
+        "name": "Operator",
+        "rawName": "Operator",
+        "nameParts": null,
+        "type": "string",
+        "dominant": { "type": "string", "share": 1 },
+        "typeVotes": { "string": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": null,
+        "length": { "min": 9, "max": 9, "mean": 9 },
+        "shapes": [{ "mask": "a{4}-a{4}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 2,
+        "name": "Temperature",
+        "rawName": "Temperature",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9{2}.9", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 3,
+        "name": "Humidity",
+        "rawName": "Humidity",
+        "nameParts": null,
+        "type": "int",
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 2, "max": 2, "mean": 2 },
+        "shapes": [{ "mask": "9{2}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 4,
+        "name": "Calibrated",
+        "rawName": "Calibrated",
+        "nameParts": null,
+        "type": "date",
+        "dominant": { "type": "date", "share": 1 },
+        "typeVotes": { "date": 1 },
+        "patterns": { "yyyy-nn-nn": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 10, "max": 10, "mean": 10 },
+        "shapes": [{ "mask": "9{4}-9{2}-9{2}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 5,
+        "name": "Open",
+        "rawName": "Open",
+        "nameParts": null,
+        "type": "bool",
+        "dominant": { "type": "bool", "share": 1 },
+        "typeVotes": { "bool": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": null,
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "a{3}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      }
+    ]
+  },
+  "sections": [{ "name": "", "line": 2, "keys": ["Station", "Operator", "Temperature", "Humidity", "Calibrated", "Open"] }],
+  "fingerprint": {
+    "version": 2,
+    "structure": "sha256:2f97af3bb34b8ce66b50f781ce61b5da7bad29f7603570950c34234dc1b9218a",
+    "layout": "sha256:a8930265f67d33d32589f15bd2673937a6b676494ef70ee5a9b890276f819a69",
+    "typed": "sha256:2cea5fa5adec97383da363cf6aecdb24b66c9f341f7437a7836859c9baea8949",
+    "names": "sha256:5bb93cafd36e7525a31582ce142dd01bf6c048eb47a07db98ac3ed5ccc1de1db"
+  },
+  "hints": {
+    "extension": ".conf",
+    "magic": null,
+    "stableLines": [
+      { "line": 1, "regex": "^\\s*Station\\s*[=:]" },
+      { "line": 2, "regex": "^\\s*Operator\\s*[=:]" },
+      { "line": 3, "regex": "^\\s*Temperature\\s*[=:]" },
+      { "line": 4, "regex": "^\\s*Humidity\\s*[=:]" },
+      { "line": 5, "regex": "^\\s*Calibrated\\s*[=:]" },
+      { "line": 6, "regex": "^\\s*Open\\s*[=:]" }
+    ],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": [0, 1, 2, 3, 4, 5],
+    "fieldCount": { "min": 6, "max": 6 },
+    "dataStartLine": 1,
+    "delimiter": null,
+    "headerConvention": null,
+    "stdf": null,
+    "fileNameShape": "a{7}.a{4}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 161 bytes are control bytes" }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "keyValue",
+      "candidates": [
+        { "value": "touchstone", "score": 0, "reason": "first line is not an option line or [Version]" },
+        { "value": "keyValue", "score": 0.8, "reason": "6 key/value lines, 0 section headers, 6 lines in all" },
+        {
+          "value": "delimited",
+          "score": 0.6428571428571428,
+          "reason": "delimiter whitespace; k=2; 6/7 records; clean=1; run lines 2-7; 0 quoted fields"
+        },
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "separator",
+      "chosen": ":",
+      "candidates": [
+        { "value": ":", "score": 1, "reason": "6 of 6 key/value lines" },
+        { "value": "=", "score": 0, "reason": "0 of 6 key/value lines" }
+      ]
+    }
+  ]
+}

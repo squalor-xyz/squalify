@@ -55,6 +55,13 @@ public sealed record Region(
     IReadOnlyList<AnnotationRow>? Rows = null,
     IReadOnlyList<Region>? Regions = null)
 {
+    /// <summary>
+    /// The label of a <c>block</c> region of a Touchstone file: <c>noise</c> for the block of noise data. Null for every other region.
+    /// It is an init member, not a positional one, so that the constructor of the record is unchanged. Written right after
+    /// <c>index</c>.
+    /// </summary>
+    public string? Label { get; init; }
+
     /// <inheritdoc />
     public bool Equals(Region? other)
     {
@@ -65,6 +72,7 @@ public sealed record Region(
             && EqualityComparer<long>.Default.Equals(StartByte, other.StartByte)
             && EqualityComparer<long>.Default.Equals(EndByte, other.EndByte)
             && EqualityComparer<long?>.Default.Equals(Index, other.Index)
+            && EqualityComparer<string?>.Default.Equals(Label, other.Label)
             && EqualityComparer<CountMap?>.Default.Equals(LineKinds, other.LineKinds)
             && ValueEquality.ListEquals(Keys, other.Keys)
             && ValueEquality.ListEquals(Values, other.Values)
@@ -82,6 +90,7 @@ public sealed record Region(
         hash.Add(StartByte);
         hash.Add(EndByte);
         hash.Add(Index);
+        hash.Add(Label);
         hash.Add(LineKinds);
         ValueEquality.AddList(ref hash, Keys);
         ValueEquality.AddList(ref hash, Values);

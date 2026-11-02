@@ -140,7 +140,7 @@ public class SchemaValueTests
         yield return P("encoding.invalidBytesTolerated", Doc.Model, "/encoding/invalidBytesTolerated", "true", "false");
         yield return P("nullSpellingsOtherDistinctCapped", Doc.Model, "/table/fields/1/nullSpellingsOtherDistinctCapped", "true", "false");
         yield return P("allNullRowSpellingsOtherDistinctCapped", Doc.Model, "/table/rowClasses/allNullRowSpellingsOtherDistinctCapped", "true", "false");
-        yield return P("schemaVersion", Doc.Model, "/schemaVersion", Q("1.0"), Q("1.1"), Q("2.0"), "1");
+        yield return P("schemaVersion", Doc.Model, "/schemaVersion", Q("1.1"), Q("1.0"), Q("2.0"), "1");
         yield return P("layoutOnly is only true", Doc.Model, "/layoutOnly", "true", "false");
     }
 
@@ -254,7 +254,15 @@ public class SchemaValueTests
             ["$defs/regionKind"] = ["preamble", "annotation", "header", "units", "data", "footer", "block", "unknown"],
             ["$defs/childRegionKind"] = ["preamble", "annotation", "header", "units", "data", "footer", "unknown"],
             ["$defs/issueRegion"] = ["preamble", "annotation", "header", "units", "data", "footer", "unknown", "other"],
-            ["$defs/issueCode"] = ["blocksTruncated", "commentInData", "duplicateHeader", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched", "invalidUnicode", "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "raggedRows", "tooIrregular"],
+            ["$defs/issueCode"] = ["blocksTruncated", "commentInData", "duplicateHeader", "duplicateKey", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched", "incompleteBlock", "invalidUnicode", "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "nonMonotonicFrequency", "portMismatch", "raggedRows", "tooIrregular"],
+            ["$defs/region/properties/label"] = ["noise"],
+            ["$defs/touchstoneDialect/properties/frequencyUnit"] = ["Hz", "kHz", "MHz", "GHz"],
+            ["$defs/touchstoneDialect/properties/parameter"] = ["S", "Y", "Z", "H", "G"],
+            ["$defs/touchstoneDialect/properties/dataFormat"] = ["DB", "MA", "RI"],
+            ["$defs/touchstoneDialect/properties/twoPortOrder"] = ["21_12", "12_21", "null"],
+            ["$defs/touchstoneDialect/properties/matrixFormat"] = ["Full", "Lower", "Upper"],
+            ["$defs/touchstoneDialect/properties/keywords/items"] = ["[Version]", "[Number of Ports]", "[Two-Port Data Order]", "[Number of Frequencies]", "[Number of Noise Frequencies]", "[Reference]", "[Matrix Format]", "[Mixed-Mode Order]", "[Network Data]", "[Noise Data]", "[End]"],
+            ["$defs/keyValueDialect/properties/separator"] = ["=", ":"],
             ["$defs/evidenceStage"] = ["encoding", "format", "dialect", "header", "unit", "type"],
             ["$defs/delimitedDialect/properties/quote"] = ["\""],
             ["$defs/delimitedDialect/properties/decimalSeparator"] = [".", ","],
@@ -265,7 +273,7 @@ public class SchemaValueTests
             ["properties/encoding/properties/kind"] = ["empty", "text", "binary"],
             ["properties/encoding/properties/charset"] = ["ascii", "utf-8", "latin-1", "utf-16le", "utf-16be", "utf-32le", "utf-32be", "null"],
             ["properties/encoding/properties/bom"] = ["utf-8", "utf-16le", "utf-16be", "utf-32le", "utf-32be", "null"],
-            ["properties/format/properties/family"] = ["delimited", "text", "binary", "empty"],
+            ["properties/format/properties/family"] = ["delimited", "touchstone", "keyValue", "text", "binary", "empty"],
             ["properties/kind/properties/label"] = ["binary", "empty", "text"],
             ["properties/kind/properties/ruleId"] = ["K09", "K11", "K12"],
             ["properties/hints/properties/delimiter"] = [",", "\t", ";", "|", "whitespace", "none", "null"],

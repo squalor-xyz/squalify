@@ -84,13 +84,13 @@ public class FormatRegistryTests
     }
 
     [Fact]
-    public void Registry_Default_RegistersDelimitedTextAndBinary()
+    public void Registry_Default_RegistersTouchstoneKeyValueDelimitedTextAndBinary()
     {
         var choice = FormatRegistry.Default.Detect(Source, SniffText(), Context);
-        Assert.Equal(new[] { "delimited", "text", "binary" }, choice.Evidence.Candidates.Select(static c => c.Value).ToArray());
+        Assert.Equal(new[] { "touchstone", "keyValue", "delimited", "text", "binary" }, choice.Evidence.Candidates.Select(static c => c.Value).ToArray());
         Assert.Equal("text", choice.Family);
         Assert.Equal(0.1, choice.Score);
-        Assert.Equal(new[] { 0.0, 0.1, 0.0 }, choice.Evidence.Candidates.Select(static c => c.Score).ToArray());
+        Assert.Equal(new[] { 0.0, 0.0, 0.0, 0.1, 0.0 }, choice.Evidence.Candidates.Select(static c => c.Score).ToArray());
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class FormatRegistryTests
         Assert.Equal("empty", choice.Family);
         Assert.Equal("empty", choice.Evidence.Chosen);
         Assert.Null(choice.Profiler);
-        Assert.Equal(new[] { 0.0, 0.0, 0.0 }, choice.Evidence.Candidates.Select(static c => c.Score).ToArray());
+        Assert.Equal(new[] { 0.0, 0.0, 0.0, 0.0, 0.0 }, choice.Evidence.Candidates.Select(static c => c.Score).ToArray());
     }
 
     [Fact]
@@ -130,5 +130,38 @@ public class FormatRegistryTests
         Assert.Equal(new[] { "tooIrregular" }, choice.NotChosenIssues!.Select(static i => i.Code).ToArray());
         Assert.Equal(new[] { "dialect" }, choice.NotChosenEvidence!.Select(static e => e.Stage).ToArray());
         Assert.Same(winner, choice.ProfilerScore);
+    }
+
+    [Fact]
+    public void Registry_TouchstoneAndKeyValue_DoNotReclaimAnyExistingFixture()
+    {
+        // sq-09: profilers added in a minor may claim files an earlier minor described otherwise, but no fixture that existed before them
+        // is reclassified: every committed fixture outside the new folders keeps the family of its golden (or, with no golden, is not
+        // one of the two new families).
+        var root = Path.Combine(AppContext.BaseDirectory, "fixtures");
+        string[] newFixtures = ["touchstone/", "keyvalue/", "canary/canary.s2p", "canary/canary.ini"];
+        var checkedFiles = 0;
+        foreach (var path in Directory.GetFiles(root, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+        {
+            var relative = Path.GetRelativePath(root, path).Replace('\\', '/');
+            if (relative.EndsWith(".squalify.json", StringComparison.Ordinal) || relative.EndsWith(".txt", StringComparison.Ordinal) && relative.StartsWith("sketches/", StringComparison.Ordinal)
+                || relative == ".gitkeep" || newFixtures.Any(n => relative.StartsWith(n, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            var family = Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>())).Format.Family;
+            Assert.True(family is not ("touchstone" or "keyValue"), relative + " was reclaimed as " + family);
+            var golden = path + ".squalify.json";
+            if (File.Exists(golden))
+            {
+                using var json = System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(golden));
+                Assert.Equal(json.RootElement.GetProperty("format").GetProperty("family").GetString(), family);
+            }
+
+            checkedFiles++;
+        }
+
+        Assert.True(checkedFiles >= 20, "the fixtures were found (" + checkedFiles + ")");
     }
 }

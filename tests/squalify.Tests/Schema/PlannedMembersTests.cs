@@ -18,7 +18,7 @@ public partial class PlannedMembersTests
 
     // The families no profiler produces yet (owner decision S12-6) and the kind labels beyond the three interim ones (docs/design.md,
     // "Kind label"; the interim labels are binary, empty and text).
-    private static readonly string[] PlannedFamilies = ["touchstone", "keyValue", "stdf"];
+    private static readonly string[] PlannedFamilies = ["stdf"];
 
     private static readonly string[] PlannedLabels =
     [
@@ -35,7 +35,7 @@ public partial class PlannedMembersTests
         // and the key hints.stdf (written as null by every profile) are real members.
         string[] mustBePlanned =
         [
-            "stdf", "stdf.records", "stdf.tests", "sections", "binary/blocks", "binary/segments", "hints.stdf",
+            "stdf", "stdf.records", "stdf.tests", "binary/blocks", "binary/segments", "hints.stdf",
         ];
         Assert.Empty(mustBePlanned.Except(planned, StringComparer.Ordinal));
 

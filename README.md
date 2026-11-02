@@ -6,7 +6,7 @@ squalify profiles one data file and writes a **descriptor**: a versioned JSON do
 
 Other tools read the descriptor to decide what to do with the file: recognize a known file type, pick an import route, or draft a loader config. squalify only describes the file; it never converts or matches it.
 
-> **Status: stable (1.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled; statistics are exact up to fixed caps, then deterministic sketches marked approximate. Every other file gets the generic text or binary profile. The Touchstone, key=value and STDF profilers and the `kind` rules are planned for 1.x minor releases. The library API and the descriptor schema v1 are frozen (`schemaVersion` `1.0`; see the [versioning policy](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md#versioning-policy)): a 1.x minor version may add keys and enum values, and does not remove or rename one.
+> **Status: stable (1.x).** Delimited text (CSV, TSV, `;`, `|`, whitespace) is fully profiled; statistics are exact up to fixed caps, then deterministic sketches marked approximate. Touchstone files (`.sNp`, `.ts`, versions 1 and 2) and whole-file key=value or INI documents are profiled too (1.1.0; schema 1.1). Every other file gets the generic text or binary profile. The STDF profiler and the `kind` rules are planned for 1.x minor releases. The library API and the descriptor schema v1 are frozen (`schemaVersion` `1.1`, `1.0` before 1.1.0; see the [versioning policy](https://github.com/squalor-xyz/squalify/blob/main/docs/descriptor.md#versioning-policy)): a 1.x minor version may add keys and enum values, and does not remove or rename one.
 
 ## Install
 

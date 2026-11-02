@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "tool": { "name": "squalify", "version": "1.0.0" },
   "options": { "includeValues": false, "includeValuesFor": [] },
   "layoutOnly": true,
@@ -135,6 +135,8 @@
       "topic": "family",
       "chosen": "delimited",
       "candidates": [
+        { "value": "touchstone", "score": 0, "reason": "first line is not an option line or [Version]" },
+        { "value": "keyValue", "score": 0, "reason": "table-like run of lines that are not key/value lines" },
         {
           "value": "delimited",
           "score": 0.5838709677419355,

@@ -216,7 +216,8 @@ public sealed class DocsTests
             problems.Add("descriptor.md has a key-order row for a planned dialect (the dialects are marked in the by-family table)");
         }
 
-        foreach (var row in new[] { "| touchstone (planned) |", "| keyValue (planned) |", "| stdf (planned) |" })
+        // sq-09: the touchstone and keyValue dialects are produced; only stdf is still marked planned.
+        foreach (var row in new[] { "| touchstone |", "| keyValue |", "| stdf (planned) |" })
         {
             Require(problems, "descriptor.md, by-family dialect table", descriptor, row);
         }
@@ -256,8 +257,8 @@ public sealed class DocsTests
         var planned = Collapse(Section(ReadDoc(root, "docs/descriptor.md"), "## Planned for a 1.x minor release"));
         foreach (var phrase in new[]
         {
-            "`stdf`", "`hints.stdf`", "`sections`", "`binary.blocks`", "`binary.segments`",
-            "`format.dialect`", "touchstone", "keyValue", "`format.family`", "`kind.label`",
+            "`stdf`", "`hints.stdf`", "`binary.blocks`", "`binary.segments`",
+            "`format.dialect`", "`format.family`", "`kind.label`",
             "`limits.stdfTests` is a produced member",
         })
         {
@@ -283,7 +284,7 @@ public sealed class DocsTests
         }
 
         Require(problems, "user-guide.md", Collapse(userGuide), "but reading does not:");
-        Require(problems, "user-guide.md", Collapse(userGuide), "are planned for 1.x minor releases ([the list](descriptor.md#planned-for-a-1x-minor-release))");
+        Require(problems, "user-guide.md", Collapse(userGuide), "is planned for a 1.x minor release ([the list](descriptor.md#planned-for-a-1x-minor-release))");
         if (Collapse(userGuide).Contains("They are not profiled in 0.1.x", StringComparison.Ordinal))
         {
             problems.Add("user-guide.md still says 'They are not profiled in 0.1.x'");
@@ -319,8 +320,9 @@ public sealed class DocsTests
             problems.Add("how-it-works.md still says 'describes the code of v0.3.0'");
         }
 
-        // A diagram marks (planned) until the code exists: FormatRegistry.Default registers only delimited, text and binary.
-        foreach (var marker in new[] { "Profilers[\"Format profilers", "--> P2[", "--> P3[", "--> P4[", "A1[\"Header names" })
+        // A diagram marks (planned) until the code exists: FormatRegistry.Default registers touchstone, keyValue, delimited, text and binary
+        // (sq-09), so the STDF profiler is the one that is still planned.
+        foreach (var marker in new[] { "Profilers[\"Format profilers", "--> P2[", "A1[\"Header names" })
         {
             var line = how.Split('\n').FirstOrDefault(l => l.Contains(marker, StringComparison.Ordinal));
             if (line is null)
@@ -432,7 +434,7 @@ public sealed class DocsTests
         Forbid(problems, "descriptor.md", descriptor, "takes effect with squalify 1.0.0", "may still change the descriptor", "the first release that writes it", "before 1.0 a minor");
 
         var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
-        Require(problems, "user-guide.md", guide, "Descriptor schema v1 is frozen (`schemaVersion` `1.0`) from 1.0.0. In 1.x, adding a key, written always or only in some cases, or an enum value is a minor change");
+        Require(problems, "user-guide.md", guide, "Descriptor schema v1 is frozen (`schemaVersion` `1.0` from 1.0.0, `1.1` from 1.1.0, which adds the Touchstone and key=value families). In 1.x, adding a key, written always or only in some cases, or an enum value is a minor change");
         Require(problems, "user-guide.md", guide, "**A descriptor changed after an upgrade.** Expected across squalify versions: the [versioning policy](descriptor.md#versioning-policy) lists what may change in 1.x (new optional keys and enum values, refined sketched values, other kind labels), and the 0.x releases changed the descriptor without a version bump.");
         Forbid(problems, "user-guide.md", guide, "the freeze takes effect with 1.0.0", "before 1.0 a minor", "1.0.0 (library, unreleased)");
 

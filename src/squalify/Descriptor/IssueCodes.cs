@@ -22,6 +22,9 @@ internal static class IssueCodes
     /// <summary>Two header names equal under ASCII case folding.</summary>
     public static readonly string DuplicateHeader = "duplicateHeader";
 
+    /// <summary>A key that appears twice in one section of a key=value document.</summary>
+    public static readonly string DuplicateKey = "duplicateKey";
+
     /// <summary>A blank header name.</summary>
     public static readonly string EmptyHeaderName = "emptyHeaderName";
 
@@ -30,6 +33,9 @@ internal static class IssueCodes
 
     /// <summary>A name in <c>options.includeValuesFor</c> that matches nothing.</summary>
     public static readonly string IncludeValuesForUnmatched = "includeValuesForUnmatched";
+
+    /// <summary>Numeric values at the end of the network data or the noise data that do not make a whole block.</summary>
+    public static readonly string IncompleteBlock = "incompleteBlock";
 
     /// <summary>Invalid UTF-16 or UTF-32 units.</summary>
     public static readonly string InvalidUnicode = "invalidUnicode";
@@ -46,6 +52,12 @@ internal static class IssueCodes
     /// <summary>A table with a header and no data record.</summary>
     public static readonly string NoDataRows = "noDataRows";
 
+    /// <summary>A frequency in the network data or the noise data of a Touchstone file that is lower than the one before it.</summary>
+    public static readonly string NonMonotonicFrequency = "nonMonotonicFrequency";
+
+    /// <summary>The port count of a Touchstone file's extension differs from its <c>[Number of Ports]</c>.</summary>
+    public static readonly string PortMismatch = "portMismatch";
+
     /// <summary>A record whose field count differs from the header's.</summary>
     public static readonly string RaggedRows = "raggedRows";
 
@@ -58,14 +70,18 @@ internal static class IssueCodes
         BlocksTruncated,
         CommentInData,
         DuplicateHeader,
+        DuplicateKey,
         EmptyHeaderName,
         HeterogeneousBlocks,
         IncludeValuesForUnmatched,
+        IncompleteBlock,
         InvalidUnicode,
         InvalidUtf8,
         MixedLineEndings,
         NameExcludedFromFingerprint,
         NoDataRows,
+        NonMonotonicFrequency,
+        PortMismatch,
         RaggedRows,
         TooIrregular,
     ];

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "tool": { "name": "squalify", "version": "1.0.0" },
   "options": { "includeValues": false, "includeValuesFor": [] },
   "limits": {
@@ -83,6 +83,8 @@
       "topic": "family",
       "chosen": "text",
       "candidates": [
+        { "value": "touchstone", "score": 0, "reason": "first line is not an option line or [Version]" },
+        { "value": "keyValue", "score": 0, "reason": "fewer than 2 key/value lines" },
         { "value": "delimited", "score": 0, "reason": "no steady delimited run" },
         { "value": "text", "score": 0.1, "reason": "text content" },
         { "value": "binary", "score": 0, "reason": "not binary: text content" }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json",
+  "$id": "https://raw.githubusercontent.com/squalor-xyz/squalify/v1.1.0/schema/descriptor-v1.schema.json",
   "$defs": {
     "count": { "type": "integer", "minimum": 0 },
     "positive": { "type": "integer", "minimum": 1 },
@@ -19,8 +19,9 @@
     "issueRegion": { "enum": ["preamble", "annotation", "header", "units", "data", "footer", "unknown", "other"] },
     "issueCode": {
       "enum": [
-        "blocksTruncated", "commentInData", "duplicateHeader", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched", "invalidUnicode",
-        "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "raggedRows", "tooIrregular"
+        "blocksTruncated", "commentInData", "duplicateHeader", "duplicateKey", "emptyHeaderName", "heterogeneousBlocks", "includeValuesForUnmatched",
+        "incompleteBlock", "invalidUnicode", "invalidUtf8", "mixedLineEndings", "nameExcludedFromFingerprint", "noDataRows", "nonMonotonicFrequency",
+        "portMismatch", "raggedRows", "tooIrregular"
       ]
     },
     "evidenceStage": { "enum": ["encoding", "format", "dialect", "header", "unit", "type"] },
@@ -146,6 +147,7 @@
       "properties": {
         "kind": { "$ref": "#/$defs/regionKind" },
         "index": { "$ref": "#/$defs/count" },
+        "label": { "enum": ["noise"] },
         "lines": { "$ref": "#/$defs/pair" },
         "bytes": { "$ref": "#/$defs/pair" },
         "lineKinds": { "$ref": "#/$defs/lineKinds" },
@@ -177,6 +179,41 @@
           "additionalProperties": false
         },
         "blocks": { "$ref": "#/$defs/positive" }
+      },
+      "additionalProperties": false
+    },
+    "touchstoneDialect": {
+      "type": "object",
+      "required": ["version", "ports", "frequencyUnit", "parameter", "dataFormat", "referenceOhms", "twoPortOrder", "matrixFormat", "keywords", "valuesPerLine", "noise"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}$" },
+        "ports": { "$ref": "#/$defs/positive" },
+        "frequencyUnit": { "enum": ["Hz", "kHz", "MHz", "GHz"] },
+        "parameter": { "enum": ["S", "Y", "Z", "H", "G"] },
+        "dataFormat": { "enum": ["DB", "MA", "RI"] },
+        "referenceOhms": { "type": "number", "minimum": 0 },
+        "twoPortOrder": { "enum": ["21_12", "12_21", null] },
+        "matrixFormat": { "enum": ["Full", "Lower", "Upper"] },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "[Version]", "[Number of Ports]", "[Two-Port Data Order]", "[Number of Frequencies]", "[Number of Noise Frequencies]", "[Reference]",
+              "[Matrix Format]", "[Mixed-Mode Order]", "[Network Data]", "[Noise Data]", "[End]"
+            ]
+          }
+        },
+        "valuesPerLine": { "$ref": "#/$defs/countsByKey" },
+        "noise": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "keyValueDialect": {
+      "type": "object",
+      "required": ["separator", "hasSections"],
+      "properties": {
+        "separator": { "enum": ["=", ":"] },
+        "hasSections": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -334,7 +371,7 @@
   "type": "object",
   "required": ["schemaVersion", "tool", "options", "limits", "file", "encoding", "format", "kind", "layout", "fingerprint", "hints", "issues", "evidence"],
   "properties": {
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "tool": {
       "type": "object",
       "required": ["name", "version"],
@@ -455,8 +492,8 @@
       "type": "object",
       "required": ["family", "dialect", "score"],
       "properties": {
-        "family": { "enum": ["delimited", "text", "binary", "empty"] },
-        "dialect": { "$ref": "#/$defs/delimitedDialect" },
+        "family": { "enum": ["delimited", "touchstone", "keyValue", "text", "binary", "empty"] },
+        "dialect": { "oneOf": [{ "$ref": "#/$defs/delimitedDialect" }, { "$ref": "#/$defs/touchstoneDialect" }, { "$ref": "#/$defs/keyValueDialect" }] },
         "score": { "$ref": "#/$defs/share" }
       },
       "additionalProperties": false
@@ -492,7 +529,7 @@
     },
     "table": {
       "type": "object",
-      "required": ["rows", "fieldCount", "rowClasses", "fields"],
+      "required": ["rows", "fieldCount", "fields"],
       "properties": {
         "rows": { "$ref": "#/$defs/count" },
         "fieldCount": {
@@ -523,6 +560,20 @@
         "fields": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/field" }, { "$ref": "#/$defs/layoutOnlyField" }] } }
       },
       "additionalProperties": false
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "line", "keys"],
+        "properties": {
+          "name": { "type": "string" },
+          "line": { "$ref": "#/$defs/positive" },
+          "keys": { "type": "array", "items": { "type": "string" } },
+          "values": { "type": "array", "items": { "$ref": "#/$defs/stringOrNull" } }
+        },
+        "additionalProperties": false
+      }
     },
     "binary": {
       "type": "object",

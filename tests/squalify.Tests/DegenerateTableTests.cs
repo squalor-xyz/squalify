@@ -288,9 +288,14 @@ public sealed class DegenerateTableTests
         var limit = (int)Limits.Default.HeaderSample;
         string File(int keys) => string.Concat(Enumerable.Range(0, keys).Select(static i => "Key" + i.ToString(CultureInfo.InvariantCulture) + "=1\n")) + "a,b,c\n";
 
-        // The header on line `limit` is within the sample; one line later it is not, and the file is not read for it.
+        // The header on line `limit` is within the sample; one line later it is not, and the file is not read for it. Since sq-09 the
+        // thousand key=value lines are a key=value document with a stray last line (the generic text profile described it before): what
+        // the test is about is that the delimited profiler does not claim it, and the candidates say so.
         Assert.Equal("delimited", ProfileText(File(limit - 1)).Format.Family);
-        Assert.Equal("text", ProfileText(File(limit)).Format.Family);
+        var beyond = ProfileText(File(limit));
+        Assert.Equal("keyValue", beyond.Format.Family);
+        var family = Assert.Single(beyond.Evidence, static e => e.Stage == "format" && e.Topic == "family");
+        Assert.Equal(0.0, family.Candidates.Single(static c => c.Value == "delimited").Score);
     }
 
     // Footer lines after the last full-width row never count against the window. The table still needs half of the

@@ -1,0 +1,541 @@
+{
+  "schemaVersion": "1.1",
+  "tool": { "name": "squalify", "version": "1.0.0" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "shapeCharsPerField": 53312,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
+    "stdfTests": 10000,
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
+    "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
+    "nullSpellings": { "max": 64, "maxChars": 256, "maxDistinctOther": 64 },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "v2-2port-noise.ts",
+    "size": 469,
+    "sha256": "6a9b35de73e35891d1f9a19d4ba47b3b7557cf8349fe767cc5d5d4f7b34cd676"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": { "crlf": 0, "lf": 17, "cr": 0 },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "touchstone",
+    "dialect": {
+      "version": "2.0",
+      "ports": 2,
+      "frequencyUnit": "GHz",
+      "parameter": "S",
+      "dataFormat": "RI",
+      "referenceOhms": 50,
+      "twoPortOrder": "21_12",
+      "matrixFormat": "Full",
+      "keywords": [
+        "[Version]",
+        "[Number of Ports]",
+        "[Two-Port Data Order]",
+        "[Number of Frequencies]",
+        "[Number of Noise Frequencies]",
+        "[Reference]",
+        "[Network Data]",
+        "[Noise Data]",
+        "[End]"
+      ],
+      "valuesPerLine": { "9": 3 },
+      "noise": true
+    },
+    "score": 0.9
+  },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
+  "layout": {
+    "regions": [
+      { "kind": "preamble", "lines": [1, 9], "bytes": [0, 227], "lineKinds": { "comment": 1, "text": 8 } },
+      { "kind": "data", "lines": [10, 12], "bytes": [227, 377] },
+      { "kind": "block", "label": "noise", "lines": [13, 16], "bytes": [377, 463], "lineKinds": { "comment": 1, "text": 1 } },
+      { "kind": "footer", "lines": [17, 17], "bytes": [463, 469], "lineKinds": { "text": 1 } }
+    ],
+    "maxLineLength": 55
+  },
+  "table": {
+    "rows": 3,
+    "fieldCount": { "min": 9, "max": 9 },
+    "fields": [
+      {
+        "index": 0,
+        "name": "freq",
+        "rawName": "freq",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": 2,
+          "max": 6,
+          "mean": 4,
+          "stddev": 2,
+          "quantiles": { "p01": 2, "p05": 2, "p25": 2, "p50": 4, "p75": 6, "p95": 6, "p99": 6 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 3 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 1,
+        "name": "S11.re",
+        "rawName": "S11.re",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": -0.21,
+          "max": 0.4,
+          "mean": 0.10333333333333336,
+          "stddev": 0.3053413390507963,
+          "quantiles": { "p01": -0.21, "p05": -0.21, "p25": -0.21, "p50": 0.12, "p75": 0.4, "p95": 0.4, "p99": 0.4 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 5, "mean": 4.333333333333333 },
+        "shapes": [{ "mask": "9.9{2}", "count": 2 }, { "mask": "-9.9{2}", "count": 1 }],
+        "monotonic": "decreasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 2,
+        "name": "S11.im",
+        "rawName": "S11.im",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": -0.78,
+          "max": -0.55,
+          "mean": -0.6766666666666666,
+          "stddev": 0.11676186592091327,
+          "quantiles": { "p01": -0.78, "p05": -0.78, "p25": -0.78, "p50": -0.7, "p75": -0.55, "p95": -0.55, "p99": -0.55 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 5, "max": 5, "mean": 5 },
+        "shapes": [{ "mask": "-9.9{2}", "count": 3 }],
+        "monotonic": "none",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 3,
+        "name": "S21.re",
+        "rawName": "S21.re",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": 0.02,
+          "max": 0.05,
+          "mean": 0.03666666666666667,
+          "stddev": 0.01527525231651947,
+          "quantiles": { "p01": 0.02, "p05": 0.02, "p25": 0.02, "p50": 0.04, "p75": 0.05, "p95": 0.05, "p99": 0.05 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9.9{2}", "count": 3 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 4,
+        "name": "S21.im",
+        "rawName": "S21.im",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": 0.07,
+          "max": 0.1,
+          "mean": 0.08666666666666667,
+          "stddev": 0.015275252316519465,
+          "quantiles": { "p01": 0.07, "p05": 0.07, "p25": 0.07, "p50": 0.09, "p75": 0.1, "p95": 0.1, "p99": 0.1 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9.9{2}", "count": 3 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 5,
+        "name": "S12.re",
+        "rawName": "S12.re",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": 0.02,
+          "max": 0.05,
+          "mean": 0.03666666666666667,
+          "stddev": 0.01527525231651947,
+          "quantiles": { "p01": 0.02, "p05": 0.02, "p25": 0.02, "p50": 0.04, "p75": 0.05, "p95": 0.05, "p99": 0.05 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9.9{2}", "count": 3 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 6,
+        "name": "S12.im",
+        "rawName": "S12.im",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": 0.07,
+          "max": 0.1,
+          "mean": 0.08666666666666667,
+          "stddev": 0.015275252316519465,
+          "quantiles": { "p01": 0.07, "p05": 0.07, "p25": 0.07, "p50": 0.09, "p75": 0.1, "p95": 0.1, "p99": 0.1 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9.9{2}", "count": 3 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 7,
+        "name": "S22.re",
+        "rawName": "S22.re",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": -0.19,
+          "max": 0.35,
+          "mean": 0.08666666666666664,
+          "stddev": 0.2702468007827906,
+          "quantiles": { "p01": -0.19, "p05": -0.19, "p25": -0.19, "p50": 0.1, "p75": 0.35, "p95": 0.35, "p99": 0.35 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 5, "mean": 4.333333333333333 },
+        "shapes": [{ "mask": "9.9{2}", "count": 2 }, { "mask": "-9.9{2}", "count": 1 }],
+        "monotonic": "decreasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 8,
+        "name": "S22.im",
+        "rawName": "S22.im",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 3 },
+        "count": 3,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 3 },
+        "numeric": {
+          "min": -0.71,
+          "max": -0.5,
+          "mean": -0.6166666666666667,
+          "stddev": 0.10692676621563625,
+          "quantiles": { "p01": -0.71, "p05": -0.71, "p25": -0.71, "p50": -0.64, "p75": -0.5, "p95": -0.5, "p99": -0.5 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 5, "max": 5, "mean": 5 },
+        "shapes": [{ "mask": "-9.9{2}", "count": 3 }],
+        "monotonic": "none",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 9,
+        "name": "noise.freq",
+        "rawName": "noise.freq",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 2 },
+        "count": 2,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 2 },
+        "numeric": {
+          "min": 2,
+          "max": 4,
+          "mean": 3,
+          "stddev": 1.4142135623730951,
+          "quantiles": { "p01": 2, "p05": 2, "p25": 2, "p50": 2, "p75": 4, "p95": 4, "p99": 4 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 2 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 10,
+        "name": "noise.nfmin",
+        "rawName": "noise.nfmin",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 2 },
+        "count": 2,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 2 },
+        "numeric": {
+          "min": 0.7,
+          "max": 0.9,
+          "mean": 0.8,
+          "stddev": 0.14142135623730953,
+          "quantiles": { "p01": 0.7, "p05": 0.7, "p25": 0.7, "p50": 0.7, "p75": 0.9, "p95": 0.9, "p99": 0.9 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 2 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 11,
+        "name": "noise.gammaOpt.mag",
+        "rawName": "noise.gammaOpt.mag",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 2 },
+        "count": 2,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 2 },
+        "numeric": {
+          "min": 0.46,
+          "max": 0.64,
+          "mean": 0.55,
+          "stddev": 0.12727922061357858,
+          "quantiles": { "p01": 0.46, "p05": 0.46, "p25": 0.46, "p50": 0.46, "p75": 0.64, "p95": 0.64, "p99": 0.64 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "9.9{2}", "count": 2 }],
+        "monotonic": "decreasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 12,
+        "name": "noise.gammaOpt.ang",
+        "rawName": "noise.gammaOpt.ang",
+        "nameParts": null,
+        "type": "int",
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 2 },
+        "count": 2,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 2 },
+        "numeric": {
+          "min": -33,
+          "max": 69,
+          "mean": 18,
+          "stddev": 72.12489168102785,
+          "quantiles": { "p01": -33, "p05": -33, "p25": -33, "p50": -33, "p75": 69, "p95": 69, "p99": 69 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 2, "max": 3, "mean": 2.5 },
+        "shapes": [{ "mask": "-9{2}", "count": 1 }, { "mask": "9{2}", "count": 1 }],
+        "monotonic": "decreasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 13,
+        "name": "noise.rn",
+        "rawName": "noise.rn",
+        "nameParts": null,
+        "type": "int",
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 2 },
+        "count": 2,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 2 },
+        "numeric": {
+          "min": 19,
+          "max": 20,
+          "mean": 19.5,
+          "stddev": 0.7071067811865476,
+          "quantiles": { "p01": 19, "p05": 19, "p25": 19, "p50": 19, "p75": 20, "p95": 20, "p99": 20 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 2, "max": 2, "mean": 2 },
+        "shapes": [{ "mask": "9{2}", "count": 2 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 2,
+    "structure": "sha256:3f5effe3f95f458a9a875fb85dc794d2c474ed01e2fee2761946d885fe55574e",
+    "layout": "sha256:f92be6385a7fce4ee7ed6148e842782849d580ac4fb0ac6fdc2ba84998142482",
+    "typed": "sha256:8076d4788fe5f5427064acb7742ba0509742d37f55e471311179714f53a2a24d",
+    "names": "sha256:81b49e8f8389694e46d82f812379c265618431080a3d0c004437a74fe2afa289"
+  },
+  "hints": {
+    "extension": ".ts",
+    "magic": null,
+    "stableLines": [],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    "fieldCount": { "min": 9, "max": 9 },
+    "dataStartLine": 10,
+    "delimiter": null,
+    "headerConvention": null,
+    "stdf": null,
+    "fileNameShape": "a9-9a{4}-a{5}.a{2}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 469 bytes are control bytes" }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "touchstone",
+      "candidates": [
+        { "value": "touchstone", "score": 0.9, "reason": "Touchstone extension, option line or [Version] on line 2" },
+        { "value": "keyValue", "score": 0, "reason": "fewer than 2 key/value lines" },
+        { "value": "delimited", "score": 0, "reason": "no steady delimited run" },
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "noise",
+      "chosen": "keyword",
+      "candidates": [
+        { "value": "frequencyDrop", "score": 0, "reason": "not needed: [Noise Data] marks the block" },
+        { "value": "keyword", "score": 1, "reason": "[Noise Data] on line 13" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "ports",
+      "chosen": "2",
+      "candidates": [
+        { "value": "extension", "score": 0, "reason": "the extension gives no port count" },
+        { "value": "keyword", "score": 1, "reason": "[Number of Ports] gives 2 ports" },
+        { "value": "data", "score": 0, "reason": "not needed: the name or a keyword gives the count" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "twoPortOrder",
+      "chosen": "21_12",
+      "candidates": [
+        { "value": "12_21", "score": 0, "reason": "not the order of this file" },
+        { "value": "21_12", "score": 1, "reason": "given by [Two-Port Data Order] on line 5" }
+      ]
+    }
+  ]
+}

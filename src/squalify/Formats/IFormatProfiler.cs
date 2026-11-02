@@ -24,6 +24,7 @@ internal sealed record ProfileContext(ProfileOptions Options, Limits Limits, Mem
 /// The limits with the per-field caps that the profiler used after the global budget, or null when the profiler
 /// profiles no fields.
 /// </param>
+/// <param name="Sections">The <c>[section]</c>s of a key=value document, or null.</param>
 internal sealed record FormatProfile(
     Dialect? Dialect,
     LayoutSection Layout,
@@ -33,7 +34,8 @@ internal sealed record FormatProfile(
     TableSection? Table = null,
     BinarySection? Binary = null,
     IReadOnlyList<StableLineSource>? StableLines = null,
-    Limits? EffectiveLimits = null);
+    Limits? EffectiveLimits = null,
+    IReadOnlyList<KeyValueSection>? Sections = null);
 
 /// <summary>
 /// The result of scoring one file against one format family.

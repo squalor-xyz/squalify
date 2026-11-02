@@ -12,7 +12,7 @@ public sealed class ValuesTierTests
 {
     private const string Canary = "CANARY";
 
-    public static TheoryData<string> CanaryFixtures() => new() { "canary/canary.csv", "canary/canary-preamble.csv" };
+    public static TheoryData<string> CanaryFixtures() => new() { "canary/canary.csv", "canary/canary-preamble.csv", "canary/canary.s2p", "canary/canary.ini" };
 
     private static Descriptor ProfileFixture(string fixture, bool includeValues = false, params string[] allow)
     {

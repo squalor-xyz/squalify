@@ -1,0 +1,238 @@
+{
+  "schemaVersion": "1.1",
+  "tool": { "name": "squalify", "version": "1.0.0" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "shapeCharsPerField": 53312,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
+    "stdfTests": 10000,
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
+    "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
+    "nullSpellings": { "max": 64, "maxChars": 256, "maxDistinctOther": 64 },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": {
+    "name": "s1p-defaults.s1p",
+    "size": 153,
+    "sha256": "bf72556ea1663a0fda868b72105da2d40baf5541f2510bd8a99d04cb54c0fe1c"
+  },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": { "crlf": 0, "lf": 6, "cr": 0 },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": {
+    "family": "touchstone",
+    "dialect": {
+      "version": "1.0",
+      "ports": 1,
+      "frequencyUnit": "GHz",
+      "parameter": "S",
+      "dataFormat": "MA",
+      "referenceOhms": 50,
+      "twoPortOrder": null,
+      "matrixFormat": "Full",
+      "keywords": [],
+      "valuesPerLine": { "3": 4 },
+      "noise": false
+    },
+    "score": 0.9
+  },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
+  "layout": {
+    "regions": [
+      { "kind": "preamble", "lines": [1, 2], "bytes": [0, 90], "lineKinds": { "comment": 1, "text": 1 } },
+      { "kind": "data", "lines": [3, 6], "bytes": [90, 153] }
+    ],
+    "maxLineLength": 87
+  },
+  "table": {
+    "rows": 4,
+    "fieldCount": { "min": 3, "max": 3 },
+    "fields": [
+      {
+        "index": 0,
+        "name": "freq",
+        "rawName": "freq",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 4 },
+        "count": 4,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 4 },
+        "numeric": {
+          "min": 0.5,
+          "max": 3.5,
+          "mean": 2,
+          "stddev": 1.2909944487358056,
+          "quantiles": { "p01": 0.5, "p05": 0.5, "p25": 0.5, "p50": 1.5, "p75": 2.5, "p95": 3.5, "p99": 3.5 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 4 }],
+        "monotonic": "increasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 1,
+        "name": "S11.mag",
+        "rawName": "S11.mag",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 4 },
+        "count": 4,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 4 },
+        "numeric": {
+          "min": 0.829,
+          "max": 0.931,
+          "mean": 0.8825000000000001,
+          "stddev": 0.04398863489584564,
+          "quantiles": { "p01": 0.829, "p05": 0.829, "p25": 0.829, "p50": 0.868, "p75": 0.902, "p95": 0.931, "p99": 0.931 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 5, "max": 5, "mean": 5 },
+        "shapes": [{ "mask": "9.9{3}", "count": 4 }],
+        "monotonic": "decreasing",
+        "constant": false,
+        "unique": true
+      },
+      {
+        "index": 2,
+        "name": "S11.ang",
+        "rawName": "S11.ang",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 4 },
+        "count": 4,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 4 },
+        "numeric": {
+          "min": -29.7,
+          "max": -4.2,
+          "mean": -16.9,
+          "stddev": 10.97360469490313,
+          "quantiles": { "p01": -29.7, "p05": -29.7, "p25": -29.7, "p50": -21.1, "p75": -12.6, "p95": -4.2, "p99": -4.2 }
+        },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 5, "mean": 4.75 },
+        "shapes": [{ "mask": "-9{2}.9", "count": 3 }, { "mask": "-9.9", "count": 1 }],
+        "monotonic": "decreasing",
+        "constant": false,
+        "unique": true
+      }
+    ]
+  },
+  "fingerprint": {
+    "version": 2,
+    "structure": "sha256:87bc30a2237374d1089fd407f9a68dd4dc0055f58fb347bce0a7417c7400cddb",
+    "layout": "sha256:f07b0b79f8ff661339d58852b2a8dba19f3d31e00a940a7ddf9de9e0d47ae908",
+    "typed": "sha256:f0c0c71d6ba1ec993e177a9d22eefc7c342d907e885067a86fd45d392dccbe3d",
+    "names": "sha256:a2864f7bfd8b655d4eae53907ae97c1eff603dbc2942e91c62380692efb5055f"
+  },
+  "hints": {
+    "extension": ".s1p",
+    "magic": null,
+    "stableLines": [],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": [0, 1, 2],
+    "fieldCount": { "min": 3, "max": 3 },
+    "dataStartLine": 3,
+    "delimiter": null,
+    "headerConvention": null,
+    "stdf": null,
+    "fileNameShape": "a9a-a{8}.a9a"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 153 bytes are control bytes" }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "touchstone",
+      "candidates": [
+        { "value": "touchstone", "score": 0.9, "reason": "Touchstone extension, option line or [Version] on line 2" },
+        { "value": "keyValue", "score": 0, "reason": "fewer than 2 key/value lines" },
+        { "value": "delimited", "score": 0, "reason": "no steady delimited run" },
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "dataFormat",
+      "chosen": "MA",
+      "candidates": [{ "value": "MA", "score": 1, "reason": "default: not in the option line" }]
+    },
+    {
+      "stage": "dialect",
+      "topic": "frequencyUnit",
+      "chosen": "GHz",
+      "candidates": [{ "value": "GHz", "score": 1, "reason": "default: not in the option line" }]
+    },
+    {
+      "stage": "dialect",
+      "topic": "parameter",
+      "chosen": "S",
+      "candidates": [{ "value": "S", "score": 1, "reason": "default: not in the option line" }]
+    },
+    {
+      "stage": "dialect",
+      "topic": "ports",
+      "chosen": "1",
+      "candidates": [
+        { "value": "extension", "score": 1, "reason": "the extension gives 1 ports" },
+        { "value": "keyword", "score": 0, "reason": "no [Number of Ports]" },
+        { "value": "data", "score": 0, "reason": "not needed: the name or a keyword gives the count" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "referenceOhms",
+      "chosen": "50",
+      "candidates": [{ "value": "50", "score": 1, "reason": "default: not in the option line" }]
+    }
+  ]
+}

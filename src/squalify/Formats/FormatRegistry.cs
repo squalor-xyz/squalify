@@ -50,8 +50,8 @@ internal sealed class FormatRegistry
     public static IReadOnlyList<string> Order { get; } =
         ["stdf", "touchstone", "keyValue", "delimited", "text", "binary"];
 
-    /// <summary>The registry of this tool version: delimited, text and binary.</summary>
-    public static FormatRegistry Default { get; } = new FormatRegistry([new DelimitedProfiler(), new GenericTextProfiler(), new GenericBinaryProfiler()]);
+    /// <summary>The registry of this tool version: touchstone, keyValue, delimited, text and binary.</summary>
+    public static FormatRegistry Default { get; } = new FormatRegistry([new TouchstoneProfiler(), new KeyValueProfiler(), new DelimitedProfiler(), new GenericTextProfiler(), new GenericBinaryProfiler()]);
 
     /// <summary>
     /// Scores every profiler and picks the winner: the highest score, and on a tie the profiler that comes first in

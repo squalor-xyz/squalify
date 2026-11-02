@@ -21,8 +21,9 @@ internal sealed record DocumentedSet(IReadOnlyDictionary<string, DocumentedSecti
 /// under "Key order of nested objects" (one row per object). The grammar of a row of the second table:
 /// <list type="bullet">
 /// <item>The first cell is the object, in code font (<c>fields[].numeric</c>, relative to the root, with a leading <c>fields</c> read as
-/// <c>table.fields</c>). The text after it may say <c>(planned)</c> (the object is not produced) or <c>of a layout-only profile</c> (the
-/// row is the layout-only shape of the object, <c>#layoutOnlyField</c>).</item>
+/// <c>table.fields</c>). The text after it may say <c>(planned)</c> (the object is not produced), <c>of a layout-only profile</c> (the
+/// row is the layout-only shape of the object, <c>#layoutOnlyField</c>) or <c>(delimited)</c>, <c>(touchstone)</c> or <c>(keyValue)</c>
+/// (the row is one alternative of the <c>oneOf</c> of the dialects, <c>#delimitedDialect</c> and so on).</item>
 /// <item>The second cell is a comma-separated list of members in code font, in order; <c>then</c> may precede one. Text after the first
 /// semicolon outside parentheses is prose and is not read. A member may be followed by a parenthesis: a list of names in code font
 /// is the members of the nested object of that name; any other text is an annotation, and one that says <c>planned</c> marks the
@@ -150,10 +151,25 @@ internal static partial class DocumentedMembers
         }
 
         var path = Normalize(match.Groups[1].Value);
+        var basePath = path;
         var rest = match.Groups[2].Value;
         if (rest.Contains("of a layout-only profile", StringComparison.Ordinal))
         {
             path += "#layoutOnlyField";
+        }
+        else if (rest.Contains("(delimited)", StringComparison.Ordinal))
+        {
+            // One alternative of a oneOf (sq-09): the dialect of a family. The schema's section is "path#definitionName" (SchemaWalker),
+            // and the objects inside it keep the path without the alternative.
+            path += "#delimitedDialect";
+        }
+        else if (rest.Contains("(touchstone)", StringComparison.Ordinal))
+        {
+            path += "#touchstoneDialect";
+        }
+        else if (rest.Contains("(keyValue)", StringComparison.Ordinal))
+        {
+            path += "#keyValueDialect";
         }
 
         if (rest.Contains("planned", StringComparison.OrdinalIgnoreCase))
@@ -183,7 +199,7 @@ internal static partial class DocumentedMembers
             if (note is not null && NameListShape().IsMatch(note))
             {
                 members.Add(name);
-                nestedSections.Add(new DocumentedSection(Join(path, name), NameListItem().Matches(note).Select(static m => m.Groups[1].Value).ToArray()));
+                nestedSections.Add(new DocumentedSection(Join(basePath, name), NameListItem().Matches(note).Select(static m => m.Groups[1].Value).ToArray()));
             }
             else if (note is not null && note.Contains("planned", StringComparison.OrdinalIgnoreCase))
             {

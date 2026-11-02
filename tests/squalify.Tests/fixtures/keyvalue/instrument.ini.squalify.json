@@ -1,0 +1,285 @@
+{
+  "schemaVersion": "1.1",
+  "tool": { "name": "squalify", "version": "1.0.0" },
+  "options": { "includeValues": false, "includeValuesFor": [] },
+  "limits": {
+    "distinctPerField": 10000,
+    "quantilePerField": 100000,
+    "shapesPerField": 64,
+    "shapeCharsPerField": 53312,
+    "regions": 1000,
+    "headerSample": 1000,
+    "runawayQuote": 65536,
+    "fieldCountRuns": 100000,
+    "rowClasses": 64,
+    "charsetTolerance": { "invalidSequences": 8, "perBytes": 65536 },
+    "stdfTests": 10000,
+    "budget": { "quantileValues": 10000000, "distinctValues": 2000000, "shapeChars": 16000000 },
+    "sketches": { "hllPrecision": 14, "rankError": 0.001, "budgetBytes": 67108864 },
+    "nullSpellings": { "max": 64, "maxChars": 256, "maxDistinctOther": 64 },
+    "nullTokens": 1,
+    "unitTable": 1
+  },
+  "file": { "name": "instrument.ini", "size": 163, "sha256": "3663694f34dfd3b07382636f1d63c18015b4de66646b8f4f6682e6c6601fb7be" },
+  "encoding": {
+    "kind": "text",
+    "charset": "ascii",
+    "bom": null,
+    "lineEndings": { "crlf": 0, "lf": 12, "cr": 0 },
+    "invalidBytes": 0,
+    "controlBytes": 0
+  },
+  "format": { "family": "keyValue", "dialect": { "separator": "=", "hasSections": true }, "score": 0.8 },
+  "kind": { "label": "text", "ruleId": "K09", "confidence": 1 },
+  "layout": {
+    "regions": [
+      {
+        "kind": "data",
+        "lines": [1, 12],
+        "bytes": [0, 163],
+        "lineKinds": { "blank": 1, "comment": 1, "keyValue": 8, "text": 2 }
+      }
+    ],
+    "maxLineLength": 32
+  },
+  "table": {
+    "rows": 2,
+    "fieldCount": { "min": 4, "max": 4 },
+    "fields": [
+      {
+        "index": 0,
+        "name": "Model",
+        "rawName": "Model",
+        "nameParts": null,
+        "type": "string",
+        "dominant": { "type": "string", "share": 1 },
+        "typeVotes": { "string": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": null,
+        "length": { "min": 8, "max": 8, "mean": 8 },
+        "shapes": [{ "mask": "A{3}-9{4}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 1,
+        "name": "Serial",
+        "rawName": "Serial",
+        "nameParts": null,
+        "type": "string",
+        "dominant": { "type": "string", "share": 1 },
+        "typeVotes": { "string": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": null,
+        "length": { "min": 6, "max": 6, "mean": 6 },
+        "shapes": [{ "mask": "A9{5}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 2,
+        "name": "Enabled",
+        "rawName": "Enabled",
+        "nameParts": null,
+        "type": "bool",
+        "dominant": { "type": "bool", "share": 1 },
+        "typeVotes": { "bool": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": null,
+        "length": { "min": 4, "max": 4, "mean": 4 },
+        "shapes": [{ "mask": "a{4}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 3,
+        "name": "Range",
+        "rawName": "Range",
+        "nameParts": null,
+        "type": "int",
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 2, "max": 2, "mean": 2 },
+        "shapes": [{ "mask": "9{2}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 4,
+        "name": "Vmax",
+        "rawName": "Vmax",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 5,
+        "name": "Vmin",
+        "rawName": "Vmin",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 3, "max": 3, "mean": 3 },
+        "shapes": [{ "mask": "9.9", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 6,
+        "name": "Imax",
+        "rawName": "Imax",
+        "nameParts": null,
+        "type": "float",
+        "dominant": { "type": "float", "share": 1 },
+        "typeVotes": { "float": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 5, "max": 5, "mean": 5 },
+        "shapes": [{ "mask": "9.9{3}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      },
+      {
+        "index": 7,
+        "name": "Timeout",
+        "rawName": "Timeout",
+        "nameParts": null,
+        "type": "int",
+        "dominant": { "type": "int", "share": 1 },
+        "typeVotes": { "int": 1 },
+        "count": 1,
+        "nulls": 0,
+        "nullsExcludingAllNullRows": 0,
+        "nullTokens": {},
+        "distinct": { "value": 1 },
+        "statsWithheld": "constant",
+        "length": { "min": 2, "max": 2, "mean": 2 },
+        "shapes": [{ "mask": "9{2}", "count": 1 }],
+        "constant": true,
+        "unique": true
+      }
+    ]
+  },
+  "sections": [
+    { "name": "Instrument", "line": 2, "keys": ["Model", "Serial", "Enabled", "Range"] },
+    { "name": "Limits", "line": 8, "keys": ["Vmax", "Vmin", "Imax", "Timeout"] }
+  ],
+  "fingerprint": {
+    "version": 2,
+    "structure": "sha256:c93e44a51f2791ebe145be4d0280e1363b79bd565cd2ef7c717e50b9ab5ef791",
+    "layout": "sha256:eb025c1c2c1f947a12dac631f7973703c004e25ba120e9f1b01dbb32ad16140e",
+    "typed": "sha256:352bcde39426e6167751fd48a5219c563949726fe6d6b9a234ddebc4f92f4c55",
+    "names": "sha256:042452ac3562bb435d7f8f441a57c9ff763f936043be3d4e643c4d9a068e947f"
+  },
+  "hints": {
+    "extension": ".ini",
+    "magic": null,
+    "stableLines": [
+      { "line": 2, "regex": "^\\s*Model\\s*[=:]" },
+      { "line": 3, "regex": "^\\s*Serial\\s*[=:]" },
+      { "line": 4, "regex": "^\\s*Enabled\\s*[=:]" },
+      { "line": 5, "regex": "^\\s*Range\\s*[=:]" },
+      { "line": 8, "regex": "^\\s*Vmax\\s*[=:]" },
+      { "line": 9, "regex": "^\\s*Vmin\\s*[=:]" },
+      { "line": 10, "regex": "^\\s*Imax\\s*[=:]" },
+      { "line": 11, "regex": "^\\s*Timeout\\s*[=:]" }
+    ],
+    "headerFields": null,
+    "headerPrefix": null,
+    "nonNullFields": [0, 1, 2, 3, 4, 5, 6, 7],
+    "fieldCount": { "min": 4, "max": 4 },
+    "dataStartLine": 1,
+    "delimiter": null,
+    "headerConvention": null,
+    "stdf": null,
+    "fileNameShape": "a{10}.a{3}"
+  },
+  "issues": [],
+  "evidence": [
+    {
+      "stage": "encoding",
+      "topic": "charset",
+      "chosen": "ascii",
+      "candidates": [
+        { "value": "ascii", "score": 1, "reason": "no bytes at or above 0x80" },
+        { "value": "latin-1", "score": 0, "reason": "UTF-8 or ASCII decoding accepted" },
+        { "value": "utf-8", "score": 0, "reason": "no bytes at or above 0x80" }
+      ]
+    },
+    {
+      "stage": "encoding",
+      "topic": "class",
+      "chosen": "text",
+      "candidates": [
+        { "value": "binary", "score": 0, "reason": "not chosen" },
+        { "value": "empty", "score": 0, "reason": "not chosen" },
+        { "value": "text", "score": 1, "reason": "rule 6: no NUL bytes; 0 of 163 bytes are control bytes" }
+      ]
+    },
+    {
+      "stage": "format",
+      "topic": "family",
+      "chosen": "keyValue",
+      "candidates": [
+        { "value": "touchstone", "score": 0, "reason": "first line is not an option line or [Version]" },
+        { "value": "keyValue", "score": 0.8, "reason": "8 key/value lines, 2 section headers, 10 lines in all" },
+        {
+          "value": "delimited",
+          "score": 0.5909090909090909,
+          "reason": "delimiter whitespace; k=3; 8/11 records; clean=1; run lines 3-12; 1 non-k records skipped in the start window; 0 quoted fields"
+        },
+        { "value": "text", "score": 0.1, "reason": "text content" },
+        { "value": "binary", "score": 0, "reason": "not binary: text content" }
+      ]
+    },
+    {
+      "stage": "dialect",
+      "topic": "separator",
+      "chosen": "=",
+      "candidates": [
+        { "value": ":", "score": 0, "reason": "0 of 8 key/value lines" },
+        { "value": "=", "score": 1, "reason": "8 of 8 key/value lines" }
+      ]
+    }
+  ]
+}

@@ -163,8 +163,8 @@ public class DescriptorWriterTests
             Assert.DoesNotContain(key, text);
         }
 
-        Assert.Contains("\"schemaVersion\": \"1.0\"", text);
-        Assert.StartsWith("{\n  \"schemaVersion\": \"1.0\",\n  \"tool\": { \"name\": \"squalify\", \"version\": \"0.1.0\" },\n  \"options\": {", text);
+        Assert.Contains("\"schemaVersion\": \"" + Descriptor.SchemaVersion + "\"", text);
+        Assert.StartsWith("{\n  \"schemaVersion\": \"" + Descriptor.SchemaVersion + "\",\n  \"tool\": { \"name\": \"squalify\", \"version\": \"0.1.0\" },\n  \"options\": {", text);
     }
 
     [Fact]

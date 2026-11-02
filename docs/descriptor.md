@@ -1,6 +1,6 @@
 # Descriptor schema v1
 
-Status: frozen. This document and [`schema/descriptor-v1.schema.json`](../schema/descriptor-v1.schema.json) define `schemaVersion` `1.0`, and this document is normative: the [versioning policy](#versioning-policy) says what may change and how a change is versioned, the [changelog](#changelog) lists the changes by release, and what no profiler produces yet is marked as [planned](#planned-for-a-1x-minor-release). The schema is frozen from squalify 1.0.0; the 0.x releases also wrote `schemaVersion` `1.0` but changed the descriptor without a bump, so tell them apart by `tool.version`.
+Status: frozen. This document and [`schema/descriptor-v1.schema.json`](../schema/descriptor-v1.schema.json) define `schemaVersion` `1.1`, and this document is normative: the [versioning policy](#versioning-policy) says what may change and how a change is versioned, the [changelog](#changelog) lists the changes by release, and what no profiler produces yet is marked as [planned](#planned-for-a-1x-minor-release). The schema is frozen from squalify 1.0.0; the 0.x releases also wrote `schemaVersion` `1.0` but changed the descriptor without a bump, so tell them apart by `tool.version`. Schema `1.1`, from squalify 1.1.0, adds the Touchstone and key=value families to schema `1.0` (see the [changelog](#changelog)).
 
 A descriptor is one UTF-8 JSON object. Keys appear in the order shown here, and from sq-02 on that order is normative: `DescriptorWriter` (`src/squalify/Json/DescriptorWriter.cs`) writes every object with explicit keys in this order, and golden files pin it. The determinism rules are in [design.md](design.md#determinism-rules). Members marked **values tier** appear only with `--include-values`, or for a named member with `--include-values-for` (see [Values tier](#values-tier)). A descriptor made with `--layout-only` has the reduced shape described under [Layout-only profile](#layout-only-profile): everything below is for a full profile unless that section says otherwise.
 
@@ -14,9 +14,9 @@ From sq-02 the writer produces these bytes. For the same input, options and squa
 - **Text.** Printable characters in the Basic Multilingual Plane are written literally (`µA`, `Ω`, `é`; a U+FFFD that is already in the text is written literally too). The writer uses `JavaScriptEncoder.UnsafeRelaxedJsonEscaping`, so these are escaped: `\"`, `\\`, the short forms `\b \f \n \r \t`, and `\uXXXX` with upper-case hex for other control characters (including U+007F), for BMP code points that the runtime's Unicode tables leave unassigned (for example U+0378, written `\u0378`), and for a few invisible or non-character code points (for example U+0085, U+00A0, U+2028, U+FEFF). Characters outside the BMP are written as surrogate pairs: U+1F600 becomes the 12 characters `\uD83D\uDE00`. A lone UTF-16 surrogate cannot occur in text decoded from bytes; if one reaches the writer it is written as the escape `\uFFFD`. The set of unassigned code points comes from the .NET runtime, so the bytes are guaranteed only within one runtime major version: the same squalify version on a newer runtime major can write a different escape for the same text. Consumers pin the package and the runtime. squalify has no escape table of its own, and its version does not change with the runtime (see [design.md](design.md#determinism-rules)). A test pins the behavior on the current runtime. An escape that differs between runtime majors can also move a line break, because the one-line rule counts an escape at its written length (see Layout); the same guarantee applies to it.
 - **Numbers.** A count or offset is an integer. A double is written in the shortest form that parses back to the same double (.NET `"R"`, invariant culture), for example `0.1`, `1700`, `1E-07` or `1.5E+300`. `-0` is written as `0`. NaN, `Infinity` and `-Infinity` have no JSON number form and are written as the strings `"NaN"`, `"Infinity"` and `"-Infinity"`. Statistics of `int` fields (`min`, `max`, quantiles) are integers; the others are doubles.
 - **Key order.** The order of the tables and examples in this document. Where a member is not in an example, its place is listed under [Key order of nested objects](#key-order-of-nested-objects).
-- **Collections.** Producers must build every collection sorted by the documented key, and the writer never sorts. Maps (`typeVotes`, `nullTokens`, `lineKinds`, `headerConvention.counts`, `patterns`) are ordered by key, ordinally (UTF-16 code unit order); `valuesPerLine` is ordered by its integer key, ascending. Arrays keep the order documented where they are described (`issues` by code, `shapes` by count then mask, `includeValuesFor` ordinally, and so on). `stdf.records` is ordered by `typ`, then `sub`, ascending. Evidence `candidates` are never in insertion order; see [`evidence[]`](#evidence). `hints.stableLines` is ordered by `line` ascending, then by `regex`, ordinally. An array whose order is not yet documented (for example `stdf.tests`) gets one in the change that first produces it, in that change to this document.
+- **Collections.** Producers must build every collection sorted by the documented key, and the writer never sorts. Maps (`typeVotes`, `nullTokens`, `lineKinds`, `headerConvention.counts`, `patterns`) are ordered by key, ordinally (UTF-16 code unit order); `valuesPerLine` is ordered by its integer key, ascending. `sections[]`, the keys of a section (every occurrence of a key, so a repeated key is listed again) and `format.dialect.keywords` (the first occurrence of each) are in file order. Arrays keep the order documented where they are described (`issues` by code, `shapes` by count then mask, `includeValuesFor` ordinally, and so on). `stdf.records` is ordered by `typ`, then `sub`, ascending. Evidence `candidates` are never in insertion order; see [`evidence[]`](#evidence). `hints.stableLines` is ordered by `line` ascending, then by `regex`, ordinally. An array whose order is not yet documented (for example `stdf.tests`) gets one in the change that first produces it, in that change to this document.
 - **Aligned values lists.** A values-tier list that lines up with another list (`regions[].values` with `keys`, `sections[].values` with `keys`, `rows[].values` with the row's cells) has one entry per aligned item. An entry that is not opted in (for example by `--include-values-for`) is `null`.
-- **Optional versus null.** A member documented as "when tabular", "keyValue", "when binary", "stdf" and the like is omitted when it does not apply. Members outside `table.fields[]` that appear in the examples with the value `null` (for example `hints.magic`, `format.dialect`) are always written, as `null` when they do not apply. Within a values-tier member (`top`, `text`, `unit`, `regions[].values`) the rule of that member applies: a values-tier member that the schema always writes is `null` without `--include-values`, except inside `table.fields[]`, where `top`, `text` and `unit` are left out then (see below). **Inside `table.fields[]` (sq-32) a member whose value is `null` is left out, and absent means `null`**, with these exceptions, which are written as `null` because the [consumer subset](#consumer-subset) lists them as nullable: `name`, `rawName` and `nameParts` (all `null` for a table with no header), `nameParts.unit`, `nullTokens`, `constant` and `statsWithheld`. This holds at any depth of a field (`numeric.mean`, `numeric.stddev`, `temporal.clock`, `temporal.min`, `temporal.max`, `temporal.quantiles` and so on). Further members are left out for what they say: `flags` when all three of its counts are 0 (absent means `{ "leadingZero": 0, "commaDecimalLike": 0, "padded": 0 }`), `nullSpellings` when it has no entry and `nullSpellingsOther` when it is 0 (absent means `{}` and `0`; sq-36), `nullSpellingsOtherDistinct` when it is 0 and `nullSpellingsOtherDistinctCapped` when it is false (absent means `0` and `false`; sq-43), and `approximate` (in `distinct`, `numeric`, `temporal` and `top`) when it is false or, for `temporal`, null (absent means exact; for `temporal` with no `quantiles` it means there are none). Members written only in some cases are listed below (`layoutOnly`, `scope`, `file.sha256`, `nameHex`, `index`, `regions`, `lineKinds`, `keys`, `values`, `rows`, `headerConvention`, `maxLineLength`, `rowClasses`, `rowClasses.allNullRowSpellingsOtherDistinctCapped`, `fields[].nullSpellingsOtherDistinct`, `fields[].nullSpellingsOtherDistinctCapped`, `distinct.relativeStdError`, `numeric.rankError`, `temporal.rankError`, `top.maxError`, `firstLines`, `offsets`, `sections[].values`, `annotation.rows[].values`). `binary.blocks` and `binary.segments` are [planned](#planned-for-a-1x-minor-release): this version writes neither.
+- **Optional versus null.** A member documented as "when tabular", "keyValue", "when binary", "stdf" and the like is omitted when it does not apply. Members outside `table.fields[]` that appear in the examples with the value `null` (for example `hints.magic`, `format.dialect`) are always written, as `null` when they do not apply. Within a values-tier member (`top`, `text`, `unit`, `regions[].values`) the rule of that member applies: a values-tier member that the schema always writes is `null` without `--include-values`, except inside `table.fields[]`, where `top`, `text` and `unit` are left out then (see below). **Inside `table.fields[]` (sq-32) a member whose value is `null` is left out, and absent means `null`**, with these exceptions, which are written as `null` because the [consumer subset](#consumer-subset) lists them as nullable: `name`, `rawName` and `nameParts` (all `null` for a table with no header), `nameParts.unit`, `nullTokens`, `constant` and `statsWithheld`. This holds at any depth of a field (`numeric.mean`, `numeric.stddev`, `temporal.clock`, `temporal.min`, `temporal.max`, `temporal.quantiles` and so on). Further members are left out for what they say: `flags` when all three of its counts are 0 (absent means `{ "leadingZero": 0, "commaDecimalLike": 0, "padded": 0 }`), `nullSpellings` when it has no entry and `nullSpellingsOther` when it is 0 (absent means `{}` and `0`; sq-36), `nullSpellingsOtherDistinct` when it is 0 and `nullSpellingsOtherDistinctCapped` when it is false (absent means `0` and `false`; sq-43), and `approximate` (in `distinct`, `numeric`, `temporal` and `top`) when it is false or, for `temporal`, null (absent means exact; for `temporal` with no `quantiles` it means there are none). Members written only in some cases are listed below (`layoutOnly`, `scope`, `file.sha256`, `nameHex`, `index`, `regions`, `lineKinds`, `keys`, `values`, `rows`, `headerConvention`, `maxLineLength`, `rowClasses`, `rowClasses.allNullRowSpellingsOtherDistinctCapped`, `fields[].nullSpellingsOtherDistinct`, `fields[].nullSpellingsOtherDistinctCapped`, `distinct.relativeStdError`, `numeric.rankError`, `temporal.rankError`, `top.maxError`, `firstLines`, `offsets`, `sections[].values`, `annotation.rows[].values`, `sections`, `layout.regions[].label`, `format.dialect`'s family members). `binary.blocks` and `binary.segments` are [planned](#planned-for-a-1x-minor-release): this version writes neither.
 
 ### Key order of nested objects
 
@@ -33,15 +33,18 @@ Every object of the descriptor has a row here, or is listed inside the row of it
 | `scope` | `maxBytes`, `bytesRead`, `complete` |
 | `encoding` | `kind`, `charset`, `bom`, `lineEndings` (`crlf`, `lf`, `cr`), `invalidBytes`, `invalidBytesTolerated` (only when true; sq-46), `controlBytes` |
 | `format` | `family`, `dialect`, `score` |
+| `format.dialect` | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `decimalSeparator`, `padding`, `blocks`, `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords`, `valuesPerLine`, `noise`, `separator`, `hasSections`; the union of the three dialects below, of which a descriptor holds one |
 | `format.dialect` (delimited) | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `decimalSeparator`, `padding` (`trim`, `paddedShare`, `constantLineLength`, `lineLength`), `blocks` |
+| `format.dialect` (touchstone) | `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords`, `valuesPerLine`, `noise` |
+| `format.dialect` (keyValue) | `separator`, `hasSections` |
 | `kind` | `label`, `ruleId`, `confidence` |
 | `layout` | `regions`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
 | `layout.headerConvention` | `dominant`, `share`, `counts` |
-| `layout.regions[]` | `kind`, `index` (block), `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation), `regions` (block: the child regions) |
+| `layout.regions[]` | `kind`, `index` (block), `label` (block: `noise`), `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation), `regions` (block: the child regions) |
 | `layout.regions[].regions[]` | `kind`, `lines`, `bytes`, `lineKinds`, `keys`, `values` (values tier), `rows` (annotation) |
 | `layout.regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
 | `layout.regions[].regions[].rows[]` | `line`, `label` (null when the first field is numeric), `blankFields`, `nullTokens`, `typeVotes`, `type`, `values` (values tier) |
-| `table` | `rows`, `fieldCount` (`min`, `max`), `rowClasses`, `fields` |
+| `table` | `rows`, `fieldCount` (`min`, `max`), `rowClasses` (delimited only), `fields` |
 | `table.rowClasses` | `count`, `transitions`, `allNullRows`, `allNullRowSpellings`, `allNullRowSpellingsMixed`, `allNullRowSpellingsOther`, `allNullRowSpellingsOtherDistinct` (always; sq-43), `allNullRowSpellingsOtherDistinctCapped` (only when true; sq-43), `truncated`, `classes` (`id`, `count`, `fields`, `firstLine`, `lastLine`) |
 | `table.fields[]` of a layout-only profile (sq-47) | `index`, `name`, `rawName`, `nameHex` (only when the name contains U+FFFD), `nameParts`; nothing else (see [Layout-only profile](#layout-only-profile)) |
 | `table.fields[]` | `index`, `name`, `rawName`, `nameHex` (only when the name contains U+FFFD), `nameParts`, `type`, `dominant`, `typeVotes`, `patterns`, `count`, `nulls`, `nullsExcludingAllNullRows`, `nullTokens`, `nullSpellings` (left out when empty), `nullSpellingsOther` (left out when 0), `nullSpellingsOtherDistinct` (left out when 0; sq-43), `nullSpellingsOtherDistinctCapped` (only when true; sq-43), `flags`, `distinct`, `numeric`, `temporal`, `statsWithheld`, `length`, `shapes`, `monotonic`, `constant`, `unique`, `unit`, `top`, `text`; a member that is null is left out, except `name`, `rawName`, `nameParts`, `nullTokens`, `constant` and `statsWithheld` (see Optional versus null), and `flags` is left out when all its counts are 0 |
@@ -55,11 +58,11 @@ Every object of the descriptor has a row here, or is listed inside the row of it
 | `fields[].numeric` | `min`, `max`, `mean`, `stddev` (absent for fewer than two values), `quantiles` (`p01`, `p05`, `p25`, `p50`, `p75`, `p95`, `p99`), `approximate` (only when true), then `rankError` (only when approximate) |
 | `fields[].temporal` | `orders`, `ambiguous`, `clock`, `min`, `max`, `quantiles` (`p01`, `p05`, `p25`, `p50`, `p75`, `p95`, `p99`), `approximate` (only when true), then `rankError` (only when approximate); `clock`, `min`, `max` and `quantiles` are absent when they are null (all of `min`, `max` and `quantiles` when ambiguous) |
 | `fields[].top` | `items` (`value`, `count`), `approximate` (only when true), `maxError` (only when approximate) |
-| `sections[]` (planned) | `name`, `line`, `keys`, `values` (values tier) |
+| `sections[]` | `name`, `line`, `keys`, `values` (values tier) |
 | `binary` | `bytes` (`histogram`, `nul`, `printableAscii`, `high`, `entropy`), `blocks` (planned: `count`, `min`, `max`, `mean`), `segments` (planned) |
 | `stdf.records[]` (planned) | `name`, `typ`, `sub`, `count` |
 | `stdf.tests[]` (planned) | `testNum`, `kind`, `name`, `occurrences` |
-| `hints` | `extension`, `magic`, `stableLines`, `headerFields`, `headerPrefix`, `nonNullFields`, `fieldCount`, `dataStartLine`, `delimiter`, `headerConvention`, `stdf` (always `null` in schema 1.0), `fileNameShape`; every member is always written, `null` when it does not apply (`stableLines` is `[]`) |
+| `hints` | `extension`, `magic`, `stableLines`, `headerFields`, `headerPrefix`, `nonNullFields`, `fieldCount`, `dataStartLine`, `delimiter`, `headerConvention`, `stdf` (always `null` in schemas 1.0 and 1.1), `fileNameShape`; every member is always written, `null` when it does not apply (`stableLines` is `[]`) |
 | `hints.magic` | `name`, `offset`, `hex` |
 | `hints.stableLines[]` | `line`, `regex` |
 | `hints.fieldCount` | `min`, `max` |
@@ -74,7 +77,7 @@ Every object of the descriptor has a row here, or is listed inside the row of it
 
 | Key | Type | Always | Description |
 |---|---|---|---|
-| `schemaVersion` | string | yes | `"1.0"` |
+| `schemaVersion` | string | yes | `"1.1"` (`"1.0"` before squalify 1.1.0) |
 | `tool` | object | yes | `{ "name": "squalify", "version": "x.y.z" }` |
 | `options` | object | yes | Options that affect output: `{ "includeValues": false, "includeValuesFor": [] }`. Two options are carried outside it: `layoutOnly` is the top-level member of that name, and the byte limit is in `scope`. `includeValuesFor` lists allow-listed names as a sorted set (ordinal order, exact duplicates dropped; the profiler normalizes a list that was built by name, so the descriptor does not depend on how the options were made); names that match nothing are reported as the issue `includeValuesForUnmatched`. |
 | `layoutOnly` | boolean | only with `--layout-only` | `true` when the profile skipped the per-field work (sq-47): then `hints` and `fingerprint.typed` are `null` and `table.fields[]` holds only names. Absent otherwise, never `false`. See [Layout-only profile](#layout-only-profile). |
@@ -82,11 +85,11 @@ Every object of the descriptor has a row here, or is listed inside the row of it
 | `file` | object | yes | `name` (not a path), `size` (bytes, of the whole file), `sha256` (omitted when only a prefix was read) |
 | `scope` | object | with a byte limit | `maxBytes`, `bytesRead`, `complete`; see [`scope`](#scope). Absent when no limit was given. |
 | `encoding` | object | yes | `kind` (`empty`/`text`/`binary`), `charset`, `bom`, `lineEndings {crlf, lf, cr}`, `invalidBytes`, `invalidBytesTolerated` (only when true), `controlBytes` |
-| `format` | object | yes | `family` (`delimited`, `text`, `binary`, `empty`; `touchstone`, `keyValue` and `stdf` are planned), `dialect` (the delimited dialect, or `null`; the other dialects are planned), `score` (the winning profiler's score; 1 for `empty`) |
+| `format` | object | yes | `family` (`delimited`, `touchstone`, `keyValue`, `text`, `binary`, `empty`; `stdf` is planned), `dialect` (the dialect of a delimited, touchstone or keyValue file, or `null`; the stdf dialect is planned), `score` (the winning profiler's score; 1 for `empty`) |
 | `kind` | object | yes | `label`, `ruleId`, `confidence` |
 | `layout` | object | yes | `regions[]`, `headerConvention` (tabular), `maxLineLength` (text and delimited; in characters) |
-| `table` | object | when tabular | `rows`, `fieldCount {min, max}`, `rowClasses`, `fields[]` |
-| `sections` | array | planned (keyValue) | `[{ name, line, keys[] }]` |
+| `table` | object | when tabular (delimited, touchstone, keyValue) | `rows`, `fieldCount {min, max}`, `rowClasses` (delimited only), `fields[]` |
+| `sections` | array | keyValue only | `[{ name, line, keys[], values[] }]`; see [`sections`](#sections) |
 | `binary` | object | when binary | `bytes {histogram[256], nul, printableAscii, high, entropy}`, `blocks {count, min, max, mean}` and `segments[16]` (both planned; this version writes neither) |
 | `stdf` | object | planned (stdf) | See below. |
 | `fingerprint` | object | yes | `version`, `structure`, `layout`, `typed`, `names`; `typed` is `null` when `layoutOnly` is true |
@@ -151,7 +154,7 @@ The descriptor marks what it left out, so a reader can tell "not computed" from 
 
 Everything else is written as for a full profile and is equal to it, which a test checks on every fixture of the repository and on further shapes (a wide padded table, repeated blocks with units rows, mixed blocks, truncated blocks, ragged rows, comment lines, duplicate and empty names, all-null separator rows of every spelling, invalid bytes, mixed line endings, excluded names, 2,000 columns, UTF-16): `schemaVersion`, `tool`, `limits`, `file`, `scope`, `encoding`, `format` (and its dialect, `padding` and `blocks`), `kind`, `layout` (regions, `headerConvention`, `maxLineLength`), `table.rows`, `table.fieldCount`, `table.rowClasses` (the ids, counts, lines, transitions and all-null spellings, because the null decision per cell is the same), `binary`, `sections`, `stdf` and `issues`.
 
-- **Issues.** Every issue code that squalify writes comes from the byte pass, the format choice, the layout, the header or the options, and none from the analysis of the values of a field. So no code is dropped: `invalidUtf8`, `invalidUnicode`, `mixedLineEndings`, `nameExcludedFromFingerprint`, `includeValuesForUnmatched`, `raggedRows`, `commentInData`, `duplicateHeader`, `emptyHeaderName`, `heterogeneousBlocks`, `noDataRows`, `blocksTruncated` and `tooIrregular` are written with the same counts and locations as in a full profile (the issues `invalidUtf8` and `invalidUnicode` keep their `firstLines`, `offsets` and `regions`, and `encoding.invalidBytesTolerated` is kept). A code that a later slice adds and that needs a field's values will be left out and listed here.
+- **Issues.** Every issue code that squalify writes comes from the byte pass, the format choice, the layout, the header, the structure of the Touchstone data or the keys of a key=value document, or the options, and none from the analysis of the values of a field. So no code is dropped: `invalidUtf8`, `invalidUnicode`, `mixedLineEndings`, `nameExcludedFromFingerprint`, `includeValuesForUnmatched`, `raggedRows`, `commentInData`, `duplicateHeader`, `emptyHeaderName`, `heterogeneousBlocks`, `noDataRows`, `blocksTruncated`, `tooIrregular`, `incompleteBlock`, `nonMonotonicFrequency`, `portMismatch` and `duplicateKey` are written with the same counts and locations as in a full profile (the issues `invalidUtf8` and `invalidUnicode` keep their `firstLines`, `offsets` and `regions`, and `encoding.invalidBytesTolerated` is kept). A code that a later slice adds and that needs a field's values will be left out and listed here.
 - **`limits`** is written as for a full profile of the same file: it is a function of the tool version and of the field count, so `limits.sketches` and the per-field caps say what a full profile would have used. With `layoutOnly` true no per-field cap or sketch is in use.
 - **Values.** `--include-values` and `--include-values-for` still open the preamble and annotation values of the layout, which are layout members and equal to a full profile's with the same options; they have no effect on the fields: no field value is computed, so no `top`, `text`, `unit` or statistic of a constant field exists to be written. `options` echoes the two options as given, and an `includeValuesFor` name still matches a preamble key, an annotation label or a field name, so `includeValuesForUnmatched` is written as in a full profile.
 - **Other options.** `--max-bytes` writes `scope` and cuts the file as usual, `--max-first-record-bytes` refuses the same files with the same error, and `Profiler.ProfilePrefix` returns the same descriptor as `Profiler.Profile` for the same options.
@@ -256,6 +259,21 @@ For `delimited/per-site-blocks.csv` (`tests/squalify.Tests/fixtures/`, three sit
 
 Block regions are written only when `dialect.blocks` is greater than 1.
 
+## `layout` of a Touchstone file
+
+`layout.maxLineLength` is the longest line in characters, as for a delimited file. The regions tile the file in file order, and a blank line belongs to the region before it:
+
+- `preamble`: every line before the first line of network data: the comments, the option line, the keywords (`[Network Data]` included) and any other line that is not data. It is always there (a Version 1 file has an option line, a Version 2 file `[Version]`). `lineKinds` counts the lines by kind: `blank`, `comment` (the first character that is not white space is `!`) and `text` (every other line that holds no data, the option line and the keywords among them).
+- `data`: from the first line of network data to the last line before the noise block, or before the footer. `lineKinds` counts only the lines in it that hold no data (comments, blank lines, other text); a line of numbers is not counted. It is left out when the file has no network data.
+- `block` with `label` `noise`: the noise data of a two-port file. A Version 2 file's block starts at its `[Noise Data]` keyword line, a Version 1 file's at the first line of noise data, the line whose frequency is lower than the last network frequency. It has no `index` and no child `regions`, and `lineKinds` as `data` has.
+- `footer`: the lines after the last line of data that are not blank (`[End]`, trailing comments), with `lineKinds`.
+
+A comment or other line between two lines of data belongs to the region of the data around it, and one between the last network data and the start of the noise block to the network data. `hints.dataStartLine` is the first line of `data`.
+
+## `layout` of a key=value document
+
+`layout.maxLineLength` is the longest line in characters. There is one region, `data`, over the whole file (`lines` from 1 to the line count, `bytes` from 0 to the size): a key=value document has no preamble, header or footer to tell apart, and its sections are in [`sections`](#sections). `lineKinds` counts every line by kind: `blank`, `comment` (the trimmed line starts with `#`, `;`, `!` or `//`), `keyValue` (a pair), and `text` (a `[section]` header, or any other line). The empty file has no region.
+
 ## `binary.bytes`
 
 ```json
@@ -266,11 +284,11 @@ Block regions are written only when `dialect.blocks` is greater than 1.
 
 ## Interim members
 
-In schema 1.0 these members hold fixed interim values (or `null`), so that every file yields a valid descriptor; the profilers that own them are [planned](#planned-for-a-1x-minor-release):
+In schemas 1.0 and 1.1 these members hold fixed interim values (or `null`), so that every file yields a valid descriptor; the profilers that own them are [planned](#planned-for-a-1x-minor-release):
 
 - `kind` follows the byte-pass class: `empty` (`K12`), `binary` (`K11`) or `text` (`K09`), with confidence 1. The kind rule table, with the other labels, is planned for a 1.x minor release.
 - `table.fields[]` of a delimited file holds real values for every member: `top` and `text` (values tier) are absent unless values are opted in for the field (see [Values tier](#values-tier)), and `nameParts` is written as `null` only for a table with no header. A consumer reads an absent `top`, `text` or `unit`, and a `null` `nameParts`, as "not computed". See [`table.fields[]`](#tablefields) for the rest; `unit` is absent unless values are opted in for the field (`--include-values`, or its name in `--include-values-for`), and when the units cell is null.
-- `hints.stdf` is always `null` in schema 1.0 (it becomes an object when an STDF profiler exists); every other `hints` member is computed (see [`hints`](#hints)).
+- `hints.stdf` is always `null` in schemas 1.0 and 1.1 (it becomes an object when an STDF profiler exists); every other `hints` member is computed (see [`hints`](#hints)).
 
 ## `layout.regions[]`
 
@@ -281,7 +299,7 @@ In schema 1.0 these members hold fixed interim values (or `null`), so that every
 
 - Region kinds: `preamble`, `annotation`, `header`, `units`, `data`, `footer`, `block`, `unknown`.
 - Lines are 1-based and inclusive. Bytes are 0-based and half-open.
-- `block` regions carry `index` (0-based) and `regions`, the child regions of the block (see [Several blocks](#several-blocks)). They have no label. Only a file with more than one block has them.
+- `block` regions carry `index` (0-based) and `regions`, the child regions of the block (see [Several blocks](#several-blocks)). They have no label, except the noise block of a Touchstone file (`label` `noise`, with no `index` and no `regions`; see [`layout` of a Touchstone file](#layout-of-a-touchstone-file)). A delimited file has them only when it has more than one block.
 - Preamble `keys` are always included, normalized (trimmed, trailing `:` or `=` removed). `values`, aligned with `keys`, are **values tier**.
 - An `annotation` region holds the column-aligned rows between the start of the table run and the header:
 
@@ -422,11 +440,11 @@ Distinct counting, `unique` and the text comparison of `constant` compare a 64-b
 | Family | Dialect keys |
 |---|---|
 | delimited | `delimiter`, `quote`, `hasHeader`, `unitsRow`, `decimalSeparator`, `padding {trim, paddedShare, constantLineLength, lineLength}`, `blocks` |
-| touchstone (planned) | `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords[]`, `valuesPerLine {n: count}`, `noise` |
-| keyValue (planned) | `separator` (`=` or `:`), `hasSections` |
+| touchstone | `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords[]`, `valuesPerLine {n: count}`, `noise` |
+| keyValue | `separator` (`=` or `:`), `hasSections` |
 | stdf (planned) | `cpuType`, `endianness`, `version` |
 
-Only the delimited dialect is produced by this version; for every other family `format.dialect` is `null`. The touchstone, keyValue and stdf dialects are [planned](#planned-for-a-1x-minor-release): they are not in the schema, and each arrives with its profiler as a minor release.
+The delimited, touchstone and keyValue dialects are produced by this version; for every other family `format.dialect` is `null`. The stdf dialect is [planned](#planned-for-a-1x-minor-release): it is not in the schema, and arrives with its profiler as a minor release. In the schema, `format.dialect` is a `oneOf` of the three dialect objects and `null`.
 
 ### delimited
 
@@ -443,6 +461,78 @@ Only the delimited dialect is produced by this version; for every other family `
 - `padding` describes the data run (from its first to its last record). `paddedShare` is the share of cells that are non-empty after trimming and start or end with a trim-set character; `trim` is true when any cell is padded; `constantLineLength` is true when every non-blank physical line of the run has the same byte length (never when the table has no data record), and `lineLength` is then that length **in bytes** (`null` otherwise). Unlike `layout.maxLineLength`, which counts characters, `padding.lineLength` counts the bytes of the file's own charset, line break excluded.
 
 - `blocks` is the number of blocks: 1 for a table without repeated blocks, and the number of `block` regions otherwise (see [Several blocks](#several-blocks)).
+
+### touchstone
+
+```json
+{ "version": "1.0", "ports": 2, "frequencyUnit": "GHz", "parameter": "S", "dataFormat": "MA", "referenceOhms": 50,
+  "twoPortOrder": "21_12", "matrixFormat": "Full", "keywords": [], "valuesPerLine": { "9": 4 }, "noise": true }
+```
+
+The rules follow scikit-rf (`skrf/io/touchstone.py`) and are checked against the IBIS Touchstone 2.0 specification (2.1 has the same syntax; [design.md](design.md#touchstone) lists where the two differ). Text is ASCII, comparisons are case-insensitive, and the numbers are read with `.` as the decimal separator by the value classifier.
+
+- `version` is `1.0` for a file with no `[Version]` keyword, and the keyword's argument (`2.0`, `2.1`) otherwise (`2.0` when the argument is not of the form `n.n`).
+- `ports` is the port count. It comes from `[Number of Ports]` when the file has it, else from the extension (`.[ghsyz]<N>p`, so `.s2p` and `.y4p`), else, for a file whose extension and keywords give none (`.ts` has no count), from the first line of data: 3 values are one port and 9 are two. A file that has both the extension and the keyword and they differ has the issue `portMismatch`, and the keyword wins. The evidence entry `dialect` / `ports` says where the count came from.
+- `frequencyUnit` (`Hz`, `kHz`, `MHz`, `GHz`; default `GHz`), `parameter` (`S`, `Y`, `Z`, `H`, `G`; default `S`), `dataFormat` (`DB`, `MA`, `RI`; default `MA`) and `referenceOhms` (the value after `R`, the first when there are several; default 50) come from the option line. The option line is `#` followed by tokens in any order, as the specification allows (the positional order `GHz S MA R 50` that scikit-rf reads is one of them); the tokens are case-insensitive. An option line with another token is not an option line: the file is not Touchstone. Only the first option line counts. Each of the four that the option line leaves out is defaulted, with an evidence entry `dialect` / `frequencyUnit`, `parameter`, `dataFormat` or `referenceOhms` whose one candidate is the default. For a Version 2 file `referenceOhms` is the option line's value; the per-port `[Reference]` is not interpreted (the keyword is listed).
+- `twoPortOrder` is `null` unless `ports` is 2. A two-port file has `21_12` (the Version 1 order: N11, N21, N12, N22) unless `[Two-Port Data Order]` says `12_21` (N11, N12, N21, N22). The evidence entry `dialect` / `twoPortOrder` says whether the keyword gave it.
+- `matrixFormat` is `Full` unless `[Matrix Format]` says `Lower` or `Upper`.
+- `keywords` lists the known keywords that the file holds, once each, in the order of their first occurrence, in their canonical spelling: `[Version]`, `[Number of Ports]`, `[Two-Port Data Order]`, `[Number of Frequencies]`, `[Number of Noise Frequencies]`, `[Reference]`, `[Matrix Format]`, `[Mixed-Mode Order]`, `[Network Data]`, `[Noise Data]` and `[End]`. A keyword starts with `[`, is case-insensitive, and its words are separated by one space or one dash (`[Two-Port Data Order]` and `[two port data order]` are the same). A bracketed name that is not in the list (`[Begin Information]`) is a line of text. `[Mixed-Mode Order]` data is read as ordinary data of `ports` ports: mixed-mode parameters are not interpreted beyond the keyword.
+- `valuesPerLine` is a histogram of the numbers on the lines of network data (not of the noise data): the key is the count, the value is how many lines have it, ordered by key ascending. It records how the file is wrapped; the blocks do not depend on it.
+- `noise` is true when the file has a noise block. A Version 2 file has one at `[Noise Data]`. A Version 1 two-port file has one where a line starts a block with a frequency lower than the last network frequency (scikit-rf; the evidence entry `dialect` / `noise` says which rule found it). Only two-port files have noise data (the specification), so a frequency that drops in any other file is a `nonMonotonicFrequency`, not noise.
+
+**Data.** The numbers of the data lines are read as one flat stream, whatever the line breaks, in blocks: a block is the frequency and then the entries of the matrix as pairs (so 1 + 2N^2 values for a full matrix of N ports, and 1 + N(N+1) for a lower or upper one). A line is a data line when every token on it, after the comment is cut at `!`, is a number (an integer or a decimal number, with or without a leading digit, with an exponent, or `NaN`). Any other line is text. In a Version 2 file the data starts after `[Network Data]`; in a Version 1 file, at the first data line after the option line. A block that the data ends in the middle of (network or noise) is not counted in any field and is the issue `incompleteBlock`. A frequency that is lower than the one before it, in the network data or in the noise data, is the issue `nonMonotonicFrequency`; equal frequencies are not reported.
+
+**Fields.** `table.fields[]` holds, in file order, `freq`, and for each entry of the block two fields named by the parameter letter, the row and the column of the entry, and a suffix by the data format: `mag` and `ang` (MA), `db` and `ang` (DB), `re` and `im` (RI): `S11.mag`, `S11.ang`. A full two-port Version 1 file has `freq`, `S11.*`, `S21.*`, `S12.*`, `S22.*` (the order of the data: `S21` before `S12`), and a `12_21` file `S11.*`, `S12.*`, `S21.*`, `S22.*`. A lower matrix runs `S11`, `S21`, `S22`, `S31`, `S32`, `S33`, an upper one `S11`, `S12`, `S13`, `S22`, `S23`, `S33`; a two-port lower or upper matrix holds `S11`, `S21` and `S22` (the specification takes `S21` and `S12` to be the same). With more than 9 ports the row and column are joined by `_` (`S1_10.mag`). A file with noise data adds `noise.freq`, `noise.nfmin`, `noise.gammaOpt.mag`, `noise.gammaOpt.ang` and `noise.rn` after the network fields. Each field is profiled by the field accumulators as in a delimited table, one value per block, so `count` is the number of blocks (`table.rows`, for the network fields; the number of noise blocks for the noise fields). The table is described under [`table` of the touchstone and keyValue families](#table-of-the-touchstone-and-keyvalue-families).
+
+**Comments.** The number of comment lines is in `layout.regions[].lineKinds`. The text of a comment never reaches the descriptor unless `--include-values` is given (a comment has no owner, so `--include-values-for` does not open it): then the comment and text lines of the preamble (the first 100) are offered as `hints.stableLines` regexes, as for a delimited file.
+
+### keyValue
+
+```json
+{ "separator": "=", "hasSections": true }
+```
+
+A whole-file `key=value` or `key: value` document, with optional `[section]` headers (INI). The lines are classified in this order:
+
+- blank: empty, or only white space; comment: the trimmed line starts with `#`, `;`, `!` or `//`;
+- a section header: the trimmed line starts with `[` and ends with `]`, with a name of 1 to 64 characters inside that holds no bracket;
+- a pair: the text before the first `=` or `:` is a key, and the text after it, trimmed, is the value (it may be empty). A key has 1 to 64 characters, starts with a letter (an ASCII letter, `_`, or any character above U+007F), and holds no control character and no `,`. So `12:30:00`, `1,2,3` and `Hello, world: x` are not pairs;
+- anything else: a line of text.
+
+`separator` is `=` or `:`, whichever more pairs use (a tie is `=`; the evidence entry `dialect` / `separator` has the two counts). `hasSections` is true when the document has a `[section]` header.
+
+**Score.** The profiler scores 0.8 (above the delimited profiler's highest, 0.7) when all of these hold, and 0 otherwise, with the reason in the family evidence:
+
+- there are at least 2 pairs, and at least 80 percent of the lines that are neither blank nor comments are pairs or section headers;
+- no run of 2 lines that are not pairs or headers has the same number (2 or more) of fields under a comma, a tab, a semicolon or a bar, no quoting, and none of 6 lines under runs of white space: a table-like run;
+- no more than 10,000 different keys (each key is a field);
+- no more than half of the pairs repeat a key of their own section (a key identifies a value; a log of `INFO: ...` lines does not);
+- the delimited profiler does not find a table that a comma, a tab, a semicolon or a bar gives (a record whose first cell holds a colon reads as a pair). White space does not count: a document of `Lot = A12` lines is read as a table of three columns by the white-space delimiter, which is why this family exists. A header-only table is a table.
+
+A table with a key=value preamble is therefore not this family: its table is a run, and the delimited profiler's (see [`layout` of a delimited file](#layout-of-a-delimited-file)). The score does not change the delimited profiler's scores or its descriptors.
+
+## `table` of the touchstone and keyValue families
+
+`table` has `rows`, `fieldCount` and `fields[]`, and no `rowClasses` (the member is optional from schema 1.1; there are no all-null rows to class). The fields are those of a delimited table in every member (see [`table.fields[]`](#tablefields)), with these differences:
+
+- `name` and `rawName` are the same text: the synthesized name of a Touchstone field, or the key of a key=value field. They are never `null`. `nameParts` is `null` (the header conventions of `layout.headerConvention`, which is not written for these families, are not applied to them; owner decision 2026-11-02).
+- There are no all-null rows, so `nullsExcludingAllNullRows` equals `nulls`.
+- **Touchstone.** `rows` is the number of complete network blocks (frequency points), `fieldCount.min` and `max` are the number of network fields, and every network field has `count` equal to `rows`. A file with noise has the noise fields too, after them; `count` of a noise field is the number of noise blocks, so it is not `rows` for those five fields.
+- **keyValue.** There is one field for each different key, in the order of its first occurrence, whatever the section. `rows` is the number of sections (the unnamed section of the keys before the first `[section]` counts), and `fieldCount.min` and `max` are the fewest and the most keys that a section has (every occurrence counts). The `count` of a field is the number of times its key occurs in the document, so it is 1 for a key of one section and N for a key that every one of N sections has; a key that repeats inside a section is counted each time and is the issue `duplicateKey`. The values are typed by the value classifier as the cells of a delimited table are, so `typeVotes`, `type`, `shapes`, `length`, `numeric`, `temporal` and the rest are the field's own, with `top`, `text` and the statistics of a constant field in the values tier, owned by the key.
+- The caps of `limits` are those of a table with that many fields (`distinctPerField` and the others as in [`limits`](#limits)). A Touchstone file's caps count the noise fields of a two-port file whether or not it has noise data, so that they do not depend on it.
+
+## `sections`
+
+Written for the keyValue family only, right after `table`: one entry for each `[section]` of the document, in file order, and an unnamed first section (`name` `""`) for the keys that come before the first header.
+
+```json
+[ { "name": "Instrument", "line": 2, "keys": ["Model", "Serial", "Enabled", "Range"] },
+  { "name": "Limits", "line": 8, "keys": ["Vmax", "Vmin", "Imax", "Timeout"] } ]
+```
+
+- `name` is the text between the brackets, trimmed. `line` is the 1-based line of the header (of the first key, for the unnamed section). `keys` lists the keys of the section, in file order, every occurrence (so a key that repeats appears again), with the key as written, trimmed.
+- `values`, aligned with `keys` (one entry per key), is **values tier**: written only with `--include-values` or an `--include-values-for` name that matches a key, with `null` for the keys that are not opted in. The value is the text after the separator, trimmed.
+- Section names and keys are always included. A section name or key that holds a control character or U+FFFD is left out of the fingerprint (and counted in `nameExcludedFromFingerprint`).
 
 ## `stdf`
 
@@ -498,6 +588,10 @@ This version writes only the interim labels (see [Interim members](#interim-memb
 | `structure` | `"dialect": {"delimiter", "quote", "hasHeader", "unitsRow", "blocks" (only when true), "decimalSeparator", "constantLineLength"}`, then `"preambleKind"` |
 | `layout`, `typed` | `"dialect": {"delimiter", "quote", "hasHeader", "unitsRow", "blocks" (only when true)}`, then `"preambleKeys"` |
 
+**Touchstone family members** (from `TouchstoneFingerprint`): `structure` and `layout` (and `typed`) both get `"dialect": {"version", "ports" (a string of decimal digits), "parameter", "dataFormat", "matrixFormat", "noise"}`. The frequency unit, the reference impedance, the two-port order, the keywords and `valuesPerLine` are left out: they are facts about this file's numbers or line breaks. The field names, which follow the port count, the matrix format, the data format and the two-port order, enter the projections as for any table (so `fields` of a `12_21` file differs from a `21_12` one, and `names` lists the field names).
+
+**keyValue family members** (from `KeyValueFingerprint`): `structure` gets `"dialect": {"separator", "hasSections"}`. `layout` (and `typed`) gets the same dialect and then `"sections"`: an array with one `{"name", "keys"}` for each section in file order, the name case-folded (`null` for the unnamed section and for a name that is left out) and the keys case-folded, in file order, with every occurrence and with a key that holds a control character or U+FFFD left out. `names` lists the section names (case-folded; the keys enter it as the field names).
+
 `delimiter` is `format.dialect.delimiter` (`","`, a tab, `";"`, `"|"`, `"whitespace"` or `"none"` for a one-column table), `quote` is the quote character or `null`, `blocks` is the JSON `true` when `format.dialect.blocks` is greater than 1 and is left out otherwise (the number of blocks is never part of a projection: 3 blocks and 5 give the same four hashes), and `constantLineLength` is `format.dialect.padding.constantLineLength`. `preambleKind` is the most common line kind of the preamble region (`lineKinds`, not counting `blank`); a tie goes to the kind whose name sorts first, and it is `null` when there is no preamble or it has no line of another kind. `preambleKeys` is the preamble region's `keys`, in file order, case-folded. For a file with more than one block, the regions are read as the first block sees them: `regions` lists the kinds of the first block's child regions in place of all the `block` regions, followed by the regions after the last block (the footer), and `preambleKind` and `preambleKeys` are the first block's.
 
 **Names that are left out.** A header name or a preamble key that holds a control character (U+0000 to U+001F, U+007F to U+009F) or U+FFFD is excluded: a field name is projected as `#<index>` and left out of `names`, and a preamble key is left out of `preambleKeys`. Such bytes may differ from file to file and would make every sibling file unique. The issue `nameExcludedFromFingerprint` counts them (see [`issues[]`](#issues)). The names themselves stay in `table.fields[].name`, `layout.regions[].keys` and `hints`.
@@ -545,8 +639,10 @@ Every member is always written, as `null` when it does not apply (`stableLines` 
 | `dataStartLine` | The 1-based line where the data region starts; `null` when there is none. Note that `stableLines[].line` is 0-based |
 | `delimiter` | `format.dialect.delimiter` of a delimited table (`none` for a one-column table), else `null` |
 | `headerConvention` | `layout.headerConvention.dominant`, or `null` (sq-14) |
-| `stdf` | Always `null` in schema 1.0. Planned: `{ cpuType, version }` for an STDF file |
+| `stdf` | Always `null` in schemas 1.0 and 1.1. Planned: `{ cpuType, version }` for an STDF file |
 | `fileNameShape` | The shape mask of `file.name`, by the rules of [`fields[].shapes`](#tablefields) (ASCII classes only; `{` and `}` are `?`) |
+
+For a touchstone or keyValue file `headerFields`, `headerPrefix` and `delimiter` are `null` (there is no header), `nonNullFields` and `fieldCount` come from the table, and `dataStartLine` is the first line of the `data` region. `stableLines` of a key=value document holds the key lines (the first 64 pairs, always: `^\s*<key>\s*[=:]`) and, only with `--include-values`, the comment, section and text lines (the first 64); a Touchstone file's `stableLines` hold only the comment and text lines of the preamble, only with `--include-values`.
 
 **`stableLines`.** Each entry is `{ "line", "regex" }`: `line` is 0-based, matching DataBall's `lineMatches`, and `regex` is anchored. Entries are ordered by `line` ascending, then by `regex`, ordinally. A delimited table gives these, for lines that are one physical line each:
 
@@ -588,6 +684,20 @@ The delimited profiler writes these:
 | `blocksTruncated` | The file has more candidates for blocks than `limits.regions` allows blocks (see [Several blocks](#several-blocks)): from the first candidate after the last block recognised, nothing is profiled. | Candidates left | `firstLines`: the header lines of the first 10 candidates left, ascending |
 | `tooIrregular` | The delimited profiler declined the file: no candidate delimiter is viable and at least one was disqualified (a runaway quote, or more than `limits.fieldCountRuns` field-count runs). The generic text profile describes the file. | Disqualified candidates | `firstLines`: the lines where they were disqualified, ascending, at most 10 |
 
+The Touchstone profiler writes these:
+
+| Code | When | `count` | Locations |
+|---|---|---|---|
+| `incompleteBlock` | The numbers at the end of the network data, or of the noise data, do not make a whole block (1 + 2N^2 values for a full matrix of N ports, 1 + N(N+1) for a lower or upper one, 5 for noise), or a network block is cut short by `[Noise Data]`. The values are in no field. | Blocks that are incomplete (at most 2: the network data and the noise data) | `firstLines`: the line of the first value of each |
+| `nonMonotonicFrequency` | The frequency of a block of network data or of noise data is lower than that of the block before it (equal frequencies are not reported). In a Version 1 two-port file the first such drop in the network data starts the noise block instead and is not reported. | Blocks whose frequency is lower than the one before | `firstLines`: the line of the first value of the first 10 such blocks, ascending |
+| `portMismatch` | The extension names a port count (`.s3p`) and `[Number of Ports]` gives another. The keyword wins. | 1 | `firstLines`: the line of the keyword |
+
+The key=value profiler writes this:
+
+| Code | When | `count` | Locations |
+|---|---|---|---|
+| `duplicateKey` | A key appears again in the section that already has it (a key may repeat across sections). Every occurrence is in its section's `keys` and in its field's `count`. | Occurrences after the first, over all sections | `firstLines`: the first 10 lines, ascending |
+
 ### Locating invalid bytes
 
 The issues `invalidUtf8` and `invalidUnicode` (sq-46) say where the invalid bytes are, so that a consumer can accept a stray byte in a preamble and refuse one in the data, and name the line in its message, without reading the file again:
@@ -620,12 +730,17 @@ The issues `invalidUtf8` and `invalidUnicode` (sq-46) say where the invalid byte
 |---|---|---|
 | `encoding` / `class` | `binary`, `empty`, `text`; the chosen one scores 1, the others 0 | `value`, ordinally |
 | `encoding` / `charset` (text files only) | Rule 3 or 4: only the charset that the rule implies. Rule 6: `ascii`, `latin-1`, `utf-8`; the chosen one scores 1, the others 0. The reason of the chosen candidate carries the invalid-sequence count and the tolerance when they matter | `value`, ordinally |
-| `format` / `family` | Every registered profiler: its family as `value`, its score and its reason. `chosen` is the family with the highest score, a tie going to the earlier family; for a zero-length file it is `empty`, which no profiler claims, and every candidate scores 0 | Registry order: `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary` (only registered profilers appear; at present `delimited`, `text` and `binary`) |
+| `format` / `family` | Every registered profiler: its family as `value`, its score and its reason. `chosen` is the family with the highest score, a tie going to the earlier family; for a zero-length file it is `empty`, which no profiler claims, and every candidate scores 0 | Registry order: `stdf`, `touchstone`, `keyValue`, `delimited`, `text`, `binary` (only registered profilers appear: `touchstone`, `keyValue`, `delimited`, `text` and `binary`; `stdf` is planned). The reasons of a profiler that declines are fixed phrases (for example `first line is not an option line or [Version]`, `fewer than 2 key/value lines`) |
 
 | `dialect` / `delimiter` (delimited text files, when the profiler wins, or when it declined a file as too irregular) | The five delimiter candidates as `value`: `,`, a tab, `;`, `|`, `whitespace`. `score` is the candidate's dialect score (0 for a disqualified one); `chosen` is the winner, `none` for a one-column table, and `null` when none is viable. The reason is `k={k}; {inRun}/{total} records; clean={c}; run lines {a}-{b}`, with `; {n} non-k records skipped in the start window` appended when the start window of the data run skipped any records with another field count (ragged records and comment lines), `; {n} quoted fields` always appended and `; {n} literal quotes` appended when the candidate saw any; `k={k}; no run` (with the same quoted-fields and literal-quotes suffixes); `disqualified: runaway quote opened at line {n}`; or `disqualified: too irregular, more than {limit} field-count runs by line {n}` | Candidate order: `,`, tab, `;`, `|`, `whitespace` |
 | `dialect` / `shape` (delimited; only for a header-only or one-column table) | Both shapes: `headerOnly` and `singleColumn` as `value`. The one taken scores 1, with the reason `header only; k={k}; header on line {n}; no data record` or `single column; {n} records; the header on line {m} fails the column's type`; the other scores 0 with `declined: a line has several fields` or `declined: no line has several fields`. `chosen` is the shape taken. These two tables are claimed only when no delimiter candidate is viable (see the dialect rules in the design) | `value`, ordinally |
 | `dialect` / `blocks` (delimited, only when the file has more than one block) | One candidate per block, `value` = the block index as a decimal string, `score` 1 when the block is profiled and 0 when it is not (see [Several blocks](#several-blocks)), and the reason `header line {n}; the first block`, `header line {n}; the same header as block 0`, `header line {n}; another header than block 0: not profiled` or `header line {n}; the same header as block 0, but a block before it has another header: not profiled`; then one entry with `value` `summary` and score 0: `candidates={c}; blocks={b}; profiled={p}`, where c counts the runs that were looked at as candidates, those that are no block included, and p the blocks that are profiled. At most the first 10 blocks are listed. `chosen` is the number of blocks | Blocks by index, ascending (numerically), the first 10 only; `summary` last |
 | `dialect` / `decimalSeparator` (delimited) | `,` and `.`; the chosen one scores 1. The reasons carry the counts of comma-decimal and dot-decimal cells in the header sample | `value`, ordinally |
+| `dialect` / `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms` (touchstone; each only when the option line leaves it out) | One candidate: the default, as `value` (`GHz`, `S`, `MA`, `50`), score 1, the reason `default: not in the option line` or `default: the file has no option line`; `chosen` is the default | One candidate |
+| `dialect` / `ports` (touchstone) | The three places that can give the count, as `value`: `extension`, `keyword` (`[Number of Ports]`), `data` (the first data line); the one used scores 1. The reasons carry the counts: `the extension gives {n} ports`, `[Number of Ports] gives {n} ports`, `the first data line holds {n} values`, or that the place gives nothing. `chosen` is the port count | `extension`, `keyword`, `data` |
+| `dialect` / `twoPortOrder` (touchstone, two ports) | `12_21` and `21_12`; the one used scores 1. The reason says that `[Two-Port Data Order]` gave it (with its line), or that it is the default (`the Version 1 order`, `no [Two-Port Data Order]`) | `value`, ordinally |
+| `dialect` / `noise` (touchstone, when the file has a noise block) | `frequencyDrop` and `keyword`; the one that found the block scores 1, with the line (`the frequency drops on line {n}`, `[Noise Data] on line {n}`). `chosen` is that one | `frequencyDrop`, `keyword` |
+| `dialect` / `separator` (keyValue) | `:` and `=`; the score is 1 for the one used (more pairs, a tie to `=`), with the reason `{n} of {m} key/value lines`; `chosen` is the separator | `:`, `=` |
 | `header` / `candidates` (delimited) | Every eligible record of the header sample, with `value` = its 1-based line and `score` = its header score; the chosen record too when it is not eligible (relaxed or assumed); then one entry with `value` `summary` and score 0. The reason of a record is `eligible; nonEmpty=..; nonNumeric=..; unique=..; contrast=..`, `relaxed: blank or repeated names; ...` or `assumed: all-string table; ...`. The reason of the summary counts only: `sampled={n}; eligible={e}; ineligible={i} (comment line={a}, field count={b}, blank or repeated names={c}, fits every typed column={d})`. `chosen` is the header line, `null` when there is no header | Records by line, ascending (numerically); `summary` last |
 | `unit` / `headerConvention` (delimited tables with a header) | The five conventions as `value`, always all five: `nameParenUnit`, `nameBracketUnit`, `nameUnderscoreUnit`, `unitsRow`, `none`. `score` is the share of header names with that convention (count over number of names); `chosen` is the `dominant` convention. The reason is `{n} of {m} headers` | Fixed order as listed, which is also the tie-break order of the dominant convention |
 | `type` / `dateOrderConflict` (delimited) | One candidate per field that joined to `string` because its date values share no order: `value` is the field index as a decimal string, `score` is 0, and the reason is `string: no date order fits every value; {n} date values; DMY {a}, MDY {b}, YMD {c}`, where {a}, {b} and {c} count the date values that allow each order. `chosen` is `string`. The entry is written only when such a field exists | Fields by index, ascending (numerically) |
@@ -641,7 +756,7 @@ In a layout-only profile (`layoutOnly` true) no entry of the stage `type` is wri
 | Header names (`fields[].name` and `fields[].rawName`), preamble keys, annotation labels, section names and keys, STDF test names | always |
 | Numeric and temporal statistics, counts, types, shapes, lengths | always, except statistics of constant fields |
 | `nameParts` and `headerConvention` | always |
-| Region `values` (preamble and annotation), key=value values, comment text | values tier |
+| Region `values` (preamble and annotation), `sections[].values` (key=value values), comment text (as `hints.stableLines` regexes of the Touchstone and key=value families) | values tier |
 | `numeric` and `temporal` of constant fields | values tier |
 | `fields[].top`, `fields[].text`, `fields[].unit` (units row) | values tier |
 | `stableLines` for comment and text lines | values tier |
@@ -649,7 +764,7 @@ In a layout-only profile (`layoutOnly` true) no entry of the stage `type` is wri
 
 Normative rules:
 
-- **One list.** `ValuesPolicy` (`src/squalify/ValuesPolicy.cs`) is the single list of value-bearing members: `layout.regions[].values` (preamble, owner: the key), `layout.regions[].rows[].values` (annotation cells, owner: the label), `sections[].values` (owner: the key), `table.fields[].unit`, `top`, `text`, the `numeric` and `temporal` members of a field whose `constant` is `true` (owner: the field name), and `hints.stableLines` entries built from a comment or text line (no owner). Comment text joins the list when its member joins the model. Every such model member carries a `[ValueBearing]` mark and a test compares the marks with the list.
+- **One list.** `ValuesPolicy` (`src/squalify/ValuesPolicy.cs`) is the single list of value-bearing members: `layout.regions[].values` (preamble, owner: the key), `layout.regions[].rows[].values` (annotation cells, owner: the label), `sections[].values` (owner: the key), `table.fields[].unit`, `top`, `text`, the `numeric` and `temporal` members of a field whose `constant` is `true` (owner: the field name), and `hints.stableLines` entries built from a comment or text line (no owner). The text of a comment has no member of its own: it reaches a descriptor only through `hints.stableLines` (above), so it is covered by the `hints.stableLines` entry and by no other. Every such model member carries a `[ValueBearing]` mark and a test compares the marks with the list.
 - **`--include-values`** opts in every member. **`--include-values-for <name>`** (repeatable; `options.includeValuesFor`, a sorted set: ordinal order, exact duplicates dropped, names that differ in case kept) opts in the members whose owner has that name: a preamble key, an annotation label, a key=value key or a field name. The name is compared whole and with ASCII case folding (`A` to `Z` only); there is no prefix or substring match and no Unicode folding. A name that matches several members, for example a preamble key and a field, opens all of them. A stable-line regex of a comment or text line has no owner, so only `--include-values` opens it. A name that matches nothing gives the issue [`includeValuesForUnmatched`](#issues).
 - **Aligned lists.** The entry for an owner that is not opted in is `null`; an annotation row's `values` is absent unless its label is opted in.
 - **Never held, never written.** A profiler asks the policy before it collects a value, so a value that may not be written is not kept in memory, and `DescriptorWriter` checks every descriptor against the policy before it writes. A value-bearing member whose owner is not opted in makes the writer throw `InvalidOperationException`, with the member's path and no value in the message. That is a bug in the producer, not a user error, and it is not wrapped in `SqualifyException`.
@@ -662,7 +777,7 @@ A downstream consumer (prism) matches delimited lab exports against its own decl
 
 ### Preconditions
 
-- Everything below is for `format.family` `delimited`. For any other family `table` is absent. A file with a header and no data row is `delimited` with `table.rows` 0 and the issue `noDataRows`, when its one multi-field line is the last line, lies within the first `limits.headerSample` lines, is preceded only by blank, comment or `key=value` lines, and reads like names (every cell filled, distinct, not a number, at most 64 characters and a single word, unless quoted: `Time,Vcc(V),Icc` is a table, `Test Name,Result` and `Hello, world` are text). Such a file has `format.dialect.padding.constantLineLength` false, `decimalSeparator` `.` as a default (no value was seen), and the same `layout` fingerprint as a sibling that has rows, but not the same `structure` fingerprint. A line of prose with a comma stays `text`, and so does a one-column file without a clear header. A one-column table has `format.dialect.delimiter` `none` and a header that its values fail (a text header over numbers, say).
+- Everything below is for `format.family` `delimited`. For another family the members below are not promised: the `table` of a touchstone or keyValue file has synthesized fields (see [`table` of the touchstone and keyValue families](#table-of-the-touchstone-and-keyvalue-families)) and is not described here, and `table` is absent for text, binary and empty files. A consumer that matches delimited files checks `format.family` first. A file with a header and no data row is `delimited` with `table.rows` 0 and the issue `noDataRows`, when its one multi-field line is the last line, lies within the first `limits.headerSample` lines, is preceded only by blank, comment or `key=value` lines, and reads like names (every cell filled, distinct, not a number, at most 64 characters and a single word, unless quoted: `Time,Vcc(V),Icc` is a table, `Test Name,Result` and `Hello, world` are text). Such a file has `format.dialect.padding.constantLineLength` false, `decimalSeparator` `.` as a default (no value was seen), and the same `layout` fingerprint as a sibling that has rows, but not the same `structure` fingerprint. A line of prose with a comma stays `text`, and so does a one-column file without a clear header. A one-column table has `format.dialect.delimiter` `none` and a header that its values fail (a text header over numbers, say).
 - Every count is over the whole file, unless the descriptor has a `scope` member (a byte limit was given). squalify then counts the prefix `scope.bytesRead` and says so: a consumer that compares against its own prefix-based description checks that `scope` is absent or `scope.complete` is true before it treats the counts as whole-file counts (end of file reached, every byte of `file.size` examined).
 - Pin `schemaVersion` (major), `limits.nullTokens` and `limits.unitTable`: the last two version the tables that decide every null and every header unit (see [`limits`](#limits)). A change to the null vocabulary or the unit table bumps only `limits.nullTokens` or `limits.unitTable`, not `schemaVersion`, so a consumer pins the table versions alongside `schemaVersion`.
 - **Ragged records near the start.** The run-start window skips up to two records that have another field count, whatever their position (an earlier rule that needed three k-field records first is gone), so a ragged record among the first two data records is reported in `raggedRows` and the header is kept. It skips ragged records with two or more fields, comment lines, and a one-field line once the header and three rows have come before it (a stray row, reported as ragged). A one-field line earlier than that (a `key=value` line, a title) ends the window, so it stays preamble. Records after the last full-width row are the footer and never count against the window. A table whose header row is followed by three or more ragged lines can still lose its header.
@@ -683,7 +798,7 @@ This table is part of the frozen contract: a change to any member below follows 
 
 | Member | Stab. | Meaning for a consumer |
 |---|---|---|
-| `schemaVersion` | S | `"1.0"`. |
+| `schemaVersion` | S | `"1.1"` (`"1.0"` before squalify 1.1.0): the schema minor changes when a minor release adds to the schema, and a consumer of the members below reads the major. |
 | `limits.nullTokens` | S | Version of the null vocabulary (1 today). |
 | `limits.unitTable` | S | Version of the unit table (1 today). |
 | `limits.nullSpellings.max` | S | The most distinct spellings kept in `table.fields[].nullSpellings` (per field) and in `table.rowClasses.allNullRowSpellings` (per table): 64 today. Always written. A consumer reads the bound here and does not hard-code it; a spelling past it is counted in the `Other` member. |
@@ -832,20 +947,19 @@ These limits are how squalify reads in schema 1.0. They freeze with the schema: 
 
 ## Planned for a 1.x minor release
 
-These are documented here and produced by nothing in squalify 1.0.0. They are not part of schema 1.0 and are not in `schema/descriptor-v1.schema.json`: each arrives with its profiler as a minor release (see the widenings in the [versioning policy](#versioning-policy)). The key-order table marks the planned members and objects *(planned)*, and the test `Docs_PlannedMembers_AreNotInTheSchemaOrTheWriter` checks that no descriptor the profiler writes holds one and that the schema describes none.
+These are documented here and produced by nothing in squalify 1.1.0. They are not part of schema 1.1 and are not in `schema/descriptor-v1.schema.json`: each arrives with its profiler as a minor release (see the widenings in the [versioning policy](#versioning-policy)). The key-order table marks the planned members and objects *(planned)*, and the test `Docs_PlannedMembers_AreNotInTheSchemaOrTheWriter` checks that no descriptor the profiler writes holds one and that the schema describes none. The touchstone and keyValue families, their dialects and `sections` were planned in 1.0 and are produced from 1.1.0 (see the [changelog](#changelog)).
 
 **Members and objects.**
 
 - `stdf` (top level), with `stdf.records[]` and `stdf.tests[]`: the STDF section.
-- `sections`: the sections of a key=value document.
 - `binary.blocks` and `binary.segments`: the block and segment statistics of a binary file.
-- `format.dialect` for the families touchstone, keyValue and stdf (marked planned in the [by-family table](#formatdialect-by-family)).
-- `hints.stdf` as an object (`cpuType`, `version`). The key exists in schema 1.0 and every profile writes it as `null`; only the object shape is planned.
+- `format.dialect` for the family stdf (marked planned in the [by-family table](#formatdialect-by-family)).
+- `hints.stdf` as an object (`cpuType`, `version`). The key exists in schema 1.0 and 1.1 and every profile writes it as `null`; only the object shape is planned.
 
 **Enum values.**
 
-- `format.family`: `touchstone`, `keyValue` and `stdf`. Schema 1.0 writes `delimited`, `text`, `binary` and `empty`.
-- `kind.label`: schema 1.0 writes `binary`, `empty` and `text` (rule ids `K11`, `K12` and `K09`). The labels the design intends to add are `stdfTestLog`, `touchstoneNetwork`, `keyValueDocument`, `labSweepTable`, `measurementTable`, `genericTable`, `textLog` and `archive` ([design.md](design.md#kind-label)); the set is not final.
+- `format.family`: `stdf`. Schema 1.1 writes `delimited`, `touchstone`, `keyValue`, `text`, `binary` and `empty`.
+- `kind.label`: schemas 1.0 and 1.1 write `binary`, `empty` and `text` (rule ids `K11`, `K12` and `K09`). The labels the design intends to add are `stdfTestLog`, `touchstoneNetwork`, `keyValueDocument`, `labSweepTable`, `measurementTable`, `genericTable`, `textLog` and `archive` ([design.md](design.md#kind-label)); the set is not final.
 
 **Not planned.** `limits.stdfTests` is a produced member: every profile writes it, although no profile uses it yet. The key `hints.stdf` is produced too (as `null`).
 
@@ -866,32 +980,42 @@ This policy is normative for `schemaVersion` `1.0` and for every later `1.x`. It
 - **Reclassified files.** A profiler added in a minor may claim files an earlier minor described as text, binary or delimited; their family, dialect, sections and hashes change (minor); `fingerprint.version` bumps only when a projection of an existing family changes.
 - **Fixed tables.** `limits.nullTokens` and `limits.unitTable` version the null vocabulary and the unit table. A change to either bumps only that number: the schema does not change, so `schemaVersion` does not (see [Consumer subset](#consumer-subset)). `fingerprint.version` changes whenever a projection changes; hashes of different versions cannot be compared.
 - **Bytes.** The descriptor bytes are guaranteed only for the same squalify version, options and input within one .NET runtime major version (see [Canonical form](#canonical-form)).
-- **Library model.** Constructors and `Deconstruct` of the model records are outside the compatibility promise, reading members is stable, and `ProfileOptions` and `FieldProfile` are built by name. The model types of planned members (`TouchstoneDialect`, `KeyValueDialect`, `StdfDialect`, `KeyValueSection`, `BlockStats`, `StdfSection`, `StdfRecordCount`, `StdfTest`, `StdfHints`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks` and `BinarySection.Segments`) are provisional until their profiler ships and may change in a minor. New options are added to `ProfileOptions` as init members, and the parameter list of `ProfileOptions.Create` never changes after 1.0.
+- **Library model.** Constructors and `Deconstruct` of the model records are outside the compatibility promise, reading members is stable, and `ProfileOptions` and `FieldProfile` are built by name. The model types of planned members (`TouchstoneDialect`, `KeyValueDialect`, `StdfDialect`, `KeyValueSection`, `BlockStats`, `StdfSection`, `StdfRecordCount`, `StdfTest`, `StdfHints`, `Descriptor.Sections` and `Descriptor.Stdf`, `BinarySection.Blocks` and `BinarySection.Segments`) are provisional until their profiler ships and may change in a minor. The profilers of the touchstone and keyValue families (`TouchstoneDialect`, `KeyValueDialect`, `KeyValueSection`, `Descriptor.Sections`) ship in 1.1.0: those types are provisional until that release is published, and stable from it. New options are added to `ProfileOptions` as init members, and the parameter list of `ProfileOptions.Create` never changes after 1.0.
 
 ### Widenings that 1.x will make
 
 These widen constructs that exist in 1.0. Each is a minor change.
 
-- `format.dialect` becomes a `oneOf` over the per-family dialects (today the schema describes the delimited dialect, or `null`).
+- `format.dialect` becomes a `oneOf` over the per-family dialects (schema 1.0 describes the delimited dialect, or `null`; schema 1.1 adds the touchstone and keyValue dialects; the stdf dialect is still to come).
 - `hints.stdf` changes from `null` to an object.
-- `table.rowClasses` changes from required to optional (absent only in tables of a family that 1.0 does not write; a delimited table keeps it).
+- `table.rowClasses` changes from required to optional (absent only in tables of a family that 1.0 does not write; a delimited table keeps it). Schema 1.1 makes it optional: the touchstone and keyValue tables have none.
 - The `const` of `schemaVersion` changes at each minor that changes the schema, to that release's major.minor (see Rules); `Descriptor.SchemaVersion` changes with it. The schema file checks squalify's own output of that exact minor: it is closed (`additionalProperties: false`, closed enums) and its `schemaVersion` is a `const`. Consumers must not validate with the closed schema: it would reject any key or value that a later minor adds.
 - Kind label values may change for the same input in a minor release, and rule ids are permanent (see Rules).
 
 ### The schema file
 
-`schema/descriptor-v1.schema.json` is in the repository and is not packed in the NuGet packages. Its `$id` is a tag-pinned raw URL, `https://raw.githubusercontent.com/squalor-xyz/squalify/v1.0.0/schema/descriptor-v1.schema.json`, edited only in a release that writes a new `schemaVersion`, to name that release's tag, so the major.minor of the tag equals the `schemaVersion` of the schema file: a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema.
+`schema/descriptor-v1.schema.json` is in the repository and is not packed in the NuGet packages. Its `$id` is a tag-pinned raw URL, `https://raw.githubusercontent.com/squalor-xyz/squalify/v1.1.0/schema/descriptor-v1.schema.json` (the release that first writes schema 1.1), edited only in a release that writes a new `schemaVersion`, to name that release's tag, so the major.minor of the tag equals the `schemaVersion` of the schema file: a release that leaves the schema as it is keeps the `$id` of the release that first wrote the schema.
 
 ### Changelog
 
 One entry per `schemaVersion`, newest first; the version of an entry is the major.minor of the squalify release that first writes it. An entry lists what it adds, changes and removes, says for each change whether it is minor or major under the rules above, and names any change of `fingerprint.version`. A change that bumps no `schemaVersion` (a fixed-table version, a library-only change) is listed with its squalify release in the [user guide](user-guide.md#guarantees-and-stability), not here.
+
+#### 1.1 (squalify 1.1.0)
+
+- **Families.** `format.family` gains `touchstone` and `keyValue` (enum values: minor). `format.dialect` is a `oneOf` over the delimited, touchstone and keyValue dialects and `null` (a widening listed in the versioning policy: minor). A Touchstone or key=value file that squalify 1.0.0 described as delimited, text or binary is reclassified (see Rules: Reclassified files); a delimited file keeps its family, its score and its descriptor, apart from the two added candidates in the evidence entry `format` / `family` and `schemaVersion`.
+- **Members added** (all optional keys: minor). `sections` (top level, keyValue only; `name`, `line`, `keys`, `values` in the values tier). `layout.regions[].label` (the value `noise`, on the noise `block` region of a Touchstone file). The dialect members of the two families (`format.dialect`: `version`, `ports`, `frequencyUnit`, `parameter`, `dataFormat`, `referenceOhms`, `twoPortOrder`, `matrixFormat`, `keywords`, `valuesPerLine`, `noise` for touchstone; `separator`, `hasSections` for keyValue).
+- **Widened.** `table.rowClasses` is optional (a delimited table keeps it; the touchstone and keyValue tables have none). The `table` of the two new families has synthesized fields (see [`table` of the touchstone and keyValue families](#table-of-the-touchstone-and-keyvalue-families)): `nameParts` of a field is `null` there although `name` is not.
+- **Enum values added** (minor). Issue codes: `duplicateKey`, `incompleteBlock`, `nonMonotonicFrequency`, `portMismatch`. The evidence stage list is unchanged (the new topics are in the stage `dialect`). The region kind list is unchanged; `block` regions may now carry a label.
+- **Evidence.** `format` / `family` lists the candidates `touchstone` and `keyValue` in every descriptor (the registry has two more profilers), so every descriptor of 1.1.0 differs from one of 1.0.0 by `schemaVersion` and those two entries, apart from the files that are reclassified.
+- **Fingerprints.** `fingerprint.version` stays 2: no projection of an existing family changes. The two new families add their own members (see [`fingerprint`](#fingerprint)).
+- **Removed, renamed, changed in meaning.** None.
 
 #### 1.0 (squalify 1.0.0, the first frozen schema)
 
 - **Baseline.** Everything this document marks as produced, and the schema file that describes it, with `fingerprint.version` 2, `limits.nullTokens` 1 and `limits.unitTable` 1.
 - **Closed sets.** The schema is closed (see Rules): the issue codes, the evidence stages, the families (`delimited`, `text`, `binary`, `empty`), the kind labels (`binary`, `empty`, `text`) and the region names are closed enums that grow only by a minor change.
 - **Members added in the last changes before the freeze.** `layoutOnly`, `encoding.invalidBytesTolerated`, `issues[].regions` (with `firstLines` beside `offsets` for `invalidUtf8` and `invalidUnicode`), `limits.sketches` and `limits.nullSpellings`; `fields[].top` is `{ items, approximate, maxError? }`. Since 0.3.0 only `layoutOnly`, `encoding.invalidBytesTolerated`, `issues[].regions` and the `firstLines` of `invalidUtf8` and `invalidUnicode` are new; `limits.sketches` and `limits.nullSpellings` were written by 0.3.0 already. Their rules are in the sections above.
-- **Planned, not in 1.0.** See [Planned for a 1.x minor release](#planned-for-a-1x-minor-release).
+- **Planned, not in 1.0.** See [Planned for a 1.x minor release](#planned-for-a-1x-minor-release) (the touchstone and keyValue families, planned here, are produced from 1.1).
 
 #### Before 1.0
 

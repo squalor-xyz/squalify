@@ -420,7 +420,7 @@ public class CompactFieldsTests
         // The numeric object itself is over 120 characters on one line, so its members stay on their own lines.
         Assert.Contains("\"numeric\": {\n", wideText, StringComparison.Ordinal);
         Assert.Contains("\"quantiles\": { \"p01\": 1,", wideText, StringComparison.Ordinal);
-        Assert.StartsWith("{\n  \"schemaVersion\": \"1.0\",\n", text, StringComparison.Ordinal);
+        Assert.StartsWith("{\n  \"schemaVersion\": \"" + Descriptor.SchemaVersion + "\",\n", text, StringComparison.Ordinal);
     }
 
     [Fact]

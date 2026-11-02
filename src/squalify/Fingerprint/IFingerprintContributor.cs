@@ -37,7 +37,7 @@ internal interface IFingerprintContributor
 /// <summary>The registered contributors. A later format slice adds its contributor here.</summary>
 internal static class FingerprintContributors
 {
-    private static readonly IFingerprintContributor[] All = [new DelimitedFingerprint()];
+    private static readonly IFingerprintContributor[] All = [new TouchstoneFingerprint(), new KeyValueFingerprint(), new DelimitedFingerprint()];
 
     /// <summary>The contributor of a family.</summary>
     /// <param name="family">The family name.</param>

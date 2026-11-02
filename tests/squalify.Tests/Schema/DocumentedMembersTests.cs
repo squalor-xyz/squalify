@@ -73,7 +73,6 @@ public class DocumentedMembersTests
             "binary/blocks",
             "binary/segments",
             "hints.stdf",
-            "sections",
             "stdf",
             "stdf.records",
             "stdf.tests",
@@ -82,8 +81,10 @@ public class DocumentedMembersTests
 
         using var schema = JsonDocument.Parse(SchemaFiles.ReadSchema());
         var root = schema.RootElement.GetProperty("properties");
-        Assert.False(root.TryGetProperty("sections", out _));
         Assert.False(root.TryGetProperty("stdf", out _));
+
+        // sq-09 produces sections (the key=value family), so the schema describes them and the document does not mark them planned.
+        Assert.True(root.TryGetProperty("sections", out _));
         Assert.False(root.GetProperty("binary").GetProperty("properties").TryGetProperty("blocks", out _));
         Assert.False(root.GetProperty("binary").GetProperty("properties").TryGetProperty("segments", out _));
 
@@ -138,18 +139,29 @@ public class DocumentedMembersTests
         var byFamily = DocumentedMembers.Section(document, "## `format.dialect` by family").Split('\n').Where(static l => l.StartsWith("| ", StringComparison.Ordinal)).Skip(1).ToArray();
         var produced = byFamily.Where(static l => !l.Split('|')[1].Contains("(planned)", StringComparison.Ordinal)).Select(static l => l.Split('|')[1].Trim()).ToArray();
         var planned = byFamily.Where(static l => l.Split('|')[1].Contains("(planned)", StringComparison.Ordinal)).Select(static l => l.Split('|')[1].Replace("(planned)", string.Empty, StringComparison.Ordinal).Trim()).ToArray();
-        Assert.Equal(["delimited"], produced);
+        Assert.NotEmpty(produced);
         Assert.Empty(planned.Intersect(families));
         Assert.Empty(produced.Except(families));
+
+        // The families with a dialect of their own, as the schema has them: a oneOf of the dialects, one for each produced row.
+        var dialects = schema.RootElement.GetProperty("properties").GetProperty("format").GetProperty("properties").GetProperty("dialect").GetProperty("oneOf").EnumerateArray()
+            .Select(static d => d.GetProperty("$ref").GetString()!["#/$defs/".Length..])
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(produced.Select(static f => f + "Dialect").Order(StringComparer.Ordinal), dialects);
 
         // The top-level table names the families the schema has, then those that are planned.
         var formatRow = document.Split('\n').First(static l => l.StartsWith("| `format` | object", StringComparison.Ordinal));
         var familyCell = formatRow[(formatRow.IndexOf("`family` (", StringComparison.Ordinal) + "`family` (".Length)..];
         familyCell = familyCell[..familyCell.IndexOf(')', StringComparison.Ordinal)];
         var semicolon = familyCell.IndexOf(';', StringComparison.Ordinal);
-        Assert.Equal(families.Order(StringComparer.Ordinal), Names(familyCell[..semicolon]).Order(StringComparer.Ordinal));
-        Assert.Contains("planned", familyCell[semicolon..], StringComparison.Ordinal);
-        Assert.Equal(planned.Order(StringComparer.Ordinal), Names(familyCell[semicolon..]).Order(StringComparer.Ordinal));
+        Assert.Equal(families.Order(StringComparer.Ordinal), Names(semicolon >= 0 ? familyCell[..semicolon] : familyCell).Order(StringComparer.Ordinal));
+        Assert.True(semicolon >= 0 || planned.Length == 0, "the family list of the format row names the planned families after a semicolon");
+        if (semicolon >= 0)
+        {
+            Assert.Contains("planned", familyCell[semicolon..], StringComparison.Ordinal);
+            Assert.Equal(planned.Order(StringComparer.Ordinal), Names(familyCell[semicolon..]).Order(StringComparer.Ordinal));
+        }
 
         // The kind section and the interim members name each label with its rule id, and the planned section says what the schema writes.
         var pair = new System.Text.RegularExpressions.Regex("`([a-zA-Z]+)` \\(`(K[0-9]+)`\\)");
@@ -167,13 +179,23 @@ public class DocumentedMembersTests
         Assert.Equal(labels, Names(writes[..writes.IndexOf('(', StringComparison.Ordinal)]).Skip(1).Order(StringComparer.Ordinal));
         Assert.Equal(ruleIds, Names(writes[writes.IndexOf('(', StringComparison.Ordinal)..]).Order(StringComparer.Ordinal));
         var plannedLabels = Names(labelBullet[labelBullet.IndexOf(" The labels", StringComparison.Ordinal)..]);
-        Assert.NotEmpty(plannedLabels);
         Assert.Empty(plannedLabels.Intersect(labels));
 
-        var familyBullet = plannedSection.Split('\n').First(static l => l.StartsWith("- `format.family`:", StringComparison.Ordinal));
-        var plannedByBullet = Names(familyBullet[..familyBullet.IndexOf(" Schema 1.0 writes", StringComparison.Ordinal)]).Skip(1).ToArray();
-        Assert.Equal(planned.Order(StringComparer.Ordinal), plannedByBullet.Order(StringComparer.Ordinal));
-        Assert.Equal(families.Order(StringComparer.Ordinal), Names(familyBullet[familyBullet.IndexOf(" Schema 1.0 writes", StringComparison.Ordinal)..]).Order(StringComparer.Ordinal));
+        // The family bullet names the planned families, then the ones the schema writes after "Schema <major.minor> writes". The planned
+        // list is empty once the last family ships, so the bullet may be missing then, and the anchor is checked, not assumed.
+        var familyBullet = plannedSection.Split('\n').FirstOrDefault(static l => l.StartsWith("- `format.family`:", StringComparison.Ordinal));
+        if (planned.Length == 0)
+        {
+            Assert.Null(familyBullet);
+        }
+        else
+        {
+            Assert.NotNull(familyBullet);
+            var written = System.Text.RegularExpressions.Regex.Match(familyBullet, @"\sSchema \d+\.\d+ writes");
+            Assert.True(written.Success, "the `format.family` bullet of the planned section says 'Schema <major.minor> writes' before the families that the schema has");
+            Assert.Equal(planned.Order(StringComparer.Ordinal), Names(familyBullet[..written.Index]).Skip(1).Order(StringComparer.Ordinal));
+            Assert.Equal(families.Order(StringComparer.Ordinal), Names(familyBullet[written.Index..]).Order(StringComparer.Ordinal));
+        }
     }
 
     [Fact]

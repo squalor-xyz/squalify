@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "tool": { "name": "squalify", "version": "1.0.0" },
   "options": { "includeValues": false, "includeValuesFor": [] },
   "limits": {
@@ -336,6 +336,8 @@
       "topic": "family",
       "chosen": "binary",
       "candidates": [
+        { "value": "touchstone", "score": 0, "reason": "not text: binary content" },
+        { "value": "keyValue", "score": 0, "reason": "not text: binary content" },
         { "value": "delimited", "score": 0, "reason": "not text: binary content" },
         { "value": "text", "score": 0, "reason": "not text: binary content" },
         { "value": "binary", "score": 0.1, "reason": "binary content; no named magic" }

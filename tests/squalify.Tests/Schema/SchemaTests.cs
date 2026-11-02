@@ -122,8 +122,8 @@ public class SchemaTests
         Assert.Equal(["/tool/vendor: unexpected key 'vendor'"], Validate(extra).Select(static e => e.ToString()));
 
         var extraRoot = GoldenNode();
-        extraRoot["sections"] = new JsonArray();
-        Assert.Equal(["/sections: unexpected key 'sections'"], Validate(extraRoot).Select(static e => e.ToString()));
+        extraRoot["stdf"] = new JsonObject();
+        Assert.Equal(["/stdf: unexpected key 'stdf'"], Validate(extraRoot).Select(static e => e.ToString()));
 
         var extraField = GoldenNode();
         extraField["table"]!["fields"]![0]!["surprise"] = true;
@@ -193,18 +193,17 @@ public class SchemaTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        Assert.Equal(["binary", "delimited", "text"], families);
+        Assert.Equal(["binary", "delimited", "keyValue", "text", "touchstone"], families);
     }
 
     [Fact]
     public void AllGoldens_TheStdfWriterModel_IsOnlyAKeyOrderPin()
     {
-        // Its members (stdf, sections, binary.blocks and segments, an STDF dialect) are planned for a 1.x minor release, so the closed
-        // schema rejects them. The model stays in the repository as a key-order pin (Writer_KeyOrder_MatchesSchemaDoc).
+        // Its members (stdf, binary.blocks and segments, an STDF dialect) are planned for a 1.x minor release, so the closed
+        // schema rejects them (sections are written since 1.1, and the model holds them as well). The model stays in the repository as a key-order pin (Writer_KeyOrder_MatchesSchemaDoc).
         using var document = JsonDocument.Parse(GoldenBytes(StdfModelGolden));
         var errors = SchemaFiles.Validator.Validate(document.RootElement);
         Assert.Contains(errors, static e => e.Pointer == "/stdf");
-        Assert.Contains(errors, static e => e.Pointer == "/sections");
         Assert.DoesNotContain(StdfModelGolden, GoldenNames());
     }
 
@@ -219,7 +218,7 @@ public class SchemaTests
         var descriptor = Profiler.Profile(TestBytes.Fixture("text/plain.txt"), ProfileOptions.Create(false, []));
         using var written = JsonDocument.Parse(DescriptorWriter.ToBytes(descriptor));
         Assert.Equal(published, written.RootElement.GetProperty("schemaVersion").GetString());
-        Assert.Equal("1.0", Descriptor.SchemaVersion);
+        Assert.Equal("1.1", Descriptor.SchemaVersion);
         Assert.Equal(Descriptor.SchemaVersion, published);
     }
 
@@ -456,7 +455,7 @@ public class SchemaTests
             // Two copies in a directory of their own are all that the tests need: what is read is what is there.
             Directory.CreateDirectory(Path.Combine(empty, "schema"));
             Directory.CreateDirectory(Path.Combine(empty, "docs"));
-            File.WriteAllText(Path.Combine(empty, "schema", "descriptor-v1.schema.json"), SchemaFiles.ReadSchema().Replace("\"const\": \"1.0\"", "\"const\": \"9.9\"", StringComparison.Ordinal));
+            File.WriteAllText(Path.Combine(empty, "schema", "descriptor-v1.schema.json"), SchemaFiles.ReadSchema().Replace("\"const\": \"1.1\"", "\"const\": \"9.9\"", StringComparison.Ordinal));
             File.WriteAllText(Path.Combine(empty, "docs", "descriptor.md"), "# a copy\n");
             var copy = SubsetValidator.Load(SchemaFiles.ReadSchema(empty));
             using var document = JsonDocument.Parse(GoldenBytes("delimited/semiconductor-sweep.csv.squalify.json"));
@@ -647,5 +646,32 @@ public class SchemaTests
         Assert.Contains("nullSpellingsOtherDistinctCapped`** is written as `true`", doc, StringComparison.Ordinal);
         Assert.Contains("allNullRowSpellingsOtherDistinctCapped`** is written as `true`", doc, StringComparison.Ordinal);
         Assert.Contains("limits.nullSpellings.maxDistinctOther", doc, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Region_BlockLabel_Noise_InSchema()
+    {
+        // sq-09: a block region may carry the label "noise" (the noise block of a Touchstone file). The label is a member of the region
+        // of the top level, and nowhere else.
+        Assert.Empty(Validate(GoldenNode("delimited/per-site-blocks.csv")));
+        var labelled = GoldenNode("delimited/per-site-blocks.csv");
+        labelled["layout"]!["regions"]![1]!.AsObject().Insert(1, "label", "noise");
+        Assert.Empty(Validate(labelled));
+
+        // Only the value noise is in the set.
+        var other = GoldenNode("delimited/per-site-blocks.csv");
+        other["layout"]!["regions"]![1]!.AsObject().Insert(1, "label", "site");
+        Assert.NotEmpty(Validate(other));
+
+        // A child region has no label.
+        var child = GoldenNode("delimited/per-site-blocks.csv");
+        child["layout"]!["regions"]![0]!["regions"]![0]!.AsObject().Insert(1, "label", "noise");
+        Assert.NotEmpty(Validate(child));
+
+        // The noise block of a Touchstone file is written with it, and the descriptor is valid.
+        var touchstone = DescriptorInvariantsTests.Profile("touchstone/s2p-v1-noise.s2p");
+        var block = touchstone["layout"]!["regions"]!.AsArray().Single(static r => r!["kind"]!.GetValue<string>() == "block")!;
+        Assert.Equal("noise", block["label"]!.GetValue<string>());
+        Assert.Empty(Validate(touchstone));
     }
 }

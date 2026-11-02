@@ -1,6 +1,6 @@
 # How squalify works
 
-> **Status (v1.0.x).** This page describes squalify 1.0.x. The descriptor schema v1 is frozen: `schemaVersion` is `1.0`, `schema/descriptor-v1.schema.json` describes exactly what the profiler writes, and `docs/descriptor.md` is normative and holds the versioning policy and the changelog. Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, sketch precision scaled by the field count to nominally fit a memory allowance and published in `limits.sketches`, and memory accounting with a tested ceiling. Also built: the null-spelling bounds (`limits.nullSpellings`, with a count of the distinct dropped spellings) and prefix profiling (the byte limit with its cut at a whole line, the opt-in first-record ceiling, and `Profiler.ProfilePrefix`, which returns the descriptor with the exact prefix bytes from one read). Still to come, as 1.x minor releases: the Touchstone, key=value and STDF profilers and the kind rule table (until then the kind is one of three interim labels, `binary`, `empty` or `text`); their source files are marked *(planned)*, and `docs/descriptor.md` lists the planned members and values. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. The issues `invalidUtf8` and `invalidUnicode` also carry the line and the layout region of each invalid byte, and `encoding.invalidBytesTolerated` marks a charset kept despite stray bytes. The option `--layout-only` (`ProfileOptions.LayoutOnly`) computes only the encoding, dialect, layout, header names and row classes: it builds no field accumulators and no hints, and the descriptor says so with `layoutOnly: true` and null sections (section 13). When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
+> **Status (v1.0.x).** This page describes squalify 1.0.x. The descriptor schema v1 is frozen: `schemaVersion` is `1.1` (1.0 plus the Touchstone and key=value families), `schema/descriptor-v1.schema.json` describes exactly what the profiler writes, and `docs/descriptor.md` is normative and holds the versioning policy and the changelog. Built: the CLI and library shell, the descriptor model and canonical writer with its determinism kit, the byte pass, format choice, the generic text and binary profiles, the value classifier, the delimited-text profiler, field profiles, header-unit conventions, row classes, repeated blocks, fingerprints and detect-rule hints, and the values tier. Also built: sketches past the exact caps (HyperLogLog and Greenwald-Khanna), a character budget for shape masks, sketch precision scaled by the field count to nominally fit a memory allowance and published in `limits.sketches`, and memory accounting with a tested ceiling. Also built: the null-spelling bounds (`limits.nullSpellings`, with a count of the distinct dropped spellings) and prefix profiling (the byte limit with its cut at a whole line, the opt-in first-record ceiling, and `Profiler.ProfilePrefix`, which returns the descriptor with the exact prefix bytes from one read). Also built, from the schema 1.1 change: the Touchstone profiler (versions 1 and 2, with noise data) and the whole-file key=value/INI profiler, which add two families, `touchstone` and `keyValue`, to the delimited, text and binary ones, and the issues `incompleteBlock`, `nonMonotonicFrequency`, `portMismatch` and `duplicateKey`. Still to come, as 1.x minor releases: the STDF profiler and the kind rule table (until then the kind is one of three interim labels, `binary`, `empty` or `text`); their source files are marked *(planned)*, and `docs/descriptor.md` lists the planned members and values. Parquet is not in v1: a Parquet file is profiled as binary with a `parquet` magic hint. The issues `invalidUtf8` and `invalidUnicode` also carry the line and the layout region of each invalid byte, and `encoding.invalidBytesTolerated` marks a charset kept despite stray bytes. The option `--layout-only` (`ProfileOptions.LayoutOnly`) computes only the encoding, dialect, layout, header names and row classes: it builds no field accumulators and no hints, and the descriptor says so with `layoutOnly: true` and null sections (section 13). When an architectural review or a slice changes how squalify works, this page and its diagrams are updated in the same change (see "Docs" in `AGENTS.md`).
 
 squalify reads one data file and writes a **descriptor**: a JSON summary of what the file is and what is inside it. Other tools, such as DataBall, read the descriptor to decide how to handle the file. squalify never changes the file and never needs the network.
 
@@ -14,12 +14,12 @@ The `squalify` command is a thin shell around the library. Each kind of file has
 flowchart LR
     CLI["squalify command<br/><small>squalify.Cli</small>"] --> Lib
     Host["Your app"] --> Lib
-    Lib["Profiler library<br/><small>Profiler.Profile, Profiler.ProfilePrefix</small>"] --> Profilers["Format profilers<br/><small>delimited, text, binary;<br/>touchstone, keyValue, stdf (planned)</small>"]
+    Lib["Profiler library<br/><small>Profiler.Profile, Profiler.ProfilePrefix</small>"] --> Profilers["Format profilers<br/><small>touchstone, keyValue, delimited, text, binary;<br/>stdf (planned)</small>"]
     Lib --> Out["Descriptor JSON"]
     Out --> Consumers["DataBall and other tools"]
 ```
 
-*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`, `Delimited/DelimitedProfiler.cs`; the other profilers (Touchstone, key=value, STDF) under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. The `delimited`, `text` and `binary` profilers exist so far, so every file is described as a delimited table, text, binary or empty; the other profilers in the diagram are planned. A directory is an error.
+*Source: `../squalify.Cli/CommandFactory.cs`, `../squalify.Cli/CliApp.cs`, `ToolInfo.cs`, `SqualifyException.cs`, `Descriptor/`, `Json/DescriptorWriter.cs`, `Profiler.cs`, `Formats/FormatRegistry.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Touchstone/TouchstoneProfiler.cs`, `KeyValue/KeyValueProfiler.cs`; the STDF profiler under `Formats/` (planned).* The CLI works today: `squalify --version` prints the tool version, and `squalify profile <file>` writes the descriptor to stdout, or to the `-o` file. The `touchstone`, `keyValue`, `delimited`, `text` and `binary` profilers exist so far, so every file is described as a Touchstone network, a key=value document, a delimited table, text, binary or empty; the STDF profiler in the diagram is planned. A directory is an error.
 
 ## 2. One profile run
 
@@ -35,7 +35,7 @@ flowchart TD
     E --> F["6. Check the values policy,<br/>then write canonical JSON<br/><small>ValuesPolicy.Verify, DescriptorWriter</small>"]
 ```
 
-*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sources/ScopeCut.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Descriptor/InterimKinds.cs`, `Descriptor/IssueCodes.cs`, `Descriptor/EvidenceStages.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text (the other formats will feed the same field accumulators), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines. A UTF-16 or UTF-32 file gets one more streaming read, right after the byte pass, that counts invalid units (section 12). A run with `--layout-only` skips the field half of step 4 and the hint step: see section 13. Issue codes and evidence stages each come from one place, `IssueCodes` and `EvidenceStages` (with the interim kind labels in `InterimKinds`); the evidence is sorted by stage in the order of `EvidenceStages.Order`, and a stage that is not in it is refused, not sorted last.
+*Source: `Json/DescriptorWriter.cs`, `Profiler.cs`, `Sources/ScopeCut.cs`, `Sniff/ByteSniffer.cs`, `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Units/HeaderConventionParser.cs`; `Fields/FieldAccumulator.cs`, `Fields/RowClassAccumulator.cs`, `Delimited/DelimitedPass.cs`; `Fingerprint/Projection.cs`, `Hints/HintBuilder.cs`; `Descriptor/InterimKinds.cs`, `Descriptor/IssueCodes.cs`, `Descriptor/EvidenceStages.cs`; `Kind/` (planned).* Steps 3 to 5 are only partly built: the Touchstone, key=value, delimited, generic text and generic binary profiles make up step 3 for now (the delimited one also parses the header-unit conventions here, section 8), step 4 is built for delimited text, Touchstone and key=value files (they all feed the same field accumulators; section 3a), and step 5 builds the fingerprints and hints (section 7) but the kind label holds a fixed placeholder value until sq-15 lands (section 8). Row classes are built too (section 10). For delimited text, step 3 is two reads of the file: one while the format is chosen (the structure pass) and one when the delimited profiler has won; the hint step then makes a third, bounded read (`LineReader`) of the lines up to the header, to take the text of the header and preamble lines. A UTF-16 or UTF-32 file gets one more streaming read, right after the byte pass, that counts invalid units (section 12). A run with `--layout-only` skips the field half of step 4 and the hint step: see section 13. Issue codes and evidence stages each come from one place, `IssueCodes` and `EvidenceStages` (with the interim kind labels in `InterimKinds`); the evidence is sorted by stage in the order of `EvidenceStages.Order`, and a stage that is not in it is refused, not sorted last.
 
 **Getting the prefix bytes too.** A byte-limited `Profiler.Profile` streams the source and opens it several times (the checks, the sniffs, the search for the cut, then the passes). `Profiler.ProfilePrefix` is the library call for a caller that profiles a bounded prefix and needs the very same bytes for its own parser: it opens the source once and keeps what the passes read in one buffer, so each step reads from the buffer and the source is asked only for the bytes that are missing. The result holds the descriptor, the first `scope.bytesRead` bytes of the buffer and the scope, so the descriptor describes exactly the bytes returned. The buffer holds at most the byte limit plus the overshoot (the LF after a CR that ends the limit, or the rest of a first line longer than the limit; the first-record ceiling caps that), which is why this call requires a byte limit; the source is never read past its declared length. The cut rule is a contract (see the user guide), and it includes the sniff: text or binary and the charset come from the bytes inside the limit, so a limit shorter than a byte order mark can sniff differently from the whole file.
 
@@ -55,20 +55,20 @@ flowchart TD
 
 ## 3. Choosing a format
 
-Every profiler looks at the file and gives a score from 0 to 1. The highest score wins, and a tie goes to whichever profiler comes first in the registry list. Every score and its reason are kept in the descriptor's evidence, so you can see why a format was chosen. Most profilers score from the byte-pass result alone. A delimited table cannot be recognized that way, so the delimited profiler is handed the file too and reads all of it while it scores (the structure pass of section 4); if it wins, it keeps what it found, so the file is not read again for the same work.
+Every profiler looks at the file and gives a score from 0 to 1. The highest score wins, and a tie goes to whichever profiler comes first in the registry list. Every score and its reason are kept in the descriptor's evidence, so you can see why a format was chosen. The text and binary profilers score from the byte-pass result alone. A delimited table cannot be recognized that way, so the delimited profiler is handed the file too and reads all of it while it scores (the structure pass of section 4); if it wins, it keeps what it found, so the file is not read again for the same work. The Touchstone profiler reads only the first lines (the option line, or `[Version]`, and the first line of numbers). The key=value profiler reads the whole file as lines, and a file that otherwise passes its checks also goes through the delimited scoring pass once, so that a table is never read as a document.
 
 ```mermaid
 flowchart LR
     S["Byte-pass result and the file<br/><small>SniffResult, IProfileSource</small>"] --> P2["STDF (planned): FAR record at start → 1.0"]
-    S --> P3["Touchstone (planned): extension + option line → 0.9"]
-    S --> P4["Key=value document (planned) → up to 0.6"]
+    S --> P3["Touchstone: extension + option line → 0.9 (0.7 without the extension)<br/><small>TouchstoneProfiler, reads only the head</small>"]
+    S --> P4["Key=value document: 80 percent of the lines are key/value lines, and no table → 0.8<br/><small>KeyValueProfiler</small>"]
     S --> P5["Delimited table: whole-file structure pass → 0.3 + 0.4 × best delimiter score (0.5 for a header-only or one-column table)<br/><small>DelimitedProfiler</small>"]
     S --> P6["Plain text / other binary (a Parquet file included) → 0.1–0.2"]
     P2 & P3 & P4 & P5 & P6 --> W["Highest score wins<br/><small>ties: registry order</small>"]
     W --> Ev["All scores go to evidence"]
 ```
 
-*Source: `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`; the other profilers are planned.* A file with no bytes is called empty before any profiler scores it. For files that are not empty, the evidence lists the score of each profiler that is registered, in registry order; today that is delimited, text and binary.
+*Source: `Formats/FormatRegistry.cs`, `Formats/IFormatProfiler.cs`, `Delimited/DelimitedProfiler.cs`, `Formats/GenericTextProfiler.cs`, `Formats/GenericBinaryProfiler.cs`, `Touchstone/TouchstoneProfiler.cs`, `KeyValue/KeyValueProfiler.cs`; the STDF profiler is planned.* A file with no bytes is called empty before any profiler scores it. For files that are not empty, the evidence lists the score of each profiler that is registered, in registry order; today that is touchstone, keyValue, delimited, text and binary.
 
 A profiler can also decline a file and say why. When the delimited profiler finds delimiter evidence but gives up, because no delimiter is good enough and at least one candidate was disqualified, it scores 0 and hands back an issue (`tooIrregular`) and its evidence. The registry passes these on even though the profiler lost, so the plain text profile describes the file and the descriptor still explains why it is not treated as a table.
 
@@ -84,6 +84,24 @@ flowchart TD
 ```
 
 *Source: `Delimited/DelimitedProfiler.cs`, `Delimited/DialectSelector.cs`, `Delimited/DegenerateShapes.cs`, `Formats/IFormatProfiler.cs`, `Formats/FormatRegistry.cs`, `Profiler.cs`.*
+
+### 3a. Touchstone files and key=value documents
+
+Two profilers read a file as lines and not as records, with one streaming line reader (`LineScan`, which hands each line with its number and byte offset to a callback).
+
+```mermaid
+flowchart TD
+    L["Lines, one by one<br/><small>LineScan</small>"] --> T{"Which profiler won?"}
+    T -- "touchstone" --> T1["Option line and keywords<br/><small>TouchstoneSyntax</small>"]
+    T1 --> T2["Numbers of the data lines as one flat stream,<br/>cut into blocks of 1 + 2N² values<br/><small>TouchstonePass</small>"]
+    T2 --> T3["Whole blocks go to the field accumulators:<br/>freq, S11.mag, S11.ang, ...; noise.* for noise data<br/><small>FieldAccumulator</small>"]
+    T --> T4["Regions: preamble, data, noise block, footer<br/><small>TouchstoneRegions</small>"]
+    T -- "keyValue" --> K1["Sections, keys and values per line<br/><small>KeyValueSyntax, KeyValuePass</small>"]
+    K1 --> K2["Each value goes to the accumulator of its key:<br/>one field per different key<br/><small>FieldAccumulator</small>"]
+    T3 & T4 & K2 --> D["Dialect, sections, table, issues, evidence"]
+```
+
+*Source: `Text/LineScan.cs`, `Touchstone/TouchstoneSyntax.cs`, `Touchstone/TouchstonePass.cs`, `Touchstone/TouchstoneRegions.cs`, `KeyValue/KeyValueSyntax.cs`, `KeyValue/KeyValuePass.cs`, `Fields/FieldAccumulator.cs`.* A Touchstone block is held until it is whole, so a file that ends in the middle of one leaves no half-counted field (the issue `incompleteBlock`). The synthesized fields of a Touchstone file are named by the order of the data: a Version 1 two-port file has `S21` before `S12`. A key=value document has a table of one field per key and one row per section, and its `sections` member lists the keys of each section (and, in the values tier, their values). Section names, keys and the Touchstone dialect are always included; comment text only as a stable-line regex with `--include-values`. The fingerprint projections of both families are in section 7, and their rules in [design.md](design.md#touchstone) and [descriptor.md](descriptor.md#touchstone).
 
 ## 4. Reading a delimited file
 
@@ -307,7 +325,7 @@ A column with one value for the whole file, such as a serial number, is a specia
 flowchart LR
     subgraph always["Always included"]
         direction TB
-        A1["Header names, preamble keys,<br/>STDF test names (planned)"]
+        A1["Header names, preamble keys,<br/>section names and keys,<br/>STDF test names (planned)"]
         A2["Types, counts, shapes"]
         A3["Number and date ranges,<br/>means, quantiles<br/><small>not for one-value columns</small>"]
         A4["Units parsed from header names"]
@@ -315,7 +333,7 @@ flowchart LR
     end
     subgraph optin["Only with --include-values<br/>(or --include-values-for, for the names given)"]
         direction TB
-        O1["Values of preamble key=value lines"]
+        O1["Values of preamble key=value lines<br/>and of key=value documents"]
         O2["Ten most common values and their counts,<br/>text min/max<br/><small>TopK</small>"]
         O3["Units-row and annotation cells,<br/>comment text"]
         O4["Statistics of one-value columns"]
@@ -372,19 +390,23 @@ flowchart TD
 
 *Source: `Fingerprint/Projection.cs`, `Fingerprint/DelimitedFingerprint.cs`, `Determinism/Ordinal.cs`.*
 
-Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys today (for a file with several blocks, those of the first block, plus the fact that there are several). The other families will add theirs when their profilers arrive.
+Each kind of file adds its own part to the projection through one small interface. Delimited text adds its dialect and preamble keys (for a file with several blocks, those of the first block, plus the fact that there are several), a Touchstone file its version, port count, parameter, data format, matrix format and whether it has noise data, and a key=value document its separator, its section names and its keys. The STDF family will add its own when its profiler arrives.
 
 ```mermaid
 flowchart TD
     P["Projection<br/><small>Projection</small>"] --> R["Find the family's contributor<br/><small>FingerprintContributors.For</small>"]
     R --> DC["Delimited: dialect,<br/>preamble keys and line kind<br/><small>DelimitedFingerprint</small>"]
-    R -. "later slices" .-> OC["Touchstone, key=value, STDF<br/><small>(planned)</small>"]
+    R --> TC["Touchstone: version, ports, parameter,<br/>format, matrix, noise<br/><small>TouchstoneFingerprint</small>"]
+    R --> KC["Key=value: separator, section names and keys<br/><small>KeyValueFingerprint</small>"]
+    R -. "later slice" .-> OC["STDF<br/><small>(planned)</small>"]
     DC --> M["Members written right after the family name<br/><small>FingerprintContribution</small>"]
+    TC --> M
+    KC --> M
     OC -.-> M
     M --> H["Hash of the compact JSON text<br/><small>SHA-256</small>"]
 ```
 
-*Source: `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`. The Touchstone, key=value and STDF contributors are (planned).*
+*Source: `Fingerprint/IFingerprintContributor.cs`, `Fingerprint/DelimitedFingerprint.cs`, `Fingerprint/TouchstoneFingerprint.cs`, `Fingerprint/KeyValueFingerprint.cs`. The STDF contributor is (planned).*
 
 The **hints** are facts a consumer can turn into match rules: the extension, the named magic bytes with their offset, the header names, the first five names, the columns that had no empty values outside blank separator rows, the delimiter, and the file-name shape. The most useful are the **stable lines**: a regex for the header line, a looser one for just its first five names, and one for each `key=value` line in the preamble. Each regex is built from the real text of the line, so it matches the file as written, including quotes and padding. A comment or free-text line is data, so its regex is written only with `--include-values`, and a line with a stray unreadable byte or a control character gets no regex.
 

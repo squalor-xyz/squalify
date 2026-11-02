@@ -145,22 +145,29 @@ internal static class DescriptorInvariants
         {
             var family = Get("format", "family") is { ValueKind: JsonValueKind.String } f ? f.GetString() : null;
             var dialect = Get("format", "dialect");
+            // The families with a dialect and a table (sq-09: delimited, touchstone and keyValue), and the one with sections.
+            var tabular = family is "delimited" or "touchstone" or "keyValue";
             if (family is not null && dialect is not null)
             {
-                if (family == "delimited" && IsNull(dialect))
+                if (tabular && IsNull(dialect))
                 {
-                    _v.Add("format.dialect must not be null for the family delimited");
+                    _v.Add($"format.dialect must not be null for the family {family}");
                 }
 
-                if (family != "delimited" && !IsNull(dialect))
+                if (!tabular && !IsNull(dialect))
                 {
-                    _v.Add("format.dialect must be null unless the family is delimited");
+                    _v.Add("format.dialect must be null unless the family is delimited, touchstone or keyValue");
                 }
             }
 
-            if (family is not null && (Get("table") is not null) != (family == "delimited"))
+            if (family is not null && (Get("table") is not null) != tabular)
             {
-                _v.Add(family == "delimited" ? "table must be present for the family delimited" : "table is written only for the family delimited");
+                _v.Add(tabular ? $"table must be present for the family {family}" : "table is written only for the families delimited, touchstone and keyValue");
+            }
+
+            if (family is not null && (Get("sections") is not null) != (family == "keyValue"))
+            {
+                _v.Add(family == "keyValue" ? "sections must be present for the family keyValue" : "sections are written only for the family keyValue");
             }
 
             var tolerated = Get("encoding", "invalidBytesTolerated") is not null;
@@ -373,11 +380,31 @@ internal static class DescriptorInvariants
             var fields = Get("table", "fields") is { ValueKind: JsonValueKind.Array } a ? a.EnumerateArray().ToArray() : [];
             var allNullRows = RowClasses(rows, ragged, fields.Length);
 
+            // The count of a field is the number of rows for a delimited table and for the network fields of a Touchstone file. The noise
+            // fields of a Touchstone file (named noise.*) count the noise blocks, and a key=value field counts the occurrences of its key.
+            var family = Get("format", "family") is { ValueKind: JsonValueKind.String } f ? f.GetString() : null;
             var maxDistinct = Number(Get("limits", "nullSpellings", "maxDistinctOther"));
             var index = 0;
             foreach (var field in fields)
             {
-                Field(field, index++, rows, ragged, allNullRows, maxDistinct);
+                var named = Get(field, "name") is { ValueKind: JsonValueKind.String } n ? n.GetString()! : string.Empty;
+                var countsRows = family == "delimited" || (family == "touchstone" && !named.StartsWith("noise.", StringComparison.Ordinal));
+                Field(field, index++, countsRows ? rows : null, ragged, allNullRows, maxDistinct);
+            }
+
+            if (family == "keyValue")
+            {
+                var occurrences = Items(Get("sections")).Sum(static s => (long)Items(Get(s, "keys")).Count());
+                var counted = fields.Sum(static f => Number(Get(f, "count")) ?? 0);
+                if (fields.All(static f => Number(Get(f, "count")) is not null) && counted != occurrences)
+                {
+                    _v.Add($"the counts of the fields add up to {Text(counted)}, not the number of keys in the sections ({Text(occurrences)})");
+                }
+
+                if (rows is { } r && r != Items(Get("sections")).Count())
+                {
+                    _v.Add($"table.rows ({Text(r)}) is not the number of sections ({Items(Get("sections")).Count().ToString(CultureInfo.InvariantCulture)})");
+                }
             }
         }
 
@@ -602,9 +629,11 @@ internal static class DescriptorInvariants
             var names = fields?.Select(static f => Get(f, "name") is { ValueKind: JsonValueKind.String } n ? n.GetString() : null).ToArray();
             var named = names is not null && names.Length > 0 && names.All(static n => n is not null);
             var headerFields = Get(hints, "headerFields");
+            // The header names are those of a delimited table with a header; the other families have none (sq-09).
+            var isDelimited = Get("format", "family") is { ValueKind: JsonValueKind.String } family && family.GetString() == "delimited";
             if (fields is not null && headerFields is not null)
             {
-                var expected = named ? names!.Cast<string>().ToArray() : null;
+                var expected = named && isDelimited ? names!.Cast<string>().ToArray() : null;
                 var actual = headerFields is { ValueKind: JsonValueKind.Array } h ? h.EnumerateArray().Select(static e => e.GetString() ?? string.Empty).ToArray() : null;
                 if (expected is null ? actual is not null : actual is null || !actual.SequenceEqual(expected, StringComparer.Ordinal))
                 {
