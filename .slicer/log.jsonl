@@ -760,3 +760,5 @@
 {"when": "2026-11-02T21:30:41Z", "item": "sq-73", "action": "edit", "from": "", "to": "", "note": "Implement"}
 {"when": "2026-11-02T21:30:41Z", "item": "sq-73", "action": "edit", "from": "", "to": "", "note": "Check"}
 {"when": "2026-11-02T21:30:41Z", "item": "sq-73", "action": "edit", "from": "", "to": "", "note": "boundary"}
+{"when": "2026-11-02T21:38:02Z", "item": "sq-10", "action": "note", "from": "", "to": "", "note": "Making STDF produced is a planned-to-produced flip: follow t", "by": "Jon Robbins"}
+{"when": "2026-11-02T21:38:02Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Making the kind rules produced is a planned-to-produced flip", "by": "Jon Robbins"}

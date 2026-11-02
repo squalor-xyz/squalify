@@ -1759,6 +1759,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "09230f56-9d63-459b-b08e-50b07f7b57e1",
+          "kind": "",
+          "text": "**2026-11-02** — Making STDF produced is a planned-to-produced flip: follow the checklist in CONTRIBUTING.md (bullet 'Making a planned member, family or dialect produced', drawn from sq-09's flip of touchstone and keyValue). It covers the code, schema, tests (including the PlannedMembersTests.KeyOrderPin golden full-binary-stdf), docs, README, how-it-works and a local corpus check. A docs test fails when a name in the checklist no longer exists.",
+          "created_at": "2026-11-02T21:38:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,
@@ -2498,6 +2512,20 @@
           "created_at": "2026-10-30T19:49:10Z",
           "attempt": 0,
           "by": "Jon R",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        },
+        {
+          "id": "2fd7dc0e-e7c5-4ca5-8075-33130c57cc0a",
+          "kind": "",
+          "text": "**2026-11-02** — Making the kind rules produced is a planned-to-produced flip: follow the checklist in CONTRIBUTING.md (bullet 'Making a planned member, family or dialect produced', drawn from sq-09's flip of touchstone and keyValue). Drop the items that only apply to a family (profiler registry, fingerprint contributor, dialect); the schema, tests, descriptor.md (Interim members, kind label rows, Planned section, changelog), design.md, user-guide, README and how-it-works items still apply. A docs test fails when a name in the checklist no longer exists.",
+          "created_at": "2026-11-02T21:38:02Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
           "stale_after": "",

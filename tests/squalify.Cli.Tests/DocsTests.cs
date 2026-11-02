@@ -567,6 +567,147 @@ public sealed class DocsTests
         Assert.True(problems.Count == 0, "The Create rule is not stated:\n" + string.Join("\n", problems));
     }
 
+    private const string FlipChecklistHeading = "- **Making a planned member, family or dialect produced.**";
+
+    private static readonly string[] FlipChecklistAreas =
+    [
+        "  - Code.",
+        "  - Schema.",
+        "  - Tests.",
+        "  - `docs/descriptor.md`:",
+        "  - `docs/design.md`:",
+        "  - `docs/user-guide.md`:",
+        "  - `README.md`:",
+        "  - `docs/how-it-works.md`:",
+        "  - Corpus check.",
+    ];
+
+    /// <summary>
+    /// sq-69: the CONTRIBUTING checklist for making a planned member, family or dialect produced names types, test classes, methods,
+    /// files and doc sections. The checklist cannot rot silently: every type, <c>Type.Member</c> and method it names in code spans is
+    /// declared in the source, every path exists, every quoted section or phrase on a line about a doc occurs in that doc, and all
+    /// nine areas are still there.
+    /// </summary>
+    [Fact]
+    public void Contributing_FlipChecklist_NamesOnlyWhatExists()
+    {
+        var root = DotNetTool.RepositoryRoot();
+        var lines = ReadDoc(root, "CONTRIBUTING.md").Split('\n');
+        var start = Array.FindIndex(lines, static l => l.StartsWith(FlipChecklistHeading, StringComparison.Ordinal));
+        Assert.True(start >= 0, $"CONTRIBUTING.md has no bullet that starts with '{FlipChecklistHeading}'.");
+        var block = new List<string> { lines[start] };
+        for (var i = start + 1; i < lines.Length && (lines[i].StartsWith("  ", StringComparison.Ordinal) || lines[i].Length == 0); i++)
+        {
+            block.Add(lines[i]);
+        }
+
+        var problems = new List<string>();
+        var areas = block.Skip(1).Where(static l => l.StartsWith("  - ", StringComparison.Ordinal)).ToArray();
+        for (var i = 0; i < FlipChecklistAreas.Length; i++)
+        {
+            if (i >= areas.Length || !areas[i].StartsWith(FlipChecklistAreas[i], StringComparison.Ordinal))
+            {
+                problems.Add($"area {i + 1} of the checklist does not start with '{FlipChecklistAreas[i]}'");
+            }
+        }
+
+        var declared = DeclaredTypes(root);
+        foreach (var line in block)
+        {
+            foreach (Match span in Regex.Matches(line, "`([^`]+)`"))
+            {
+                CheckChecklistName(problems, root, declared, span.Groups[1].Value);
+            }
+
+            // A line about a doc: each quoted section or phrase occurs in that doc (white space collapsed, code ticks ignored).
+            var doc = Regex.Match(line, @"^  - `((?:docs/)?[A-Za-z-]+\.md)`:");
+            if (doc.Success && File.Exists(Path.Combine(root, doc.Groups[1].Value.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                var text = Collapse(ReadDoc(root, doc.Groups[1].Value).Replace("`", string.Empty, StringComparison.Ordinal));
+                var quoted = Regex.Matches(line, "\"([^\"]+)\"").Select(static m => m.Groups[1].Value).ToArray();
+                if (quoted.Length == 0)
+                {
+                    problems.Add($"the line for {doc.Groups[1].Value} quotes no section or phrase");
+                }
+
+                foreach (var phrase in quoted)
+                {
+                    Require(problems, doc.Groups[1].Value, text, phrase);
+                }
+            }
+        }
+
+        Assert.True(problems.Count == 0, "The flip checklist in CONTRIBUTING.md has drifted:\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>One name from a code span of the checklist: a path, a type, a <c>Type.Member</c> or a test method; anything else is prose.</summary>
+    private static void CheckChecklistName(List<string> problems, string root, Dictionary<string, List<string>> declared, string name)
+    {
+        if (Regex.IsMatch(name, @"^[A-Za-z0-9._/-]+$") && (name.Contains('/', StringComparison.Ordinal) || Regex.IsMatch(name, @"\.(md|json|cs|sh)$")))
+        {
+            var path = Path.Combine(root, name.Replace('/', Path.DirectorySeparatorChar));
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                problems.Add($"`{name}` is not a file or folder of the repository");
+            }
+
+            return;
+        }
+
+        var member = Regex.Match(name, @"^(?<type>[A-Z][A-Za-z0-9]*)\.(?<member>[A-Za-z_][A-Za-z0-9_]*)$");
+        var typeName = member.Success ? member.Groups["type"].Value : name;
+        if (Regex.IsMatch(name, @"^[A-Z][A-Za-z0-9]*_[A-Za-z0-9_]+$"))
+        {
+            if (!declared.Values.SelectMany(static files => files).Distinct().Any(text => Regex.IsMatch(text, @"\b" + Regex.Escape(name) + @"\s*\(")))
+            {
+                problems.Add($"`{name}` is not a method in the source");
+            }
+
+            return;
+        }
+
+        if (!member.Success && !Regex.IsMatch(name, @"^[A-Z][A-Za-z0-9]*$"))
+        {
+            return;
+        }
+
+        if (!declared.TryGetValue(typeName, out var texts))
+        {
+            problems.Add($"`{name}`: no type {typeName} is declared in src or tests");
+        }
+        else if (member.Success && !texts.Any(text => Regex.IsMatch(text, @"\b" + Regex.Escape(member.Groups["member"].Value) + @"\b")))
+        {
+            problems.Add($"`{name}`: {typeName} has no member {member.Groups["member"].Value}");
+        }
+    }
+
+    /// <summary>The source text of every declaration of each type (class, record, struct, interface or enum) under src and tests.</summary>
+    private static Dictionary<string, List<string>> DeclaredTypes(string root)
+    {
+        var declared = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var folder in new[] { "src", "tests" })
+        {
+            var files = Directory.EnumerateFiles(Path.Combine(root, folder), "*.cs", SearchOption.AllDirectories)
+                .Where(static f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                    && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal));
+            foreach (var file in files)
+            {
+                var text = File.ReadAllText(file);
+                foreach (Match match in Regex.Matches(text, @"\b(?:class|record|struct|interface|enum)\s+([A-Za-z_][A-Za-z0-9_]*)"))
+                {
+                    if (!declared.TryGetValue(match.Groups[1].Value, out var list))
+                    {
+                        declared[match.Groups[1].Value] = list = [];
+                    }
+
+                    list.Add(text);
+                }
+            }
+        }
+
+        return declared;
+    }
+
     private static void Forbid(List<string> problems, string where, string text, params string[] phrases)
     {
         foreach (var phrase in phrases.Where(phrase => text.Contains(phrase, StringComparison.OrdinalIgnoreCase)))
