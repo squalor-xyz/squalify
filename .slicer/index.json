@@ -6281,7 +6281,7 @@
       "title": "Source is ASCII test; narrow IlIssueCodes to the code argument",
       "short_title": "ASCII source test",
       "status": "open",
-      "has_slice": false,
+      "has_slice": true,
       "depends_on": [],
       "note_records": [
         {
@@ -6303,14 +6303,16 @@
       "fields": {
         "size": "S",
         "flags": [],
-        "trees": [],
+        "trees": [
+          "core"
+        ],
         "trees_literal": false,
         "findings": "",
         "discovered_from": "sq-09",
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -6410,7 +6412,7 @@
       "title": "CLI surfaces SqualifyException.Code",
       "short_title": "CLI error code",
       "status": "open",
-      "has_slice": false,
+      "has_slice": true,
       "depends_on": [],
       "note_records": [
         {
@@ -6432,14 +6434,16 @@
       "fields": {
         "size": "S",
         "flags": [],
-        "trees": [],
+        "trees": [
+          "core"
+        ],
         "trees_literal": false,
         "findings": "",
         "discovered_from": "sq-73",
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,
@@ -6539,7 +6543,7 @@
       "title": "Trim the cut-contract summaries to pointers",
       "short_title": "Trim contract summaries",
       "status": "open",
-      "has_slice": false,
+      "has_slice": true,
       "depends_on": [],
       "note_records": [
         {
@@ -6561,14 +6565,16 @@
       "fields": {
         "size": "S",
         "flags": [],
-        "trees": [],
+        "trees": [
+          "docs"
+        ],
         "trees_literal": false,
         "findings": "",
         "discovered_from": "sq-73",
         "parent": "",
         "cites": [],
         "key": "",
-        "pass": "v1.x",
+        "pass": "v1.1.0",
         "group": "",
         "reason": "",
         "importance": 2,

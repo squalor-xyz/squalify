@@ -1,0 +1,42 @@
+{
+  "id": "sq-81",
+  "title": "CLI surfaces SqualifyException.Code",
+  "lead": [
+    "The CLI exits 3 when the library refuses with `SqualifyErrorCodes.FirstRecordTooLong` (the `--max-first-record-bytes` ceiling), so a script can tell it apart from every other error, which stays exit 1. The stderr message and the rule that a failure writes nothing are unchanged. **Not in this slice:** other error codes or exit codes; adding the code to the descriptor or to the stderr text; changing library API.",
+    "**Owner decision (2026-11-03):** distinct exit code 3; exit 1 stays for every other error; stderr unchanged. Exit 2 is left unused because .NET command-line parsers commonly use it for usage errors."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "sq-73 added `SqualifyException.Code` and `firstRecordTooLong`; the CLI still maps every error to 1, so a script cannot react to a first record that is too long (for example, retry with a larger ceiling) without parsing the message. Once 1.1.0 ships, scripts will depend on the current \"1 on any error\" behavior, so the distinction is cheaper to add now."
+    },
+    {
+      "heading": "Files",
+      "body": "- `src/squalify.Cli/CliApp.cs`: `RunAsync` catches `SqualifyException` and returns 1; return a named constant 3 when `ex.Code == SqualifyErrorCodes.FirstRecordTooLong`.\n- `tests/squalify.Cli.Tests/CliTests.cs` (the exit-code tests; the existing first-record test, if any).\n- `docs/user-guide.md` (the \"Exit codes\" bullet, line 29 at spec time), `docs/getting-started.md` (line 119), `README.md` (line 36); `docs/examples.md` if a script example claims \"non-zero is one thing\"."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `FirstRecordTooLong_ExitsWithThree`: a file whose first record exceeds `--max-first-record-bytes` exits 3.\n2. `FirstRecordTooLong_WritesTheMessageToStderrAndNothingToStdout`: the stderr text is the exception message as before; stdout is empty.\n3. `FirstRecordTooLong_LeavesAnExistingOutputFileUntouched` with `-o`.\n4. `OtherErrors_StillExitWithOne`: a missing file, a directory and a usage error exit 1 (pinned beside the new tests; the usage case is not a `SqualifyException`).\n\nMutation checks: return 1 for the coded case, and tests 1 must go red; return 3 for every `SqualifyException`, and test 4 must go red."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. At start, re-anchor the files and lines above against the code in the worktree.\n2. Write the tests and watch each fail for the stated reason.\n3. Implement in `CliApp.RunAsync`; keep the exit-code values in one place (named constants).\n4. Docs in the same change: user guide \"Exit codes\" (0 success; 3 when the first record exceeds `--max-first-record-bytes`; 1 on any other error), `getting-started.md`, `README.md`, and an example in `examples.md` if it fits. Check the user guide's changelog section for a place that lists CLI behavior changes in 1.1.0 and add one line if it has one; the library API labels do not change."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"` (every test project's summary line)\n- `dotnet format squalify.sln --verify-no-changes`\n- Run the built CLI on a file whose first record exceeds a small `--max-first-record-bytes`: exit 3, message on stderr, no output file; a missing path still exits 1.\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-81` on branch `sq-81`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-81: CLI error code`."
+    }
+  ],
+  "notes": []
+}

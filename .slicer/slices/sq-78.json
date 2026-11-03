@@ -1,0 +1,41 @@
+{
+  "id": "sq-78",
+  "title": "Source is ASCII test; narrow IlIssueCodes to the code argument",
+  "lead": [
+    "Add a test that every file under `src/` is ASCII, and narrow the IL scan `CodeVocabulary.IlIssueCodes` to the code argument of the issue call. Both are test-only: no product change. **Not in this slice:** scanning `tests/`, `docs/` or `scripts/` for non-ASCII (docs legitimately hold non-ASCII); changing `IlIssueSitesWithoutARegistryCode`."
+  ],
+  "depends_note": null,
+  "findings_note": "",
+  "size": "S",
+  "flags": [],
+  "trees_note": "core",
+  "trees_plural": false,
+  "boundary": "**Not in this slice:**",
+  "sections": [
+    {
+      "heading": "Why",
+      "body": "The v1.1.0 wave put a literal U+00A0 into `src/` once (caught by the gate by hand), and the Write tool decodes `\\uXXXX` escapes, which put literal characters into test source twice. A test makes the rule mechanical. The issue-code scan reads every string literal within 48 instructions before `new Issue(` or `LocatedIssue`, though only the first argument is the code; sq-62 A6 narrowed the evidence-stage scan the same way."
+    },
+    {
+      "heading": "Files",
+      "body": "- `tests/squalify.Tests/Schema/CodeVocabulary.cs` (`ScanIssueCodes`, `IlIssueCodes`, `MaxInstructionsBetweenLiteralAndCall`); the issue-scan tests in `tests/squalify.Tests/Schema/SchemaTests.cs` (lines near 283 and 333) and the `IssueSiteProbe` probe if the narrowing needs one.\n- A new test (the implementer picks the file; a hygiene test next to the other source-reading tests, or in `tests/squalify.Cli.Tests/DocsTests.cs` if source files are read there already) that finds `src/` from the repository root the way the other source-reading tests do."
+    },
+    {
+      "heading": "Failing tests",
+      "body": "1. `SourceFiles_AreAscii`: every file under `src/` (recursive, skipping `bin/` and `obj/`) has only bytes below 0x80. The failure names the file, line and byte offset of the first offender.\n2. `IlIssueCodes_ReadsOnlyTheCodeArgument`: a probe type with a call that has a string literal in a later argument of `new Issue(` (or in an unrelated string literal loaded shortly before it) must not be collected, while the code argument is. Red against the current scan.\n\nMutation checks: (a) in a scratch copy of the tree under the session scratchpad, add one U+00A0 byte (write the bytes with a byte-level tool, not a `\\u` escape) and the ASCII test must go red; (b) widen the scan back to the whole window and test 2 must go red."
+    },
+    {
+      "heading": "Implement",
+      "body": "1. At start, re-anchor the lines above against the code in the worktree.\n2. Write the tests and watch each fail for the stated reason.\n3. Narrow the scan so only the literal that is the first argument of the issue call (the code) is collected; keep the 48-instruction window only as a bound, or replace it with an argument-position rule if the IL allows it.\n4. Update the `CodeVocabulary` doc comment if it describes the old rule."
+    },
+    {
+      "heading": "Check",
+      "body": "- `dotnet build squalify.sln -c Release`\n- `dotnet test squalify.sln -c Release --filter \"Category!=Corpus&Category!=Large\"` (every test project's summary line)\n- `dotnet format squalify.sln --verify-no-changes`\n- A perl byte scan of `src/` finds no byte above 0x7F (`grep -P` does not work on macOS).\n- `slicer check`"
+    },
+    {
+      "heading": "Git",
+      "body": "Worktree `.worktrees/sq-78` on branch `sq-78`. No agent commits. After the gate returns `VERDICT: PASS`, the orchestrator commits `sq-78: ASCII source test`."
+    }
+  ],
+  "notes": []
+}

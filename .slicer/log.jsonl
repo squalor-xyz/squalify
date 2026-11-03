@@ -784,3 +784,12 @@
 {"when": "2026-11-03T18:26:10Z", "item": "sq-84", "action": "set", "from": "", "to": "", "note": "effort -→1"}
 {"when": "2026-11-03T18:26:10Z", "item": "sq-84", "action": "note", "from": "", "to": "", "note": "From sq-73 gate later #3 and architect A10: design.md, how-i", "by": "Jon Robbins"}
 {"when": "2026-11-03T18:26:11Z", "item": "sq-73", "action": "status", "from": "open", "to": "done", "note": "Prefix cut contract pinned (whole characters and lines in every sniffed charset, BOM-less UTF-32 excepted); SqualifyException.Code with SqualifyErrorCodes.FirstRecordTooLong; window code-unit layout kept when the cut prefix would sniff otherwise (correction, no schema bump). Reviewer PASS after 3 fix rounds, architect PASS after 2, gate PASS at 076aaad after 1.", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:51:09Z", "item": "sq-78", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-11-03T18:51:13Z", "item": "sq-84", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-11-03T18:51:13Z", "item": "sq-81", "action": "promote", "from": "", "to": "", "note": ""}
+{"when": "2026-11-03T18:51:13Z", "item": "sq-81", "action": "set", "from": "", "to": "", "note": "pass_key v1.x→v1.1.0"}
+{"when": "2026-11-03T18:51:13Z", "item": "sq-78", "action": "set", "from": "", "to": "", "note": "pass_key v1.x→v1.1.0"}
+{"when": "2026-11-03T18:51:13Z", "item": "sq-84", "action": "set", "from": "", "to": "", "note": "pass_key v1.x→v1.1.0"}
+{"when": "2026-11-03T18:51:17Z", "item": "sq-78", "action": "set", "from": "", "to": "", "note": "trees -→core"}
+{"when": "2026-11-03T18:51:17Z", "item": "sq-81", "action": "set", "from": "", "to": "", "note": "trees -→core"}
+{"when": "2026-11-03T18:51:17Z", "item": "sq-84", "action": "set", "from": "", "to": "", "note": "trees -→docs"}
