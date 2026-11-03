@@ -57,6 +57,25 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 
 ## Entries
 
+### v1.1.0 wave: sq-58, sq-71, sq-62, sq-72, sq-74, sq-09, sq-69, sq-73 (2026-11-02 to 2026-11-03)
+
+- Lineup: spec check on the first seven slices; implementer sonnet/high; reviewer opus/medium; architect opus/high on M and L slices (sq-62, sq-09, sq-73); gate opus/medium. S slices ran a lite relay. Up to three slices ran at a time, each in its own worktree, landing one at a time on owner approval.
+- Metrics:
+  - **Gate verdicts:** sq-09 FAIL (a literal U+00A0 in `src/`), PASS; sq-73 FAIL (the breaking-changes entry listed too few members), PASS; the others PASS. As in the v1.0.0 wave, no gate FAIL was a code defect.
+  - **Fix rounds:** sq-69 one (review), sq-09 three, sq-73 six (review 3, architect 2, gate 1).
+  - **Slices filed from findings:** sq-76 to sq-84, all v1.x.
+- Frictions:
+  - **sq-73's review chain was long.** The reviewer's R3 asked for the contract in observable terms and gave a reasoning claim about the re-sniff that was false; the implementer was told to verify it first, built a counterexample and stopped, and the owner chose a code fix (keep the window's code-unit layout). That fix then introduced a BOM/charset mismatch the architect found with the CLI, and the docs first scoped the rule too narrowly (the reviewer reproduced a cut inside the limit). sq-73 had no spec check (the owner wrote the spec and decided Q4/Q5).
+  - **Non-ASCII from escapes.** The implementer reported that the Write tool decodes `\uXXXX` in file content, which put literal characters into test source twice (sq-09 `src/`, sq-73 tests). `grep -P` does not work on macOS; perl does the scan.
+  - **An architect's test run without the filter** ran `Category=Large` (a 4 GB memory test) and was stopped after 20 minutes.
+  - **Orchestrator slip:** a gate-fail note went to main's `.slicer` instead of the worktree's; reverted on main and re-added in the worktree before the merge.
+  - **Push failed once** on an ssh DNS error while `gh` over HTTPS worked; it went through on the owner's retry.
+- Wins:
+  - **Measuring reviewers:** the gate diffed base and branch CLI descriptors on probe files, which is how the incomplete breaking-changes list was found; the architect decoded a prefix with `iconv` to check a coherence claim; reflection diffs pinned the public API delta to exactly `Code` plus `SqualifyErrorCodes`.
+  - **"Verify before applying"** in the fix-round brief stopped a wrong contract from landing.
+  - **The sq-69 checklist was drawn from sq-09's real flip**, and its docs test fails when a named type, member, path, `$defs` key or doc section disappears.
+- Changes (proposed, for the owner): every role's brief, not only the implementer's and gate's, carries the test filter; briefs give the perl ASCII scan instead of `grep -P`; a fix-round brief that applies a reviewer's reasoning claim asks the implementer to verify it first; an owner-written spec still gets the spec check.
+
 ### v1.0.0 wave: sq-51, sq-49, sq-52, sq-12, sq-61, sq-54, sq-68, sq-53 (2026-10-30 to 2026-10-31)
 
 - Lineup: spec check sonnet/medium (one batch of five slices); implementers sonnet/high (sq-49, sq-52, sq-12, sq-54, sq-53) and haiku/xhigh (sq-51, sq-61, sq-68); reviewer and gate opus/medium; architect opus/high on M slices; the S slices ran a lite relay with the reviewer also acting as the gate. The owner asked for a Codex implementer by default: both Codex runs (sq-49, sq-51) stopped at once with "Your workspace is out of credits", recorded as failed steps, and the same round was rerun on the next matching matrix row (Claude), as the contract says for a vendor limit. Up to two slices ran at a time, each in its own worktree; they landed one at a time.
