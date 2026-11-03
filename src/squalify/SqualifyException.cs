@@ -22,20 +22,20 @@ public class SqualifyException : Exception
     {
     }
 
-    /// <summary>Creates an exception with a message and a code.</summary>
+    /// <summary>Creates an exception with a message and a code. Internal: only squalify raises a coded failure.</summary>
     /// <param name="message">What went wrong, in plain language.</param>
     /// <param name="code">The stable code of the failure; a value of <see cref="SqualifyErrorCodes"/>.</param>
-    public SqualifyException(string message, string code)
+    internal SqualifyException(string message, string code)
         : base(message)
     {
         Code = code;
     }
 
-    /// <summary>Creates an exception with a message, a code and the lower-level cause.</summary>
+    /// <summary>Creates an exception with a message, a code and the lower-level cause. Internal: only squalify raises a coded failure.</summary>
     /// <param name="message">What went wrong, in plain language.</param>
     /// <param name="code">The stable code of the failure; a value of <see cref="SqualifyErrorCodes"/>.</param>
     /// <param name="innerException">The wrapped lower-level exception.</param>
-    public SqualifyException(string message, string code, Exception innerException)
+    internal SqualifyException(string message, string code, Exception innerException)
         : base(message, innerException)
     {
         Code = code;

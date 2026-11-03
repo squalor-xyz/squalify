@@ -236,6 +236,22 @@ public sealed class PrefixCutTests
             _ => 0,
         };
         var prefix = result.Prefix.Span;
+
+        // The byte order mark agrees with the charset (a TextDecoder skips it and decodes in the charset), and the prefix starts with it.
+        if (encoding.Bom is { } bomName)
+        {
+            Assert.True(bomName == "utf-8" ? width == 1 : bomName == encoding.Charset, $"{where}: the bom {bomName} does not agree with the charset {encoding.Charset}");
+            var mark = bomName switch
+            {
+                "utf-8" => Utf8Bom,
+                "utf-16le" => Utf16LeBom,
+                "utf-16be" => Utf16BeBom,
+                "utf-32le" => Utf32LeBom,
+                _ => Utf32BeBom,
+            };
+            Assert.True(prefix.StartsWith(mark), $"{where}: the prefix does not start with the {bomName} mark");
+        }
+
         Assert.True((prefix.Length - bom) % width == 0, $"{where}: {prefix.Length} bytes after a {bom}-byte mark are not whole {width}-byte units of {encoding.Charset}");
 
         var atEnd = prefix.Length == whole.Length;
@@ -575,5 +591,38 @@ public sealed class PrefixCutTests
 
         var alone = Profiler.Profile(new BytesSource("t.csv", result.Prefix.ToArray()), ProfileOptions.Create(false, Array.Empty<string>()));
         Assert.Equal("utf-16be", alone.Encoding.Charset);
+    }
+
+    // sq-73 (architect A1): a short window sees no byte order mark, or a shorter one, than the cut prefix. The mark follows the kept charset.
+    [Theory]
+    [InlineData(1, "latin-1", null)]
+    [InlineData(2, "utf-16le", "utf-16le")]
+    [InlineData(3, "utf-16le", "utf-16le")]
+    public void A_byte_order_mark_follows_the_kept_charset(int limit, string charset, string? bom)
+    {
+        // c1: UTF-16LE with a mark; a 1-byte window sees a single high byte. c2: UTF-32LE with a mark; a 2- or 3-byte window sees the UTF-16LE mark.
+        var utf16 = new byte[] { 0xFF, 0xFE, 0x41, 0x00, 0x0A, 0x00, 0x42, 0x00, 0x0A, 0x00 };
+        var utf32 = new byte[] { 0xFF, 0xFE, 0x00, 0x00, 0x41, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00 };
+        var data = limit == 1 ? utf16 : utf32;
+
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", data), Limit(limit));
+        Assert.Equal("text", result.Descriptor.Encoding.Kind);
+        Assert.Equal(charset, result.Descriptor.Encoding.Charset);
+        Assert.Equal(bom, result.Descriptor.Encoding.Bom);
+        AssertObservable(result, data, $"limit {limit}");
+
+        var profile = Profiler.Profile(new BytesSource("t.csv", data), Limit(limit));
+        Assert.Equal(profile, result.Descriptor);
+    }
+
+    [Fact]
+    public void A_one_byte_window_keeps_one_byte_per_unit_and_no_mark_for_a_UTF16_file()
+    {
+        // The evidence of the kept layout says what the prefix alone would sniff as.
+        var data = new byte[] { 0xFF, 0xFE, 0x41, 0x00, 0x0A, 0x00, 0x42, 0x00, 0x0A, 0x00 };
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", data), Limit(1));
+        Assert.Equal(5, result.Prefix.Length);
+        var reasons = result.Descriptor.Evidence.Where(static e => e.Stage == "encoding").SelectMany(static e => e.Candidates).Select(static c => c.Reason);
+        Assert.Contains(reasons, static r => r.Contains("would sniff as utf-16le", StringComparison.Ordinal));
     }
 }

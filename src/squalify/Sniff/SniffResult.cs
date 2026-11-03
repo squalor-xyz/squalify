@@ -164,15 +164,16 @@ internal sealed class SniffResult
     /// <summary>
     /// The sniff of a cut prefix, given the sniff of the window (the bytes inside the limit) that chose the cut. The cut was
     /// made in the code units of the window's charset, so when both are text and the prefix would sniff with another unit
-    /// layout (the bytes read past the window to the end of the first line changed the NUL pattern), the window's layout is
-    /// kept: the prefix is reported as text in the window's charset (a UTF-16 or UTF-32 charset) or, for the window's one byte
-    /// per unit, as the one-byte charset that the prefix's own bytes give. Every other case is the prefix's own sniff: a move
+    /// layout (the prefix is not the same bytes as the window: the first record read past the limit, or the bytes between the
+    /// cut and the limit, changed the NUL pattern), the window's layout is kept: the prefix is reported as text in the window's charset (a UTF-16 or UTF-32 charset) or, for the window's one byte
+    /// per unit, as the one-byte charset that the prefix's own bytes give; the byte order mark is the window's, so it agrees
+    /// with the charset. Every other case is the prefix's own sniff: a move
     /// within one byte per unit, a move to binary, and a window that is not text.
     /// </summary>
     /// <param name="window">The sniff of the bytes inside the limit.</param>
     /// <param name="cut">The sniff of the cut prefix.</param>
     /// <param name="tolerance">The tolerated stray invalid UTF-8 sequences.</param>
-    /// <returns>The sniff to report: the facts are always those of the prefix.</returns>
+    /// <returns>The sniff to report: the facts are those of the prefix, except the byte order mark, which follows the kept charset (the window's).</returns>
     public static SniffResult ForCut(SniffResult window, SniffResult cut, CharsetTolerance tolerance)
     {
         ArgumentNullException.ThrowIfNull(window);
@@ -182,8 +183,11 @@ internal sealed class SniffResult
             return cut;
         }
 
-        var facts = cut.Facts;
-        const string classReason = "the code-unit layout of the bytes inside the limit is kept for the cut prefix";
+        // The byte order mark follows the kept charset: the window's mark (the window and the prefix start with the same bytes,
+        // but a mark is read from the first few bytes, so a short window may see none, or a shorter one). A TextDecoder skips
+        // BomLength bytes and decodes in the charset, so the two must agree.
+        var facts = cut.Facts with { Bom = window.Bom, BomLength = window.BomLength };
+        var classReason = F($"the code-unit layout of the bytes inside the limit is kept for the cut prefix; the cut prefix alone would sniff as {cut.Charset}");
         if (UnitLayout(window.Charset) == "byte")
         {
             var (charset, allowed) = SingleByteCharset(facts, tolerance);
