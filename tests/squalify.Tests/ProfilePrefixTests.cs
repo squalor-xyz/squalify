@@ -37,6 +37,25 @@ public sealed class ProfilePrefixTests
         return index + 1;
     }
 
+    // sq-73: rows with a 2-byte (e acute), a 3-byte (euro sign) and a 4-byte (a surrogate pair in UTF-16) character each.
+    private static string WideText(int rows, string eol)
+    {
+        var sb = new StringBuilder("id,name,price").Append(eol);
+        for (var i = 1; i <= rows; i++)
+        {
+            sb.Append(i.ToString(CultureInfo.InvariantCulture)).Append(",caf\u00E9").Append(i.ToString(CultureInfo.InvariantCulture)).Append(",\u20AC\U0001F600").Append(eol);
+        }
+
+        return sb.ToString();
+    }
+
+    // The limit that puts the window's end the given number of bytes after the first match of the pattern at or after 300.
+    private static long After(byte[] bytes, byte[] pattern, int extra)
+    {
+        var index = bytes.AsSpan(300).IndexOf(pattern) + 300;
+        return index + extra;
+    }
+
     private static readonly Dictionary<string, Case> Cases = BuildCases();
 
     private static Dictionary<string, Case> BuildCases()
@@ -53,6 +72,14 @@ public sealed class ProfilePrefixTests
             ["utf16le"] = new(Encoded(Encoding.Unicode, CsvText(300, "\n")), 1001, 2, false, false, 4),
             ["utf16be"] = new(Encoded(Encoding.BigEndianUnicode, CsvText(300, "\r\n")), 1001, 2, true, false, 4),
             ["utf32le"] = new(Encoded(Encoding.UTF32, CsvText(300, "\n")), 1003, 4, false, false, 4),
+            ["utf8-inside-a-sequence"] = new(Encoding.UTF8.GetBytes(WideText(300, "\n")), After(Encoding.UTF8.GetBytes(WideText(300, "\n")), [0xE2], 2), 1, false, false, 4),
+            ["utf8-bom-inside-a-4-byte-sequence"] = new(Encoded(new UTF8Encoding(true), WideText(300, "\r\n")), After(Encoded(new UTF8Encoding(true), WideText(300, "\r\n")), [0xF0], 3), 1, false, false, 4),
+            ["utf16le-between-surrogates"] = new(Encoded(Encoding.Unicode, WideText(300, "\r\n")), After(Encoded(Encoding.Unicode, WideText(300, "\r\n")), [0x3D, 0xD8], 2), 2, false, false, 4),
+            ["utf16le-inside-a-surrogate"] = new(Encoded(Encoding.Unicode, WideText(300, "\n")), After(Encoded(Encoding.Unicode, WideText(300, "\n")), [0x3D, 0xD8], 1), 2, false, false, 4),
+            ["utf16be-cr-ends-window"] = new(Encoded(Encoding.BigEndianUnicode, WideText(300, "\r\n")), After(Encoded(Encoding.BigEndianUnicode, WideText(300, "\r\n")), [0x00, 0x0D], 2), 2, true, false, 4),
+            ["utf16be-cr-only"] = new(Encoded(Encoding.BigEndianUnicode, WideText(300, "\r")), 1001, 2, true, false, 4),
+            ["utf32be-bom"] = new(Encoded(new UTF32Encoding(true, true), WideText(300, "\r\n")), After(Encoded(new UTF32Encoding(true, true), WideText(300, "\r\n")), [0x00, 0x00, 0x00, 0x0D], 4), 4, true, false, 4),
+            ["utf32le-cr-only"] = new(Encoded(Encoding.UTF32, WideText(300, "\r")), 1003, 4, false, false, 4),
             ["binary"] = new(binary, 1000, 1, false, true, 4),
             ["long-first-line"] = new(longFirst, 100, 1, false, false, 4096),
             ["no-terminator"] = new(Encoding.ASCII.GetBytes(new string('a', 3000)), 100, 1, false, false, 4096),

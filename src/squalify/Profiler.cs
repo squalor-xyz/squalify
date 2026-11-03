@@ -15,7 +15,8 @@ public static class Profiler
     /// stripped of exact duplicates before it is written), or
     /// <see cref="ProfileOptions.MaxBytes"/> is zero or negative, <see cref="ProfileOptions.MaxFirstRecordBytes"/> is zero or
     /// negative or is given without <see cref="ProfileOptions.MaxBytes"/>, or the first record of a text file is longer
-    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled), or a limit is given and the source reports
+    /// than <see cref="ProfileOptions.MaxFirstRecordBytes"/> (nothing is profiled; <see cref="SqualifyException.Code"/> is then
+    /// <see cref="SqualifyErrorCodes.FirstRecordTooLong"/>), or a limit is given and the source reports
     /// a negative <see cref="IProfileSource.Length"/>.
     /// </exception>
     public static Descriptor Profile(IProfileSource source, ProfileOptions options)
@@ -49,7 +50,7 @@ public static class Profiler
     /// the source: the cut is the one <see cref="ProfileOptions.MaxBytes"/> gives to <see cref="Profile(IProfileSource, ProfileOptions)"/>
     /// (a file whose bytes inside the limit sniff as binary at the limit; otherwise after the last LF, CR or CRLF, in the
     /// code units of the charset sniffed from the bytes inside the limit, inside the limit; a CR that ends the limit takes the
-    /// LF after it; with no terminator inside the limit, to the first terminator or the end; a limit shorter than a byte order
+    /// LF after it, so a CRLF is never split; with no terminator inside the limit, to the first terminator or the end; a limit shorter than a byte order
     /// mark can sniff differently from the whole file), so the descriptor equals the one <see cref="Profile(IProfileSource, ProfileOptions)"/> gives for the same options, for a source whose
     /// <see cref="IProfileSource.Length"/> is its true size (<see cref="Profile(IProfileSource, ProfileOptions)"/> reads past a
     /// <see cref="IProfileSource.Length"/> that is shorter than the data when the limit is at least that length; this method never does).
@@ -57,6 +58,13 @@ public static class Profiler
     /// code unit when a CR ends the limit; the rest of the first record when it is longer than the limit);
     /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>,
     /// and is never read past it.
+    /// <para>
+    /// The cut is a contract: a text prefix ends right after a whole line terminator, counted in whole code units of the
+    /// sniffed charset, so it never ends inside a character (a UTF-8 sequence, a UTF-16 surrogate pair, a UTF-16 or UTF-32
+    /// unit) or inside a CRLF, and the lines and characters that a consumer counts in it are those of the same lines in the whole
+    /// file. UTF-32 is recognised only from its byte order mark; a UTF-32 file without one sniffs as binary and is cut at the
+    /// limit.
+    /// </para>
     /// </summary>
     /// <param name="source">The source.</param>
     /// <param name="options">The options that affect output; <see cref="ProfileOptions.MaxBytes"/> is required.</param>
@@ -65,7 +73,9 @@ public static class Profiler
     /// Anything <see cref="Profile(IProfileSource, ProfileOptions)"/> rejects, with the same messages (so a source name that is
     /// null, empty or contains <c>/</c> or a backslash is refused as there, on every platform), and in addition: <see cref="ProfileOptions.MaxBytes"/>
     /// is null (it would buffer the whole source), the source reports a negative length, or the bytes to buffer would not fit
-    /// in one array (about 2 GiB).
+    /// in one array (about 2 GiB). A first record longer than <see cref="ProfileOptions.MaxFirstRecordBytes"/> is refused with
+    /// <see cref="SqualifyException.Code"/> equal to <see cref="SqualifyErrorCodes.FirstRecordTooLong"/>; every other failure has
+    /// a null code.
     /// </exception>
     public static ProfiledPrefix ProfilePrefix(IProfileSource source, ProfileOptions options)
     {

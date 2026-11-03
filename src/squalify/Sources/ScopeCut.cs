@@ -101,7 +101,7 @@ internal static class ScopeCut
     /// <param name="tolerance">The tolerated stray invalid UTF-8 sequences.</param>
     /// <param name="maxFirstRecordBytes">The first-record ceiling, or null for none; positive.</param>
     /// <returns>The view to profile, its byte-pass result and the scope.</returns>
-    /// <exception cref="SqualifyException">The first record of a text file is longer than <paramref name="maxFirstRecordBytes"/>.</exception>
+    /// <exception cref="SqualifyException">The first record of a text file is longer than <paramref name="maxFirstRecordBytes"/>; its <see cref="SqualifyException.Code"/> is <see cref="SqualifyErrorCodes.FirstRecordTooLong"/>.</exception>
     public static ScopedSource Apply(IProfileSource source, long maxBytes, CharsetTolerance tolerance, long? maxFirstRecordBytes = null)
     {
         var total = source.Length;
@@ -209,7 +209,8 @@ internal static class ScopeCut
     {
         return new SqualifyException(
             $"The first record of '{source.Name}' is longer than {ceiling.ToString(CultureInfo.InvariantCulture)} bytes, its line terminator included "
-            + "(--max-first-record-bytes); nothing was profiled.");
+            + "(--max-first-record-bytes); nothing was profiled.",
+            SqualifyErrorCodes.FirstRecordTooLong);
     }
 
     private static int UnitWidth(string charset)
