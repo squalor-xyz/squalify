@@ -187,11 +187,12 @@ internal sealed class SniffResult
         // but a mark is read from the first few bytes, so a short window may see none, or a shorter one). A TextDecoder skips
         // BomLength bytes and decodes in the charset, so the two must agree.
         var facts = cut.Facts with { Bom = window.Bom, BomLength = window.BomLength };
-        var classReason = F($"the code-unit layout of the bytes inside the limit is kept for the cut prefix; the cut prefix alone would sniff as {cut.Charset}");
+        const string classReason = "the code-unit layout of the bytes inside the limit is kept for the cut prefix";
         if (UnitLayout(window.Charset) == "byte")
         {
+            // The charset evidence of a one-byte charset lists the candidates, so the note goes in the class reason.
             var (charset, allowed) = SingleByteCharset(facts, tolerance);
-            return Finish(facts, "text", charset, classReason, null, allowed);
+            return Finish(facts, "text", charset, F($"{classReason}; the cut prefix alone would sniff as {cut.Charset}"), null, allowed);
         }
 
         return Finish(facts, "text", window.Charset, classReason, F($"{window.Charset} kept from the bytes inside the limit; the cut prefix alone would sniff as {cut.Charset}"));
