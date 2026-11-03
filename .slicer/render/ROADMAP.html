@@ -39,7 +39,7 @@
 - Editing, repairing or converting files.<br>
 - A dependency on DataBall. The descriptor schema is the contract.<br>
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.</p></div></section>
-<p class="summary">84 items · — 21 · done 57 · parked 1 · later 1 · retired 4</p>
+<p class="summary">87 items · — 24 · done 57 · parked 1 · later 1 · retired 4</p>
 <h2>v1.1.0</h2>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
 <tr class="done"><td>1</td><td>sq-09</td><td>Touchstone and key=value docs</td><td>L</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
@@ -120,27 +120,30 @@
 <tr class="open"><td>64</td><td>sq-80</td><td>BOM-less UTF-32</td><td>M</td><td>2</td><td></td><td>discovered from sq-73</td><td class="status">—</td></tr>
 <tr class="open"><td>65</td><td>sq-82</td><td>Charsets helper</td><td>S</td><td>1</td><td></td><td>discovered from sq-73</td><td class="status">—</td></tr>
 <tr class="open"><td>66</td><td>sq-83</td><td>Error-code registry test</td><td>S</td><td>1</td><td></td><td>discovered from sq-73</td><td class="status">—</td></tr>
+<tr class="open"><td>67</td><td>sq-85</td><td>CLI exit-code test follow-ups</td><td>S</td><td>1</td><td>core</td><td>sq-81 review R3/R4, gate · discovered from sq-81</td><td class="status">—</td></tr>
+<tr class="open"><td>68</td><td>sq-86</td><td>IL issue-code scan follow-ups</td><td>S</td><td>1</td><td>core</td><td>sq-78 review R3/R4, gate · discovered from sq-78</td><td class="status">—</td></tr>
+<tr class="open"><td>69</td><td>sq-87</td><td>Prefix docs wording follow-ups</td><td>S</td><td>1</td><td>docs</td><td>sq-84 review R5-R7, gate · discovered from sq-84</td><td class="status">—</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="parked"><td>67</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
-<tr class="retired"><td>68</td><td>sq-20</td><td>Compact evidence</td><td>M</td><td>2</td><td>core</td><td>Owner decision (2026-10-27), verbatim: &quot;Retire, refile on fields (Recommended)&quot;. The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.</td><td class="status">retired</td></tr>
+<tr class="parked"><td>70</td><td>sq-08</td><td>Parquet profiler</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">parked</td></tr>
+<tr class="retired"><td>71</td><td>sq-20</td><td>Compact evidence</td><td>M</td><td>2</td><td>core</td><td>Owner decision (2026-10-27), verbatim: &quot;Retire, refile on fields (Recommended)&quot;. The implementer found no per-field type evidence on main to group (evidence is ~3.6 KB, near-constant); the spec made every real-sample descriptor 1.8-3.6 KB larger. table.fields is the real driver (~1.26 KB per field, 78% of a 300-column descriptor). Refiled as sq-32. Discarded diff kept outside the repo.</td><td class="status">retired</td></tr>
 </tbody></table>
 <table><thead><tr><th>#</th><th>ID</th><th>Title</th><th>Size</th><th>Effort</th><th>Trees</th><th>Findings</th><th>Status</th></tr></thead><tbody>
-<tr class="done"><td>69</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>70</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>71</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>72</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>73</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>74</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>75</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>76</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>77</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>78</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>79</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>80</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>81</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>82</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
-<tr class="done"><td>83</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
-<tr class="done"><td>84</td><td>sq-31</td><td>Drop Parquet from v1</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>72</td><td>sq-01</td><td>Solution skeleton</td><td>S</td><td>1</td><td>build</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>73</td><td>sq-02</td><td>Canonical descriptor writer</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>74</td><td>sq-03</td><td>Byte sniff and generic profile</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>75</td><td>sq-16</td><td>Value classifier</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>76</td><td>sq-04</td><td>Delimited dialect and regions</td><td>L</td><td>3</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>77</td><td>sq-05</td><td>Field profiling</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>78</td><td>sq-17</td><td>Row classes</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>79</td><td>sq-18</td><td>Private-corpus harness</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>80</td><td>sq-06</td><td>Fingerprints and hints</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>81</td><td>sq-07</td><td>Values tier</td><td>S</td><td>1</td><td>core, cli</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>82</td><td>sq-14</td><td>Header-unit conventions</td><td>M</td><td>2</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>83</td><td>sq-25</td><td>Consumer classification contract</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>84</td><td>sq-26</td><td>NuGet package for library consumers</td><td>S</td><td>1</td><td>core</td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>85</td><td>sq-27</td><td>Ragged run start</td><td>S</td><td>1</td><td>core</td><td>sq-25 implementer: one ragged record among the first data rows moves the data-run start (the window needs the record plus the next min(5, remaining) records to have k fields), so the header falls outside the run: a 21-line file with a ragged record at row 5 profiled as hasHeader false with null names, and small ragged tables fall back to text. Owner (2026-10-27): fix soon, after the prism path; the window should count k-field records and skip ragged ones up to a limit. · discovered from sq-25</td><td class="status">done</td></tr>
+<tr class="done"><td>86</td><td>sq-29</td><td>Release workflow</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
+<tr class="done"><td>87</td><td>sq-31</td><td>Drop Parquet from v1</td><td>S</td><td>1</td><td></td><td></td><td class="status">done</td></tr>
 </tbody></table>
 </body></html>

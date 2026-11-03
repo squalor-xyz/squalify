@@ -2,7 +2,7 @@
   "version": 11,
   "id_prefix": "sq-",
   "id_width": 2,
-  "next_id": 85,
+  "next_id": 88,
   "preamble": "squalify: a deterministic data-file profiler. It reads one file and writes a versioned JSON descriptor (structure, fields, statistics, layout, fingerprint, evidence) that other tools, such as DataBall, use to classify the file or pick a transform. Design: docs/design.md. Schema: docs/descriptor.md.",
   "passes": [
     {
@@ -6623,6 +6623,141 @@
         "urgency": 2,
         "effort": 1,
         "attempts": 1
+      }
+    },
+    {
+      "id": "sq-85",
+      "title": "CLI exit-code test follow-ups",
+      "short_title": "CLI exit-code test follow-ups",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "c1f56faa-e249-44dd-b050-f6d6521570d8",
+          "kind": "",
+          "text": "**2026-11-03** — From sq-81 (2026-11-03): (1) review R3: CommandFactory.VersionAction returns a literal 0, not CliApp.ExitSuccess (the exit codes are meant to live in one place). (2) review R4: FirstRecordTooLong_LeavesAnExistingOutputFileUntouched does not assert stderr on the -o run (the deleted old test did); assert it. (3) tests/squalify.Cli.Tests/CliTests.cs:78 holds a non-ASCII e-acute in 'cafe' that is in HEAD; sq-78 guards src/ only, so decide whether tests/ should be ASCII too. (4) gate: the CLI exit-code note sits in a 'Breaking changes in X (library)' entry so the label test can see it; consider a label scheme for CLI entries.",
+          "created_at": "2026-11-03T20:49:44Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-81 review R3/R4, gate",
+        "discovered_from": "sq-81",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-86",
+      "title": "IL issue-code scan follow-ups",
+      "short_title": "IL issue-code scan follow-ups",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "49a5f3fd-1070-49fa-94b7-f3d4b3b9eb8a",
+          "kind": "",
+          "text": "**2026-11-03** — From sq-78 (2026-11-03): (1) review R3: IsCodeArgument assumes LocatedIssue is static (Pops == depth); an instance method would hide the literal; add a comment or assert. (2) review R4: an optional guard test that ValueCount returns 0-3 or -1 for every OpCodes field; and ask whether IlIssueCodes is worth keeping at all, since the positive check IlIssueSitesWithoutARegistryCode covers every bypass shape. (3) gate: a literal stored in a local and loaded as a later argument is collected (loud side); the first doc sentence reads unconditional, one word ('directly') would tighten it. (4) gate: a literal that reaches the code through a field, an array element or dup is dropped where the old windowed scan caught it; SlotStores could add stsfld/stfld. (5) CONTRIBUTING.md 'Closed sets' could name the stack rule.",
+          "created_at": "2026-11-03T20:49:44Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "core"
+        ],
+        "trees_literal": false,
+        "findings": "sq-78 review R3/R4, gate",
+        "discovered_from": "sq-78",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
+      }
+    },
+    {
+      "id": "sq-87",
+      "title": "Prefix docs wording follow-ups",
+      "short_title": "Prefix docs wording follow-ups",
+      "status": "open",
+      "has_slice": false,
+      "depends_on": [],
+      "note_records": [
+        {
+          "id": "b5cb410c-ff39-43f1-8829-d5f415749148",
+          "kind": "",
+          "text": "**2026-11-03** — From sq-84 (2026-11-03): (1) review R5/R6/R7 remainder: how-it-works 'Getting the prefix bytes too' dropped two architecture facts (the buffer holds at most the limit plus the overshoot, which is why the call requires MaxBytes; the source is never read past its declared Length): they are how-it-works material, restore a short sentence. (2) The test CutContract_PointersAreOneSentenceAndTheUserGuideHeadingExists does not check sentence count: rename. (3) descriptor.md calls the ceiling head 'the first bytes up to the limit'; it is min(n, maxBytes) bytes (user guide is exact). (4) README.md:44 says --max-bytes cuts 'at the last whole line', loose for binary files. (5) The user guide says the sniff reports UTF-32 only from its BOM; not verified against ByteSniffer in this slice.",
+          "created_at": "2026-11-03T20:49:44Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        }
+      ],
+      "claim": null,
+      "fields": {
+        "size": "S",
+        "flags": [],
+        "trees": [
+          "docs"
+        ],
+        "trees_literal": false,
+        "findings": "sq-84 review R5-R7, gate",
+        "discovered_from": "sq-84",
+        "parent": "",
+        "cites": [],
+        "key": "",
+        "pass": "v1.x",
+        "group": "",
+        "reason": "",
+        "importance": 1,
+        "urgency": 1,
+        "effort": 1,
+        "attempts": 0
       }
     }
   ],

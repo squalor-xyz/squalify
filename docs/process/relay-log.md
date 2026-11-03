@@ -57,6 +57,25 @@ Add one entry per slice after it lands (or stops), newest first. Use this templa
 
 ## Entries
 
+### v1.1.0 late additions: sq-81, sq-78, sq-84 (2026-11-03)
+
+- Lineup: lite relay (all S, no architect, no spec check); implementer haiku/xhigh (r1), reviewer and gate opus/medium; this session orchestrated. The three ran in parallel worktrees and landed one at a time (sq-81, sq-78, sq-84), each pushed before the next landed.
+- Metrics:
+  - **Gate verdicts:** all PASS on the first gate (sq-81 after 1 fix round, sq-78 after 1, sq-84 after 1), then a one-pass re-gate of sq-84 after merging main.
+  - **Findings:** fix 2 + 2 + 3 (reviews), owner 1 (sq-84 R4, resolved by the orchestrator with the reviewer's preferred option, and said so in the brief), later 17 (filed as sq-85 to sq-87); owner questions to the owner: 3 (sq-81 signal, relay shape, ceiling drift).
+  - **Wall time (harness duration):** implementers 7 min (sq-81), 12 + 5 min (sq-84), 15 + 4 min (sq-78); reviewers 3 min each; gates about 3 min each.
+- Frictions:
+  - **The sq-84 implementer found real drift:** the user guide said a binary window is not subject to the first-record ceiling, and the code checks a text head even over a binary window. The trim had removed the only page that stated the code's behavior. It went to the owner (docs follow code) and the user guide, design.md and descriptor.md were corrected, with a pinning docs test.
+  - **sq-78's narrowed scan regressed** against the old one: a literal stored in a local, or reached through a switch expression, was no longer collected. The reviewer built a probe that ran old and new side by side; the fix kept the uncertain (loud) side.
+  - **Parallel docs slices conflicted** on one user-guide line (sq-81 exit 3 vs sq-84's head-rule rewrite). The gate had predicted it; the conflict was resolved by hand and re-gated on the merge diff.
+  - **`slicer land` already carried the done state:** the implementer-side `slicer done` in the worktree moves the slice file, so the post-land `sq-NN done` commit that `land` prints is empty; push is all that is left.
+  - **macOS CI** on `c2e78ac` failed twice with "The job was not acquired by Runner" (hosted-runner capacity, not code); the ubuntu and windows jobs passed.
+- Wins:
+  - **"Verify before applying"** in the fix-round brief: both implementers checked the reviewer's premise before editing, and one correctly reported a line number that was off by one.
+  - **Reviewers that measure:** old-versus-new probes (sq-78), a CLI repro (sq-84), and a scratch mutation of the wiring (sq-81 gate).
+  - **Decide small owner findings with the reviewer's preferred option** when they do not block the gate, and record that in the next brief.
+- Changes (proposed): briefs for two parallel slices that touch the same guide should name the overlapping lines up front, so the second to land expects the merge.
+
 ### v1.1.0 wave: sq-58, sq-71, sq-62, sq-72, sq-74, sq-09, sq-69, sq-73 (2026-11-02 to 2026-11-03)
 
 - Lineup: spec check on the first seven slices; implementer sonnet/high; reviewer opus/medium; architect opus/high on M and L slices (sq-62, sq-09, sq-73); gate opus/medium. S slices ran a lite relay. Up to three slices ran at a time, each in its own worktree, landing one at a time on owner approval.
