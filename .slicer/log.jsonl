@@ -768,3 +768,19 @@
 {"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "set", "from": "", "to": "", "note": "effort -→1"}
 {"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "note", "from": "", "to": "", "note": "From sq-69 review (later): R7 the Type.Member check searches", "by": "Jon Robbins"}
 {"when": "2026-11-03T18:07:24Z", "item": "sq-73", "action": "note", "from": "", "to": "", "note": "Review FAIL (gate round 1): user-guide Breaking changes entr", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:26:09Z", "item": "sq-80", "action": "add", "from": "", "to": "open", "note": "Detect UTF-32 without a byte order mark"}
+{"when": "2026-11-03T18:26:09Z", "item": "sq-80", "action": "set", "from": "", "to": "", "note": "effort -→2"}
+{"when": "2026-11-03T18:26:09Z", "item": "sq-80", "action": "note", "from": "", "to": "", "note": "From sq-73 (owner R6, 2026-11-03): BOM-less UTF-32 sniffs as", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:26:09Z", "item": "sq-81", "action": "add", "from": "", "to": "open", "note": "CLI surfaces SqualifyException.Code"}
+{"when": "2026-11-03T18:26:09Z", "item": "sq-81", "action": "set", "from": "", "to": "", "note": "effort -→1"}
+{"when": "2026-11-03T18:26:09Z", "item": "sq-81", "action": "note", "from": "", "to": "", "note": "From sq-73 architect: let the CLI tell firstRecordTooLong ap", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-82", "action": "add", "from": "", "to": "open", "note": "One Charsets helper for unit width, byte order and layout"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-82", "action": "set", "from": "", "to": "", "note": "effort -→1"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-82", "action": "note", "from": "", "to": "", "note": "From sq-73 architect A9: layout knowledge lives in SniffResu", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-83", "action": "add", "from": "", "to": "open", "note": "SqualifyErrorCodes registry and docs test"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-83", "action": "set", "from": "", "to": "", "note": "effort -→1"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-83", "action": "note", "from": "", "to": "", "note": "From sq-73 architect: once a second code arrives, a test tha", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-84", "action": "add", "from": "", "to": "open", "note": "Trim the cut-contract summaries to pointers"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-84", "action": "set", "from": "", "to": "", "note": "effort -→1"}
+{"when": "2026-11-03T18:26:10Z", "item": "sq-84", "action": "note", "from": "", "to": "", "note": "From sq-73 gate later #3 and architect A10: design.md, how-i", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:26:11Z", "item": "sq-73", "action": "status", "from": "open", "to": "done", "note": "Prefix cut contract pinned (whole characters and lines in every sniffed charset, BOM-less UTF-32 excepted); SqualifyException.Code with SqualifyErrorCodes.FirstRecordTooLong; window code-unit layout kept when the cut prefix would sniff otherwise (correction, no schema bump). Reviewer PASS after 3 fix rounds, architect PASS after 2, gate PASS at 076aaad after 1.", "by": "Jon Robbins"}
