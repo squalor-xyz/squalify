@@ -763,3 +763,7 @@
 {"when": "2026-11-02T21:38:02Z", "item": "sq-10", "action": "note", "from": "", "to": "", "note": "Making STDF produced is a planned-to-produced flip: follow t", "by": "Jon Robbins"}
 {"when": "2026-11-02T21:38:02Z", "item": "sq-15", "action": "note", "from": "", "to": "", "note": "Making the kind rules produced is a planned-to-produced flip", "by": "Jon Robbins"}
 {"when": "2026-11-02T21:52:51Z", "item": "sq-10", "action": "note", "from": "", "to": "", "note": "Correction to the previous note: PlannedMembersTests.KeyOrde", "by": "Jon Robbins"}
+{"when": "2026-11-03T13:08:16Z", "item": "sq-69", "action": "status", "from": "open", "to": "done", "note": "Flip checklist in CONTRIBUTING.md (nine areas, drawn from sq-09's flip) with docs test Contributing_FlipChecklist_NamesOnlyWhatExists; notes on sq-10 and sq-15. Review FAIL R1-R5 fixed in 14113ff; re-check PASS; gate PASS.", "by": "Jon Robbins"}
+{"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "add", "from": "", "to": "open", "note": "Tighten the flip-checklist docs test"}
+{"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "set", "from": "", "to": "", "note": "effort -→1"}
+{"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "note", "from": "", "to": "", "note": "From sq-69 review (later): R7 the Type.Member check searches", "by": "Jon Robbins"}
