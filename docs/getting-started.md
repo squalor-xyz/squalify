@@ -116,7 +116,7 @@ The full descriptor is in [descriptor.md](descriptor.md).
 
 ## 4. Check the result in a script
 
-The exit code is 0 on success and 1 on any error, and issues are not errors. To fail a step when a file has issues, see [Gate CI on issues](examples.md#gate-ci-on-issues).
+The exit code is 0 on success, 3 when a first record is longer than `--max-first-record-bytes` ([user guide](user-guide.md#cli)), and 1 on any other error; issues are not errors. To fail a step when a file has issues, see [Gate CI on issues](examples.md#gate-ci-on-issues).
 
 ## 5. Opt in to values
 

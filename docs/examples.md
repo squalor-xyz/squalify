@@ -110,7 +110,7 @@ squalify profile tests/squalify.Tests/fixtures/delimited/padded-annotated.csv | 
 1
 ```
 
-The first file is clean; the second has the `raggedRows` issue. To gate on one code only, use `jq -e '[.issues[].code] | index("raggedRows") | not'`. In a pipeline, set `set -o pipefail` so a squalify error (exit code 1) is not hidden by `jq`.
+The first file is clean; the second has the `raggedRows` issue. To gate on one code only, use `jq -e '[.issues[].code] | index("raggedRows") | not'`. In a pipeline, set `set -o pipefail` so a squalify error (exit code 1, or 3 for a first record over `--max-first-record-bytes`) is not hidden by `jq`.
 
 ## Profile a directory
 
