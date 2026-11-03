@@ -21,7 +21,7 @@ squalify reads one data file and writes a descriptor. Consumers use the descript
 | Layout-only profile | Opt-in through `--layout-only` (`ProfileOptions.LayoutOnly`, sq-47): the encoding, dialect, layout, header names and row classes, without the per-field work; the descriptor says so with `layoutOnly: true` and null sections. The default profile is unchanged. See [Layout-only profile](#layout-only-profile). |
 | Dependencies | System.CommandLine 2.0.11 (CLI) only. Tests: Microsoft.NET.Test.Sdk 17.14.1, xunit 2.9.3, xunit.runner.visualstudio 3.1.5. |
 | Determinism | The same input bytes, options and tool version give a byte-identical descriptor on every OS and CPU, within one .NET runtime major version; fingerprints are identical across runtimes. No ML, LLM or network. |
-| Exit codes | 0 for success; 1 for any error (the same as DataBall's CLI). |
+| Exit codes | 0 for success; 3 when the first record is longer than `--max-first-record-bytes`; 1 for any other error. |
 
 ## Pipeline
 
@@ -488,7 +488,7 @@ Every inference adds `{ stage, topic, chosen, candidates[{ value, score, reason 
 
 ## Errors
 
-- An empty path, an unreadable path, a permission error or an I/O failure raises `SqualifyException`, and the CLI exits 1 with the message on stderr. `SqualifyException.Code` is null, except for the first-record refusal, whose code is `SqualifyErrorCodes.FirstRecordTooLong` (see the byte limit above). A directory input is an error in v1.
+- An empty path, an unreadable path, a permission error or an I/O failure raises `SqualifyException`, and the CLI exits 1 with the message on stderr (3 for the first-record refusal). `SqualifyException.Code` is null, except for the first-record refusal, whose code is `SqualifyErrorCodes.FirstRecordTooLong` (see the byte limit above). A directory input is an error in v1.
 - Malformed content is described, not rejected. Problems are counted and listed in `issues[]`, and the descriptor is still written.
 
 ## Non-goals

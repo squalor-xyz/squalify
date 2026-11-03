@@ -23,7 +23,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 - A dependency on DataBall. The descriptor schema is the contract.
 - In v1: directory or multi-file input, decompression, STDF result values, and MIR text fields.
 
-84 items · — 24 · done 54 · parked 1 · later 1 · retired 4
+84 items · — 23 · done 55 · parked 1 · later 1 · retired 4
 
 ## v1.1.0
 
@@ -39,7 +39,7 @@ squalify: a deterministic data-file profiler. It reads one file and writes a ver
 | 8 | [sq-73](slices/sq-73.md) | Prefix cut contract: whole characters in every charset | M | 2 |  |  | done |
 | 9 | [sq-74](slices/sq-74.md) | Package validation follow-ups | S | 1 | core | sq-71 review R3, gate L1, L2 · discovered from sq-71 | done |
 | 10 | [sq-78](slices/sq-78.md) | ASCII source test | S | 1 | core | discovered from sq-09 | — |
-| 11 | [sq-81](slices/sq-81.md) | CLI error code | S | 1 | core | discovered from sq-73 | — |
+| 11 | [sq-81](slices/sq-81.md) | CLI error code | S | 1 | core | discovered from sq-73 | done |
 | 12 | [sq-84](slices/sq-84.md) | Trim contract summaries | S | 1 | docs | discovered from sq-73 | — |
 
 ---

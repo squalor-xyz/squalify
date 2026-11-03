@@ -6411,7 +6411,7 @@
       "id": "sq-81",
       "title": "CLI surfaces SqualifyException.Code",
       "short_title": "CLI error code",
-      "status": "open",
+      "status": "done",
       "has_slice": true,
       "depends_on": [],
       "note_records": [
@@ -6421,6 +6421,20 @@
           "text": "**2026-11-03** — From sq-73 architect: let the CLI tell firstRecordTooLong apart, as a distinct exit code or the code on stderr, so scripts can react.",
           "created_at": "2026-11-03T18:26:09Z",
           "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
+        },
+        {
+          "id": "0dede5d7-aebb-4fca-87c2-0873515cd40b",
+          "kind": "",
+          "text": "**2026-11-03** — Verified: exit 3 for firstRecordTooLong, exit 1 for every other error; review R1/R2 fixed, gate PASS; Cli.Tests 110, Tests 1974 green; format clean.",
+          "created_at": "2026-11-03T19:11:09Z",
+          "attempt": 1,
           "by": "Jon Robbins",
           "verified_by": "",
           "verified_at": "",
@@ -6449,7 +6463,7 @@
         "importance": 2,
         "urgency": 2,
         "effort": 1,
-        "attempts": 0
+        "attempts": 1
       }
     },
     {

@@ -272,24 +272,63 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
-    public async Task Cli_Profile_MaxFirstRecordBytes_FirstRecordTooLong_PrintsTheMessage_ExitsOne_WritesNothing()
+    public async Task FirstRecordTooLong_ExitsWithThree()
     {
         var path = WriteInput("rows.csv", "id,value,label\n1,2,x\n");
-        var target = Path.Combine(_root, "out.json");
-        File.WriteAllText(target, "keep");
-        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10", "-o", target);
-        Assert.Equal(1, code);
+        var (code, _, _) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10");
+        Assert.Equal(3, code);
+    }
+
+    [Fact]
+    public async Task FirstRecordTooLong_WritesTheMessageToStderrAndNothingToStdout()
+    {
+        var path = WriteInput("rows.csv", "id,value,label\n1,2,x\n");
+        var (code, output, error) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10");
+        Assert.Equal(3, code);
         Assert.Equal(string.Empty, output);
         var refused = Assert.Throws<SqualifyException>(() => Profiler.Profile(path, ProfileOptions.Create(false, Array.Empty<string>(), 100, 10)));
         Assert.Contains("--max-first-record-bytes", refused.Message, StringComparison.Ordinal);
         Assert.Equal(refused.Message + Environment.NewLine, error);
-        Assert.Equal("keep", File.ReadAllText(target));
-        Assert.False(File.Exists(target + ".tmp"));
 
         var (code2, output2, error2) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10");
-        Assert.Equal(1, code2);
+        Assert.Equal(3, code2);
         Assert.Equal(string.Empty, output2);
         Assert.Equal(error, error2);
+    }
+
+    [Fact]
+    public async Task FirstRecordTooLong_LeavesAnExistingOutputFileUntouched()
+    {
+        var path = WriteInput("rows.csv", "id,value,label\n1,2,x\n");
+        var target = Path.Combine(_root, "out.json");
+        File.WriteAllText(target, "keep");
+        var (code, output, _) = await RunAsync("profile", path, "--max-bytes", "100", "--max-first-record-bytes", "10", "-o", target);
+        Assert.Equal(3, code);
+        Assert.Equal(string.Empty, output);
+        Assert.Equal("keep", File.ReadAllText(target));
+        Assert.False(File.Exists(target + ".tmp"));
+    }
+
+    [Fact]
+    public async Task OtherErrors_StillExitWithOne()
+    {
+        // None of these is the first-record refusal, so none may exit 3. The last one is a SqualifyException with no Code.
+        var usage = WriteInput("usage.csv", "a\n");
+        var refusedWithoutMaxBytes = WriteInput("nobytes.csv", "a\n");
+        var cases = new[]
+        {
+            new[] { "profile", Path.Combine(_root, "missing.csv") },
+            new[] { "profile", _root },
+            new[] { "profile", usage, "--include-values-for" },
+            new[] { "profile", refusedWithoutMaxBytes, "--max-first-record-bytes", "10" },
+        };
+        foreach (var args in cases)
+        {
+            var (code, output, error) = await RunAsync(args);
+            Assert.True(code == 1, $"{string.Join(' ', args)} exited with {code}, not 1.");
+            Assert.Equal(string.Empty, output);
+            Assert.False(string.IsNullOrWhiteSpace(error));
+        }
     }
 
     [Theory]
