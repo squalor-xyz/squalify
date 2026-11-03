@@ -146,7 +146,57 @@ internal sealed class SniffResult
         }
 
         // Rules 6 and 7: text. The charset is ascii, utf-8 or latin-1.
-        var allowed = AllowedInvalidSequences(length, tolerance);
+        var (charset, allowed) = SingleByteCharset(facts, tolerance);
+        return Finish(facts, "text", charset, F($"rule 6: no NUL bytes; {facts.ControlBytes} of {length} bytes are control bytes"), null, allowed);
+    }
+
+    /// <summary>
+    /// The code-unit layout of a charset: the width and the byte order. The charsets of one byte per unit (ascii, latin-1,
+    /// utf-8) share the layout <c>byte</c>; the UTF-16 and UTF-32 charsets each have their own.
+    /// </summary>
+    /// <param name="charset">The charset of a text file, or null.</param>
+    /// <returns>The layout.</returns>
+    public static string UnitLayout(string? charset)
+    {
+        return charset is "utf-16le" or "utf-16be" or "utf-32le" or "utf-32be" ? charset : "byte";
+    }
+
+    /// <summary>
+    /// The sniff of a cut prefix, given the sniff of the window (the bytes inside the limit) that chose the cut. The cut was
+    /// made in the code units of the window's charset, so when both are text and the prefix would sniff with another unit
+    /// layout (the bytes read past the window to the end of the first line changed the NUL pattern), the window's layout is
+    /// kept: the prefix is reported as text in the window's charset (a UTF-16 or UTF-32 charset) or, for the window's one byte
+    /// per unit, as the one-byte charset that the prefix's own bytes give. Every other case is the prefix's own sniff: a move
+    /// within one byte per unit, a move to binary, and a window that is not text.
+    /// </summary>
+    /// <param name="window">The sniff of the bytes inside the limit.</param>
+    /// <param name="cut">The sniff of the cut prefix.</param>
+    /// <param name="tolerance">The tolerated stray invalid UTF-8 sequences.</param>
+    /// <returns>The sniff to report: the facts are always those of the prefix.</returns>
+    public static SniffResult ForCut(SniffResult window, SniffResult cut, CharsetTolerance tolerance)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+        ArgumentNullException.ThrowIfNull(cut);
+        if (window.Kind != "text" || cut.Kind != "text" || UnitLayout(window.Charset) == UnitLayout(cut.Charset))
+        {
+            return cut;
+        }
+
+        var facts = cut.Facts;
+        const string classReason = "the code-unit layout of the bytes inside the limit is kept for the cut prefix";
+        if (UnitLayout(window.Charset) == "byte")
+        {
+            var (charset, allowed) = SingleByteCharset(facts, tolerance);
+            return Finish(facts, "text", charset, classReason, null, allowed);
+        }
+
+        return Finish(facts, "text", window.Charset, classReason, F($"{window.Charset} kept from the bytes inside the limit; the cut prefix alone would sniff as {cut.Charset}"));
+    }
+
+    // The charset of one byte per unit that the counted facts give: ascii, else utf-8 if valid (or within the tolerance), else latin-1.
+    private static (string Charset, long Allowed) SingleByteCharset(SniffFacts facts, CharsetTolerance tolerance)
+    {
+        var allowed = AllowedInvalidSequences(facts.Length, tolerance);
         string charset;
         if (facts.HighBytes == 0)
         {
@@ -165,7 +215,7 @@ internal sealed class SniffResult
             charset = "latin-1";
         }
 
-        return Finish(facts, "text", charset, F($"rule 6: no NUL bytes; {facts.ControlBytes} of {length} bytes are control bytes"), null, allowed);
+        return (charset, allowed);
     }
 
     private static string F(FormattableString text)

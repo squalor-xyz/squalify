@@ -59,12 +59,14 @@ public static class Profiler
     /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>,
     /// and is never read past it.
     /// <para>
-    /// The cut is a contract: a text prefix ends right after a whole LF, CR or CRLF, or at the end of the file (then
-    /// <c>scope.complete</c> is true); a binary prefix is cut at the byte limit. A terminator is counted in whole code units of
-    /// the charset sniffed from the bytes inside the limit, so a text prefix never ends inside a character (a UTF-8 sequence, a
-    /// UTF-16 surrogate pair, a UTF-16 or UTF-32 unit) or inside a CRLF, and the lines and characters that a consumer counts in
-    /// it are those of the same lines in the whole file. UTF-32 is recognised only from its byte order mark; a UTF-32 file
-    /// without one sniffs as binary and is cut at the limit.
+    /// The cut is a contract. When <see cref="Descriptor.Encoding"/> has the kind <c>text</c>, the prefix decodes in its
+    /// <c>Charset</c> with no split character (a UTF-8 sequence, a UTF-16 surrogate pair, a UTF-16 or UTF-32 unit) and ends
+    /// right after a whole LF, CR or CRLF or at the end of the file (then <c>scope.complete</c> is true); when it is
+    /// <c>binary</c>, the prefix may be cut at the byte limit. The lines and characters that a consumer counts in a text prefix,
+    /// decoded in that charset, are those of the same lines in the whole file. The charset can differ from what the whole file
+    /// would sniff, because it is decided from the bytes inside the limit (and, when the first record is read past the limit,
+    /// the code-unit layout of those bytes is kept). UTF-32 is recognised only from its byte order mark; a UTF-32 file without
+    /// one sniffs as binary and is cut at the limit.
     /// </para>
     /// </summary>
     /// <param name="source">The source.</param>

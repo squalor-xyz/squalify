@@ -203,8 +203,73 @@ public sealed class PrefixCutTests
                 Assert.Equal("text", result.Descriptor.Encoding.Kind);
                 Assert.Equal(sniffed, result.Descriptor.Encoding.Charset);
             }
+
+            AssertObservable(result, bytes, where);
         }
     }
+
+    // The contract in terms a consumer can observe: when the descriptor says text, the prefix is whole units of the reported
+    // charset (after its byte order mark) and ends right after a terminator unit or at the end of the file, and a CR that ends it is
+    // not the first half of a CRLF. It is decoded strictly, except for ascii or utf-8 with tolerated invalid bytes, which are a
+    // property of the data and not of the cut.
+    private static void AssertObservable(ProfiledPrefix result, byte[] whole, string where)
+    {
+        var encoding = result.Descriptor.Encoding;
+        if (encoding.Kind != "text")
+        {
+            return;
+        }
+
+        var (width, bigEndian) = encoding.Charset switch
+        {
+            "utf-16le" => (2, false),
+            "utf-16be" => (2, true),
+            "utf-32le" => (4, false),
+            "utf-32be" => (4, true),
+            _ => (1, false),
+        };
+        var bom = encoding.Bom switch
+        {
+            "utf-8" => 3,
+            "utf-16le" or "utf-16be" => 2,
+            "utf-32le" or "utf-32be" => 4,
+            _ => 0,
+        };
+        var prefix = result.Prefix.Span;
+        Assert.True((prefix.Length - bom) % width == 0, $"{where}: {prefix.Length} bytes after a {bom}-byte mark are not whole {width}-byte units of {encoding.Charset}");
+
+        var atEnd = prefix.Length == whole.Length;
+        if (!atEnd)
+        {
+            var last = prefix[^width..];
+            var low = bigEndian ? last[^1] : last[0];
+            var others = last.ToArray().Where((_, i) => i != (bigEndian ? width - 1 : 0)).All(b => b == 0);
+            Assert.True(others && (low == 0x0A || low == 0x0D), $"{where}: the prefix of {encoding.Charset} does not end at a terminator");
+            if (low == 0x0D)
+            {
+                var next = whole.AsSpan(prefix.Length, width);
+                var nextLow = bigEndian ? next[^1] : next[0];
+                var nextOthers = next.ToArray().Where((_, i) => i != (bigEndian ? width - 1 : 0)).All(b => b == 0);
+                Assert.False(nextOthers && nextLow == 0x0A, $"{where}: the prefix ends between the CR and the LF of a CRLF");
+            }
+        }
+
+        if (!(encoding.Charset is "ascii" or "utf-8" && encoding.InvalidBytesTolerated))
+        {
+            Decoder(encoding.Charset).GetString(prefix[bom..]);
+        }
+    }
+
+    private static Encoding Decoder(string? charset) => charset switch
+    {
+        "utf-16le" => new UnicodeEncoding(false, false, true),
+        "utf-16be" => new UnicodeEncoding(true, false, true),
+        "utf-32le" => new UTF32Encoding(false, false, true),
+        "utf-32be" => new UTF32Encoding(true, false, true),
+        "utf-8" => new UTF8Encoding(false, true),
+        "ascii" => Encoding.GetEncoding("us-ascii", EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback),
+        _ => Encoding.Latin1,
+    };
 
     private static long LineBytes(Charset charset) => charset.Strict.GetByteCount(Lines(Text(charset, ["\n"]))[1]);
 
@@ -371,5 +436,100 @@ public sealed class PrefixCutTests
         Assert.Same(inner, codedWrapped.InnerException);
 
         Assert.Equal("firstRecordTooLong", SqualifyErrorCodes.FirstRecordTooLong);
+    }
+
+    // A first record longer than the limit is read to its end: the cut then lies past the window and is made in the window's code units.
+    [Theory]
+    [MemberData(nameof(CharsetNames))]
+    public void A_first_record_longer_than_the_limit_reports_a_charset_the_prefix_decodes_in(string name)
+    {
+        var charset = Named(name);
+        foreach (var terminators in new[] { new[] { "\r\n" }, ["\r"], ["\n"] })
+        {
+            var text = "id," + new string('x', 150) + terminators[0] + Text(charset, terminators);
+            var bytes = Bytes(charset, text);
+            for (var limit = 40L; limit <= 90; limit += 7)
+            {
+                var result = Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Limit(limit));
+                Assert.True(result.Prefix.Length > limit, $"{charset.Name}, limit {limit}: the first record is read to its end");
+                AssertObservable(result, bytes, $"{charset.Name}, limit {limit}");
+                if (charset.Width > 1 && charset.Sniffed is { } sniffed)
+                {
+                    Assert.Equal(sniffed, result.Descriptor.Encoding.Charset);
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void An_overshoot_that_reads_as_UTF16_keeps_the_ascii_sniff_of_the_window()
+    {
+        // 100 bytes of ascii inside the limit, no terminator, then the first line goes on with 150 pairs (x, NUL) and ends in an LF.
+        // Alone, the 401 bytes of the first line sniff as utf-16le (rule 4: 150 of 351 bytes are NUL, all at odd offsets). The cut
+        // was made one byte per unit, so the window's layout is kept: ascii, text.
+        var bytes = new List<byte>();
+        bytes.AddRange(Enumerable.Repeat((byte)'a', 100));
+        for (var i = 0; i < 150; i++)
+        {
+            bytes.Add((byte)'x');
+            bytes.Add(0);
+        }
+
+        bytes.Add((byte)'\n');
+        bytes.AddRange(Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("bbbbbbbbbb\n", 20))));
+        var data = bytes.ToArray();
+
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", data), Limit(100));
+        Assert.Equal(401, result.Prefix.Length);
+        Assert.Equal("text", result.Descriptor.Encoding.Kind);
+        Assert.Equal("ascii", result.Descriptor.Encoding.Charset);
+        Assert.Equal(401, result.Scope.BytesRead);
+        Assert.DoesNotContain(result.Descriptor.Issues, static i => i.Code is "invalidUtf8" or "invalidUnicode");
+        AssertObservable(result, data, "ascii window, utf-16le overshoot");
+
+        var profile = Profiler.Profile(new BytesSource("t.csv", data), Limit(100));
+        Assert.Equal(profile, result.Descriptor);
+
+        // The cut prefix on its own is a different file: it sniffs as utf-16le. That is the one place where the sniff of a prefix differs.
+        var alone = Profiler.Profile(new BytesSource("t.csv", result.Prefix.ToArray()), ProfileOptions.Create(false, Array.Empty<string>()));
+        Assert.Equal("utf-16le", alone.Encoding.Charset);
+    }
+
+    [Fact]
+    public void An_overshoot_that_reads_as_UTF16BE_keeps_the_UTF16LE_sniff_of_the_window()
+    {
+        // 100 bytes of utf-16le without a byte order mark (50 units (a, NUL)): rule 4, NUL at odd offsets only. The first line goes
+        // on with 600 units (NUL, b) and ends in an LF unit. The 1,302 bytes alone have 450+ NULs at even offsets, so they sniff as utf-16be.
+        var bytes = new List<byte>();
+        for (var i = 0; i < 50; i++)
+        {
+            bytes.Add((byte)'a');
+            bytes.Add(0);
+        }
+
+        for (var i = 0; i < 600; i++)
+        {
+            bytes.Add(0);
+            bytes.Add((byte)'b');
+        }
+
+        bytes.AddRange([(byte)'\n', 0]);
+        for (var i = 0; i < 20; i++)
+        {
+            bytes.AddRange(Encoding.Unicode.GetBytes("cccccccccc\n"));
+        }
+
+        var data = bytes.ToArray();
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", data), Limit(100));
+        Assert.Equal(1302, result.Prefix.Length);
+        Assert.Equal("text", result.Descriptor.Encoding.Kind);
+        Assert.Equal("utf-16le", result.Descriptor.Encoding.Charset);
+        AssertObservable(result, data, "utf-16le window, utf-16be overshoot");
+
+        var profile = Profiler.Profile(new BytesSource("t.csv", data), Limit(100));
+        Assert.Equal(profile, result.Descriptor);
+
+        var alone = Profiler.Profile(new BytesSource("t.csv", result.Prefix.ToArray()), ProfileOptions.Create(false, Array.Empty<string>()));
+        Assert.Equal("utf-16be", alone.Encoding.Charset);
     }
 }

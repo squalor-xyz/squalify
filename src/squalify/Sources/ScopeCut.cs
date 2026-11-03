@@ -147,8 +147,12 @@ internal static class ScopeCut
             cut = FindLineCut(source, maxBytes, UnitWidth(charset), BigEndian(charset), total);
             if (cut != maxBytes)
             {
+                // The prefix is sniffed again, so every section describes it as a file of its own, with one exception: the cut was
+                // made in the code units of the window's charset, so a prefix that would sniff with another unit layout keeps the
+                // window's (see SniffResult.ForCut). Only the sniff changes, never the cut.
+                var windowSniff = sniff;
                 window = new PrefixSource(source, cut);
-                sniff = ByteSniffer.Sniff(window, tolerance);
+                sniff = SniffResult.ForCut(windowSniff, ByteSniffer.Sniff(window, tolerance), tolerance);
             }
         }
 
