@@ -6050,6 +6050,20 @@
           "retracted_by": "",
           "retracted_at": "",
           "retracted_reason": ""
+        },
+        {
+          "id": "6c050f01-5703-49f1-a285-1248f9dfd9b9",
+          "kind": "",
+          "text": "**2026-11-03** — Review FAIL (gate round 1): user-guide Breaking changes entry for sq-73 omits encoding.bom, layout.maxLineLength and the fingerprint hashes, which also change in byte-limited profiles.",
+          "created_at": "2026-11-03T18:07:24Z",
+          "attempt": 0,
+          "by": "Jon Robbins",
+          "verified_by": "",
+          "verified_at": "",
+          "stale_after": "",
+          "retracted_by": "",
+          "retracted_at": "",
+          "retracted_reason": ""
         }
       ],
       "claim": null,

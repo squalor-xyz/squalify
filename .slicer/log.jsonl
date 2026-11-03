@@ -767,3 +767,4 @@
 {"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "add", "from": "", "to": "open", "note": "Tighten the flip-checklist docs test"}
 {"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "set", "from": "", "to": "", "note": "effort -→1"}
 {"when": "2026-11-03T13:08:16Z", "item": "sq-79", "action": "note", "from": "", "to": "", "note": "From sq-69 review (later): R7 the Type.Member check searches", "by": "Jon Robbins"}
+{"when": "2026-11-03T18:07:24Z", "item": "sq-73", "action": "note", "from": "", "to": "", "note": "Review FAIL (gate round 1): user-guide Breaking changes entr", "by": "Jon Robbins"}
