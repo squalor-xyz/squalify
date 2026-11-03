@@ -887,6 +887,50 @@ public sealed class DocsTests
     }
 
     [Fact]
+    public void CutContract_PointersAreOneSentenceAndTheUserGuideHeadingExists()
+    {
+        // sq-84: the cut contract is stated in full under "Reading only a prefix" in the user guide. The other pages point to it
+        // with the same sentence, and the anchor is the GitHub slug of that heading, so a pointer cannot drift apart from it.
+        var root = DotNetTool.RepositoryRoot();
+        Assert.Contains("\n## Reading only a prefix\n", ReadDoc(root, "docs/user-guide.md"), StringComparison.Ordinal);
+
+        const string pointer = "The cut contract is stated in full in the [user guide](user-guide.md#reading-only-a-prefix)";
+        var problems = new List<string>();
+        foreach (var file in new[] { "docs/design.md", "docs/how-it-works.md", "docs/descriptor.md" })
+        {
+            Require(problems, file, Collapse(ReadDoc(root, file)), pointer);
+        }
+
+        Assert.True(problems.Count == 0, "The cut-contract pointer is not the same sentence in every page:\n" + string.Join("\n", problems));
+    }
+
+    [Fact]
+    public void CeilingHead_RuleAndTerminatorWordingAreStatedOnEachPage()
+    {
+        // sq-84 fix round: the ceiling is checked on the head whenever the head sniffs as text, even over a binary window
+        // (ScopeCut.Apply, the head sniff before the window sniff). The user guide states it, design.md keeps a sentence
+        // of it, and descriptor.md says the same about the refusal and the head.
+        var root = DotNetTool.RepositoryRoot();
+        var problems = new List<string>();
+        var guide = Collapse(ReadDoc(root, "docs/user-guide.md"));
+        Require(problems, "user-guide.md, Reading only a prefix", guide, "The check is made on the head, the first `n` bytes");
+        Require(problems, "user-guide.md, Reading only a prefix", guide, "whenever the head sniffs as text, even when the window sniffs as binary");
+        Require(problems, "user-guide.md, Reading only a prefix", guide, "A head that does not sniff as text is checked only when the window sniffs as text");
+        Forbid(problems, "user-guide.md, Reading only a prefix", guide, "has no records and is not subject");
+
+        var design = Collapse(ReadDoc(root, "docs/design.md"));
+        Require(problems, "design.md", design, "A text head over a binary window is still checked, from the head's charset");
+        Require(problems, "design.md", design, "a head that is not text is checked only when the window is text");
+
+        var descriptor = Collapse(ReadDoc(root, "docs/descriptor.md"));
+        Require(problems, "descriptor.md", descriptor, "a first record longer than that many bytes, terminator included (also one that ends inside the limit)");
+        Require(problems, "descriptor.md", descriptor, "The check is made on the head (the first bytes up to the limit) whenever the head sniffs as text, even when the window is binary");
+        Require(problems, "descriptor.md", descriptor, "A file that passes gives the same descriptor as without the option.");
+
+        Assert.True(problems.Count == 0, "The ceiling head rule is not stated the same way on each page:\n" + string.Join("\n", problems));
+    }
+
+    [Fact]
     public void UserGuide_StatesWhatAConsumerOfTheSchemaVersionConstGetsAfterTheChange()
     {
         // sq-68: a consumer compiled against the old const keeps running with the "1.0" it compiled in, so the entries
