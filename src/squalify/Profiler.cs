@@ -64,8 +64,8 @@ public static class Profiler
     /// right after a whole LF, CR or CRLF or at the end of the file (then <c>scope.complete</c> is true); when it is
     /// <c>binary</c>, the prefix may be cut at the byte limit. The lines and characters that a consumer counts in a text prefix,
     /// decoded in that charset, are those of the same lines in the whole file. The charset can differ from what the whole file
-    /// would sniff, because it is decided from the bytes inside the limit (and, when the first record is read past the limit,
-    /// the code-unit layout of those bytes is kept). UTF-32 is recognised only from its byte order mark; a UTF-32 file without
+    /// would sniff, because it is decided from the bytes inside the limit (whenever the cut prefix would sniff as text in another
+    /// code-unit layout, the layout of those bytes is kept). UTF-32 is recognised only from its byte order mark; a UTF-32 file without
     /// one sniffs as binary and is cut at the limit.
     /// </para>
     /// </summary>

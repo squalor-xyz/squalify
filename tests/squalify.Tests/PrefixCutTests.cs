@@ -490,7 +490,7 @@ public sealed class PrefixCutTests
         var profile = Profiler.Profile(new BytesSource("t.csv", data), Limit(100));
         Assert.Equal(profile, result.Descriptor);
 
-        // The cut prefix on its own is a different file: it sniffs as utf-16le. That is the one place where the sniff of a prefix differs.
+        // The cut prefix on its own is a different file: it sniffs as utf-16le. That is where the sniff of a prefix differs.
         var alone = Profiler.Profile(new BytesSource("t.csv", result.Prefix.ToArray()), ProfileOptions.Create(false, Array.Empty<string>()));
         Assert.Equal("utf-16le", alone.Encoding.Charset);
     }
@@ -527,6 +527,50 @@ public sealed class PrefixCutTests
         AssertObservable(result, data, "utf-16le window, utf-16be overshoot");
 
         var profile = Profiler.Profile(new BytesSource("t.csv", data), Limit(100));
+        Assert.Equal(profile, result.Descriptor);
+
+        var alone = Profiler.Profile(new BytesSource("t.csv", result.Prefix.ToArray()), ProfileOptions.Create(false, Array.Empty<string>()));
+        Assert.Equal("utf-16be", alone.Encoding.Charset);
+    }
+
+    [Fact]
+    public void A_cut_inside_the_limit_that_reads_as_UTF16BE_keeps_the_UTF16LE_sniff_of_the_window()
+    {
+        // The cut falls inside the limit, not past it. 50 units (NUL, A), an LF unit (0A, NUL), then 1,000 units (A, NUL) and more
+        // lines. The window of 2,102 bytes has its NULs at odd offsets (1,001 of 1,051): utf-16le, so the cut is after the LF unit,
+        // at 102. Those 102 bytes alone have 50 NULs at even offsets and 1 at an odd one: utf-16be.
+        var bytes = new List<byte>();
+        for (var i = 0; i < 50; i++)
+        {
+            bytes.Add(0);
+            bytes.Add((byte)'A');
+        }
+
+        bytes.AddRange([(byte)'\n', 0]);
+        for (var i = 0; i < 1000; i++)
+        {
+            bytes.Add((byte)'A');
+            bytes.Add(0);
+        }
+
+        for (var i = 0; i < 5; i++)
+        {
+            bytes.AddRange([(byte)'\n', 0]);
+            for (var j = 0; j < 10; j++)
+            {
+                bytes.AddRange([(byte)'B', 0]);
+            }
+        }
+
+        var data = bytes.ToArray();
+        var result = Profiler.ProfilePrefix(new BytesSource("t.csv", data), Limit(2102));
+        Assert.Equal(102, result.Prefix.Length);
+        Assert.Equal(102, result.Scope.BytesRead);
+        Assert.Equal("text", result.Descriptor.Encoding.Kind);
+        Assert.Equal("utf-16le", result.Descriptor.Encoding.Charset);
+        AssertObservable(result, data, "utf-16le window, cut inside the limit, utf-16be prefix");
+
+        var profile = Profiler.Profile(new BytesSource("t.csv", data), Limit(2102));
         Assert.Equal(profile, result.Descriptor);
 
         var alone = Profiler.Profile(new BytesSource("t.csv", result.Prefix.ToArray()), ProfileOptions.Create(false, Array.Empty<string>()));
