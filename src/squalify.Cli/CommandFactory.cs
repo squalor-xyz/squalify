@@ -36,7 +36,7 @@ public static class CommandFactory
     /// <param name="args">Command-line arguments.</param>
     /// <param name="stdout">Standard output writer.</param>
     /// <param name="stderr">Standard error writer.</param>
-    /// <returns>0 on success, 1 on any error.</returns>
+    /// <returns>0 on success, 3 when the first record is longer than --max-first-record-bytes, 1 on any other error.</returns>
     public static async Task<int> InvokeAsync(string[] args, TextWriter stdout, TextWriter stderr)
     {
         var root = CreateRootCommand(stdout, stderr);

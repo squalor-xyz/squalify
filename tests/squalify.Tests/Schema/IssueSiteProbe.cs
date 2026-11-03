@@ -64,3 +64,84 @@ internal static class ProbeCodes
     /// <summary>A code that does not come from the registry.</summary>
     public static readonly string Other = "other";
 }
+
+/// <summary>
+/// Code for <see cref="CodeVocabulary.IlIssueCodes"/> to read, not to run. Each method makes an <see cref="Issue"/> whose code is its first
+/// argument, and puts a string literal where the scan must not take it for a code: in a later argument, as a value that a call consumes, and
+/// as the argument of a call that makes the code. The codes are the first arguments, in the shapes the compiler gives them: a direct literal,
+/// the arms of a branch or of a switch expression, a literal that goes through a local or a parameter. Each shape has its own method.
+/// </summary>
+internal static class CodeArgumentProbe
+{
+    /// <summary>The code is the first argument; a later argument is a literal in an array.</summary>
+    public static Issue CodeThenLaterLiteral(int count)
+    {
+        return new Issue("probeCode", count, Names: new[] { "later" });
+    }
+
+    /// <summary>A literal that is only passed to another method, then a registry code.</summary>
+    public static Issue UnrelatedLiteralBeforeCode(int count)
+    {
+        Consume("unrelated");
+        return new Issue(IssueCodes.RaggedRows, count);
+    }
+
+    /// <summary>A literal that a call turns into the code: the literal is an argument of that call, not the code.</summary>
+    public static Issue DescribedCode(int count)
+    {
+        return new Issue(Describe("probeDescribed"), count);
+    }
+
+    /// <summary>A code chosen by a branch: each arm is the first argument, so each arm is a code.</summary>
+    public static Issue TernaryCode(bool flag, int count)
+    {
+        return new Issue(flag ? "probeTernary" : "probeTernaryOther", count);
+    }
+
+    /// <summary>A literal that is the first argument of an outer call, with an Issue built as its later argument: not a code.</summary>
+    public static void OuterArgumentLiteral(int count)
+    {
+        Keep("probeOuter", new Issue(IssueCodes.RaggedRows, count));
+    }
+
+    /// <summary>A code held in a local: the literal is stored, then loaded as the first argument.</summary>
+    public static Issue ViaLocal(int count)
+    {
+        var code = "probeLocal";
+        return new Issue(code, count);
+    }
+
+    /// <summary>A code held in a local that is loaded for another call first, then used as the code twice.</summary>
+    public static Issue[] ViaLocalUsedTwice(int count)
+    {
+        var code = "probeLocalTwice";
+        Consume(code);
+        return [new Issue(code, count), new Issue(code, count)];
+    }
+
+    /// <summary>A code chosen by a switch expression, which the compiler lowers through a temporary local.</summary>
+    public static Issue SwitchCode(int which, int count)
+    {
+        return new Issue(which switch { 0 => "probeSwitchA", 1 => "probeSwitchB", _ => "probeSwitchC" }, count);
+    }
+
+    /// <summary>A code stored into a parameter, then loaded as the first argument.</summary>
+    public static Issue ViaArgument(string code, int count)
+    {
+        code = "probeArgument";
+        return new Issue(code, count);
+    }
+
+    private static void Consume(string text)
+    {
+        _ = text;
+    }
+
+    private static void Keep(string label, Issue issue)
+    {
+        _ = label;
+        _ = issue;
+    }
+
+    private static string Describe(string text) => text.ToUpperInvariant();
+}

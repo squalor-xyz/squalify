@@ -334,6 +334,20 @@ public class SchemaTests
     }
 
     [Fact]
+    public void IlIssueCodes_ReadsOnlyTheCodeArgument()
+    {
+        // The code is the first argument of the constructor. A literal in a later argument, a literal that a call consumes before the Issue is
+        // built, a literal that a call turns into the code, and the first argument of an outer call are not codes. The first argument is a
+        // code, in either arm of a branch.
+        string[] expected =
+        [
+            "probeArgument", "probeCode", "probeLocal", "probeLocalTwice", "probeSwitchA", "probeSwitchB", "probeSwitchC", "probeTernary",
+            "probeTernaryOther",
+        ];
+        Assert.Equal(expected, CodeVocabulary.IlIssueCodes(typeof(CodeArgumentProbe).Assembly, nameof(CodeArgumentProbe)));
+    }
+
+    [Fact]
     public void EvidenceStages_ScanOfLiteralsAtEvidenceSites_IsSubsetOfStageOrder()
     {
         Assert.Empty(CodeVocabulary.IlEvidenceStageLiterals().Except(EvidenceStages.Order, StringComparer.Ordinal));

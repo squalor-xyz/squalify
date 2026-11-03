@@ -5,7 +5,17 @@ namespace squalor.squalify.Cli;
 
 internal static class CliApp
 {
-    /// <summary>The exit gate: 0 on success, 1 on any error, with the message on stderr.</summary>
+    // The exit codes, in one place. Scripts depend on them. Exit 2 is left unused: .NET command-line parsers commonly use it for usage errors.
+    /// <summary>The exit code of a successful run.</summary>
+    internal const int ExitSuccess = 0;
+
+    /// <summary>The exit code of any error other than the first-record refusal, usage errors included.</summary>
+    internal const int ExitError = 1;
+
+    /// <summary>The exit code when the first record of a file is longer than --max-first-record-bytes: nothing is profiled or written.</summary>
+    internal const int ExitFirstRecordTooLong = 3;
+
+    /// <summary>The exit gate: 0 on success, 3 for the first-record refusal, 1 on any other error, with the message on stderr.</summary>
     internal static async Task<int> RunAsync(TextWriter stderr, bool verbose, Func<Task<int>> action)
     {
         try
@@ -22,7 +32,7 @@ internal static class CliApp
                 else if (!ex.Message.Contains(ex.InnerException.Message, StringComparison.Ordinal))
                     stderr.WriteLine(ex.InnerException.Message);
             }
-            return 1;
+            return ex.Code == SqualifyErrorCodes.FirstRecordTooLong ? ExitFirstRecordTooLong : ExitError;
         }
         catch (OperationCanceledException)
         {
@@ -31,7 +41,7 @@ internal static class CliApp
         catch (Exception ex)
         {
             stderr.WriteLine(verbose ? ex.ToString() : ex.Message);
-            return 1;
+            return ExitError;
         }
     }
 
@@ -52,7 +62,7 @@ internal static class CliApp
                 WriteReplacing(output, bytes);
             }
 
-            return Task.FromResult(0);
+            return Task.FromResult(ExitSuccess);
         });
     }
 
