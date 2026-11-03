@@ -12,9 +12,17 @@ namespace squalor.squalify.Tests;
 public sealed class PrefixCutTests
 {
     /// <summary>One charset of the matrix: its strict decoder, its byte order mark (or none), its code unit and the charset the sniff reports.</summary>
-    private sealed record Charset(string Name, Encoding Strict, byte[] Bom, int Width, string? Sniffed)
+    private sealed record Charset(string Name, Encoding Strict, byte[] Bom, int Width, string? Sniffed, Repertoire Repertoire = Repertoire.Wide)
     {
         public override string ToString() => Name;
+    }
+
+    /// <summary>The characters a test file uses: all of Unicode, the Latin-1 range (0xE9 bytes, invalid as UTF-8), or ASCII only.</summary>
+    private enum Repertoire
+    {
+        Wide,
+        Latin1,
+        Ascii,
     }
 
     private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
@@ -33,6 +41,8 @@ public sealed class PrefixCutTests
         new("utf-16be+bom", new UnicodeEncoding(true, false, true), Utf16BeBom, 2, "utf-16be"),
         new("utf-32le+bom", new UTF32Encoding(false, false, true), Utf32LeBom, 4, "utf-32le"),
         new("utf-32be+bom", new UTF32Encoding(true, false, true), Utf32BeBom, 4, "utf-32be"),
+        new("ascii", Encoding.GetEncoding("us-ascii", EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback), [], 1, "ascii", Repertoire.Ascii),
+        new("latin-1", Encoding.Latin1, [], 1, "latin-1", Repertoire.Latin1),
     ];
 
     // The sniff recognises UTF-32 only by its byte order mark: without one the NUL pattern is not UTF-16's, so the file is binary.
@@ -53,17 +63,33 @@ public sealed class PrefixCutTests
         return data;
     }
 
+    // The first limit of every sweep: past the byte order mark and the header, so the window holds data.
+    private const long From = 120;
+
     private static Charset Named(string name) => All.Single(c => c.Name == name);
 
-    // A header, then lines that each hold a 2-byte (e acute), a 3-byte (euro sign) and a 4-byte (grinning face, a surrogate pair in
-    // UTF-16) UTF-8 sequence. Non-ASCII characters are escapes: source files are ASCII.
-    private static string Text(IReadOnlyList<string> terminators, int lines = 40)
+    // The tail of a Wide line: units whose low byte is 0x0A or 0x0D (or, in UTF-32, a low byte of that value) but that are not
+    // terminators, because another byte of the unit is not zero: U+010A, U+0D0A, U+0A0D and U+10A0D (a surrogate pair in UTF-16).
+    private const string NotTerminators = "\u010A\u0D0A\u0A0D\U00010A0D";
+
+    // A header, then lines. A Wide line holds a 2-byte (e acute), a 3-byte (euro sign) and a 4-byte (grinning face, a surrogate
+    // pair in UTF-16) UTF-8 sequence, then the NotTerminators. A Latin1 line holds four 0xE9 and two other high bytes (invalid
+    // as UTF-8), and an Ascii line none. Non-ASCII characters are escapes: source files are ASCII.
+    private static string Text(Charset charset, IReadOnlyList<string> terminators, int lines = 40)
     {
         var sb = new StringBuilder("id,name,price,tag").Append(terminators[0]);
         for (var i = 1; i <= lines; i++)
         {
-            sb.Append(i.ToString(CultureInfo.InvariantCulture)).Append(",café").Append(i.ToString(CultureInfo.InvariantCulture))
-                .Append(",€").Append((i * 7).ToString(CultureInfo.InvariantCulture)).Append(",\U0001F600x").Append(terminators[i % terminators.Count]);
+            var n = i.ToString(CultureInfo.InvariantCulture);
+            var m = (i * 7).ToString(CultureInfo.InvariantCulture);
+            sb.Append(n);
+            sb.Append(charset.Repertoire switch
+            {
+                Repertoire.Wide => ",caf\u00E9" + n + ",\u20AC" + m + ",\U0001F600x" + NotTerminators,
+                Repertoire.Latin1 => ",caf\u00E9" + n + ",\u00E9" + m + ",\u00C4\u00CAx,\u00E9y,\u00E9z",
+                _ => ",cafe" + n + ",EUR" + m + ",x",
+            });
+            sb.Append(terminators[i % terminators.Count]);
         }
 
         return sb.ToString();
@@ -156,7 +182,7 @@ public sealed class PrefixCutTests
 
             // Strict decoding throws on a split character; the replacement character must not be there either.
             var prefix = Decode(charset, result.Prefix.Span);
-            Assert.DoesNotContain('�', prefix);
+            Assert.DoesNotContain('\uFFFD', prefix);
 
             // It ends at a terminator, and not between the CR and the LF of a CRLF.
             Assert.True(prefix.EndsWith('\n') || prefix.EndsWith('\r'), $"{where}: the prefix ends at a terminator");
@@ -180,7 +206,7 @@ public sealed class PrefixCutTests
         }
     }
 
-    private static long LineBytes(Charset charset) => charset.Strict.GetByteCount("1,café1,€7,\U0001F600x\n");
+    private static long LineBytes(Charset charset) => charset.Strict.GetByteCount(Lines(Text(charset, ["\n"]))[1]);
 
     [Theory]
     [MemberData(nameof(CharsetNames))]
@@ -190,8 +216,8 @@ public sealed class PrefixCutTests
 
         // Every limit across two lines, so each byte of a 2-, 3- and 4-byte sequence (and of a surrogate pair, and of a UTF-16 or
         // UTF-32 unit) is the last byte of the window in turn.
-        AssertEveryCut(charset, Text(["\r\n"]), 48, 48 + (2 * LineBytes(charset)));
-        AssertEveryCut(charset, Text(["\n"]), 48, 48 + (2 * LineBytes(charset)));
+        AssertEveryCut(charset, Text(charset, ["\r\n"]), From, From + (2 * LineBytes(charset)));
+        AssertEveryCut(charset, Text(charset, ["\n"]), From, From + (2 * LineBytes(charset)));
     }
 
     [Theory]
@@ -200,8 +226,8 @@ public sealed class PrefixCutTests
     {
         var charset = Named(name);
         var range = 2 * LineBytes(charset);
-        AssertEveryCut(charset, Text(["\r"]), 48, 48 + range);
-        AssertEveryCut(charset, Text(["\r", "\n", "\r\n"]), 48, 48 + (2 * range));
+        AssertEveryCut(charset, Text(charset, ["\r"]), From, From + range);
+        AssertEveryCut(charset, Text(charset, ["\r", "\n", "\r\n"]), From, From + (2 * range));
     }
 
     [Theory]
@@ -209,7 +235,7 @@ public sealed class PrefixCutTests
     public void A_CR_that_ends_the_limit_takes_its_LF(string name)
     {
         var charset = Named(name);
-        var bytes = Bytes(charset, Text(["\r\n"]));
+        var bytes = Bytes(charset, Text(charset, ["\r\n"]));
         var width = charset.Width;
 
         // The limit that ends on the CR of the third line's CRLF (its first unit, or the last byte of it for a wide unit).
@@ -225,7 +251,7 @@ public sealed class PrefixCutTests
         Assert.Equal(charset.Bom.Length + Lines(text).Take(2).Sum(l => (long)charset.Strict.GetByteCount(l)), shorter.Prefix.Length);
 
         // A lone CR that ends the limit, with no LF after it, is the cut.
-        var lone = Bytes(charset, Text(["\r"]));
+        var lone = Bytes(charset, Text(charset, ["\r"]));
         var loneText = Decode(charset, lone);
         var loneThird = charset.Bom.Length + Lines(loneText).Take(3).Sum(l => (long)charset.Strict.GetByteCount(l));
         var loneResult = Profiler.ProfilePrefix(new BytesSource("t.csv", lone), Limit(loneThird));
@@ -240,7 +266,7 @@ public sealed class PrefixCutTests
         // Documented sniff behavior (not new in this slice): the contract covers the charset the sniff reports, and the sniff
         // reports UTF-32 only from a byte order mark. Without one the file is binary and is cut at the limit.
         var charset = Utf32WithoutBom.Single(c => c.Name == name);
-        var bytes = Bytes(charset, Text(["\n"]));
+        var bytes = Bytes(charset, Text(charset, ["\n"]));
         var result = Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Limit(103));
         Assert.Equal("binary", result.Descriptor.Encoding.Kind);
         Assert.Equal(103, result.Prefix.Length);
@@ -253,11 +279,11 @@ public sealed class PrefixCutTests
         var charset = Named(name);
         foreach (var terminators in new[] { new[] { "\r\n" }, ["\r"], ["\r", "\n", "\r\n"] })
         {
-            var bytes = Bytes(charset, Text(terminators));
+            var bytes = Bytes(charset, Text(charset, terminators));
             var lineBytes = LineBytes(charset);
 
             // The first limits are the ones that straddle a character or a CRLF; a stride keeps the run short.
-            for (var limit = 48L; limit <= 48 + (2 * lineBytes); limit += 3)
+            for (var limit = From; limit <= From + (2 * lineBytes); limit += 3)
             {
                 var profile = Profiler.Profile(new BytesSource("t.csv", bytes), Limit(limit));
                 var prefix = Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Limit(limit));
@@ -277,7 +303,7 @@ public sealed class PrefixCutTests
     public void A_first_record_over_the_ceiling_has_its_error_code(string name)
     {
         var charset = Named(name);
-        var text = Text(["\r\n"]);
+        var text = Text(charset, ["\r\n"]);
         var bytes = Bytes(charset, text);
         var firstRecord = charset.Bom.Length + charset.Strict.GetByteCount(Lines(text)[0]);
 
@@ -300,7 +326,7 @@ public sealed class PrefixCutTests
     public void A_first_record_over_the_ceiling_with_a_limit_below_the_file_has_its_error_code()
     {
         var charset = Named("utf-16le+bom");
-        var bytes = Bytes(charset, Text(["\n"]));
+        var bytes = Bytes(charset, Text(charset, ["\n"]));
         var error = Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Ceiling(200, 20)));
         Assert.Equal("firstRecordTooLong", error.Code);
         Assert.Equal(SqualifyErrorCodes.FirstRecordTooLong, error.Code);
@@ -309,7 +335,7 @@ public sealed class PrefixCutTests
     [Fact]
     public void Another_failure_has_no_error_code()
     {
-        var bytes = Bytes(Named("utf-8"), Text(["\n"]));
+        var bytes = Bytes(Named("utf-8"), Text(Named("utf-8"), ["\n"]));
         var zero = Assert.Throws<SqualifyException>(() => Profiler.ProfilePrefix(new BytesSource("t.csv", bytes), Ceiling(0, null)));
         Assert.Null(zero.Code);
 

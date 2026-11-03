@@ -26,8 +26,9 @@ public sealed record ProfileOptions
     /// The byte limit, or null to read the whole source (the default). A positive limit makes squalify read at most that many bytes, cut
     /// at the last whole line of a text file, and write the <c>scope</c> section. Two exceptions to "at most": a CRLF that
     /// straddles the limit adds one code unit, and a first record longer than the limit is read to its end, however long
-    /// (no ceiling, unless <see cref="MaxFirstRecordBytes"/> is set). The cut is always after a whole line terminator in code units
-    /// of the sniffed charset, so a text prefix never ends inside a character or a line terminator. A limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
+    /// (no ceiling, unless <see cref="MaxFirstRecordBytes"/> is set). A text prefix ends right after a whole LF, CR or CRLF, counted in code
+    /// units of the sniffed charset, or at the end of the file (then <c>scope.complete</c> is true), so it never ends inside a
+    /// character or a line terminator; a binary prefix is cut at the byte limit. A limit of zero or less is rejected by <see cref="Profiler"/>. It is not written to the
     /// <c>options</c> section: <c>scope.maxBytes</c> carries it.
     /// </summary>
     public long? MaxBytes { get; init; }

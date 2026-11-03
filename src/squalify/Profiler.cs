@@ -59,11 +59,12 @@ public static class Profiler
     /// <see cref="ProfileOptions.MaxFirstRecordBytes"/> caps the overshoot. A source must report its <see cref="IProfileSource.Length"/>,
     /// and is never read past it.
     /// <para>
-    /// The cut is a contract: a text prefix ends right after a whole line terminator, counted in whole code units of the
-    /// sniffed charset, so it never ends inside a character (a UTF-8 sequence, a UTF-16 surrogate pair, a UTF-16 or UTF-32
-    /// unit) or inside a CRLF, and the lines and characters that a consumer counts in it are those of the same lines in the whole
-    /// file. UTF-32 is recognised only from its byte order mark; a UTF-32 file without one sniffs as binary and is cut at the
-    /// limit.
+    /// The cut is a contract: a text prefix ends right after a whole LF, CR or CRLF, or at the end of the file (then
+    /// <c>scope.complete</c> is true); a binary prefix is cut at the byte limit. A terminator is counted in whole code units of
+    /// the charset sniffed from the bytes inside the limit, so a text prefix never ends inside a character (a UTF-8 sequence, a
+    /// UTF-16 surrogate pair, a UTF-16 or UTF-32 unit) or inside a CRLF, and the lines and characters that a consumer counts in
+    /// it are those of the same lines in the whole file. UTF-32 is recognised only from its byte order mark; a UTF-32 file
+    /// without one sniffs as binary and is cut at the limit.
     /// </para>
     /// </summary>
     /// <param name="source">The source.</param>

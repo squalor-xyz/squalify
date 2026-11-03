@@ -52,8 +52,9 @@ public sealed class ProfilePrefixTests
     // The limit that puts the window's end the given number of bytes after the first match of the pattern at or after 300.
     private static long After(byte[] bytes, byte[] pattern, int extra)
     {
-        var index = bytes.AsSpan(300).IndexOf(pattern) + 300;
-        return index + extra;
+        var found = bytes.AsSpan(300).IndexOf(pattern);
+        Assert.True(found >= 0, "the pattern is in the test bytes after offset 300");
+        return found + 300 + extra;
     }
 
     private static readonly Dictionary<string, Case> Cases = BuildCases();
